@@ -1,6 +1,6 @@
 import { isComponent } from './component.mts'
 import type { Component } from './component.mts'
-import { GenericComponent, setComponentData } from './component/generic-component.mts'
+import { componentStore, GenericComponent } from './component/generic-component.mts'
 import { RootedElement, RootedElementConstructor } from './rooted-element.mjs'
 
 type RootedElementClass<TComponent extends RootedElement> = (new () => TComponent) & RootedElementConstructor
@@ -44,7 +44,7 @@ export function create(
 
 	if (isComponent(component)) {
 		const element = document.createElement(GenericComponent.tagName) as GenericComponent
-		setComponentData(element, component, properties)
+		componentStore.set(element, component, properties)
 		return element
 	}
 
