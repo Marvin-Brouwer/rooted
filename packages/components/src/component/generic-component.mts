@@ -4,16 +4,32 @@ import { isDevelopment } from '../dev-helper.mjs'
 import { create } from '../element-helper.mjs'
 import { pageSignal } from '../page-context.mjs'
 
-export class GenericComponent extends RootedElement {
-	public static tagName = isDevelopment() ? 'generic-component' : 'gc'
+type ComponentData = { component: Readonly<ComponentConstructor>, options: Readonly<any> }
+const _store = new WeakMap<GenericComponent, ComponentData>()
 
-	public component!: Readonly<ComponentConstructor>
-	public options!: Readonly<any>
+export function setComponentData(element: GenericComponent, component: ComponentConstructor, options: any) {
+	_store.set(element, { component, options })
+	if (isDevelopment()) {
+		Object.assign(element, {
+			component,
+			options
+		})
+	}
+}
+
+export class GenericComponent extends RootedElement {
+	public static tagName = isDevelopment() ? 'generic-component' : 'r-gc'
 
 	private abortController = new AbortController()
 
 	protected onMount() {
-		this.setAttribute('name', this.component.name)
+		const { component, options } = _store.get(this)!
+
+		if (isDevelopment()) {
+			this.setAttribute('name', component.name)
+		}
+
+		this.style.display = "contents"
 
 		// Re-create to cover remounting
 		this.abortController.abort('remounted')
@@ -23,8 +39,9 @@ export class GenericComponent extends RootedElement {
 			signal: this.abortController.signal
 		})
 
-		const context: ComponentContext = {
+		const context: ComponentContext<any> = {
 			signal: this.abortController.signal,
+			options,
 			create,
 			// TODO also prepend etc
 			append: ((...forwardParameters: Parameters<typeof create>) => {
@@ -34,8 +51,8 @@ export class GenericComponent extends RootedElement {
 			}) as typeof create
 		}
 
-		Promise.resolve(this.component.onMount.call(context, context)).catch(error => {
-			console.error(`[component] Mounting ${this.component.name} failed`, error)
+		Promise.resolve(component.onMount.call(context, context)).catch(error => {
+			console.error(`[component] Mounting ${component.name} failed`, error)
 			if (isDevelopment()) this.innerHTML = error.toString()
 		})
 	}

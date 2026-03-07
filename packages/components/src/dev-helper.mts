@@ -1,6 +1,5 @@
 export function isDevelopment() {
-	// todo return based on common patterns for vite and tsup etc.
-	return true
+	return import.meta.env.DEV
 }
 
 function componentNameChecker() {

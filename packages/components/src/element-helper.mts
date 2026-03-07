@@ -1,6 +1,6 @@
 import { isComponent } from './component.mts'
 import type { Component } from './component.mts'
-import { GenericComponent } from './component/generic-component.mts'
+import { GenericComponent, setComponentData } from './component/generic-component.mts'
 import { RootedElement, RootedElementConstructor } from './rooted-element.mjs'
 
 type RootedElementClass<TComponent extends RootedElement> = (new () => TComponent) & RootedElementConstructor
@@ -42,8 +42,11 @@ export function create<KElement extends keyof HTMLElementTagNameMap>(element: KE
 export function create(
 	component: Component<any> | string | RootedElementClass<RootedElement>, properties?: unknown): unknown {
 
-	if (isComponent(component))
-		return createComponent(GenericComponent, { component, options: properties } as any)
+	if (isComponent(component)) {
+		const element = document.createElement(GenericComponent.tagName) as GenericComponent
+		setComponentData(element, component, properties)
+		return element
+	}
 
 	if (typeof component === 'string')
 		return createElement(component, properties as any)

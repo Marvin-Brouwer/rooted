@@ -1,10 +1,13 @@
 import { component } from '@rooted/components'
 
-export const Example = component({
+export type ExampleOptions = {
+	text: string
+}
+export const Example = component<ExampleOptions>({
 	name: 'example',
-	onMount({ append }) {
+	onMount({ append, options }) {
 		append('p', {
-			textContent: 'this is a test'
+			textContent: `this is a test "${options.text}"`
 		})
 	},
 })
