@@ -1,8 +1,19 @@
 {
 	"name": "@rooted/components",
 	"description": "rooted — web components rooted very close to the original",
+	"exports": {
+		".": {
+			"import": "./dist/components.mjs",
+			"types": "./dist/components.d.mjs"
+		},
+		"./application": {
+			"import": "./dist/application.mjs",
+			"types": "./dist/application.d.mjs"
+		}
+	},
 	"scripts": {
-		"build": "pnpm -r run build"
+		"build": "tsup",
+		"clean": "rm -rf dist"
 	},
 	"devDependencies": {
 		"typescript": "^5.5.0"
