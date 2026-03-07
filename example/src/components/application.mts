@@ -5,7 +5,10 @@ export const Application = component({
 	name: 'application',
 	onMount({ append, create }) {
 		append('div', {
-			children: create(Example, { text: 'child text' })
+			children: [
+				create(Example, { text: 'child text' }),
+				create(Example, { text: 'child text 2' }),
+			]
 		})
 	},
 })
