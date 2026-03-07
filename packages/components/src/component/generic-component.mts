@@ -1,6 +1,6 @@
 import { RootedElement } from '../rooted-element.mjs'
-import { ComponentConstructor, ComponentContext } from '../component.mjs'
-import { isDevelopment } from '../dev-helper.mjs'
+import { ComponentConstructor, ComponentContext, definedAt } from '../component.mjs'
+import { dev, isDevelopment } from '../dev-helper.mjs'
 import { create } from '../element-helper.mjs'
 import { pageSignal } from '../page-context.mjs'
 
@@ -9,12 +9,7 @@ const _store = new WeakMap<GenericComponent, ComponentData>()
 
 export function setComponentData(element: GenericComponent, component: ComponentConstructor, options: any) {
 	_store.set(element, { component, options })
-	if (isDevelopment()) {
-		Object.assign(element, {
-			component,
-			options
-		})
-	}
+	dev.appendComponentMetaData?.(element, component, options)
 }
 
 export class GenericComponent extends RootedElement {

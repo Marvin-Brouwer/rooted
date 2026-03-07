@@ -25,7 +25,8 @@ type BaseComponentContext = {
 	signal: AbortSignal
 }
 
-const componentBrand: unique symbol = Symbol('component')
+const componentBrand: unique symbol = Symbol('rooted:component')
+export const definedAt: unique symbol = Symbol('rooted:definedAt')
 
 export function isComponent(value: unknown): value is Component<any> {
 	return typeof value === 'object' && value !== null && componentBrand in value
@@ -69,6 +70,7 @@ export type ComponentConstructor<TOptions extends {} = never> = {
 	styles?: string,
 	/** Custom component constructor */
 	onMount(this: ComponentContext<TOptions>, context: ComponentContext<TOptions>): void | Promise<void>
+	[definedAt]?: string
 }
 
 /**
@@ -94,6 +96,7 @@ export function component<TOptions extends {}>(constructor: ComponentConstructor
 	RootedElement.validateTagName(constructor.name)
 
 	dev.componentNameCheck?.(constructor.name)
+	constructor[definedAt] = dev.appendSourceLocation?.()
 
 	return Object.assign(constructor, { [componentBrand]: true }) as unknown as Component<TOptions>
 }
