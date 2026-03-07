@@ -5,6 +5,8 @@ export function isDevelopment() {
 }
 
 function validateComponentName(name: string): void {
+	// Component names are used as attribute names on the wrapper element (e.g. data-component="name")
+	// and as CSS attribute selectors, so we validate against attribute name rules.
 	try {
 		document.createElement('div').setAttribute(name, '')
 	} catch {
