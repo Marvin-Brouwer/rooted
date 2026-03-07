@@ -4,18 +4,12 @@ import { create } from './element-helper.mts'
 /**
  * ## Initialize a new `application`
  *
- * Expects the following element to be present in the body:
- * ```html
- *   <script
- *		  id="app" async defer
- *			type="module" src="/src/main.mts"
- *	 ></script>
- * ```
+ * Expects an element of id `app` in the document body.
  *
- * The application will replace the script element.
+ * The application will replace the `#app` element.
  */
 export function application(component: Component) {
-	const script = document.querySelector('script#app')
+	const script = document.querySelector('#app')
 	if (!script) {
 		console.error('Application incorrectly configured')
 		return

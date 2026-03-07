@@ -5,11 +5,11 @@ import { RootedElement, RootedElementConstructor } from './rooted-element.mjs'
 
 type RootedElementClass<TComponent extends RootedElement> = (new () => TComponent) & RootedElementConstructor
 type RootedElementProps<TComponent extends RootedElement> = Omit<TComponent, 'onMount' | 'children' | keyof RootedElement> & {
-	children?: Array<HTMLElement> | HTMLElement
+	children?: Array<Node> | Node
 }
 
 type HtmlElementProps<TElement extends HTMLElement> = Partial<Omit<TElement, 'children'>> & {
-	children?: Array<HTMLElement> | HTMLElement
+	children?: Array<Node> | Node
 }
 
 function createComponent<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: RootedElementProps<TComponent>) {
