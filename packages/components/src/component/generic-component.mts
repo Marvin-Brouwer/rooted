@@ -1,8 +1,9 @@
 import { RootedElement } from '../rooted-element.mjs'
-import { ComponentConstructor, ComponentContext } from '../component.mjs'
+import { ComponentConstructor, ComponentContext, scopeId } from '../component.mjs'
 import { dev, isDevelopment } from '../dev-helper.mjs'
 import { create } from '../element-helper.mjs'
 import { pageSignal } from '../page-context.mjs'
+import { applyStyles } from './styles.mts'
 
 
 type ComponentData<T> = {
@@ -47,11 +48,11 @@ export class GenericComponent extends RootedElement {
 	protected onMount() {
 		const { component, options } = componentStore.get<any>(this)!
 
-		if (isDevelopment()) {
-			this.setAttribute('name', component.name)
-		}
+		this.setAttribute(component[scopeId]!, '')
+		if (isDevelopment()) this.setAttribute('name', component.name)
 
 		this.style.display = "contents"
+		applyStyles(this, component)
 
 		// Re-create to cover remounting
 		this.abortController.abort('remounted')
@@ -75,7 +76,12 @@ export class GenericComponent extends RootedElement {
 
 		Promise.resolve(component.onMount.call(context, context)).catch(error => {
 			console.error(`[component] Mounting ${component.name} failed`, error)
-			if (isDevelopment()) this.innerHTML = error.toString()
+			if (isDevelopment()) {
+				this.append(create('pre', {
+					role: 'error-display',
+					textContent: error.toString()
+				}))
+			}
 		})
 	}
 

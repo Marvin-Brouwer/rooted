@@ -1,18 +1,39 @@
-import { Component, ComponentConstructor, definedAt } from './component.mts'
+import { ComponentConstructor, definedAt } from './component.mts'
 
 export function isDevelopment() {
 	return import.meta.env.DEV
 }
 
+function validateComponentName(name: string): void {
+	try {
+		document.createElement('div').setAttribute(name, '')
+	} catch {
+		throw new Error(`Invalid component name "${name}".`)
+	}
+}
+
 function componentNameChecker() {
 
-	const names = new Set<string>()
+	const names = new Map<string, string[]>()
 
-	return function checkName(componentName: string) {
-		if (names.has(componentName)) console.warn(
-			`[component] Duplicate component name detected: "${componentName}"`
+	return function checkName(component: ComponentConstructor) {
+
+		validateComponentName(component.name)
+
+		const registeredForName = names.get(component.name) ?? []
+		if (registeredForName.length) console.warn(
+			`[component] Duplicate component name detected: "${component.name}"`,
+			Object.assign({}, {
+				get list() {
+					return Object.fromEntries(
+						[...names.entries()].filter(([, value]) => value.length > 1)
+					)
+				},
+			})
 		)
-		names.add(componentName)
+		names.set(component.name,
+			[...registeredForName, component[definedAt]!]
+		)
 	}
 }
 

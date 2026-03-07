@@ -1,6 +1,6 @@
-import { RootedElement } from './rooted-element.mjs'
 import { dev } from './dev-helper.mjs'
 import { create } from './element-helper.mts'
+import { pseudoRandom } from './pseudo-random.mts'
 
 /**
  * ## `ComponentContext`
@@ -25,8 +25,10 @@ type BaseComponentContext = {
 	signal: AbortSignal
 }
 
+
 const componentBrand: unique symbol = Symbol('rooted:component')
 export const definedAt: unique symbol = Symbol('rooted:definedAt')
+export const scopeId: unique symbol = Symbol('rooted:scopeId')
 
 export function isComponent(value: unknown): value is Component<any> {
 	return typeof value === 'object' && value !== null && componentBrand in value
@@ -71,6 +73,7 @@ export type ComponentConstructor<TOptions extends {} = never> = {
 	/** Custom component constructor */
 	onMount(this: ComponentContext<TOptions>, context: ComponentContext<TOptions>): void | Promise<void>
 	[definedAt]?: string
+	[scopeId]?: string
 }
 
 /**
@@ -93,10 +96,10 @@ export type ComponentConstructor<TOptions extends {} = never> = {
 export function component(constructor: ComponentConstructor): Component
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>): Component<TOptions>
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>) {
-	RootedElement.validateTagName(constructor.name)
 
-	dev.componentNameCheck?.(constructor.name)
+	constructor[scopeId] = 'r' + Math.floor(pseudoRandom() * 0xFFFFFF).toString(16)
 	constructor[definedAt] = dev.appendSourceLocation?.()
+	dev.componentNameCheck?.(constructor)
 
 	return Object.assign(constructor, { [componentBrand]: true }) as unknown as Component<TOptions>
 }

@@ -1,4 +1,4 @@
-import { ComponentConstructor } from '../component.mjs'
+import { ComponentConstructor, scopeId } from '../component.mjs'
 import { isDevelopment } from '../dev-helper.mjs'
 import { create } from '../element-helper.mjs'
 import { GenericComponent } from './generic-component.mts'
@@ -8,9 +8,9 @@ const styleSheets = new WeakSet<WeakKey>()
 const indent = isDevelopment() ? '\t' : ''
 const lineEnding = isDevelopment() ? '\n' : ''
 
-function buildCss(name: string, css: string) {
+function buildCss(id: string, css: string) {
 	const content = [
-		`@scope(${GenericComponent.tagName}[name="${name}"]) {`,
+		`@scope (${GenericComponent.tagName}[${id}]) {`,
 		indent + css,
 		'}'
 	]
@@ -18,12 +18,12 @@ function buildCss(name: string, css: string) {
 	return content.join(lineEnding)
 }
 
-export function applyStyles(this: HTMLElement, component: ComponentConstructor) {
+export function applyStyles(element: HTMLElement, component: ComponentConstructor) {
 	if (!component.styles) return
 	if (styleSheets.has(component)) return
-	this.ownerDocument.head.append(create('style', {
+	element.ownerDocument.head.append(create('style', {
 		id: `style-${component.name}`,
-		textContent: buildCss(component.name, component.styles)
+		textContent: buildCss(component[scopeId]!, component.styles)
 	}))
 	styleSheets.add(component)
 }
