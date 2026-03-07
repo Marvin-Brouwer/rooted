@@ -1,0 +1,10 @@
+{
+	"name": "@rooted/components",
+	"description": "rooted — web components rooted very close to the original",
+	"scripts": {
+		"build": "pnpm -r run build"
+	},
+	"devDependencies": {
+		"typescript": "^5.5.0"
+	}
+}
