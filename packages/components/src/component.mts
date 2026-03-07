@@ -97,18 +97,3 @@ export function component<TOptions extends {}>(constructor: ComponentConstructor
 
 	return Object.assign(constructor, { [componentBrand]: true }) as unknown as Component<TOptions>
 }
-
-// This is just an example to test syntax for now
-const Example = component({
-	name: 'example',
-	styles: 'css from a text import here',
-	onMount({ append, create }) {
-		append('div', {
-			children: create('p', {
-				textContent: 'This is just an example'
-			})
-		})
-	}
-})
-
-create(Example)
