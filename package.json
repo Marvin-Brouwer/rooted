@@ -1,0 +1,35 @@
+{
+	"name": "@rooted/monorepo",
+	"private": true,
+	"description": "rooted — web components rooted very close to the original",
+	"scripts": {
+		"build:all": "pnpm -r run build",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"lint:nofix": "eslint --cache --stats -c \"./eslint.config.ts\" .",
+		"lint": "DEBUG=eslint:cli-engine eslint --cache --fix --stats --debug -c \"./eslint.config.ts\" .",
+		"clean": "pnpm -r run clean"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.36.0",
+		"@stylistic/eslint-plugin": "^5.5.0",
+		"@types/micromatch": "^4.0.10",
+		"@types/unist": "^3.0.3",
+		"@typescript-eslint/eslint-plugin": "^8.46.3",
+		"@typescript-eslint/parser": "^8.44.1",
+		"eslint": "^9.36.0",
+		"eslint-import-resolver-typescript": "^4.4.4",
+		"eslint-plugin-import": "^2.32.0",
+		"eslint-plugin-unicorn": "^62.0.0",
+		"eslint-plugin-unused-imports": "^4.3.0",
+		"globals": "^17.3.0",
+		"tsup": "^8.0.0",
+		"typescript": "^5.5.0",
+		"typescript-eslint": "^8.44.1",
+		"vitest": "^2.0.0"
+	},
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	}
+}

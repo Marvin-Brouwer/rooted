@@ -1,0 +1,28 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"allowImportingTsExtensions": true,
+		"useDefineForClassFields": true,
+		"emitDeclarationOnly": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"isolatedModules": true,
+		"allowJs": true,
+		"lib": [
+			"DOM",
+			"ES2024.ArrayBuffer",
+			"ES2017.TypedArrays",
+			"ES2024"
+		],
+		"declaration": true,
+		"declarationMap": true,
+		/* Linting */
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"erasableSyntaxOnly": false,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedSideEffectImports": true
+	}
+}
