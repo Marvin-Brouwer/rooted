@@ -1,8 +1,8 @@
-import { RootedElement } from '../rooted-element.mjs'
-import { ComponentConstructor, ComponentContext, scopeId } from '../component.mjs'
-import { dev, isDevelopment } from '../dev-helper.mjs'
-import { create } from '../element-helper.mjs'
-import { pageSignal } from '../page-context.mjs'
+import { RootedElement } from '../rooted-element.mts'
+import { ComponentConstructor, ComponentContext, scopeId } from '../component.mts'
+import { dev, isDevelopment } from '../dev-helper.mts'
+import { create } from '../element-helper.mts'
+import { pageSignal } from '../page-context.mts'
 import { applyStyles } from './styles.mts'
 
 
@@ -46,10 +46,12 @@ export class GenericComponent extends RootedElement {
 	private abortController = new AbortController()
 
 	protected onMount() {
-		const { component, options } = componentStore.get<any>(this)!
+		const data = componentStore.get<any>(this)
+		if (!data) throw new Error('[rooted] GenericComponent mounted without component data. Use create() to instantiate components.')
+		const { component, options } = data
 
 		this.setAttribute(component[scopeId]!, '')
-		if (isDevelopment()) this.setAttribute('name', component.name)
+		if (isDevelopment()) this.setAttribute('data-component', component.name)
 
 		this.style.display = "contents"
 		applyStyles(this, component)

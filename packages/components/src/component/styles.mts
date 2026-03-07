@@ -1,19 +1,19 @@
-import { ComponentConstructor, scopeId } from '../component.mjs'
-import { isDevelopment } from '../dev-helper.mjs'
-import { create } from '../element-helper.mjs'
+import { ComponentConstructor, scopeId } from '../component.mts'
+import { isDevelopment } from '../dev-helper.mts'
+import { create } from '../element-helper.mts'
 import { GenericComponent } from './generic-component.mts'
 
 const styleSheets = new WeakMap<Document, WeakSet<ComponentConstructor>>()
 
+const scopeSupported = CSS.supports('@scope (a) { }')
 const indent = isDevelopment() ? '\t' : ''
 const lineEnding = isDevelopment() ? '\n' : ''
 
 function buildCss(id: string, css: string) {
-	const content = [
-		`@scope (${GenericComponent.tagName}[${id}]) {`,
-		indent + css,
-		'}'
-	]
+	const selector = `${GenericComponent.tagName}[${id}]`
+	const content = scopeSupported
+		? [`@scope (${selector}) {`, indent + css, '}']
+		: [`${selector} {`, indent + css, '}']
 
 	return content.join(lineEnding)
 }
@@ -26,7 +26,9 @@ export function applyStyles(element: HTMLElement, component: ComponentConstructo
 	components.add(component)
 	styleSheets.set(doc, components)
 	doc.head.append(create('style', {
-		id: `style-${component.name}`,
+		id: isDevelopment()
+			? `style-${component.name}`
+			: `style-${component[scopeId]}`,
 		textContent: buildCss(component[scopeId]!, component.styles)
 	}))
 }

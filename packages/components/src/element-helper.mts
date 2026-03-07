@@ -1,7 +1,7 @@
 import { isComponent } from './component.mts'
 import type { Component } from './component.mts'
 import { componentStore, GenericComponent } from './component/generic-component.mts'
-import { RootedElement, RootedElementConstructor } from './rooted-element.mjs'
+import { RootedElement, RootedElementConstructor } from './rooted-element.mts'
 
 type RootedElementClass<TComponent extends RootedElement> = (new () => TComponent) & RootedElementConstructor
 type RootedElementProps<TComponent extends RootedElement> = Omit<TComponent, 'onMount' | 'children' | keyof RootedElement> & {
@@ -31,9 +31,16 @@ function createElement<TElement extends HTMLElement>(element: string, properties
 }
 
 /**
- * ## Create a new `component`
+ * ## Create a new element or component
  *
- * Initializes a new component
+ * When creating HTML elements, properties are set via `Object.assign` and therefore
+ * must use **DOM property names**, not HTML attribute names:
+ * - Use `className` instead of `class`
+ * - Use `htmlFor` instead of `for`
+ * - Use `readOnly` instead of `readonly`
+ *
+ * Event listeners should be attached via `addEventListener` after creation,
+ * or by passing an `AbortSignal`-aware listener using the `signal` from the component context.
  */
 export function create(component: Component): GenericComponent
 export function create<TOptions extends {}>(component: Component<TOptions>, options: TOptions): GenericComponent & { options: Readonly<TOptions> }

@@ -1,4 +1,4 @@
-import { dev } from './dev-helper.mjs'
+import { dev } from './dev-helper.mts'
 import { create } from './element-helper.mts'
 import { pseudoRandom } from './pseudo-random.mts'
 
@@ -57,6 +57,11 @@ export type Component<TOptions extends {} = never> = ComponentConstructor<TOptio
  * 	}
  * })
  * ```
+ *
+ * @remarks
+ * The onMount signature has a typed `this` in scope. \
+ * This is by design, offering you the option to destructure the context
+ * but also using `this` if necessary
  */
 export type ComponentConstructor<TOptions extends {} = never> = {
 	/**
@@ -98,6 +103,7 @@ export function component<TOptions extends {}>(constructor: ComponentConstructor
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>) {
 
 	// This is opaque by design
+	// This is pseudo random and has ~16M possible values, that's good enough
 	constructor[scopeId] = 'r' + Math.floor(pseudoRandom() * 0xFFFFFF).toString(16)
 	constructor[definedAt] = dev.appendSourceLocation?.()
 	dev.componentNameCheck?.(constructor)
