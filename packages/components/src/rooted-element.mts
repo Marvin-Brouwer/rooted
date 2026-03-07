@@ -18,6 +18,7 @@ export abstract class RootedElement extends HTMLElement {
 	}
 
 	static register<TElement extends RootedElementConstructor>(element: TElement) {
+		RootedElement.validateTagName(element.tagName)
 		customElements.define(element.tagName, element)
 	}
 
