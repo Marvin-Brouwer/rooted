@@ -20,17 +20,18 @@ function componentNameChecker() {
 
 		validateComponentName(component.name)
 
+
 		const registeredForName = names.get(component.name) ?? []
-		if (registeredForName.length) console.warn(
-			`[component] Duplicate component name detected: "${component.name}"`,
-			Object.assign({}, {
-				get list() {
-					return Object.fromEntries(
-						[...names.entries()].filter(([, value]) => value.length > 1)
-					)
+		if (registeredForName.length) {
+			console.warn(`[component] Duplicate component name detected: "${component.name}"`)
+			console.debug('  ', Object.defineProperty({}, 'listAll', {
+				get() {
+					return names.get(component.name)
 				},
-			})
-		)
+				enumerable: true,
+				configurable: false,
+			}))
+		}
 		names.set(component.name,
 			[...registeredForName, component[definedAt]!]
 		)

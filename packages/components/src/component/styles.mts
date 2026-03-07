@@ -3,7 +3,7 @@ import { isDevelopment } from '../dev-helper.mjs'
 import { create } from '../element-helper.mjs'
 import { GenericComponent } from './generic-component.mts'
 
-const styleSheets = new WeakSet<WeakKey>()
+const styleSheets = new WeakMap<Document, WeakSet<ComponentConstructor>>()
 
 const indent = isDevelopment() ? '\t' : ''
 const lineEnding = isDevelopment() ? '\n' : ''
@@ -20,10 +20,13 @@ function buildCss(id: string, css: string) {
 
 export function applyStyles(element: HTMLElement, component: ComponentConstructor) {
 	if (!component.styles) return
-	if (styleSheets.has(component)) return
-	element.ownerDocument.head.append(create('style', {
+	const doc = element.ownerDocument
+	const components = styleSheets.get(doc) ?? new WeakSet<ComponentConstructor>()
+	if (components.has(component)) return
+	components.add(component)
+	styleSheets.set(doc, components)
+	doc.head.append(create('style', {
 		id: `style-${component.name}`,
 		textContent: buildCss(component[scopeId]!, component.styles)
 	}))
-	styleSheets.add(component)
 }

@@ -9,12 +9,7 @@ import { create } from './element-helper.mts'
  * The application will replace the `#app` element.
  */
 export function application(component: Component) {
-	const script = document.querySelector('#app')
-	if (!script) {
-		console.error('Application incorrectly configured')
-		return
-	}
-
-	const appRoot = create(component)
-	script.replaceWith(appRoot)
+	const appRoot = document.querySelector('#app')
+	if (!appRoot) throw new Error('[rooted] Application root #app not found in document.')
+	appRoot.replaceWith(create(component))
 }

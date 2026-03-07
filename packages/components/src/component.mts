@@ -97,6 +97,7 @@ export function component(constructor: ComponentConstructor): Component
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>): Component<TOptions>
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>) {
 
+	// This is opaque by design
 	constructor[scopeId] = 'r' + Math.floor(pseudoRandom() * 0xFFFFFF).toString(16)
 	constructor[definedAt] = dev.appendSourceLocation?.()
 	dev.componentNameCheck?.(constructor)
