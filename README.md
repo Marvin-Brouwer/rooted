@@ -144,6 +144,14 @@ application(component({
 | [`@rooted/router`](./packages/router) | Typed URL routing and Vite route-manifest plugin | [routing guide](./docs/routing.md) |
 | [`@rooted/util`](./packages/util) | Internal utilities (seeded IDs, dev helpers) | — |
 
+Additional guides:
+
+| Guide | Description |
+|-------|-------------|
+| [Architecture](./docs/architecture.md) | Internals: CSS scoping, security model, signal lifecycle, router design |
+| [FAQ](./docs/faq.md) | Common questions and troubleshooting |
+| [Contributing](./CONTRIBUTING.md) | Dev setup, coding standards, PR checklist |
+
 ---
 
 ## Browser support

@@ -19,6 +19,14 @@ lower-level Custom Elements API directly.
   - [options](#options)
 - [Typed options](#typed-options)
 - [Bootstrapping — `application()`](#bootstrapping--application)
+- [Development mode](#development-mode)
+- [Full example](#full-example)
+  - [append](#append)
+  - [create](#create)
+  - [signal](#signal)
+  - [options](#options)
+- [Typed options](#typed-options)
+- [Bootstrapping — `application()`](#bootstrapping--application)
 - [Full example](#full-example)
 
 ---
@@ -269,6 +277,62 @@ application(App, { element: el })
 
 Throws `[rooted] Application root not found in document.` if the selector
 matches nothing or the element is `null`.
+
+---
+
+## Development mode
+
+When Vite's `import.meta.env.DEV` is `true`, rooted activates several
+developer-experience features. All of these are tree-shaken in production
+builds.
+
+### Human-readable element names
+
+The internal wrapper element uses the tag name `<generic-component>` in
+development and `<r-gc>` in production. This makes the DOM tree far easier to
+read in the browser's Elements panel.
+
+### `data-component` attribute
+
+Each mounted component element gets a `data-component` attribute set to the
+component's `name`:
+
+```html
+<!-- development DOM -->
+<generic-component data-component="user-card" r1a2b3c4d>
+  <div class="card">...</div>
+</generic-component>
+```
+
+### Source location tracking
+
+When `component()` is called, the call stack is captured and the source file
+path and line number are stored on the constructor (under the `definedAt`
+symbol). In DevTools you can inspect the element and read `element.definedAt` to
+find exactly where the component was defined.
+
+### Component name validation and duplicate detection
+
+`component()` validates that the `name` is a legal HTML attribute name, throwing
+immediately if it is not. It also checks for duplicate names across the
+application and emits a `console.warn` with the source locations of all
+conflicting components.
+
+### Mount errors in the DOM
+
+If `onMount` throws or its promise rejects, rooted logs a `console.error` and
+additionally renders the error message as a `<pre role="alert">` inside the
+component element. This makes failures visible even when the console is closed.
+
+### Router warnings
+
+The router dev helper emits `console.warn` for:
+
+- **Duplicate gate** — the same gate object registered under more than one key.
+- **Exact gate without children** — a `.exact` gate with no `.append()` child
+  gates; such a gate can never render.
+- **Exact gate at its own URL** — a `.exact` gate that matches the current path
+  but has no subroute to satisfy the "must have additional segments" rule.
 
 ---
 
