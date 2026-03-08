@@ -1,6 +1,6 @@
 import { dev } from './dev-helper.mts'
-import { create } from './element-helper.mts'
-import { pseudoRandom } from './pseudo-random.mts'
+import { create } from './element-factory.mts'
+import { seededId } from './seeded-id.mts'
 
 /**
  * ## `ComponentContext`
@@ -76,7 +76,7 @@ export type ComponentConstructor<TOptions extends {} = never> = {
 	/** CSS for this component only, get's wrapped in context */
 	styles?: string,
 	/** Custom component constructor */
-	onMount(this: ComponentContext<TOptions>, context: ComponentContext<TOptions>): void | Promise<void>
+	onMount(context: ComponentContext<TOptions>): void | Promise<void>
 	[definedAt]?: string
 	[scopeId]?: string
 }
@@ -102,9 +102,8 @@ export function component(constructor: ComponentConstructor): Component
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>): Component<TOptions>
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>) {
 
-	// This is opaque by design
-	// This is pseudo random and has ~16M possible values, that's good enough
-	constructor[scopeId] = 'r' + Math.floor(pseudoRandom() * 0xFFFFFF).toString(16)
+	// Stable hash of the component name — safe to cache across page loads and builds
+	constructor[scopeId] = seededId(constructor.name)
 	constructor[definedAt] = dev.appendSourceLocation?.()
 	dev.componentNameCheck?.(constructor)
 

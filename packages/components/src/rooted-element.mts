@@ -28,10 +28,6 @@ export abstract class RootedElement extends HTMLElement {
 		customElements.define(element.tagName, element)
 	}
 
-	constructor() {
-		super()
-	}
-
 	protected abstract onMount(): void
 	protected onUnmount(): void {
 		// Do nothing by default
