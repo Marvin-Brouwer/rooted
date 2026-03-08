@@ -77,16 +77,19 @@ importers:
         version: 0.21.2(vite@6.4.1(@types/node@22.19.15)(terser@5.46.0))(workbox-build@7.4.0)(workbox-window@7.4.0)
 
   packages/components:
-    devDependencies:
-      typescript:
-        specifier: ^5.5.0
-        version: 5.9.3
+    dependencies:
+      '@rooted/util':
+        specifier: workspace:^
+        version: link:../util
 
   packages/router:
     dependencies:
       '@rooted/components':
         specifier: workspace:*
         version: link:../components
+      '@rooted/util':
+        specifier: workspace:*
+        version: link:../util
       tinyglobby:
         specifier: ^0.2.0
         version: 0.2.15
@@ -94,12 +97,11 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.15
-      typescript:
-        specifier: ^5.5.0
-        version: 5.9.3
       vite:
         specifier: ^6.0.0
         version: 6.4.1(@types/node@22.19.15)(terser@5.46.0)
+
+  packages/util: {}
 
 packages:
 

@@ -1,5 +1,5 @@
+import { isDevelopment } from '@rooted/util/dev'
 import { ComponentConstructor, scopeId } from '../component.mts'
-import { isDevelopment } from '../dev-helper.mts'
 import { create } from '../element-factory.mts'
 
 const styleSheets = new WeakMap<Document, WeakSet<ComponentConstructor>>()

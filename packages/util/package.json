@@ -1,0 +1,19 @@
+{
+	"name": "@rooted/util",
+	"description": "rooted — utility package",
+	"exports": {
+		".": {
+			"import": "./dist/util.mjs",
+			"types": "./dist/util.d.mjs"
+		},
+		"./dev": {
+			"import": "./dist/dev.mjs",
+			"types": "./dist/dev.d.mjs"
+		}
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"clean": "rm -rf dist"
+	}
+}

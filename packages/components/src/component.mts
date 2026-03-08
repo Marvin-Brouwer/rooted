@@ -1,6 +1,6 @@
+import { seededId } from '@rooted/util'
 import { dev } from './dev-helper.mts'
 import { create } from './element-factory.mts'
-import { seededId } from './seeded-id.mts'
 
 /**
  * ## `ComponentContext`

@@ -9,6 +9,10 @@
 		"./application": {
 			"import": "./dist/application.mjs",
 			"types": "./dist/application.d.mjs"
+		},
+		"./elements": {
+			"import": "./dist/elements.mjs",
+			"types": "./dist/elements.d.mjs"
 		}
 	},
 	"scripts": {
@@ -16,7 +20,7 @@
 		"dev": "tsup --watch",
 		"clean": "rm -rf dist"
 	},
-	"devDependencies": {
-		"typescript": "^5.5.0"
+	"dependencies": {
+		"@rooted/util": "workspace:^"
 	}
 }

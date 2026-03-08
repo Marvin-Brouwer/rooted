@@ -1,5 +1,6 @@
-import { component, isDevelopment } from '@rooted/components'
+import { component } from '@rooted/components'
 import type { Component, GenericComponent } from '@rooted/components'
+import { dev } from './dev-helper.mts'
 
 export const typedParameter: unique symbol = Symbol.for('rooted:typed-parameter')
 
@@ -83,9 +84,7 @@ function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: Unbound
 				const result = gateDef.matchFrom(location.pathname)
 				const renders = result && (!exact || result.end < location.pathname.length)
 
-				if (isDevelopment() && exact && result && !renders) {
-					console.warn(`[rooted/gate] "${inner.name}" is marked .exact but the current path "${location.pathname}" has no subroute — it will not render`)
-				}
+				dev.verifyExactWillResolve?.(inner.name, exact, result, renders)
 
 				if (renders) {
 					if (!el) el = append(inner, { ...options, gate: result.params } as unknown as O)
