@@ -4,11 +4,14 @@ import { componentStore, GenericComponent } from './component/generic-component.
 import { RootedElement, RootedElementConstructor } from './rooted-element.mts'
 
 type RootedElementClass<TComponent extends RootedElement> = (new () => TComponent) & RootedElementConstructor
-type RootedElementProps<TComponent extends RootedElement> = Omit<TComponent, 'onMount' | 'children' | keyof RootedElement> & {
+type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? A : B
+type WritableKeys<T> = { [P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never> }[keyof T]
+
+type RootedElementProps<TComponent extends RootedElement> = Pick<TComponent, WritableKeys<TComponent> & Exclude<keyof TComponent, 'children' | keyof RootedElement>> & {
 	children?: Array<Node> | Node
 }
 
-type HtmlElementProps<TElement extends HTMLElement> = Partial<Omit<TElement, 'children'>> & {
+type HtmlElementProps<TElement extends HTMLElement> = Partial<Pick<TElement, WritableKeys<TElement> & Exclude<keyof TElement, 'children'>>> & {
 	children?: Array<Node> | Node
 }
 

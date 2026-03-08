@@ -1,7 +1,7 @@
 import { RootedElement } from '../rooted-element.mts'
 import { ComponentConstructor, ComponentContext, scopeId } from '../component.mts'
 import { dev, isDevelopment } from '../dev-helper.mts'
-import { create } from '../element-helper.mts'
+import { create } from '../element-factory.mts'
 import { pageSignal } from '../page-context.mts'
 import { applyStyles } from './styles.mts'
 
@@ -43,17 +43,17 @@ export const componentStore = createComponentStore()
 export class GenericComponent extends RootedElement {
 	public static tagName = isDevelopment() ? 'generic-component' : 'r-gc'
 
-	private abortController = new AbortController()
+	private abortController!: AbortController
 
 	protected onMount() {
 		const data = componentStore.get<any>(this)
 		if (!data) throw new Error('[rooted] GenericComponent mounted without component data. Use create() to instantiate components.')
 		const { component, options } = data
 
-		this.setAttribute(component[scopeId]!, '')
+		if (component[scopeId]) this.setAttribute(component[scopeId], '')
 		if (isDevelopment()) this.setAttribute('data-component', component.name)
 
-		this.style.display = "contents"
+		this.style.setProperty('display', 'contents', 'important')
 		applyStyles(this, component)
 
 		// Re-create to cover remounting
@@ -76,15 +76,21 @@ export class GenericComponent extends RootedElement {
 			}) as typeof create
 		}
 
-		Promise.resolve(component.onMount.call(context, context)).catch(error => {
+		const handleError = (error: unknown) => {
 			console.error(`[component] Mounting ${component.name} failed`, error)
 			if (isDevelopment()) {
 				this.append(create('pre', {
-					role: 'error-display',
-					textContent: error.toString()
+					role: 'alert',
+					textContent: String(error)
 				}))
 			}
-		})
+		}
+
+		try {
+			Promise.resolve(component.onMount.call(context, context)).catch(handleError)
+		} catch (error) {
+			handleError(error)
+		}
 	}
 
 	protected onUnmount() {
