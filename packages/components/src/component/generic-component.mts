@@ -1,9 +1,10 @@
 import { RootedElement } from '../rooted-element.mts'
 import { ComponentConstructor, ComponentContext, scopeId } from '../component.mts'
-import { dev, isDevelopment } from '../dev-helper.mts'
 import { create } from '../element-factory.mts'
 import { pageSignal } from '../page-context.mts'
 import { applyStyles } from './styles.mts'
+import { isDevelopment } from '@rooted/util/dev'
+import { dev } from '../dev-helper.mts'
 
 
 type ComponentData<T> = {

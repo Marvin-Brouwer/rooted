@@ -1,6 +1,7 @@
-import { component, isDevelopment } from '@rooted/components'
+import { component } from '@rooted/components'
 import type { Component, GenericComponent } from '@rooted/components'
 import { typedParameter, type BoundGateDefinition, type OmitGate } from './gate-factory.mjs'
+import { dev } from './dev-helper.mts'
 
 type RouterConfig = {
 	home: Component
@@ -10,15 +11,15 @@ type RouterConfig = {
 
 // A gate is router-compatible if it has no required external options (everything beyond `gate`).
 // The [O] extends [never] check (non-distributive) handles Component<never> gates that have no options at all.
-type RouterCompatibleGate<G> = G extends BoundGateDefinition<infer O, infer T>
+export type RouterCompatibleGate<G> = G extends BoundGateDefinition<infer O, infer T>
 	? ([O] extends [never] ? BoundGateDefinition<O, T> : ({} extends OmitGate<O> ? BoundGateDefinition<O, T> : never))
 	: never
 
-type ValidatedRouterConfig<T extends RouterConfig> = {
+export type ValidatedRouterConfig<T extends RouterConfig> = {
 	[K in keyof T]: K extends 'home' | 'notFound' ? T[K] : RouterCompatibleGate<T[K]>
 }
 
-function isGate(value: Component | BoundGateDefinition<any, any>): value is BoundGateDefinition<any, any> {
+export function isGate(value: Component | BoundGateDefinition<any, any>): value is BoundGateDefinition<any, any> {
 	return typedParameter in value
 }
 
@@ -40,22 +41,9 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 	return component({
 		name: 'router',
 		onMount({ append, signal }) {
-			// Dev: warn on duplicates and exact gates with no children at mount time
-			if (isDevelopment()) {
-				const devSeen = new Set<object>()
-				for (const [key, value] of entries) {
-					if (!isGate(value)) continue
-					if (devSeen.has(value)) {
-						console.warn(`[rooted/router] Duplicate gate at key "${key}" — ignored (first-wins)`)
-					}
-					devSeen.add(value)
-				}
-				for (const { gate } of gates) {
-					if (gate.exact && !gate.hasChildren) {
-						console.warn(`[rooted/router] "${gate.name}" is marked .exact but has no child gates appended to it — it will never render`)
-					}
-				}
-			}
+
+
+			dev.validateDuplicateRoutes?.(entries, gates)
 
 			// Gates self-manage their own visibility via popstate
 			for (const { gate } of gates) {
