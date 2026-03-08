@@ -38,7 +38,7 @@ export type GateParameters<G> = G extends { [typedParameter]: infer T extends Pa
 	? { [P in T[number]as P['key']]: ParameterValueType<P['matches']> }
 	: never
 
-type OmitGate<O> = O extends never ? never : Omit<O, 'gate'>
+export type OmitGate<O> = O extends never ? never : Omit<O, 'gate'>
 
 export type BoundGateDefinition<O extends {}, T extends PathParameter[]> = Component<OmitGate<O>> & {
 	readonly [typedParameter]: T

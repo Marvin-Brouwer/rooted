@@ -4,3 +4,4 @@
  */
 
 export { gate, token, type GateParameters, type BoundGateDefinition } from '../gates/gate-factory.mts'
+export { router } from '../router.mts'
