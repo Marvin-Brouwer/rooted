@@ -1,8 +1,6 @@
-import { component } from './component.mts'
-import type { Component } from './component.mts'
-import type { GenericComponent } from './component/generic-component.mts'
-import { typedParameter, type BoundGateDefinition, type OmitGate } from './gates/gate-factory.mts'
-import { isDevelopment } from './dev-helper.mts'
+import { component, isDevelopment } from '@rooted/components'
+import type { Component, GenericComponent } from '@rooted/components'
+import { typedParameter, type BoundGateDefinition, type OmitGate } from './gate-factory.mjs'
 
 type RouterConfig = {
 	home: Component
@@ -10,9 +8,10 @@ type RouterConfig = {
 	[key: string]: Component | BoundGateDefinition<any, any>
 }
 
-// A gate is router-compatible if it has no required external options (everything beyond `gate`)
+// A gate is router-compatible if it has no required external options (everything beyond `gate`).
+// The [O] extends [never] check (non-distributive) handles Component<never> gates that have no options at all.
 type RouterCompatibleGate<G> = G extends BoundGateDefinition<infer O, infer T>
-	? ({} extends OmitGate<O> ? BoundGateDefinition<O, T> : never)
+	? ([O] extends [never] ? BoundGateDefinition<O, T> : ({} extends OmitGate<O> ? BoundGateDefinition<O, T> : never))
 	: never
 
 type ValidatedRouterConfig<T extends RouterConfig> = {
@@ -41,7 +40,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 	return component({
 		name: 'router',
 		onMount({ append, signal }) {
-			// Dev: warn on duplicates at mount time
+			// Dev: warn on duplicates and exact gates with no children at mount time
 			if (isDevelopment()) {
 				const devSeen = new Set<object>()
 				for (const [key, value] of entries) {
@@ -50,6 +49,11 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 						console.warn(`[rooted/router] Duplicate gate at key "${key}" — ignored (first-wins)`)
 					}
 					devSeen.add(value)
+				}
+				for (const { gate } of gates) {
+					if (gate.exact && !gate.hasChildren) {
+						console.warn(`[rooted/router] "${gate.name}" is marked .exact but has no child gates appended to it — it will never render`)
+					}
 				}
 			}
 
@@ -63,7 +67,10 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 			const update = () => {
 				const isHome = location.pathname === '/'
-				const anyMatches = !isHome && gates.some(({ gate: g }) => g.matchFrom(location.pathname))
+				const anyMatches = !isHome && gates.some(({ gate: g }) => {
+					const result = g.matchFrom(location.pathname)
+					return result !== false && (!g.exact || result.end < location.pathname.length)
+				})
 
 				if (isHome && !homeEl) homeEl = append(home)
 				else if (!isHome && homeEl) { homeEl.remove(); homeEl = null }

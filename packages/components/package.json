@@ -9,10 +9,6 @@
 		"./application": {
 			"import": "./dist/application.mjs",
 			"types": "./dist/application.d.mjs"
-		},
-		"./routing": {
-			"import": "./dist/routing.mjs",
-			"types": "./dist/routing.d.mjs"
 		}
 	},
 	"scripts": {
