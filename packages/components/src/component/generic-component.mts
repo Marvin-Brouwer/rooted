@@ -57,7 +57,7 @@ export class GenericComponent extends RootedElement {
 		applyStyles(this, component)
 
 		// Re-create to cover remounting
-		this.abortController.abort('remounted')
+		this.abortController?.abort('remounted')
 		this.abortController = new AbortController()
 		pageSignal.addEventListener('abort', (reason) => this.abortController.abort(reason), {
 			// Un register on unmount if the page is still alive
