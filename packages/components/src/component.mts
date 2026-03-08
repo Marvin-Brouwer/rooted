@@ -30,10 +30,28 @@ const componentBrand: unique symbol = Symbol('rooted:component')
 export const definedAt: unique symbol = Symbol('rooted:definedAt')
 export const scopeId: unique symbol = Symbol('rooted:scopeId')
 
+/**
+ * Type guard that tests whether `value` is a {@link Component} produced by
+ * {@link component}.
+ *
+ * @param value - Any value to test.
+ * @returns `true` if `value` carries the internal component brand symbol.
+ */
 export function isComponent(value: unknown): value is Component<any> {
 	return typeof value === 'object' && value !== null && componentBrand in value
 }
 
+/**
+ * A rooted component — a {@link ComponentConstructor} enriched with an internal
+ * brand symbol so the runtime can identify it and wrap it in a `<r-gc>` custom
+ * element.
+ *
+ * Create components with the {@link component} factory rather than
+ * constructing this type directly.
+ *
+ * @typeParam TOptions - The options type the component expects when mounted.
+ *   Use `never` (default) for components that take no external options.
+ */
 export type Component<TOptions extends {} = never> = ComponentConstructor<TOptions> & {
 	readonly [componentBrand]: TOptions
 }

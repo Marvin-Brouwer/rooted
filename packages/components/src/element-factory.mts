@@ -34,16 +34,43 @@ function createElement<TElement extends HTMLElement>(element: string, properties
 }
 
 /**
- * ## Create a new element or component
+ * Creates a new DOM node — either a rooted {@link Component}, a native
+ * {@link RootedElement} subclass, or a standard HTML element.
  *
- * When creating HTML elements, properties are set via `Object.assign` and therefore
- * must use **DOM property names**, not HTML attribute names:
- * - Use `className` instead of `class`
- * - Use `htmlFor` instead of `for`
- * - Use `readOnly` instead of `readonly`
+ * The node is **not** appended to the document; use
+ * {@link ComponentContext.append} to create-and-append in one step.
  *
- * Event listeners should be attached via `addEventListener` after creation,
- * or by passing an `AbortSignal`-aware listener using the `signal` from the component context.
+ * **DOM property names** — when creating HTML elements, properties are set via
+ * `Object.assign` and must use DOM property names, not HTML attribute names:
+ * | HTML attribute | DOM property |
+ * |---------------|--------------|
+ * | `class`       | `className`  |
+ * | `for`         | `htmlFor`    |
+ * | `readonly`    | `readOnly`   |
+ *
+ * **Children** — pass a single `Node` or an array of `Node`s via the
+ * `children` property; they are appended in order.
+ *
+ * **Event listeners** — attach them with `addEventListener` after creation, or
+ * use the `signal` from {@link ComponentContext} for automatic cleanup on
+ * unmount.
+ *
+ * @example Creating a component
+ * ```ts
+ * const el = create(MyComponent)
+ * const elWithOptions = create(MyComponent, { label: 'hello' })
+ * ```
+ *
+ * @example Creating an HTML element
+ * ```ts
+ * const div = create('div', {
+ *   className: 'card',
+ *   children: [
+ *     create('h2', { textContent: 'Title' }),
+ *     create('p',  { textContent: 'Body'  }),
+ *   ],
+ * })
+ * ```
  */
 export function create(component: Component): GenericComponent
 export function create<TOptions extends {}>(component: Component<TOptions>, options: TOptions): GenericComponent & { options: Readonly<TOptions> }

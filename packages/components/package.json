@@ -1,6 +1,30 @@
 {
 	"name": "@rooted/components",
+	"version": "0.1.0",
 	"description": "rooted — web components rooted very close to the original",
+	"keywords": [
+		"web-components",
+		"custom-elements",
+		"framework-free",
+		"typescript",
+		"rooted"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "packages/components"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"sideEffects": false,
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
 	"exports": {
 		".": {
 			"import": "./dist/components.mjs",
