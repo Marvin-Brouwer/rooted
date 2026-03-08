@@ -2,9 +2,9 @@ import './style.css'
 
 import { application } from '@rooted/components/application'
 import { component } from '@rooted/components'
-import { router } from '@rooted/components/routing'
+import { router } from '@rooted/router'
 
-import { ExampleGate } from './example/_gates.mts'
+import * as appRoutes from './_routes.g.mts'
 
 const Router = router({
 	home: component({
@@ -19,7 +19,7 @@ const Router = router({
 			append('p', { textContent: 'Route not found' })
 		}
 	}),
-	ExampleGate,
+	...appRoutes,
 })
 
 export const Application = component({

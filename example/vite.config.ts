@@ -1,8 +1,13 @@
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { generateRouteManifest } from '@rooted/router/manifest'
 
 export default defineConfig({
 	plugins: [
+		generateRouteManifest({
+			glob: './src/**/_gates.mts',
+			root: './src/_routes.g.mts',
+		}),
 		VitePWA({
 			registerType: 'autoUpdate',
 			manifest: {

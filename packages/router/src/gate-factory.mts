@@ -1,7 +1,5 @@
-
-import { component } from '../component.mts'
-import type { Component } from '../component.mts'
-import type { GenericComponent } from '../component/generic-component.mts'
+import { component, isDevelopment } from '@rooted/components'
+import type { Component, GenericComponent } from '@rooted/components'
 
 export const typedParameter: unique symbol = Symbol.for('rooted:typed-parameter')
 
@@ -42,6 +40,8 @@ export type OmitGate<O> = O extends never ? never : Omit<O, 'gate'>
 
 export type BoundGateDefinition<O extends {}, T extends PathParameter[]> = Component<OmitGate<O>> & {
 	readonly [typedParameter]: T
+	readonly exact: boolean
+	readonly hasChildren: boolean
 	matchFrom(path: string, offset?: number): MatchResult | false
 	match(url: URL): Record<string, unknown> | false
 	append<O2 extends {}>(component: Component<O2>): (strings: TemplateStringsArray, ...values: PathParameter[]) => BoundGateDefinition<O2, PathParameter[]>
@@ -53,13 +53,25 @@ type UnboundGateDefinition = {
 	append(strings: TemplateStringsArray, ...values: PathParameter[]): UnboundGateDefinition
 }
 
-export function gate<O extends {}>(inner: Component<O>) {
-	return function <T extends PathParameter[]>(strings: TemplateStringsArray, ...values: T): BoundGateDefinition<O, T> {
-		return bindComponentToGate(inner, buildGate(strings, values)) as BoundGateDefinition<O, T>
-	}
+type GateTag<O extends {}> = {
+	<T extends PathParameter[]>(strings: TemplateStringsArray, ...values: T): BoundGateDefinition<O, T>
+	exact: <T extends PathParameter[]>(strings: TemplateStringsArray, ...values: T) => BoundGateDefinition<O, T>
 }
 
-function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: UnboundGateDefinition): BoundGateDefinition<O, PathParameter[]> {
+// Tracks which gates have had .append() called on them — used for the hasChildren property
+const gatesWithChildren = new WeakSet<object>()
+
+export function gate<O extends {}>(inner: Component<O>): GateTag<O> {
+	const fn = (<T extends PathParameter[]>(strings: TemplateStringsArray, ...values: T) =>
+		bindComponentToGate(inner, buildGate(strings, values), false)) as GateTag<O>
+
+	fn.exact = (<T extends PathParameter[]>(strings: TemplateStringsArray, ...values: T) =>
+		bindComponentToGate(inner, buildGate(strings, values), true)) as GateTag<O>['exact']
+
+	return fn
+}
+
+function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: UnboundGateDefinition, exact: boolean): BoundGateDefinition<O, PathParameter[]> {
 	const bound = component<OmitGate<O>>({
 		name: inner.name + '-gate',
 		onMount(ctx) {
@@ -69,7 +81,13 @@ function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: Unbound
 
 			const update = () => {
 				const result = gateDef.matchFrom(location.pathname)
-				if (result) {
+				const renders = result && (!exact || result.end < location.pathname.length)
+
+				if (isDevelopment() && exact && result && !renders) {
+					console.warn(`[rooted/gate] "${inner.name}" is marked .exact but the current path "${location.pathname}" has no subroute — it will not render`)
+				}
+
+				if (renders) {
 					if (!el) el = append(inner, { ...options, gate: result.params } as unknown as O)
 				} else {
 					el?.remove()
@@ -83,11 +101,20 @@ function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: Unbound
 	}) as unknown as Writeable<BoundGateDefinition<O, PathParameter[]>>
 
 	bound[typedParameter] = (gateDef as any)[typedParameter]
+	bound.exact = exact
 	bound.matchFrom = gateDef.matchFrom.bind(gateDef)
 	bound.match = gateDef.match.bind(gateDef)
 	bound.append = (<O2 extends {},>(subComponent: Component<O2>) =>
-		(strings: TemplateStringsArray, ...values: PathParameter[]) =>
-			bindComponentToGate(subComponent, gateDef.append(strings, ...values))) as BoundGateDefinition<O, PathParameter[]>['append']
+		(strings: TemplateStringsArray, ...values: PathParameter[]) => {
+			gatesWithChildren.add(bound)
+			return bindComponentToGate(subComponent, gateDef.append(strings, ...values), false)
+		}) as BoundGateDefinition<O, PathParameter[]>['append']
+
+	Object.defineProperty(bound, 'hasChildren', {
+		get: () => gatesWithChildren.has(bound),
+		enumerable: true,
+		configurable: false,
+	})
 
 	return Object.freeze(bound) as BoundGateDefinition<O, PathParameter[]>
 }

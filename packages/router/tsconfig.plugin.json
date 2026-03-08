@@ -1,0 +1,32 @@
+{
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"allowImportingTsExtensions": true,
+		"useDefineForClassFields": true,
+		"emitDeclarationOnly": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"isolatedModules": true,
+		"allowJs": true,
+		"declaration": true,
+		"declarationMap": true,
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"erasableSyntaxOnly": false,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedSideEffectImports": true,
+		"lib": [
+			"ES2024"
+		],
+		"types": [
+			"node"
+		],
+		"outDir": "./dist",
+		"rootDir": "./src"
+	},
+	"include": [
+		"src/plugin/manifest.mts"
+	]
+}

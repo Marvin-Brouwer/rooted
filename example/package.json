@@ -9,11 +9,12 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"@rooted/components": "workspace:*"
+		"@rooted/components": "workspace:*",
+		"@rooted/router": "workspace:*"
 	},
 	"devDependencies": {
 		"typescript": "^5.5.0",
-		"vite": "^5.0.0",
+		"vite": "^6.0.0",
 		"vite-plugin-pwa": "^0.21.0"
 	}
 }

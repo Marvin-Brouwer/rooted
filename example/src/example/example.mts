@@ -1,5 +1,5 @@
 import { component } from '@rooted/components'
-import { GateParameters } from '@rooted/components/routing'
+import { type GateParameters } from '@rooted/router'
 
 import { type ExampleGate, PartialGate } from './_gates.mts'
 
