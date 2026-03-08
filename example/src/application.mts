@@ -1,5 +1,26 @@
+import './style.css'
+
+import { application } from '@rooted/components/application'
 import { component } from '@rooted/components'
+import { router } from '@rooted/components/routing'
+
 import { ExampleGate } from './example/_gates.mts'
+
+const Router = router({
+	home: component({
+		name: 'home-route',
+		onMount({ append }) {
+			append('p', { textContent: 'Home route' })
+		}
+	}),
+	notFound: component({
+		name: 'not-found-route',
+		onMount({ append }) {
+			append('p', { textContent: 'Route not found' })
+		}
+	}),
+	ExampleGate,
+})
 
 export const Application = component({
 	name: 'application',
@@ -12,9 +33,11 @@ export const Application = component({
 				create('h1', {
 					textContent: 'ROOTED: Example project'
 				}),
-				append(ExampleGate, { text: 'child text' }),
-				append(ExampleGate, { text: 'child text 2' }),
+				create(Router)
 			]
 		})
 	},
 })
+
+
+application(Application)
