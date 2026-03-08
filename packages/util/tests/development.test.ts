@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
-import { formatStackFrame, isDevelopment } from '../src/development.mts'
+import { appendSourceLocation, formatStackFrame, isDevelopment } from '../src/development.mts'
 
 // formatStackFrame strips location.origin from stack frame URLs
 beforeAll(() => {
@@ -51,5 +51,30 @@ describe('formatStackFrame', () => {
 
 	test('strips location.origin prefix from absolute URLs', () => {
 		expect(formatStackFrame('at http://localhost/src/main.ts:5:1')).toBe('src/main.ts:5:1')
+	})
+})
+
+describe('appendSourceLocation', () => {
+	test('does not throw', () => {
+		expect(() => appendSourceLocation()).not.toThrow()
+	})
+
+	test('returns a string when called from a normal test body', () => {
+		const result = appendSourceLocation()
+		// Node V8 always produces a stack with enough frames in a test context
+		expect(typeof result === 'string' || result === undefined).toBe(true)
+		// In practice there are always more than 3 frames in vitest, so we get a string
+		expect(result).toBeTypeOf('string')
+	})
+
+	test('returned string does not start with "at "', () => {
+		const result = appendSourceLocation()
+		expect(result).not.toMatch(/^at /)
+	})
+
+	test('returned string does not contain a query string "?"', () => {
+		// Node file paths never have query strings; formatStackFrame would strip them anyway
+		const result = appendSourceLocation()
+		expect(result).not.toContain('?')
 	})
 })

@@ -70,12 +70,37 @@ describe('gate — number parameter', () => {
 		expect((result as { params: Record<string, unknown> }).params).toEqual({ id: 42 })
 	})
 
+	test('extracts zero', () => {
+		const result = routeGate.matchFrom('/products/0')
+		expect((result as { params: Record<string, unknown> }).params).toEqual({ id: 0 })
+	})
+
+	test('extracts decimal number', () => {
+		const result = routeGate.matchFrom('/products/3.14')
+		expect((result as { params: Record<string, unknown> }).params).toEqual({ id: 3.14 })
+	})
+
+	test('extracts negative number', () => {
+		const result = routeGate.matchFrom('/products/-5')
+		expect((result as { params: Record<string, unknown> }).params).toEqual({ id: -5 })
+	})
+
 	test('returns false for non-numeric value', () => {
 		expect(routeGate.matchFrom('/products/abc')).toBe(false)
 	})
 
 	test('returns false when parameter is missing', () => {
 		expect(routeGate.matchFrom('/products/')).toBe(false)
+	})
+
+	test('returns false for empty segment from consecutive slashes', () => {
+		// /products//42 — the segment between the two slashes is empty
+		expect(routeGate.matchFrom('/products//42')).toBe(false)
+	})
+
+	test('match() returns params object directly', () => {
+		const result = routeGate.match(new URL('http://example.com/products/7'))
+		expect(result).toEqual({ id: 7 })
 	})
 })
 
@@ -107,6 +132,22 @@ describe('gate — boolean parameter', () => {
 
 	test('parses "0" as false', () => {
 		expect((routeGate.matchFrom('/toggle/0') as { params: Record<string, unknown> })?.params).toEqual({ flag: false })
+	})
+
+	test('parses single-letter "t" as true', () => {
+		expect((routeGate.matchFrom('/toggle/t') as { params: Record<string, unknown> })?.params).toEqual({ flag: true })
+	})
+
+	test('parses single-letter "f" as false', () => {
+		expect((routeGate.matchFrom('/toggle/f') as { params: Record<string, unknown> })?.params).toEqual({ flag: false })
+	})
+
+	test('parses uppercase "T" as true (case-insensitive)', () => {
+		expect((routeGate.matchFrom('/toggle/T') as { params: Record<string, unknown> })?.params).toEqual({ flag: true })
+	})
+
+	test('parses uppercase "F" as false (case-insensitive)', () => {
+		expect((routeGate.matchFrom('/toggle/F') as { params: Record<string, unknown> })?.params).toEqual({ flag: false })
 	})
 
 	test('returns false for invalid boolean value', () => {
@@ -168,6 +209,21 @@ describe('gate — hasChildren', () => {
 	test('hasChildren is true after appending a child gate', () => {
 		parentGate.append(childComp)`/child`
 		expect(parentGate.hasChildren).toBe(true)
+	})
+})
+
+describe('gate — matchFrom with explicit offset', () => {
+	const routeGate = gate(mockComponent('offset-test'))`/products`
+
+	test('matches at a non-zero offset into the path', () => {
+		// '/prefix/products' — the gate pattern starts at index 7
+		const result = routeGate.matchFrom('/prefix/products', 7)
+		expect(result).not.toBe(false)
+		expect((result as { end: number; params: object }).end).toBe(16)
+	})
+
+	test('returns false when offset is beyond the string length', () => {
+		expect(routeGate.matchFrom('/products', 99)).toBe(false)
 	})
 })
 
