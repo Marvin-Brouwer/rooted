@@ -1,4 +1,6 @@
 import './style.css'
+import navStyles from './nav.css?inline'
+import notFoundStyles from './not-found.css?inline'
 
 import { application } from '@rooted/components/application'
 import { component } from '@rooted/components'
@@ -6,77 +8,16 @@ import { router } from '@rooted/router'
 
 import { appRoutes } from './_routes.g.mts'
 import { Home } from './home/home.mts'
-import { navigate } from './navigate.mts'
+import { NavLink, navigate } from './navigate.mts'
 
 const Nav = component({
 	name: 'recipe-nav',
-	styles: `
-		nav {
-			display: flex;
-			align-items: center;
-			gap: 1.5rem;
-			padding: 0.875rem 2rem;
-			background: var(--color-surface);
-			border-bottom: 1px solid var(--color-border);
-			margin-bottom: 2rem;
-		}
-		.nav-brand {
-			font-weight: 700;
-			font-size: 1.15rem;
-			color: var(--color-primary);
-			text-decoration: none;
-			margin-right: auto;
-		}
-		.nav-brand:hover { opacity: 0.8; }
-		.nav-link {
-			color: var(--color-text);
-			text-decoration: none;
-			font-size: 0.95rem;
-		}
-		.nav-link:hover { color: var(--color-primary); }
-		.search-form { display: flex; gap: 0.4rem; }
-		.search-input {
-			border: 1px solid var(--color-border);
-			border-radius: 6px;
-			padding: 0.35rem 0.7rem;
-			font-size: 0.9rem;
-			font-family: inherit;
-			background: var(--color-bg);
-			color: var(--color-text);
-			width: 180px;
-		}
-		.search-input:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
-		.search-btn {
-			border: 1px solid var(--color-primary);
-			border-radius: 6px;
-			padding: 0.35rem 0.75rem;
-			font-size: 0.9rem;
-			font-family: inherit;
-			background: var(--color-primary);
-			color: #fff;
-			cursor: pointer;
-		}
-		.search-btn:hover { opacity: 0.85; }
-	`,
-	onMount({ append, signal }) {
+	styles: navStyles,
+	onMount({ append, create, signal }) {
 		const nav = append('nav', {})
 
-		const brand = document.createElement('a')
-		brand.href = '/'
-		brand.className = 'nav-brand'
-		brand.textContent = 'Recipe Book'
-		brand.addEventListener('click', e => { e.preventDefault(); navigate('/') }, { signal })
-		nav.append(brand)
-
-		const categoriesLink = document.createElement('a')
-		categoriesLink.href = '/categories/'
-		categoriesLink.className = 'nav-link'
-		categoriesLink.textContent = 'Browse'
-		categoriesLink.addEventListener('click', e => { e.preventDefault(); navigate('/categories/') }, { signal })
-		nav.append(categoriesLink)
-
-		const form = document.createElement('form')
-		form.className = 'search-form'
+		nav.append(create(NavLink, { href: '/', className: 'nav-brand', children: 'Recipe Book' }))
+		nav.append(create(NavLink, { href: '/categories/', className: 'nav-link', children: 'Browse' }))
 
 		const input = document.createElement('input')
 		input.type = 'search'
@@ -89,7 +30,7 @@ const Nav = component({
 		btn.className = 'search-btn'
 		btn.textContent = 'Search'
 
-		form.append(input, btn)
+		const form = create('form', { className: 'search-form', children: [input, btn] })
 		form.addEventListener('submit', e => {
 			e.preventDefault()
 			const query = input.value.trim()
@@ -111,23 +52,14 @@ const Nav = component({
 
 const NotFound = component({
 	name: 'not-found-page',
-	styles: `
-		.not-found { text-align: center; padding: 4rem 2rem; }
-		h1 { font-size: 3rem; color: var(--color-primary); margin: 0 0 0.5rem; }
-		p { color: var(--color-text-muted); margin: 0 0 1.5rem; }
-		a { color: var(--color-primary); }
-	`,
-	onMount({ append, create, signal }) {
+	styles: notFoundStyles,
+	onMount({ append, create }) {
 		const wrap = append('div', { className: 'not-found' })
 		wrap.append(
 			create('h1', { textContent: '404' }),
 			create('p', { textContent: 'Page not found.' }),
+			create(NavLink, { href: '/', children: '← Back to Home' }),
 		)
-		const homeLink = document.createElement('a')
-		homeLink.href = '/'
-		homeLink.textContent = '← Back to Home'
-		homeLink.addEventListener('click', e => { e.preventDefault(); navigate('/') }, { signal })
-		wrap.append(homeLink)
 	},
 })
 
