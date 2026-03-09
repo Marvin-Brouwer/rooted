@@ -287,6 +287,12 @@ describe('gate — wildcard matching', () => {
 	test('returns false for non-matching prefix', () => {
 		expect(routeGate.matchFrom('/other/foo/')).toBe(false)
 	})
+
+	test('defaults key to "path" when called with no arguments', () => {
+		const defaultGate = gate`/files/${wildcard()}/`(mockComponent('files'))
+		const result = defaultGate.matchFrom('/files/a/b/')
+		expect((result as { params: Record<string, unknown> }).params).toEqual({ path: 'a/b/' })
+	})
 })
 
 describe('validatePattern — dev-mode errors', () => {

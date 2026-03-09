@@ -20,20 +20,26 @@ type WildcardParameter<K extends string = string> = {
  * interpolation in the pattern, and must be preceded by a `/`.
  *
  * @param key - Property name on `options.gate` that will hold the matched path string.
+ *   Defaults to `'path'` when omitted.
  *
- * @example
+ * @example Explicit key
  * ```ts
  * import { gate, wildcard } from '@rooted/router'
  *
- * export const ArchiveGate = gate`/archive/${wildcard('path')}/`(Archive)
+ * export const ArchiveGate = gate`/archive/${wildcard('slug')}/`(Archive)
+ * // options.gate.slug is typed as string
+ * ```
+ *
+ * @example Default key (`'path'`)
+ * ```ts
+ * export const ArchiveGate = gate`/archive/${wildcard()}/`(Archive)
  * // options.gate.path is typed as string
- * // matches /archive/foo/, /archive/foo/bar/, /archive/foo/bar/baz/, …
  * ```
  *
  * @see {@link gate}
  * @see {@link GateParameters}
  */
-export function wildcard<K extends string>(key: K): WildcardParameter<K> {
+export function wildcard<K extends string = 'path'>(key = 'path' as K): WildcardParameter<K> {
 	return { key, [wildcardBrand]: true } as WildcardParameter<K>
 }
 

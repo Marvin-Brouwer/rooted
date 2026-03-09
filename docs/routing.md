@@ -71,9 +71,11 @@ The matched path string is exposed on `options.gate[key]` as a `string`.
 ```ts
 import { gate, wildcard } from '@rooted/router'
 
-// Matches /archive/foo/, /archive/foo/bar/, /archive/foo/bar/baz/, …
-export const ArchiveGate = gate`/archive/${wildcard('path')}/`(Archive)
-// options.gate.path === 'foo/bar/baz'  (everything after /archive/)
+// Explicit key — options.gate.slug
+export const ArchiveGate = gate`/archive/${wildcard('slug')}/`(Archive)
+
+// Default key ('path') — options.gate.path
+export const ArchiveGate = gate`/archive/${wildcard()}/`(Archive)
 ```
 
 Unlike a junction, a gate with a wildcard **does** render at its own prefix path — the wildcard simply broadens what it matches.
