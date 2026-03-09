@@ -9,7 +9,7 @@ export type SearchOptions = {
 	gate: GateParameters<typeof SearchGate>
 }
 
-export const Search = component<SearchOptions>({
+export const SearchPage = component<SearchOptions>({
 	name: 'search-page',
 	styles,
 	onMount({ append, create, signal }) {

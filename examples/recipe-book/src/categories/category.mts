@@ -18,15 +18,17 @@ export const Category = component<CategoryOptions>({
 
 		append(NavLink, { href: '/categories/', className: 'back-link', children: '← All categories' })
 
-		const header = append('div', { className: 'category-header' })
-		header.append(
-			create('h1', { textContent: category ? category.label : slug }),
-			create('p', {
-				textContent: category
-					? `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`
-					: 'Category not found',
-			}),
-		)
+		append('div', {
+			className: 'category-header',
+			children: [
+				create('h1', { textContent: category ? category.label : String(slug) }),
+				create('p', {
+					textContent: category
+						? `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`
+						: 'Category not found',
+				})
+			]
+		})
 
 		if (category) {
 			const list = append('ul', { className: 'recipe-list' })

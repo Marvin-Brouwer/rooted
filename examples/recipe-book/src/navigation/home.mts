@@ -3,7 +3,7 @@ import { component } from '@rooted/components'
 import { recipes } from '../recipes/_data.mts'
 import { NavLink } from '../navigate.mts'
 
-export const Home = component({
+export const HomePage = component({
 	name: 'home-page',
 	styles,
 	onMount({ append, create }) {
