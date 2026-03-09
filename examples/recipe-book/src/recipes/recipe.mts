@@ -1,9 +1,8 @@
 import styles from './recipe.css?inline'
 import { component } from '@rooted/components'
-import { type GateParameters } from '@rooted/router'
+import { type GateParameters, Link } from '@rooted/router'
 import { type RecipeGate } from '../categories/_gates.mts'
 import { recipes } from './_data.mts'
-import { NavLink } from '../navigate.mts'
 
 export type RecipeOptions = {
 	gate: GateParameters<typeof RecipeGate>
@@ -21,7 +20,7 @@ export const Recipe = component<RecipeOptions>({
 		}
 
 		const backHref = `/categories/${recipe.category}/`
-		append(NavLink, {
+		append(Link, {
 			href: backHref,
 			className: 'back-link',
 			children: `← Back to ${recipe.category}`,

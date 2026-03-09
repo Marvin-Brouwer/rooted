@@ -111,7 +111,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 	}
 
 	return component({
-		name: 'router',
+		name: 'rooted:router',
 		onMount({ append, signal }) {
 
 

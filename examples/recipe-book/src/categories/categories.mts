@@ -1,7 +1,7 @@
 import styles from './categories.css?inline'
 import { component, type ComponentContext } from '@rooted/components'
 import { categories } from './_data.mts'
-import { NavLink } from '../navigate.mts'
+import { Link } from '@rooted/router'
 
 export const Categories = component({
 	name: 'categories-page',
@@ -14,7 +14,7 @@ export const Categories = component({
 })
 
 function mapCategories(create: ComponentContext['create']) {
-	return categories.map(category => create(NavLink, {
+	return categories.map(category => create(Link, {
 		className: 'category-card',
 		href: `/categories/${category.slug}/`,
 		children: [

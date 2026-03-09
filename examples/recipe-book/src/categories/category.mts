@@ -1,9 +1,8 @@
 import styles from './category.css?inline'
 import { component } from '@rooted/components'
-import { type GateParameters } from '@rooted/router'
+import { type GateParameters, Link } from '@rooted/router'
 import { type CategoryGate, RecipeGate } from './_gates.mts'
 import { categories } from './_data.mts'
-import { NavLink } from '../navigate.mts'
 
 export type CategoryOptions = {
 	gate: GateParameters<typeof CategoryGate>
@@ -16,7 +15,7 @@ export const Category = component<CategoryOptions>({
 		const { slug } = options.gate
 		const category = categories.find(c => c.slug === slug)
 
-		append(NavLink, { href: '/categories/', className: 'back-link', children: '← All categories' })
+		append(Link, { href: '/categories/', className: 'back-link', children: '← All categories' })
 
 		append('div', {
 			className: 'category-header',
@@ -37,7 +36,7 @@ export const Category = component<CategoryOptions>({
 				list.append(create('li', {
 					className: 'recipe-item',
 					children: [
-						create(NavLink, { href, children: recipe.title }),
+						create(Link, { href, children: recipe.title }),
 						create('span', {
 							className: 'recipe-item-meta',
 							textContent: `${recipe.prepTime + recipe.cookTime} min · ${recipe.difficulty}`,

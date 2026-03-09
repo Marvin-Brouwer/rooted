@@ -1,7 +1,7 @@
+import { Link, navigate } from '@rooted/router'
 import styles from './navigation-menu.css?inline'
 
 import { component } from '@rooted/components'
-import { navigate, NavLink } from '../navigate.mts'
 
 export const NavigationMenu = component({
 	name: 'navigation-menu',
@@ -9,8 +9,8 @@ export const NavigationMenu = component({
 	onMount({ append, create, signal }) {
 		const nav = append('nav', {})
 
-		nav.append(create(NavLink, { href: '/', className: 'nav-brand', children: 'Recipe Book' }))
-		nav.append(create(NavLink, { href: '/categories/', className: 'nav-link', children: 'Browse' }))
+		nav.append(create(Link, { href: '/', className: 'nav-brand', children: 'Recipe Book' }))
+		nav.append(create(Link, { href: '/categories/', className: 'nav-link', children: 'Browse' }))
 
 		const input = document.createElement('input')
 		input.type = 'search'

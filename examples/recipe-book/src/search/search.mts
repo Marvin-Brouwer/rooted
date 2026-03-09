@@ -1,9 +1,8 @@
 import styles from './search.css?inline'
 import { component } from '@rooted/components'
-import { type GateParameters } from '@rooted/router'
+import { type GateParameters, Link } from '@rooted/router'
 import { type SearchGate } from './_gates.mts'
 import { recipes } from '../recipes/_data.mts'
-import { NavLink } from '../navigate.mts'
 
 export type SearchOptions = {
 	gate: GateParameters<typeof SearchGate>
@@ -54,7 +53,7 @@ export const SearchPage = component<SearchOptions>({
 				list.append(create('li', {
 					className: 'result-item',
 					children: [
-						create('div', { className: 'result-title', children: create(NavLink, { href, children: recipe.title }) }),
+						create('div', { className: 'result-title', children: create(Link, { href, children: recipe.title }) }),
 						create('p', { className: 'result-desc', textContent: recipe.description }),
 					],
 				}))

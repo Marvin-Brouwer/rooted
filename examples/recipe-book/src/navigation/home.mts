@@ -1,7 +1,7 @@
 import styles from './home.css?inline'
 import { component } from '@rooted/components'
 import { recipes } from '../recipes/_data.mts'
-import { NavLink } from '../navigate.mts'
+import { Link } from '@rooted/router'
 
 export const HomePage = component({
 	name: 'home-page',
@@ -15,7 +15,7 @@ export const HomePage = component({
 			className: 'recipe-grid',
 			children: recipes.filter(r => r.featured).map(recipe => {
 				const href = `/categories/${recipe.category}/recipes/${recipe.id}/`
-				return create(NavLink, {
+				return create(Link, {
 					href,
 					className: 'recipe-card',
 					children: [

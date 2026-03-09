@@ -1,25 +1,23 @@
 import { component } from '@rooted/components'
+import { navigate } from './navigation.mts'
 
 /**
- * SPA navigation: push a new URL and fire `popstate` so the router re-evaluates.
+ * @todo write docs.
  */
-export function navigate(href: string) {
-	history.pushState(null, '', href)
-	window.dispatchEvent(new PopStateEvent('popstate', { state: null }))
-}
-
-export type NavLinkOptions = {
+export type LinkOptions = {
 	href: string
 	className?: string
 	children?: string | Node | Node[]
 }
 
 /**
+ * @todo write docs.
+ *
  * A component that renders an `<a>` navigating without a full page reload.
  * Click listeners are automatically cleaned up when the component unmounts.
  */
-export const NavLink = component<NavLinkOptions>({
-	name: 'nav-link',
+export const Link = component<LinkOptions>({
+	name: 'rooted:navigation-link',
 	onMount({ options, append, signal }) {
 		const resolvedChildren =
 			typeof options.children === 'string'
