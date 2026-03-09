@@ -168,9 +168,9 @@ the output of a per-component `AbortController` that is wired to two sources:
 
 ```mermaid
 flowchart LR
-    pageSignal["pageSignal\n(page unloaded)"]
-    onUnmount["onUnmount\n(component unmounted)"]
-    controller["GenericComponent\n.abortController"]
+    pageSignal["pageSignal<br/>(page unloaded)"]
+    onUnmount["onUnmount<br/>(component unmounted)"]
+    controller["GenericComponent<br/>.abortController"]
     signal["ctx.signal"]
 
     pageSignal  --> controller
@@ -275,8 +275,8 @@ flowchart LR
     popstate["popstate event"]
     update["update()"]
     match["matchFrom(location.pathname)"]
-    decision{match?}
-    append["append(innerComponent,\n{ gate: params })"]
+    decision{"match?"}
+    append["append(innerComponent,<br/>&#123; gate: params &#125;)"]
     remove["element.remove()"]
 
     popstate  --> update
