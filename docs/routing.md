@@ -12,12 +12,10 @@ A gate binds a component to a URL pattern. It renders its component only when th
 import { gate, token } from '@rooted/router'
 import { Article } from './article.mts'
 
-export const ArticleGate = gate(Article)`/articles/${token('id', Number)}/`
+export const ArticleGate = gate`/articles/${token('id', Number)}/`(Article)
 ```
 
-### `gate(Component)`
-
-Returns a tagged template function. The template string is the URL pattern.
+`gate` is a tagged-template function — the URL pattern comes first, the component is bound after. Use `token` interpolations to declare typed parameters.
 
 ### `token(key, Type)`
 
@@ -41,28 +39,61 @@ export const Article = component<ArticleOptions>({
 })
 ```
 
-### `.exact`
+### `junction`
 
-By default a gate renders whenever the path **starts with** its pattern — meaning child routes can append further segments. With `.exact`, the gate only renders when the path has **additional segments beyond its own pattern**. The gate's own path returns 404.
+A junction renders its component only when a **child route is also active**. Navigating directly to the junction's own path falls through to `notFound`.
 
-```ts
-// Renders at /articles/123/anything — not at /articles/123/
-export const ArticleGate = gate(Article).exact`/articles/${token('id', Number)}/`
-```
-
-Use `.exact` when the gate exists only to unlock child routes (e.g. a layout with required sub-navigation).
-
-### `.append(Component)`
-
-Creates a child gate that matches the parent pattern **plus** an additional segment. The child is also registered in the router independently.
+Use `junction` when the route is a layout or navigation point that exists solely to unlock child routes.
 
 ```ts
-export const ArticleGate  = gate(Article).exact`/articles/${token('id', Number)}/`
-export const CommentsGate = ArticleGate.append(Comments)`/comments/`
-// matches /articles/123/comments/
+import { junction, token } from '@rooted/router'
+
+// Renders Article only when a child route is active — not at /articles/123/ itself
+export const ArticleGate = junction`/articles/${token('id', Number)}/`(Article)
 ```
 
-Child gates receive the parent's params merged with their own.
+### Child routes
+
+A child gate references its parent as the first interpolation in its template string. The child matches the parent's full pattern **plus** its own additional segment. Child gates receive the parent's params merged with their own.
+
+```ts
+export const ArticleGate  = junction`/articles/${token('id', Number)}/`(Article)
+export const CommentsGate = gate`${ArticleGate}/comments/`(Comments)
+// CommentsGate matches /articles/123/comments/
+```
+
+### `wildcard`
+
+A `wildcard` interpolation matches one or more remaining path segments. It must be the last interpolation in the pattern and must be preceded by a `/`.
+
+```ts
+import { gate, wildcard } from '@rooted/router'
+
+// Matches /archive/foo/, /archive/foo/bar/, /archive/foo/bar/baz/, …
+export const ArchiveGate = gate`/archive/${wildcard}/`(Archive)
+```
+
+Unlike a junction, a gate with a wildcard **does** render at its own prefix path — the wildcard simply broadens what it matches.
+
+---
+
+## Route validation (dev mode)
+
+In development, `gate` and `junction` validate the pattern at definition time and emit `console.error` for violations:
+
+| Violation | Message |
+|-----------|---------|
+| Pattern does not start with `/` | `gate pattern must start with a slash` |
+| Pattern does not end with `/` | `gate pattern must end with a slash` |
+| Gate interpolation is not first | `Gate interpolation must be at the start of the pattern` |
+| Gate interpolation has preceding text | `Gate interpolation must be at the very start with no preceding text` |
+| Gate interpolation not followed by `/` | `Gate interpolation must be followed by a slash` |
+| Wildcard is not the last interpolation | `Wildcard interpolation must be at the end of the pattern` |
+| Wildcard not preceded by `/` | `Wildcard interpolation must be preceded by a slash` |
+
+A junction with no child gates emits `console.warn` when mounted in a router (it will never render).
+
+Validation is removed in production builds — invalid patterns fail silently.
 
 ---
 

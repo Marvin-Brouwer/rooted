@@ -5,6 +5,24 @@ import { dev } from './dev-helper.mts'
 export const typedParameter: unique symbol = Symbol.for('rooted:typed-parameter')
 
 /**
+ * Catch-all interpolation for use inside a {@link gate} template string.
+ *
+ * A `wildcard` matches one or more remaining path segments. It must be the
+ * last interpolation in the pattern, and must be preceded by a `/`.
+ *
+ * @example
+ * ```ts
+ * import { gate, wildcard } from '@rooted/router'
+ *
+ * export const ArchiveGate = gate`/archive/${wildcard}/`(Archive)
+ * // matches /archive/foo/, /archive/foo/bar/, /archive/foo/bar/baz/, …
+ * ```
+ *
+ * @see {@link gate}
+ */
+export const wildcard: unique symbol = Symbol.for('rooted:wildcard')
+
+/**
  * Declares a typed path parameter for use inside a {@link gate} template string.
  *
  * The matched URL segment is automatically coerced to the specified `type` and
@@ -19,8 +37,8 @@ export const typedParameter: unique symbol = Symbol.for('rooted:typed-parameter'
  * ```ts
  * import { gate, token } from '@rooted/router'
  *
- * export const ArticleGate = gate(Article)`/articles/${token('id', Number)}/`
- * //                                                             ^^^^^^^^^^
+ * export const ArticleGate = gate`/articles/${token('id', Number)}/`(Article)
+ * //                                                  ^^^^^^^^^^
  * // options.gate.id will be a number
  * ```
  *
@@ -44,6 +62,11 @@ type PathParameter<K extends string = string, V extends ParameterValue = Paramet
 	matches: V
 }
 
+type WildcardType = typeof wildcard
+
+/** Any value that may appear as an interpolation in a gate template string. */
+type GateValue = PathParameter | BoundGateDefinition<any, any> | WildcardType
+
 type MatchResult = {
 	end: number
 	params: Record<string, unknown>
@@ -55,6 +78,14 @@ type ParameterValueType<V extends ParameterValue> =
 	V extends BooleanConstructor ? boolean :
 	V extends DateConstructor ? Date :
 	never
+
+// Extract only the PathParameter entries from a GateValue tuple
+type ExtractParams<T extends readonly GateValue[]> =
+	T extends readonly [infer H, ...infer R extends readonly GateValue[]]
+		? H extends PathParameter
+			? [H, ...ExtractParams<R>]
+			: ExtractParams<R>
+		: []
 
 /**
  * Extracts the typed parameter object from a {@link BoundGateDefinition}.
@@ -95,13 +126,15 @@ export type GateParameters<G> = G extends { [typedParameter]: infer T extends Pa
 export type OmitGate<O> = O extends never ? never : Omit<O, 'gate'>
 
 /**
- * The result of calling {@link gate}. A bound gate is a component enriched with
- * routing metadata: the URL pattern, typed parameters, and child-route support.
+ * The result of calling {@link gate} or {@link junction}. A bound gate is a
+ * component enriched with routing metadata: the URL pattern, typed parameters,
+ * and whether a child route is required.
  *
  * Bound gates are self-managing — they listen to `popstate` events and show or
  * hide their component based on whether the current URL matches the pattern.
  *
- * You typically do not construct this type manually; it is returned by {@link gate}.
+ * You typically do not construct this type manually; it is returned by {@link gate}
+ * or {@link junction}.
  */
 export type BoundGateDefinition<O extends {}, T extends PathParameter[]> = Component<OmitGate<O>> & {
 	/** The typed path parameter descriptors that were declared with {@link token}. */
@@ -110,12 +143,12 @@ export type BoundGateDefinition<O extends {}, T extends PathParameter[]> = Compo
 	 * When `true`, the gate only renders when the path has **additional segments**
 	 * beyond its own pattern. The gate's own path returns 404.
 	 *
-	 * Set via {@link GateTag.exact}.
+	 * Set by using {@link junction} instead of {@link gate}.
 	 */
 	readonly exact: boolean
 	/**
-	 * `true` after {@link BoundGateDefinition.append} has been called at least once,
-	 * meaning this gate has registered child routes.
+	 * `true` after another gate has been defined with this gate as its parent
+	 * interpolation, meaning this gate has registered child routes.
 	 */
 	readonly hasChildren: boolean
 	/**
@@ -133,95 +166,107 @@ export type BoundGateDefinition<O extends {}, T extends PathParameter[]> = Compo
 	 * @returns The parsed params record, or `false` if there is no match.
 	 */
 	match(url: URL): Record<string, unknown> | false
-	/**
-	 * Creates a child gate that matches this gate's pattern **plus** an additional
-	 * path segment.
-	 *
-	 * The child gate is an independent {@link BoundGateDefinition} and must be
-	 * registered in the {@link router} separately. It receives the parent's
-	 * params merged with its own.
-	 *
-	 * @param component - The component to render for the child route.
-	 * @returns A tagged-template function (the same API as {@link gate}) that
-	 *   accepts the child path segment.
-	 *
-	 * @example
-	 * ```ts
-	 * export const ArticleGate  = gate(Article).exact`/articles/${token('id', Number)}/`
-	 * export const CommentsGate = ArticleGate.append(Comments)`/comments/`
-	 * // matches /articles/123/comments/
-	 * ```
-	 */
-	append<O2 extends {}>(component: Component<O2>): (strings: TemplateStringsArray, ...values: PathParameter[]) => BoundGateDefinition<O2, PathParameter[]>
 }
 
 type UnboundGateDefinition = {
 	matchFrom(path: string, offset?: number): MatchResult | false
 	match(url: URL): Record<string, unknown> | false
-	append(strings: TemplateStringsArray, ...values: PathParameter[]): UnboundGateDefinition
 }
 
-type GateTag<O extends {}> = {
-	<T extends PathParameter[]>(strings: TemplateStringsArray, ...values: T): BoundGateDefinition<O, T>
-	/**
-	 * Creates an **exact** gate — the component only renders when the URL has
-	 * additional path segments beyond the declared pattern.
-	 *
-	 * Use this when the gate is a layout that exists only to unlock child routes.
-	 * Navigating directly to the gate's own URL will fall through to `notFound`.
-	 *
-	 * @example
-	 * ```ts
-	 * // Renders at /articles/123/anything — NOT at /articles/123/
-	 * export const ArticleGate = gate(Article).exact`/articles/${token('id', Number)}/`
-	 * ```
-	 */
-	exact: <T extends PathParameter[]>(strings: TemplateStringsArray, ...values: T) => BoundGateDefinition<O, T>
-}
+/** The curried binder returned by {@link gate} and {@link junction}. */
+type GateBinder<T extends readonly GateValue[]> = <O extends {}>(inner: Component<O>) => BoundGateDefinition<O, ExtractParams<T>>
 
-// Tracks which gates have had .append() called on them — used for the hasChildren property
+// Tracks which gates have had child gates defined against them
 const gatesWithChildren = new WeakSet<object>()
 
+/** Returns `true` if `v` is a {@link BoundGateDefinition}. */
+function isGateDefinition(v: unknown): v is BoundGateDefinition<any, any> {
+	return typeof v === 'object' && v !== null && typedParameter in v
+}
+
 /**
- * Binds a component to a URL pattern, producing a {@link BoundGateDefinition}.
+ * Binds a URL pattern to a component, producing a {@link BoundGateDefinition}.
  *
- * The returned value is a tagged-template function. Write the URL pattern as a
- * template string; use {@link token} interpolations to declare typed parameters.
+ * `gate` is a tagged-template function. Write the URL pattern as a template
+ * string; use {@link token} interpolations for typed parameters, a parent
+ * {@link BoundGateDefinition} as the first interpolation to create a child
+ * route, and {@link wildcard} as the last interpolation for catch-all matching.
  *
  * Gates are **self-managing**: once mounted inside a {@link router}, each gate
  * listens to `popstate` events and shows or removes its component whenever the
  * URL matches (or stops matching) its pattern.
  *
- * @param inner - The component to render when the URL matches.
- * @returns A tagged-template function (and `.exact` variant) that accepts the
- *   URL pattern and returns a {@link BoundGateDefinition}.
+ * @returns A binder function that accepts the component to render.
  *
  * @example Basic gate
  * ```ts
  * import { gate, token } from '@rooted/router'
  * import { Article } from './article.mts'
  *
- * export const ArticleGate = gate(Article)`/articles/${token('id', Number)}/`
+ * export const ArticleGate = gate`/articles/${token('id', Number)}/`(Article)
  * ```
  *
- * @example Exact gate (layout-only, requires child route)
+ * @example Child route (parent interpolation)
  * ```ts
- * export const ArticleGate  = gate(Article).exact`/articles/${token('id', Number)}/`
- * export const CommentsGate = ArticleGate.append(Comments)`/comments/`
+ * export const CommentsGate = gate`${ArticleGate}/comments/`(Comments)
  * ```
  *
+ * @example Catch-all (wildcard)
+ * ```ts
+ * export const ArchiveGate = gate`/archive/${wildcard}/`(Archive)
+ * ```
+ *
+ * @see {@link junction}
  * @see {@link token}
+ * @see {@link wildcard}
  * @see {@link router}
  * @see {@link GateParameters}
  */
-export function gate<O extends {}>(inner: Component<O>): GateTag<O> {
-	const fn = (<T extends PathParameter[]>(strings: TemplateStringsArray, ...values: T) =>
-		bindComponentToGate(inner, buildGate(strings, values), false)) as GateTag<O>
+export function gate<const T extends readonly GateValue[]>(
+	strings: TemplateStringsArray, ...values: T
+): GateBinder<T> {
+	dev.validatePattern?.(strings, values as GateValue[], false)
+	const parentGate = isGateDefinition(values[0]) ? values[0] as BoundGateDefinition<any, any> : undefined
+	if (parentGate) gatesWithChildren.add(parentGate)
+	const pathValues = values.filter(v => !isGateDefinition(v)) as (PathParameter | WildcardType)[]
+	// When a parent gate is the first interpolation, strings[0] is '' (nothing before the parent).
+	// Slice it off so the remaining strings align with the filtered pathValues.
+	const childStrings = parentGate ? strings.slice(1) as unknown as TemplateStringsArray : strings
+	const unbound = buildGate(childStrings, pathValues, parentGate as unknown as UnboundGateDefinition | undefined)
+	return (<O extends {}>(inner: Component<O>) =>
+		bindComponentToGate(inner, unbound, false)) as GateBinder<T>
+}
 
-	fn.exact = (<T extends PathParameter[]>(strings: TemplateStringsArray, ...values: T) =>
-		bindComponentToGate(inner, buildGate(strings, values), true)) as GateTag<O>['exact']
-
-	return fn
+/**
+ * Defines a **junction** — a gate that renders its component only when a child
+ * route is also active. Navigating directly to the junction's own path falls
+ * through to `notFound`.
+ *
+ * Use `junction` when the route is a layout or navigation point that exists
+ * solely to unlock child routes.
+ *
+ * @returns A binder function that accepts the component to render.
+ *
+ * @example
+ * ```ts
+ * import { gate, junction, token } from '@rooted/router'
+ *
+ * // Renders Article only when a child route is active
+ * export const ArticleGate  = junction`/articles/${token('id', Number)}/`(Article)
+ * // Renders at /articles/123/comments/
+ * export const CommentsGate = gate`${ArticleGate}/comments/`(Comments)
+ * ```
+ *
+ * @see {@link gate}
+ * @see {@link router}
+ */
+export function junction<const T extends readonly PathParameter[]>(
+	strings: TemplateStringsArray, ...values: T
+): GateBinder<T> {
+	dev.validatePattern?.(strings, values as GateValue[], true)
+	const unbound = buildGate(strings, values as PathParameter[])
+	return (<O extends {}>(inner: Component<O>) =>
+		bindComponentToGate(inner, unbound, true)) as GateBinder<T>
 }
 
 function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: UnboundGateDefinition, exact: boolean): BoundGateDefinition<O, PathParameter[]> {
@@ -255,11 +300,6 @@ function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: Unbound
 	bound.exact = exact
 	bound.matchFrom = gateDef.matchFrom.bind(gateDef)
 	bound.match = gateDef.match.bind(gateDef)
-	bound.append = (<O2 extends {},>(subComponent: Component<O2>) =>
-		(strings: TemplateStringsArray, ...values: PathParameter[]) => {
-			gatesWithChildren.add(bound)
-			return bindComponentToGate(subComponent, gateDef.append(strings, ...values), false)
-		}) as BoundGateDefinition<O, PathParameter[]>['append']
 
 	Object.defineProperty(bound, 'hasChildren', {
 		get: () => gatesWithChildren.has(bound),
@@ -270,7 +310,7 @@ function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: Unbound
 	return Object.freeze(bound) as BoundGateDefinition<O, PathParameter[]>
 }
 
-function buildGate(strings: TemplateStringsArray, values: PathParameter[], parent?: UnboundGateDefinition): UnboundGateDefinition {
+function buildGate(strings: TemplateStringsArray, values: (PathParameter | WildcardType)[], parent?: UnboundGateDefinition): UnboundGateDefinition {
 
 	function matchFrom(path: string, offset: number = 0): MatchResult | false {
 		let pos = offset
@@ -284,6 +324,13 @@ function buildGate(strings: TemplateStringsArray, values: PathParameter[], paren
 
 			if (i < values.length) {
 				const param = values[i]!
+
+				if (param === wildcard) {
+					// Wildcard: match everything remaining (at least 1 character)
+					if (pos >= path.length) return false
+					return { end: path.length, params }
+				}
+
 				const nextStatic = strings[i + 1]!
 				const end = nextStatic.length > 0
 					? path.indexOf(nextStatic, pos)
@@ -293,10 +340,10 @@ function buildGate(strings: TemplateStringsArray, values: PathParameter[], paren
 				const segment = path.slice(pos, end)
 				if (segment.length === 0) return false
 
-				const parsed = parseParam(segment, param.matches)
+				const parsed = parseParam(segment, (param as PathParameter).matches)
 				if (parsed instanceof Error) return false
 
-				params[param.key] = parsed
+				params[(param as PathParameter).key] = parsed
 				pos = end
 			}
 		}
@@ -318,14 +365,13 @@ function buildGate(strings: TemplateStringsArray, values: PathParameter[], paren
 		return matchFrom(path, offset)
 	}
 
-	const gateDef: Writeable<UnboundGateDefinition> & { [typedParameter]: PathParameter[] } = {
+	const gateDef: Writeable<UnboundGateDefinition> & { [typedParameter]: (PathParameter | WildcardType)[] } = {
 		[typedParameter]: values,
 		matchFrom: ownMatchFrom,
 		match: (url: URL) => {
 			const result = ownMatchFrom(url.pathname)
 			return result === false ? false : result.params
 		},
-		append: (strings: TemplateStringsArray, ...values: PathParameter[]) => buildGate(strings, values, gateDef),
 	}
 
 	return Object.freeze(gateDef)
