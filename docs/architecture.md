@@ -276,7 +276,7 @@ flowchart LR
     update["update()"]
     match["matchFrom(location.pathname)"]
     decision{"match?"}
-    append["append(innerComponent,<br/>&#123; gate: params &#125;)"]
+    append["append(innerComponent, { gate: params })"]
     remove["element.remove()"]
 
     popstate  --> update
