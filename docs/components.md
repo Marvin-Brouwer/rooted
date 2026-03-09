@@ -69,23 +69,24 @@ A lowercase, HTML-valid identifier for the component (`[a-z][a-z0-9-]*`).
 styles?: string
 ```
 
-A CSS string scoped to this component. Rooted wraps the rules in an `@scope`
-block (Chrome 118+, Firefox 128+, Safari 17.4+) so styles cannot leak out to
-sibling or parent elements. A CSS nesting fallback is used on older browsers.
+A CSS string scoped to this component. Import it from a `.css` file — Vite
+resolves CSS imports to their string content:
 
 ```ts
+import styles from './card.css'
+```
+
+Rooted wraps the rules in an `@scope` block (Chrome 118+, Firefox 128+,
+Safari 17.4+) so styles cannot leak out to sibling or parent elements.
+A CSS nesting fallback is used on older browsers.
+
+```ts
+import styles from './card.css'
+import { component } from '@rooted/components'
+
 export const Card = component({
   name: 'card',
-  styles: `
-    :scope {
-      display: flex;
-      flex-direction: column;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 1rem;
-    }
-    h2 { margin: 0 0 0.5rem; }
-  `,
+  styles,
   onMount({ append }) {
     append('h2', { textContent: 'Card title' })
     append('p',  { textContent: 'Card body'  })
@@ -340,14 +341,12 @@ The router dev helper emits `console.warn` for:
 
 ```ts
 // src/counter.mts
+import styles from './counter.css'
 import { component } from '@rooted/components'
 
 export const Counter = component({
   name: 'counter',
-  styles: `
-    :scope { display: flex; gap: 0.5rem; align-items: center; }
-    button { padding: 0.25rem 0.75rem; }
-  `,
+  styles,
   onMount({ append, signal }) {
     let count = 0
     const display = append('output', { textContent: '0' })

@@ -20,7 +20,7 @@ boundary.
    selectors are broad enough. Use precise selectors (`:scope > p` instead of
    `p`) to minimise leakage.
 
-2. **`:scope` pseudo-class** — inside a component's `styles` string, `:scope`
+2. **`:scope` pseudo-class** — inside a component's styles, `:scope`
    refers to the component's host element (`<r-gc>`). Use it to style the host
    or to scope rules more precisely:
 
@@ -30,8 +30,8 @@ boundary.
    ```
 
 3. **Global styles** — styles added outside of the `styles` field (e.g. a
-   `<link>` stylesheet) are not scoped by rooted. Keep component styles inside
-   the `styles` field.
+   `<link>` stylesheet) are not scoped by rooted. Keep component styles in
+   their own `.css` file and import them via the `styles` field.
 
 ---
 

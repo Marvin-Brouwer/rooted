@@ -8,11 +8,12 @@ It provides a thin, type-safe layer over the browser's own component model — n
 no JSX, no magic compilation step beyond standard TypeScript.
 
 ```ts
+import styles from './greeting.css'
 import { component } from '@rooted/components'
 
 export const Greeting = component({
   name: 'greeting',
-  styles: `p { font-weight: bold; color: navy; }`,
+  styles,
   onMount({ append }) {
     append('p', { textContent: 'Hello from rooted!' })
   },
@@ -65,13 +66,12 @@ pnpm add -D @rooted/router
 
 ```ts
 // src/counter.mts
+import styles from './counter.css'
 import { component } from '@rooted/components'
 
 export const Counter = component({
   name: 'counter',
-  styles: `
-    button { padding: 0.5rem 1rem; font-size: 1rem; }
-  `,
+  styles,
   onMount({ append, signal }) {
     let count = 0
 
