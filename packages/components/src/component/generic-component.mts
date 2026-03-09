@@ -45,7 +45,7 @@ export const componentStore = createComponentStore()
  * The internal custom element that wraps every functional {@link Component}.
  *
  * When you call `create(MyComponent)`, rooted creates an instance of
- * `GenericComponent` (tag name `<r-->` in production, `<generic-component>`
+ * `GenericComponent` (tag name `<r-->` in production, `<rooted-component>`
  * in development) and stores the component constructor and options in a private
  * `WeakMap`. On `connectedCallback` the component's `onMount` is invoked with
  * a fully typed {@link ComponentContext}.
@@ -64,7 +64,7 @@ export const componentStore = createComponentStore()
  * @see {@link componentStore}
  */
 export class GenericComponent extends RootedElement {
-	public static tagName = isDevelopment() ? 'generic-component' : 'r--'
+	public static tagName = isDevelopment() ? 'rooted-component' : 'r--'
 
 	private abortController!: AbortController
 

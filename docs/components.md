@@ -292,7 +292,7 @@ builds.
 
 ### Human-readable element names
 
-The internal wrapper element uses the tag name `<generic-component>` in
+The internal wrapper element uses the tag name `<rooted-component>` in
 development and `<r-->` in production. This makes the DOM tree far easier to
 read in the browser's Elements panel.
 
@@ -303,9 +303,9 @@ component's `name`:
 
 ```html
 <!-- development DOM -->
-<generic-component data-component="user-card" r1a2b3c4d>
+<rooted-component data-component="user-card" r1a2b3c4d>
   <div class="card">...</div>
-</generic-component>
+</rooted-component>
 ```
 
 ### Source location tracking

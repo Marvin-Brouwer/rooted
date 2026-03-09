@@ -36,7 +36,7 @@ There is no virtual DOM. `create()` calls `document.createElement` directly. Com
 
 ## Component wrapper element
 
-Every functional `Component` is wrapped in a `GenericComponent` — a custom element registered under the tag name `<r-->` (production) or `<generic-component>` (development).
+Every functional `Component` is wrapped in a `GenericComponent` — a custom element registered under the tag name `<r-->` (production) or `<rooted-component>` (development).
 
 When `create(MyComponent)` or `append(MyComponent)` is called:
 
@@ -72,9 +72,9 @@ The ID is safe to cache across page loads because module evaluation order is sta
 When `onMount` runs, `GenericComponent` sets the scope ID as an empty attribute on itself:
 
 ```html
-<generic-component r1a2b3c4d data-component="my-counter">
+<rooted-component r1a2b3c4d data-component="my-counter">
   ...
-</generic-component>
+</rooted-component>
 ```
 
 ### 3. Style injection
@@ -154,14 +154,14 @@ Rooted uses `import.meta.env.DEV` (set by Vite) to enable development-only behav
 
 ### Tag name
 
-`GenericComponent.tagName` is `'generic-component'` in development and `'r--'` in production. Human-readable tag names make the DOM tree far easier to understand in DevTools.
+`GenericComponent.tagName` is `'rooted-component'` in development and `'r--'` in production. Human-readable tag names make the DOM tree far easier to understand in DevTools.
 
 ### `data-component` attribute
 
 In development, `GenericComponent.onMount` sets a `data-component` attribute on each wrapper element:
 
 ```html
-<generic-component data-component="my-counter" r1a2b3c4d>
+<rooted-component data-component="my-counter" r1a2b3c4d>
 ```
 
 This makes the component name visible in the DevTools Elements panel without needing to read source maps.
