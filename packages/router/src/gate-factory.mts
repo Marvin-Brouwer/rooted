@@ -4,23 +4,43 @@ import { dev } from './dev-helper.mts'
 
 export const typedParameter: unique symbol = Symbol.for('rooted:typed-parameter')
 
+/** Internal brand that distinguishes a {@link WildcardParameter} from a {@link PathParameter}. */
+const wildcardBrand: unique symbol = Symbol.for('rooted:wildcard')
+
+type WildcardParameter<K extends string = string> = {
+	readonly key: K
+	readonly [wildcardBrand]: true
+}
+
 /**
- * Catch-all interpolation for use inside a {@link gate} template string.
+ * Declares a catch-all path parameter for use inside a {@link gate} template string.
  *
- * A `wildcard` matches one or more remaining path segments. It must be the
- * last interpolation in the pattern, and must be preceded by a `/`.
+ * A `wildcard` matches one or more remaining path segments and exposes the
+ * matched value on `options.gate[key]` as a `string`. It must be the last
+ * interpolation in the pattern, and must be preceded by a `/`.
+ *
+ * @param key - Property name on `options.gate` that will hold the matched path string.
  *
  * @example
  * ```ts
  * import { gate, wildcard } from '@rooted/router'
  *
- * export const ArchiveGate = gate`/archive/${wildcard}/`(Archive)
+ * export const ArchiveGate = gate`/archive/${wildcard('path')}/`(Archive)
+ * // options.gate.path is typed as string
  * // matches /archive/foo/, /archive/foo/bar/, /archive/foo/bar/baz/, …
  * ```
  *
  * @see {@link gate}
+ * @see {@link GateParameters}
  */
-export const wildcard: unique symbol = Symbol.for('rooted:wildcard')
+export function wildcard<K extends string>(key: K): WildcardParameter<K> {
+	return { key, [wildcardBrand]: true } as WildcardParameter<K>
+}
+
+/** Returns `true` if `v` is a {@link WildcardParameter}. */
+function isWildcardParam(v: unknown): v is WildcardParameter {
+	return typeof v === 'object' && v !== null && wildcardBrand in (v as object)
+}
 
 /**
  * Declares a typed path parameter for use inside a {@link gate} template string.
@@ -62,10 +82,8 @@ type PathParameter<K extends string = string, V extends ParameterValue = Paramet
 	matches: V
 }
 
-type WildcardType = typeof wildcard
-
 /** Any value that may appear as an interpolation in a gate template string. */
-type GateValue = PathParameter | BoundGateDefinition<any, any> | WildcardType
+type GateValue = PathParameter | BoundGateDefinition<any, any> | WildcardParameter
 
 type MatchResult = {
 	end: number
@@ -79,10 +97,10 @@ type ParameterValueType<V extends ParameterValue> =
 	V extends DateConstructor ? Date :
 	never
 
-// Extract only the PathParameter entries from a GateValue tuple
+// Extract PathParameter and WildcardParameter entries from a GateValue tuple
 type ExtractParams<T extends readonly GateValue[]> =
 	T extends readonly [infer H, ...infer R extends readonly GateValue[]]
-		? H extends PathParameter
+		? H extends PathParameter | WildcardParameter
 			? [H, ...ExtractParams<R>]
 			: ExtractParams<R>
 		: []
@@ -110,8 +128,10 @@ type ExtractParams<T extends readonly GateValue[]> =
  * })
  * ```
  */
-export type GateParameters<G> = G extends { [typedParameter]: infer T extends PathParameter[] }
-	? { [P in T[number]as P['key']]: ParameterValueType<P['matches']> }
+type AnyParam = PathParameter | WildcardParameter
+
+export type GateParameters<G> = G extends { [typedParameter]: infer T extends AnyParam[] }
+	? { [P in T[number] as P['key']]: P extends WildcardParameter ? string : ParameterValueType<(P & PathParameter)['matches']> }
 	: never
 
 /**
@@ -228,7 +248,7 @@ export function gate<const T extends readonly GateValue[]>(
 	dev.validatePattern?.(strings, values as GateValue[], false)
 	const parentGate = isGateDefinition(values[0]) ? values[0] as BoundGateDefinition<any, any> : undefined
 	if (parentGate) gatesWithChildren.add(parentGate)
-	const pathValues = values.filter(v => !isGateDefinition(v)) as (PathParameter | WildcardType)[]
+	const pathValues = values.filter(v => !isGateDefinition(v)) as AnyParam[]
 	// When a parent gate is the first interpolation, strings[0] is '' (nothing before the parent).
 	// Slice it off so the remaining strings align with the filtered pathValues.
 	const childStrings = parentGate ? strings.slice(1) as unknown as TemplateStringsArray : strings
@@ -264,7 +284,7 @@ export function junction<const T extends readonly PathParameter[]>(
 	strings: TemplateStringsArray, ...values: T
 ): GateBinder<T> {
 	dev.validatePattern?.(strings, values as GateValue[], true)
-	const unbound = buildGate(strings, values as PathParameter[])
+	const unbound = buildGate(strings, values as AnyParam[])
 	return (<O extends {}>(inner: Component<O>) =>
 		bindComponentToGate(inner, unbound, true)) as GateBinder<T>
 }
@@ -310,7 +330,7 @@ function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: Unbound
 	return Object.freeze(bound) as BoundGateDefinition<O, PathParameter[]>
 }
 
-function buildGate(strings: TemplateStringsArray, values: (PathParameter | WildcardType)[], parent?: UnboundGateDefinition): UnboundGateDefinition {
+function buildGate(strings: TemplateStringsArray, values: AnyParam[], parent?: UnboundGateDefinition): UnboundGateDefinition {
 
 	function matchFrom(path: string, offset: number = 0): MatchResult | false {
 		let pos = offset
@@ -325,9 +345,10 @@ function buildGate(strings: TemplateStringsArray, values: (PathParameter | Wildc
 			if (i < values.length) {
 				const param = values[i]!
 
-				if (param === wildcard) {
+				if (isWildcardParam(param)) {
 					// Wildcard: match everything remaining (at least 1 character)
 					if (pos >= path.length) return false
+					params[param.key] = path.slice(pos)
 					return { end: path.length, params }
 				}
 
@@ -365,7 +386,7 @@ function buildGate(strings: TemplateStringsArray, values: (PathParameter | Wildc
 		return matchFrom(path, offset)
 	}
 
-	const gateDef: Writeable<UnboundGateDefinition> & { [typedParameter]: (PathParameter | WildcardType)[] } = {
+	const gateDef: Writeable<UnboundGateDefinition> & { [typedParameter]: AnyParam[] } = {
 		[typedParameter]: values,
 		matchFrom: ownMatchFrom,
 		match: (url: URL) => {

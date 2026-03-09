@@ -254,7 +254,7 @@ describe('gate — nested routes via parent interpolation', () => {
 })
 
 describe('gate — wildcard matching', () => {
-	const routeGate = gate`/archive/${wildcard}/`(mockComponent('archive'))
+	const routeGate = gate`/archive/${wildcard('path')}/`(mockComponent('archive'))
 
 	test('matches a single segment after the prefix', () => {
 		expect(routeGate.matchFrom('/archive/foo/')).not.toBe(false)
@@ -268,6 +268,16 @@ describe('gate — wildcard matching', () => {
 		const result = routeGate.matchFrom('/archive/foo/bar/')
 		expect(result).not.toBe(false)
 		expect((result as { end: number }).end).toBe('/archive/foo/bar/'.length)
+	})
+
+	test('stores the matched path segments under the given key', () => {
+		const result = routeGate.matchFrom('/archive/foo/bar/')
+		expect((result as { params: Record<string, unknown> }).params).toEqual({ path: 'foo/bar/' })
+	})
+
+	test('single segment value is just the segment string', () => {
+		const result = routeGate.matchFrom('/archive/foo/')
+		expect((result as { params: Record<string, unknown> }).params).toEqual({ path: 'foo/' })
 	})
 
 	test('returns false when nothing follows the prefix', () => {
@@ -305,12 +315,12 @@ describe('validatePattern — dev-mode errors', () => {
 
 	test('emits error when wildcard is not at the end', () => {
 		// TypeScript would catch this, but we test the runtime check
-		gate`/before/${wildcard as any}/${token('id', Number)}/`(mockComponent('bad'))
+		gate`/before/${wildcard('seg') as any}/${token('id', Number)}/`(mockComponent('bad'))
 		expect(console.error).toHaveBeenCalledWith(expect.stringContaining('Wildcard interpolation must be at the end'))
 	})
 
 	test('emits error when wildcard is not preceded by a slash', () => {
-		gate`/noslash${wildcard}/` as any
+		gate`/noslash${wildcard('seg') as any}/` as any
 		expect(console.error).toHaveBeenCalledWith(expect.stringContaining('must be preceded by a slash'))
 	})
 
@@ -326,7 +336,7 @@ describe('validatePattern — dev-mode errors', () => {
 	})
 
 	test('no errors for a valid wildcard gate pattern', () => {
-		gate`/archive/${wildcard}/`(mockComponent('archive'))
+		gate`/archive/${wildcard('path')}/`(mockComponent('archive'))
 		expect(console.error).not.toHaveBeenCalled()
 	})
 

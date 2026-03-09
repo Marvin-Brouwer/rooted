@@ -8,10 +8,10 @@ type RouteEntries = [string, Component | BoundGateDefinition<any, any>][]
 type Gates = Array<{ key: string; gate: BoundGateDefinition<any, any> }>
 
 // Use the global symbol registry to avoid a circular value import from gate-factory
-const wildcardSymbol = Symbol.for('rooted:wildcard')
+const wildcardBrand = Symbol.for('rooted:wildcard')
 
-function isWildcard(v: unknown): boolean {
-	return v === wildcardSymbol
+function isWildcard(v: unknown): v is { key: string } {
+	return typeof v === 'object' && v !== null && wildcardBrand in (v as object)
 }
 
 function reconstructPattern(strings: TemplateStringsArray, values: readonly unknown[]): string {
@@ -20,7 +20,7 @@ function reconstructPattern(strings: TemplateStringsArray, values: readonly unkn
 		const v = values[i - 1]
 		let label: string
 		if (isGate(v as any)) label = '${Gate}'
-		else if (isWildcard(v)) label = '${wildcard}'
+		else if (isWildcard(v)) label = `\${wildcard('${v.key}')}`
 		else label = `\${${(v as { key: string }).key}}`
 		return acc + label + str
 	}, '')
