@@ -166,12 +166,16 @@ builds.
 Every component receives a `signal` in its `ComponentContext`. That signal is
 the output of a per-component `AbortController` that is wired to two sources:
 
-```
-pageSignal ──────────────────────────────────┐
-                                             │
-GenericComponent.abortController ────────── abort() on:
-  └── ctx.signal                              ├── component unmounted (onUnmount)
-                                             └── page unloaded (pageSignal fires)
+```mermaid
+flowchart LR
+    pageSignal["pageSignal\n(page unloaded)"]
+    onUnmount["onUnmount\n(component unmounted)"]
+    controller["GenericComponent\n.abortController"]
+    signal["ctx.signal"]
+
+    pageSignal  --> controller
+    onUnmount   --> controller
+    controller  -->|abort| signal
 ```
 
 ### `pageSignal`
@@ -266,11 +270,20 @@ independently manages the `home` and `notFound` components.
 Each gate produced by `gate()` is itself a component. When it mounts, it
 attaches a `popstate` listener and calls its own `update()` function:
 
-```
-popstate → update() → matchFrom(location.pathname)
-                        ↓
-                   match? → append(innerComponent, { gate: params })
-                   no match? → element.remove()
+```mermaid
+flowchart LR
+    popstate["popstate event"]
+    update["update()"]
+    match["matchFrom(location.pathname)"]
+    decision{match?}
+    append["append(innerComponent,\n{ gate: params })"]
+    remove["element.remove()"]
+
+    popstate  --> update
+    update    --> match
+    match     --> decision
+    decision  -->|yes| append
+    decision  -->|no|  remove
 ```
 
 This means the router doesn't need to know about URL changes — each gate
