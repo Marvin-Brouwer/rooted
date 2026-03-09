@@ -1,11 +1,8 @@
 import styles from './category.css?inline'
 import { component } from '@rooted/components'
-import { type GateParameters, gate, token, Link } from '@rooted/router'
-import { type CategoryGate } from './_gates.mts'
+import { type GateParameters, Link } from '@rooted/router'
+import { type CategoryGate, RecipeGate } from './_gates.mts'
 import { categories } from './_data.mts'
-import { Recipe } from '../recipes/recipe.mts'
-
-const RecipeGate = gate`/categories/${token('slug', String)}/recipes/${token('id', Number)}/`(Recipe)
 
 export type CategoryOptions = {
 	gate: GateParameters<typeof CategoryGate>

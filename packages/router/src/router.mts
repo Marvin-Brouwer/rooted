@@ -104,6 +104,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 	const gates: Array<{ key: string; gate: BoundGateDefinition<any, any> }> = []
 	for (const [key, value] of entries) {
 		if (!isGate(value)) continue
+		if (value.hasParent) continue   // child gates are composed by their parent, not router-mounted
 		if (!seen.has(value)) {
 			seen.add(value)
 			gates.push({ key, gate: value })

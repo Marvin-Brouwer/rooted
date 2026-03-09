@@ -178,6 +178,14 @@ export type BoundGateDefinition<O extends {}, T extends AnyParam[]> = Component<
 	 */
 	readonly hasChildren: boolean
 	/**
+	 * `true` when this gate was defined with a parent gate as its first interpolation
+	 * (`gate\`/${ParentGate}/...\``).
+	 *
+	 * Child gates are **not** auto-mounted by the {@link router} — they must be
+	 * composed explicitly by the parent component via `append(ChildGate, {})`.
+	 */
+	readonly hasParent: boolean
+	/**
 	 * Tests whether `path` matches this gate's pattern starting at `offset`.
 	 *
 	 * @param path   - The pathname to test (e.g. `location.pathname`).
@@ -260,7 +268,7 @@ export function gate<const T extends readonly GateValue[]>(
 	const childStrings = parentGate ? strings.slice(1) as unknown as TemplateStringsArray : strings
 	const unbound = buildGate(childStrings, pathValues, parentGate as unknown as UnboundGateDefinition | undefined)
 	return (<O extends {}>(inner: Component<O>) =>
-		bindComponentToGate(inner, unbound, false)) as GateBinder<T>
+		bindComponentToGate(inner, unbound, false, !!parentGate)) as GateBinder<T>
 }
 
 /**
@@ -295,7 +303,7 @@ export function junction<const T extends readonly PathParameter[]>(
 		bindComponentToGate(inner, unbound, true)) as GateBinder<T>
 }
 
-function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: UnboundGateDefinition, exact: boolean): BoundGateDefinition<O, PathParameter[]> {
+function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: UnboundGateDefinition, exact: boolean, hasParent: boolean = false): BoundGateDefinition<O, PathParameter[]> {
 	const bound = component<OmitGate<O>>({
 		name: inner.name + '-gate',
 		onMount(ctx) {
@@ -331,6 +339,7 @@ function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: Unbound
 
 	bound[typedParameter] = (gateDef as any)[typedParameter]
 	bound.exact = exact
+	bound.hasParent = hasParent
 	bound.matchFrom = gateDef.matchFrom.bind(gateDef)
 	bound.match = gateDef.match.bind(gateDef)
 
