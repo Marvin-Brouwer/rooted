@@ -96,6 +96,15 @@ const Nav = component({
 			if (query) navigate(`/search/${encodeURIComponent(query)}/`)
 		}, { signal })
 
+		// Keep the search bar in sync with the URL: show the active query on the search page,
+		// clear it everywhere else
+		const syncInput = () => {
+			const match = window.location.pathname.match(/^\/search\/(.+)\/$/)
+			input.value = match ? decodeURIComponent(match[1]) : ''
+		}
+		window.addEventListener('popstate', syncInput, { signal })
+		syncInput()
+
 		nav.append(form)
 	},
 })
