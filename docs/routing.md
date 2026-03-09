@@ -182,3 +182,62 @@ src/
 ```
 
 Gates **must** be named exports (not default) so they can be spread into `router()`.
+
+---
+
+## Navigation
+
+SPA navigation helpers are exported from `@rooted/router`.
+
+### `navigate`
+
+Pushes to the browser history and dispatches a `popstate` event so the router
+re-evaluates the current URL — no full-page reload.
+
+```ts
+import { navigate } from '@rooted/router'
+
+// Navigate to a URL
+navigate('/categories/italian/')
+```
+
+A second overload pushes arbitrary history state without changing the URL
+(useful for modal or drawer state that does not need its own path):
+
+```ts
+navigate({ modal: 'confirm', id: 42 })
+```
+
+### `Link`
+
+`Link` is a built-in component that renders a client-side `<a>` element.
+Clicks call `navigate` automatically; the listener is removed when the
+component unmounts.
+
+```ts
+import { Link } from '@rooted/router'
+
+// Text link
+create(Link, { href: '/about/', children: 'About us' })
+
+// Link wrapping richer content
+create(Link, {
+  href: '/categories/italian/',
+  className: 'category-card',
+  children: [
+    create('div', { className: 'name', textContent: 'Italian' }),
+    create('p',   { className: 'count', textContent: '3 recipes' }),
+  ],
+})
+```
+
+**`LinkOptions`**
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| `href` | `string` | yes | Destination URL |
+| `className` | `string` | no | CSS class applied to the `<a>` element |
+| `children` | `string \| Node \| Node[]` | no | Link content — text, a single node, or an array of nodes |
+
+`Link` is layout-transparent — the wrapper element uses `display: contents`
+so the inner `<a>` participates directly in any flex or grid context.
