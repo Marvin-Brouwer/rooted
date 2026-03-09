@@ -4,7 +4,7 @@ import { application } from '@rooted/components/application'
 import { component } from '@rooted/components'
 import { router } from '@rooted/router'
 
-import * as appRoutes from './_routes.g.mts'
+import { appRoutes } from './_routes.g.mts'
 import { Home } from './home/home.mts'
 import { navigate } from './navigate.mts'
 

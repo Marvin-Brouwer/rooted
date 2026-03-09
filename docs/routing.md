@@ -150,12 +150,24 @@ export default defineConfig({
 
 ```ts
 import { router } from '@rooted/router'
-import * as appRoutes from './_routes.g.mts'
+import { appRoutes } from './_routes.g.mts'
 
 const Router = router({ home, notFound, ...appRoutes })
 ```
 
 The aggregator is regenerated on `buildStart`. In dev mode, adding or removing a `_gates.mts` file triggers a regeneration and a full page reload.
+
+The aggregator ensures duplicate names won't clash by hashing the filename. \ 
+Generating something that looks like:
+
+```json
+{
+  "Rcb8948a4_CategoriesGate": { ... },
+  "Rcb8948a4_CategoryGate": { ... },
+  "Rcb8948a4_RecipeGate": { ... },
+  "R52252b9a_SearchGate": { ... }
+}
+```
 
 ### Convention
 
