@@ -148,6 +148,7 @@ Additional guides:
 
 | Guide | Description |
 |-------|-------------|
+| [Styling](./docs/styling.md) | Two-layer CSS architecture: app theme + component styles |
 | [Architecture](./docs/architecture.md) | Internals: CSS scoping, security model, signal lifecycle, router design |
 | [FAQ](./docs/faq.md) | Common questions and troubleshooting |
 | [Contributing](./CONTRIBUTING.md) | Dev setup, coding standards, PR checklist |

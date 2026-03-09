@@ -97,6 +97,9 @@ export const Card = component({
 Styles are injected once per document per component, even if the component is
 mounted multiple times.
 
+For guidance on structuring the app-wide theme and keeping component CSS focused,
+see the [styling guide](./styling.md).
+
 ### `onMount`
 
 ```ts
