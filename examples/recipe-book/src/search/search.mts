@@ -1,8 +1,9 @@
+import styles from './search.css?inline'
 import { component } from '@rooted/components'
 import { type GateParameters } from '@rooted/router'
 import { type SearchGate } from './_gates.mts'
 import { recipes } from '../recipes/_data.mts'
-import { navLink } from '../navigate.mts'
+import { NavLink } from '../navigate.mts'
 
 export type SearchOptions = {
 	gate: GateParameters<typeof SearchGate>
@@ -10,29 +11,7 @@ export type SearchOptions = {
 
 export const Search = component<SearchOptions>({
 	name: 'search-page',
-	styles: `
-		h1 { margin: 0 0 0.25rem; font-size: 1.75rem; }
-		.search-query {
-			color: var(--color-primary);
-			font-style: italic;
-		}
-		.result-count { color: var(--color-text-muted); margin: 0 0 1.5rem; }
-		.result-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem; }
-		.result-item {
-			background: var(--color-surface);
-			border: 1px solid var(--color-border);
-			border-radius: 8px;
-			padding: 1rem 1.25rem;
-		}
-		.result-title { font-weight: 600; margin: 0 0 0.25rem; }
-		.result-title a {
-			color: var(--color-primary);
-			text-decoration: none;
-		}
-		.result-title a:hover { text-decoration: underline; }
-		.result-desc { color: var(--color-text-muted); font-size: 0.9rem; margin: 0; }
-		.no-results { color: var(--color-text-muted); font-style: italic; }
-	`,
+	styles,
 	onMount({ append, create, signal }) {
 		// Wrap all rendered content so we can replace it on re-search without remounting
 		const root = append('div', {})
@@ -75,7 +54,7 @@ export const Search = component<SearchOptions>({
 				list.append(create('li', {
 					className: 'result-item',
 					children: [
-						create('div', { className: 'result-title', children: navLink(href, recipe.title, signal) }),
+						create('div', { className: 'result-title', children: create(NavLink, { href, children: recipe.title }) }),
 						create('p', { className: 'result-desc', textContent: recipe.description }),
 					],
 				}))
