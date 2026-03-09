@@ -83,6 +83,7 @@ export function generateRouteManifest(options: Options): Plugin {
 		const globForComment = options.glob.replaceAll('*', '∗')
 
 		const lines = [
+			'/* @refresh reload */',
 			'/* eslint-disable */',
 			'// @ts-nocheck',
 			'',
