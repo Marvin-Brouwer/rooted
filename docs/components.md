@@ -57,7 +57,7 @@ the source file location to improve error messages.
 name: string
 ```
 
-A lowercase, HTML-valid identifier for the component (`[a-z][a-z0-9-]*`).
+A lowercase, HTML-valid identifier for the component (`[a-z][a-z0-9\-]*`).
 
 - Must be unique across the application — duplicate names cause duplicate style
   injection and a console warning in development.
@@ -293,7 +293,7 @@ builds.
 ### Human-readable element names
 
 The internal wrapper element uses the tag name `<generic-component>` in
-development and `<r-gc>` in production. This makes the DOM tree far easier to
+development and `<r-->` in production. This makes the DOM tree far easier to
 read in the browser's Elements panel.
 
 ### `data-component` attribute

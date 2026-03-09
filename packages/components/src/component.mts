@@ -43,7 +43,7 @@ export function isComponent(value: unknown): value is Component<any> {
 
 /**
  * A rooted component — a {@link ComponentConstructor} enriched with an internal
- * brand symbol so the runtime can identify it and wrap it in a `<r-gc>` custom
+ * brand symbol so the runtime can identify it and wrap it in a `<r-->` custom
  * element.
  *
  * Create components with the {@link component} factory rather than

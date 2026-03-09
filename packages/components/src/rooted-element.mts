@@ -62,7 +62,7 @@ export abstract class RootedElement extends HTMLElement {
 	 * Validates that `name` is a legal custom-element tag name.
 	 *
 	 * Throws if the name:
-	 * - Does not match `[a-z][a-z0-9-]*`
+	 * - Does not match `[a-z][a-z0-9\-]*`
 	 * - Does not contain at least one hyphen (required by the custom-elements spec)
 	 *
 	 * @param name - The tag name to validate.

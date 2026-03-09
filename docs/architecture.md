@@ -22,21 +22,21 @@ A rooted application is a tree of native custom elements. The high-level view is
 
 ```
 application()
-└── <r-gc>            ← GenericComponent wrapping the root Component
-    ├── <r-gc>        ← child component
+└── <r-->            ← GenericComponent wrapping the root Component
+    ├── <r-->        ← child component
     │   └── <div>     ← plain DOM created by create()
-    └── <r-gc>        ← another child component (e.g. the Router)
-        └── <r-gc>    ← a gate component
-            └── <r-gc>← the route's component
+    └── <r-->        ← another child component (e.g. the Router)
+        └── <r-->    ← a gate component
+            └── <r-->← the route's component
 ```
 
-There is no virtual DOM. `create()` calls `document.createElement` directly. Components are connected to the document by appending the `<r-gc>` element to the tree; the browser's own custom-element lifecycle drives `onMount` and `onUnmount`.
+There is no virtual DOM. `create()` calls `document.createElement` directly. Components are connected to the document by appending the `<r-->` element to the tree; the browser's own custom-element lifecycle drives `onMount` and `onUnmount`.
 
 ---
 
 ## Component wrapper element
 
-Every functional `Component` is wrapped in a `GenericComponent` — a custom element registered under the tag name `<r-gc>` (production) or `<generic-component>` (development).
+Every functional `Component` is wrapped in a `GenericComponent` — a custom element registered under the tag name `<r-->` (production) or `<generic-component>` (development).
 
 When `create(MyComponent)` or `append(MyComponent)` is called:
 
@@ -154,7 +154,7 @@ Rooted uses `import.meta.env.DEV` (set by Vite) to enable development-only behav
 
 ### Tag name
 
-`GenericComponent.tagName` is `'generic-component'` in development and `'r-gc'` in production. Human-readable tag names make the DOM tree far easier to understand in DevTools.
+`GenericComponent.tagName` is `'generic-component'` in development and `'r--'` in production. Human-readable tag names make the DOM tree far easier to understand in DevTools.
 
 ### `data-component` attribute
 
