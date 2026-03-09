@@ -5,7 +5,7 @@ vi.mock('@rooted/components', () => ({
 	isComponent: () => false,
 }))
 
-import { gate, typedParameter } from '../src/gate-factory.mts'
+import { gate, junction, typedParameter } from '../src/gate-factory.mts'
 import { isGate } from '../src/router.mts'
 import type { ComponentConstructor } from '@rooted/components'
 
@@ -27,13 +27,13 @@ describe('isGate', () => {
 		expect(isGate(obj as any)).toBe(true)
 	})
 
-	test('returns true for a gate produced by gate()', () => {
-		const g = gate(mockComponent('test-gate'))`/route`
+	test('returns true for a gate produced by gate``()', () => {
+		const g = gate`/route/`(mockComponent('test-gate'))
 		expect(isGate(g)).toBe(true)
 	})
 
-	test('returns true for an exact gate produced by gate().exact', () => {
-		const g = gate(mockComponent('exact-gate')).exact`/route`
+	test('returns true for a junction produced by junction``()', () => {
+		const g = junction`/route/`(mockComponent('junction-gate'))
 		expect(isGate(g)).toBe(true)
 	})
 })
