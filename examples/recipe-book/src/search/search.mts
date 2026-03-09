@@ -33,7 +33,7 @@ export const Search = component<SearchOptions>({
 		.result-desc { color: var(--color-text-muted); font-size: 0.9rem; margin: 0; }
 		.no-results { color: var(--color-text-muted); font-style: italic; }
 	`,
-	onMount({ append, signal }) {
+	onMount({ append, create, signal }) {
 		// Wrap all rendered content so we can replace it on re-search without remounting
 		const root = append('div', {})
 
@@ -45,15 +45,12 @@ export const Search = component<SearchOptions>({
 			const query = decodeURIComponent(rawQuery).toLowerCase().trim()
 			const displayQuery = decodeURIComponent(rawQuery)
 
-			const heading = document.createElement('h1')
-			heading.append(
-				document.createTextNode('Results for '),
-				Object.assign(document.createElement('span'), {
-					className: 'search-query',
-					textContent: `"${displayQuery}"`,
-				}),
-			)
-			root.append(heading)
+			root.append(create('h1', {
+				children: [
+					document.createTextNode('Results for '),
+					create('span', { className: 'search-query', textContent: `"${displayQuery}"` }),
+				],
+			}))
 
 			const matches = recipes.filter(r =>
 				r.title.toLowerCase().includes(query) ||
@@ -62,33 +59,26 @@ export const Search = component<SearchOptions>({
 				r.description.toLowerCase().includes(query),
 			)
 
-			root.append(Object.assign(document.createElement('p'), {
+			root.append(create('p', {
 				className: 'result-count',
 				textContent: `${matches.length} recipe${matches.length !== 1 ? 's' : ''} found`,
 			}))
 
 			if (matches.length === 0) {
-				root.append(Object.assign(document.createElement('p'), {
-					className: 'no-results',
-					textContent: 'No recipes match your search.',
-				}))
+				root.append(create('p', { className: 'no-results', textContent: 'No recipes match your search.' }))
 				return
 			}
 
-			const list = Object.assign(document.createElement('ul'), { className: 'result-list' })
+			const list = create('ul', { className: 'result-list' })
 			for (const recipe of matches) {
 				const href = `/categories/${recipe.category}/recipes/${recipe.id}/`
-				const link = navLink(href, recipe.title, signal)
-				const title = Object.assign(document.createElement('div'), { className: 'result-title' })
-				title.append(link)
-				const desc = Object.assign(document.createElement('p'), {
-					className: 'result-desc',
-					textContent: recipe.description,
-				})
-				const li = document.createElement('li')
-				li.className = 'result-item'
-				li.append(title, desc)
-				list.append(li)
+				list.append(create('li', {
+					className: 'result-item',
+					children: [
+						create('div', { className: 'result-title', children: navLink(href, recipe.title, signal) }),
+						create('p', { className: 'result-desc', textContent: recipe.description }),
+					],
+				}))
 			}
 			root.append(list)
 		}

@@ -117,11 +117,11 @@ const NotFound = component({
 		p { color: var(--color-text-muted); margin: 0 0 1.5rem; }
 		a { color: var(--color-primary); }
 	`,
-	onMount({ append, signal }) {
+	onMount({ append, create, signal }) {
 		const wrap = append('div', { className: 'not-found' })
 		wrap.append(
-			Object.assign(document.createElement('h1'), { textContent: '404' }),
-			Object.assign(document.createElement('p'), { textContent: 'Page not found.' }),
+			create('h1', { textContent: '404' }),
+			create('p', { textContent: 'Page not found.' }),
 		)
 		const homeLink = document.createElement('a')
 		homeLink.href = '/'
