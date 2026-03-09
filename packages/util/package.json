@@ -1,6 +1,29 @@
 {
 	"name": "@rooted/util",
-	"description": "rooted — utility package",
+	"version": "0.1.0",
+	"description": "rooted — internal utilities (seeded IDs, dev helpers)",
+	"keywords": [
+		"web-components",
+		"utilities",
+		"typescript",
+		"rooted"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "packages/util"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"sideEffects": false,
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
 	"exports": {
 		".": {
 			"import": "./dist/util.mjs",

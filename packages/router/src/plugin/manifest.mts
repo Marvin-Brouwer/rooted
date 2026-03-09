@@ -3,11 +3,63 @@ import { glob } from 'tinyglobby'
 import { writeFile, mkdir } from 'node:fs/promises'
 import { resolve, relative, dirname } from 'node:path'
 
+/**
+ * Options for {@link generateRouteManifest}.
+ */
 type Options = {
+	/**
+	 * Glob pattern (relative to the Vite project root) used to discover gate
+	 * files. Matched files are re-exported from the aggregator.
+	 *
+	 * @example `'./src/**\/_gates.mts'`
+	 */
 	glob: string
+	/**
+	 * Path (relative to the Vite project root) where the aggregator file is
+	 * written. This file is auto-generated — add it to `.gitignore`.
+	 *
+	 * @example `'./src/_routes.g.mts'`
+	 */
 	root: string
 }
 
+/**
+ * Vite plugin that auto-discovers `_gates.mts` files and writes a single
+ * aggregator module that re-exports all named gate exports.
+ *
+ * The aggregator can be spread directly into {@link router}:
+ *
+ * ```ts
+ * import * as appRoutes from './_routes.g.mts'
+ * const Router = router({ home, notFound, ...appRoutes })
+ * ```
+ *
+ * **Behaviour:**
+ * - Regenerates the aggregator on every `buildStart`.
+ * - In dev mode, adding or removing a `_gates.mts` file triggers regeneration
+ *   and a full page reload via Vite HMR.
+ * - Exports are sorted alphabetically to produce a stable file on each run.
+ *
+ * @param options - Glob pattern and output path.
+ * @returns A Vite {@link Plugin}.
+ *
+ * @example `vite.config.ts`
+ * ```ts
+ * import { generateRouteManifest } from '@rooted/router/manifest'
+ *
+ * export default defineConfig({
+ *   plugins: [
+ *     generateRouteManifest({
+ *       glob: './src/**\/_gates.mts',
+ *       root: './src/_routes.g.mts',
+ *     }),
+ *   ],
+ * })
+ * ```
+ *
+ * @see {@link router}
+ * @see {@link gate}
+ */
 export function generateRouteManifest(options: Options): Plugin {
 	let config: ResolvedConfig
 

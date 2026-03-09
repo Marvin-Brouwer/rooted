@@ -41,6 +41,28 @@ function createComponentStore() {
  */
 export const componentStore = createComponentStore()
 
+/**
+ * The internal custom element that wraps every functional {@link Component}.
+ *
+ * When you call `create(MyComponent)`, rooted creates an instance of
+ * `GenericComponent` (tag name `<r-gc>` in production, `<generic-component>`
+ * in development) and stores the component constructor and options in a private
+ * `WeakMap`. On `connectedCallback` the component's `onMount` is invoked with
+ * a fully typed {@link ComponentContext}.
+ *
+ * You will encounter this type in TypeScript signatures — for example,
+ * `create(MyComponent)` returns `GenericComponent` — but you should not
+ * instantiate or subclass it directly. Always use {@link component} and
+ * {@link create} instead.
+ *
+ * In development the element also exposes `component`, `options`, and
+ * `definedAt` as direct properties so they are visible in browser DevTools.
+ * These properties are absent in production builds.
+ *
+ * @see {@link component}
+ * @see {@link create}
+ * @see {@link componentStore}
+ */
 export class GenericComponent extends RootedElement {
 	public static tagName = isDevelopment() ? 'generic-component' : 'r-gc'
 
