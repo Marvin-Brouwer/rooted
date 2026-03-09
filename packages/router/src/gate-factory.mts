@@ -162,7 +162,7 @@ export type OmitGate<O> = O extends never ? never : Omit<O, 'gate'>
  * You typically do not construct this type manually; it is returned by {@link gate}
  * or {@link junction}.
  */
-export type BoundGateDefinition<O extends {}, T extends PathParameter[]> = Component<OmitGate<O>> & {
+export type BoundGateDefinition<O extends {}, T extends AnyParam[]> = Component<OmitGate<O>> & {
 	/** The typed path parameter descriptors that were declared with {@link token}. */
 	readonly [typedParameter]: T
 	/**
@@ -251,7 +251,7 @@ function isGateDefinition(v: unknown): v is BoundGateDefinition<any, any> {
 export function gate<const T extends readonly GateValue[]>(
 	strings: TemplateStringsArray, ...values: T
 ): GateBinder<T> {
-	dev.validatePattern?.(strings, values as GateValue[], false)
+	dev.validatePattern?.(strings, values as unknown as GateValue[], false)
 	const parentGate = isGateDefinition(values[0]) ? values[0] as BoundGateDefinition<any, any> : undefined
 	if (parentGate) gatesWithChildren.add(parentGate)
 	const pathValues = values.filter(v => !isGateDefinition(v)) as AnyParam[]
@@ -289,8 +289,8 @@ export function gate<const T extends readonly GateValue[]>(
 export function junction<const T extends readonly PathParameter[]>(
 	strings: TemplateStringsArray, ...values: T
 ): GateBinder<T> {
-	dev.validatePattern?.(strings, values as GateValue[], true)
-	const unbound = buildGate(strings, values as AnyParam[])
+	dev.validatePattern?.(strings, values as unknown as GateValue[], true)
+	const unbound = buildGate(strings, values as unknown as AnyParam[])
 	return (<O extends {}>(inner: Component<O>) =>
 		bindComponentToGate(inner, unbound, true)) as GateBinder<T>
 }

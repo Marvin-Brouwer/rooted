@@ -1,5 +1,5 @@
 {
-	"name": "@rooted/example",
+	"name": "@rooted/example-recipe-book",
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
@@ -10,7 +10,9 @@
 	},
 	"dependencies": {
 		"@rooted/components": "workspace:*",
-		"@rooted/router": "workspace:*"
+		"@rooted/router": "workspace:*",
+		"gray-matter": "^4.0.3",
+		"marked": "^15.0.0"
 	},
 	"devDependencies": {
 		"typescript": "^5.5.0",

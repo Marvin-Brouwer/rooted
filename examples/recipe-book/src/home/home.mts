@@ -1,0 +1,67 @@
+import { component } from '@rooted/components'
+import { recipes } from '../recipes/_data.mts'
+import { navLink } from '../navigate.mts'
+
+export const Home = component({
+	name: 'home-page',
+	styles: `
+		h1 { margin: 0 0 0.25rem; font-size: 2rem; color: var(--color-primary); }
+		.subtitle { color: var(--color-text-muted); margin: 0 0 2rem; font-size: 1.1rem; }
+		h2 { margin: 0 0 1rem; font-size: 1.25rem; }
+		.recipe-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+			gap: 1.25rem;
+		}
+		.recipe-card {
+			background: var(--color-surface);
+			border: 1px solid var(--color-border);
+			border-radius: 10px;
+			padding: 1.25rem;
+			text-decoration: none;
+			color: inherit;
+			display: block;
+			transition: box-shadow 0.15s, transform 0.15s;
+		}
+		.recipe-card:hover {
+			box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+			transform: translateY(-2px);
+		}
+		.card-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.4rem; }
+		.card-desc { color: var(--color-text-muted); font-size: 0.9rem; margin: 0 0 0.75rem; line-height: 1.4; }
+		.card-meta { display: flex; gap: 0.75rem; font-size: 0.8rem; color: var(--color-text-muted); }
+		.badge {
+			background: var(--color-bg);
+			border: 1px solid var(--color-border);
+			border-radius: 20px;
+			padding: 0.2rem 0.6rem;
+			text-transform: capitalize;
+		}
+	`,
+	onMount({ append, signal }) {
+		append('h1', { textContent: 'Recipe Book' })
+		append('p', { className: 'subtitle', textContent: 'A collection of recipes, built with Rooted.' })
+		append('h2', { textContent: 'Featured Recipes' })
+
+		const grid = append('div', { className: 'recipe-grid' })
+
+		for (const recipe of recipes.filter(r => r.featured)) {
+			const href = `/categories/${recipe.category}/recipes/${recipe.id}/`
+			const card = navLink(href, '', signal)
+			card.className = 'recipe-card'
+			card.append(
+				Object.assign(document.createElement('div'), { className: 'card-title', textContent: recipe.title }),
+				Object.assign(document.createElement('p'), { className: 'card-desc', textContent: recipe.description }),
+				Object.assign(document.createElement('div'), {
+					className: 'card-meta',
+					innerHTML: `
+						<span class="badge">${recipe.category}</span>
+						<span>${recipe.prepTime + recipe.cookTime} min</span>
+						<span>${recipe.difficulty}</span>
+					`,
+				}),
+			)
+			grid.append(card)
+		}
+	},
+})

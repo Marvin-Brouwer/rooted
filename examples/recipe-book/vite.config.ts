@@ -11,11 +11,11 @@ export default defineConfig({
 		VitePWA({
 			registerType: 'autoUpdate',
 			manifest: {
-				name: 'Rooted Example',
-				short_name: 'Rooted',
-				description: 'A plain Vite PWA example for @rooted/components',
+				name: 'Rooted Recipe Book',
+				short_name: 'Recipe Book',
+				description: 'A vertical-slice example app for @rooted/components',
 				theme_color: '#ffffff',
-				background_color: '#ffffff',
+				background_color: '#faf7f2',
 				display: 'standalone',
 				icons: [
 					{
