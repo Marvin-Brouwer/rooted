@@ -283,7 +283,7 @@ flowchart LR
     update    --> match
     match     --> decision
     decision  -->|yes| append
-    decision  -->|no|  remove
+    decision  -->|no| remove
 ```
 
 This means the router doesn't need to know about URL changes — each gate
