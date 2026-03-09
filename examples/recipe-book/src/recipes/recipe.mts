@@ -1,11 +1,10 @@
 import styles from './recipe.css?inline'
 import { component } from '@rooted/components'
-import { type GateParameters, Link } from '@rooted/router'
-import { type RecipeGate } from '../categories/_gates.mts'
+import { Link } from '@rooted/router'
 import { recipes } from './_data.mts'
 
 export type RecipeOptions = {
-	gate: GateParameters<typeof RecipeGate>
+	gate: { slug: string; id: number }
 }
 
 export const Recipe = component<RecipeOptions>({

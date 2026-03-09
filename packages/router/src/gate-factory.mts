@@ -302,6 +302,7 @@ function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: Unbound
 			const { append, signal } = ctx
 			const options = (ctx as any).options as OmitGate<O> | undefined
 			let el: GenericComponent | null = null
+			let lastParams: string | undefined
 
 			const update = () => {
 				const result = gateDef.matchFrom(location.pathname)
@@ -310,10 +311,16 @@ function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: Unbound
 				dev.verifyExactWillResolve?.(inner.name, exact, result, renders)
 
 				if (renders) {
-					if (!el) el = append(inner, { ...options, gate: result.params } as unknown as O)
+					const serialized = JSON.stringify(result.params)
+					if (!el || lastParams !== serialized) {
+						el?.remove()
+						el = append(inner, { ...options, gate: result.params } as unknown as O)
+						lastParams = serialized
+					}
 				} else {
 					el?.remove()
 					el = null
+					lastParams = undefined
 				}
 			}
 
