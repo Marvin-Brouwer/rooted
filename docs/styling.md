@@ -246,7 +246,7 @@ button[type="submit"] {
 Pair the CSS file with its component:
 
 ```ts
-import styles from './card.css'
+import styles from './card.css?inline'
 import { component } from '@rooted/components'
 
 export const Card = component({

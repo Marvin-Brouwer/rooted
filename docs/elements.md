@@ -148,7 +148,7 @@ from the prop type automatically.
 
 Custom element tag names must:
 
-1. Match `[a-z][a-z0-9-]*` (lowercase letters, digits, hyphens only).
+1. Match `[a-z][a-z0-9\-]*` (lowercase letters, digits, hyphens only).
 2. Contain **at least one hyphen** — this is required by the HTML spec to
    distinguish custom elements from built-in elements.
 
@@ -169,7 +169,7 @@ RootedElement.register(BadElement)
 | Scoped CSS | ✅ via `styles` field | ❌ use plain CSS or Shadow DOM |
 | Typed options from parent | ✅ `TOptions` generic | ✅ writable instance props |
 | Abort signal for cleanup | ✅ `ctx.signal` | ❌ manage manually |
-| Custom tag name | ❌ uses internal `r-gc` wrapper | ✅ `static tagName` |
+| Custom tag name | ❌ uses internal `r--` wrapper | ✅ `static tagName` |
 | Extends `HTMLElement` directly | ❌ | ✅ |
 | Can observe attributes | ❌ | ✅ `attributeChangedCallback` etc. |
 

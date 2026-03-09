@@ -54,13 +54,15 @@ export const ArticleGate = junction`/articles/${token('id', Number)}/`(Article)
 
 ### Child routes
 
-A child gate references its parent as the first interpolation in its template string. The child matches the parent's full pattern **plus** its own additional segment. Child gates receive the parent's params merged with their own.
+A child gate references its parent as the **first interpolation** in its template string, preceded by a leading `/`. The child matches the parent's full pattern **plus** its own additional segment. Child gates receive the parent's params merged with their own.
 
 ```ts
 export const ArticleGate  = junction`/articles/${token('id', Number)}/`(Article)
-export const CommentsGate = gate`${ArticleGate}/comments/`(Comments)
+export const CommentsGate = gate`/${ArticleGate}/comments/`(Comments)
 // CommentsGate matches /articles/123/comments/
 ```
+
+The leading `/` is mandatory — `gate\`${ArticleGate}/comments/\`` (no leading slash) is a validation error.
 
 ### `wildcard(key)`
 
@@ -91,7 +93,7 @@ In development, `gate` and `junction` validate the pattern at definition time an
 | Pattern does not start with `/` | `gate pattern must start with a slash` |
 | Pattern does not end with `/` | `gate pattern must end with a slash` |
 | Gate interpolation is not first | `Gate interpolation must be at the start of the pattern` |
-| Gate interpolation has preceding text | `Gate interpolation must be at the very start with no preceding text` |
+| Gate interpolation not preceded by `/` | `Gate interpolation must be preceded by a leading slash` |
 | Gate interpolation not followed by `/` | `Gate interpolation must be followed by a slash` |
 | Wildcard is not the last interpolation | `Wildcard interpolation must be at the end of the pattern` |
 | Wildcard not preceded by `/` | `Wildcard interpolation must be preceded by a slash` |
@@ -99,6 +101,37 @@ In development, `gate` and `junction` validate the pattern at definition time an
 A junction with no child gates emits `console.warn` when mounted in a router (it will never render).
 
 Validation is removed in production builds — invalid patterns fail silently.
+
+---
+
+## Child gate composition
+
+Child gates (defined with `/${ParentGate}/`) are **not** auto-mounted by the router. The router only auto-mounts root gates — those whose pattern starts with a literal `/` with no parent gate interpolation.
+
+A child gate must be composed explicitly by its parent component via `append`:
+
+```ts
+// _gates.mts
+export const ArticlesGate = gate`/articles/`(Articles)                                    // root — auto-mounted
+export const ArticleGate  = gate`/${ArticlesGate}/${token('id', Number)}/`(Article)       // child
+export const CommentsGate = gate`/${ArticleGate}/comments/`(Comments)                    // grandchild
+
+// articles.mts
+onMount({ append }) {
+    // ... render article list ...
+    append(ArticleGate, {})    // self-managing: shows when URL matches /articles/:id/
+}
+
+// article.mts
+onMount({ append }) {
+    // ... render article detail ...
+    append(CommentsGate, {})   // self-managing: shows when URL matches /articles/:id/comments/
+}
+```
+
+All three gates can be exported from `_gates.mts` — the router simply skips the ones with a parent. Exporting child gates is still useful for type access (`GateParameters<typeof ArticleGate>`) and for other components to compose them.
+
+**Deep-linking** works because parent gates mount synchronously: navigating directly to `/articles/123/comments/` causes `ArticlesGate` to render `Articles`, which immediately appends `ArticleGate`, which renders `Article`, which appends `CommentsGate` — all before the first paint.
 
 ---
 
@@ -150,12 +183,24 @@ export default defineConfig({
 
 ```ts
 import { router } from '@rooted/router'
-import * as appRoutes from './_routes.g.mts'
+import { appRoutes } from './_routes.g.mts'
 
 const Router = router({ home, notFound, ...appRoutes })
 ```
 
 The aggregator is regenerated on `buildStart`. In dev mode, adding or removing a `_gates.mts` file triggers a regeneration and a full page reload.
+
+The aggregator ensures duplicate names won't clash by hashing the filename. \ 
+Generating something that looks like:
+
+```json
+{
+  "Rcb8948a4_CategoriesGate": { ... },
+  "Rcb8948a4_CategoryGate": { ... },
+  "Rcb8948a4_RecipeGate": { ... },
+  "R52252b9a_SearchGate": { ... }
+}
+```
 
 ### Convention
 
@@ -170,3 +215,62 @@ src/
 ```
 
 Gates **must** be named exports (not default) so they can be spread into `router()`.
+
+---
+
+## Navigation
+
+SPA navigation helpers are exported from `@rooted/router`.
+
+### `navigate`
+
+Pushes to the browser history and dispatches a `popstate` event so the router
+re-evaluates the current URL — no full-page reload.
+
+```ts
+import { navigate } from '@rooted/router'
+
+// Navigate to a URL
+navigate('/categories/italian/')
+```
+
+A second overload pushes arbitrary history state without changing the URL
+(useful for modal or drawer state that does not need its own path):
+
+```ts
+navigate({ modal: 'confirm', id: 42 })
+```
+
+### `Link`
+
+`Link` is a built-in component that renders a client-side `<a>` element.
+Clicks call `navigate` automatically; the listener is removed when the
+component unmounts.
+
+```ts
+import { Link } from '@rooted/router'
+
+// Text link
+create(Link, { href: '/about/', children: 'About us' })
+
+// Link wrapping richer content
+create(Link, {
+  href: '/categories/italian/',
+  className: 'category-card',
+  children: [
+    create('div', { className: 'name', textContent: 'Italian' }),
+    create('p',   { className: 'count', textContent: '3 recipes' }),
+  ],
+})
+```
+
+**`LinkOptions`**
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| `href` | `string` | yes | Destination URL |
+| `className` | `string` | no | CSS class applied to the `<a>` element |
+| `children` | `string \| Node \| Node[]` | no | Link content — text, a single node, or an array of nodes |
+
+`Link` is layout-transparent — the wrapper element uses `display: contents`
+so the inner `<a>` participates directly in any flex or grid context.

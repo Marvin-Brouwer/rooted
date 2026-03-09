@@ -30,9 +30,8 @@ function validatePattern(strings: TemplateStringsArray, values: readonly unknown
 	const pattern = reconstructPattern(strings, values)
 	const kind = isJunction ? 'junction' : 'gate'
 
-	// Must start with / (or start with a gate parent interpolation, in which case strings[0] is '')
-	const hasParent = values.length > 0 && isGate(values[0] as any)
-	if (!hasParent && !strings[0]!.startsWith('/')) {
+	// Must start with /
+	if (!strings[0]!.startsWith('/')) {
 		console.error(`[rooted/router] ${kind} pattern must start with a slash: "${pattern}"`)
 	}
 
@@ -50,9 +49,9 @@ function validatePattern(strings: TemplateStringsArray, values: readonly unknown
 			if (i !== 0) {
 				console.error(`[rooted/router] Gate interpolation must be at the start of the pattern: "${pattern}"`)
 			}
-			// Nothing may precede it — strings[0] must be empty
-			if (strings[0] !== '') {
-				console.error(`[rooted/router] Gate interpolation must be at the very start with no preceding text: "${pattern}"`)
+			// Must be preceded by exactly a leading slash — strings[0] must be '/'
+			if (strings[0] !== '/') {
+				console.error(`[rooted/router] Gate interpolation must be preceded by a leading slash — use gate\`/\${ParentGate}/...\`: "${pattern}"`)
 			}
 			// Must be followed immediately by a slash
 			if (!strings[1]?.startsWith('/')) {

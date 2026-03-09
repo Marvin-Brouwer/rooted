@@ -162,7 +162,7 @@ export type OmitGate<O> = O extends never ? never : Omit<O, 'gate'>
  * You typically do not construct this type manually; it is returned by {@link gate}
  * or {@link junction}.
  */
-export type BoundGateDefinition<O extends {}, T extends PathParameter[]> = Component<OmitGate<O>> & {
+export type BoundGateDefinition<O extends {}, T extends AnyParam[]> = Component<OmitGate<O>> & {
 	/** The typed path parameter descriptors that were declared with {@link token}. */
 	readonly [typedParameter]: T
 	/**
@@ -177,6 +177,14 @@ export type BoundGateDefinition<O extends {}, T extends PathParameter[]> = Compo
 	 * interpolation, meaning this gate has registered child routes.
 	 */
 	readonly hasChildren: boolean
+	/**
+	 * `true` when this gate was defined with a parent gate as its first interpolation
+	 * (`gate\`/${ParentGate}/...\``).
+	 *
+	 * Child gates are **not** auto-mounted by the {@link router} — they must be
+	 * composed explicitly by the parent component via `append(ChildGate, {})`.
+	 */
+	readonly hasParent: boolean
 	/**
 	 * Tests whether `path` matches this gate's pattern starting at `offset`.
 	 *
@@ -251,7 +259,7 @@ function isGateDefinition(v: unknown): v is BoundGateDefinition<any, any> {
 export function gate<const T extends readonly GateValue[]>(
 	strings: TemplateStringsArray, ...values: T
 ): GateBinder<T> {
-	dev.validatePattern?.(strings, values as GateValue[], false)
+	dev.validatePattern?.(strings, values as unknown as GateValue[], false)
 	const parentGate = isGateDefinition(values[0]) ? values[0] as BoundGateDefinition<any, any> : undefined
 	if (parentGate) gatesWithChildren.add(parentGate)
 	const pathValues = values.filter(v => !isGateDefinition(v)) as AnyParam[]
@@ -260,7 +268,7 @@ export function gate<const T extends readonly GateValue[]>(
 	const childStrings = parentGate ? strings.slice(1) as unknown as TemplateStringsArray : strings
 	const unbound = buildGate(childStrings, pathValues, parentGate as unknown as UnboundGateDefinition | undefined)
 	return (<O extends {}>(inner: Component<O>) =>
-		bindComponentToGate(inner, unbound, false)) as GateBinder<T>
+		bindComponentToGate(inner, unbound, false, !!parentGate)) as GateBinder<T>
 }
 
 /**
@@ -289,19 +297,20 @@ export function gate<const T extends readonly GateValue[]>(
 export function junction<const T extends readonly PathParameter[]>(
 	strings: TemplateStringsArray, ...values: T
 ): GateBinder<T> {
-	dev.validatePattern?.(strings, values as GateValue[], true)
-	const unbound = buildGate(strings, values as AnyParam[])
+	dev.validatePattern?.(strings, values as unknown as GateValue[], true)
+	const unbound = buildGate(strings, values as unknown as AnyParam[])
 	return (<O extends {}>(inner: Component<O>) =>
 		bindComponentToGate(inner, unbound, true)) as GateBinder<T>
 }
 
-function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: UnboundGateDefinition, exact: boolean): BoundGateDefinition<O, PathParameter[]> {
+function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: UnboundGateDefinition, exact: boolean, hasParent: boolean = false): BoundGateDefinition<O, PathParameter[]> {
 	const bound = component<OmitGate<O>>({
 		name: inner.name + '-gate',
 		onMount(ctx) {
 			const { append, signal } = ctx
 			const options = (ctx as any).options as OmitGate<O> | undefined
 			let el: GenericComponent | null = null
+			let lastParams: string | undefined
 
 			const update = () => {
 				const result = gateDef.matchFrom(location.pathname)
@@ -310,10 +319,16 @@ function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: Unbound
 				dev.verifyExactWillResolve?.(inner.name, exact, result, renders)
 
 				if (renders) {
-					if (!el) el = append(inner, { ...options, gate: result.params } as unknown as O)
+					const serialized = JSON.stringify(result.params)
+					if (!el || lastParams !== serialized) {
+						el?.remove()
+						el = append(inner, { ...options, gate: result.params } as unknown as O)
+						lastParams = serialized
+					}
 				} else {
 					el?.remove()
 					el = null
+					lastParams = undefined
 				}
 			}
 
@@ -324,6 +339,7 @@ function bindComponentToGate<O extends {}>(inner: Component<O>, gateDef: Unbound
 
 	bound[typedParameter] = (gateDef as any)[typedParameter]
 	bound.exact = exact
+	bound.hasParent = hasParent
 	bound.matchFrom = gateDef.matchFrom.bind(gateDef)
 	bound.match = gateDef.match.bind(gateDef)
 
