@@ -1,38 +1,39 @@
 # Styling
 
-A rooted application uses a two-layer CSS architecture:
+A rooted application's CSS is split into four layers, from most-global to
+most-specific:
 
-1. **`application.theme.css`** — a global stylesheet that is the single source of truth
-   for the app's visual language (colors, typography, spacing, base element appearance).
-2. **Component `styles`** — per-component CSS files that handle *layout* and *exceptions*
-   to the theme for that specific context.
+| Layer | File | Responsibility |
+|-------|------|----------------|
+| 1 | `application.tokens.css` | CSS custom properties — the full design vocabulary |
+| 2 | `application.theme.css` | Base element styles that reference those tokens |
+| 3 | `application.css` | Layout of the app shell and top-level wrapper elements |
+| 4 | `component-name.css` | Per-component layout and exceptions to the theme |
 
-This split means components never have to worry about how a button or heading
-looks by default — they only describe *where* their children sit and *when*
-something needs to diverge from the theme.
+Components at layer 4 never define colors or typography from scratch — they
+reference token values and rely on the base styles established by layers 1–3.
 
 ---
 
 ## Contents
 
-- [Application theme — `application.theme.css`](#application-theme--applicationthemecss)
+- [Tokens — `application.tokens.css`](#tokens--applicationtokenscss)
+- [Theme — `application.theme.css`](#theme--applicationthemecss)
+- [App shell — `application.css`](#app-shell--applicationcss)
 - [Component styles](#component-styles)
+- [Loading the global files](#loading-the-global-files)
 
 ---
 
-## Application theme — `application.theme.css`
+## Tokens — `application.tokens.css`
 
-This file owns the visual language of the whole app. Every element that has no
-component-specific override will inherit from here.
-
-### What belongs in the theme
-
-**Design tokens** — define the full design vocabulary as CSS custom properties:
+This file contains **only CSS custom properties**. No rules, no selectors
+beyond `:root` and the dark-mode media query. It is the single source of truth
+for every value in the design vocabulary.
 
 ```css
-/* ── Tokens ─────────────────────────────────────────────────────────────── */
+/* ── Color ──────────────────────────────────────────────────────────────── */
 :root {
-  /* Color */
   --color-primary:    #0066cc;
   --color-on-primary: #ffffff;
   --color-surface:    #ffffff;
@@ -68,12 +69,7 @@ component-specific override will inherit from here.
 
   color-scheme: light dark;
 }
-```
 
-**Color scheme adaptation** — update tokens for dark mode rather than
-duplicating rules:
-
-```css
 @media (prefers-color-scheme: dark) {
   :root {
     --color-primary:    #4d9fff;
@@ -84,28 +80,33 @@ duplicating rules:
 }
 ```
 
-**Base element styles** — `body`, headings, `a`, `button`, `input`, etc.
-Styled once here, they look correct everywhere without component-level
-overrides:
+> [!TIP]
+> - **Only token definitions live here** — no `color: var(--...)` rules, no
+>   layout, nothing else.
+> - When adapting for dark mode, override the token values rather than
+>   duplicating element rules. Any file that references the token automatically
+>   gets the dark variant for free.
+> - Adding a new design decision (a new spacing step, a new semantic color)
+>   always starts here.
+
+---
+
+## Theme — `application.theme.css`
+
+This file styles **base HTML elements** by referencing the tokens defined in
+`application.tokens.css`. It sets the default appearance of headings, links,
+buttons, inputs, and other elements so components never have to restate them.
 
 ```css
-/* ── Base elements ───────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-
-body {
-  font-family: var(--font-family-base);
-  font-size:   var(--font-size-md);
-  line-height: var(--line-height);
-  color:       var(--color-on-surface);
-  background:  var(--color-surface);
-  margin: 0;
-}
 
 h1 { font-size: var(--font-size-2xl); }
 h2 { font-size: var(--font-size-xl);  }
 h3 { font-size: var(--font-size-lg);  }
 
-a { color: var(--color-primary); }
+p  { margin: 0 0 var(--space-4); }
+
+a  { color: var(--color-primary); }
 
 button {
   font: inherit;
@@ -119,47 +120,69 @@ button {
 }
 button:hover    { opacity: 0.85; }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+input, select, textarea {
+  font: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
 ```
 
 > [!TIP]
-> - **Reference tokens everywhere** — write `var(--color-primary)` not
->   `#0066cc`. A single token change propagates to the whole app.
-> - **Layout does not belong here** — flexbox, grid, gap, and padding are
->   specific to how a component arranges its children. Keep the theme file
->   free of layout rules.
-> - **Extend, don't fight** — if a component is overriding many theme rules,
->   consider adding a new token or a base rule variant to the theme file
->   rather than fighting it per-component.
+> - **No layout rules here** — flexbox, grid, and padding that arrange a
+>   specific component's children belong in the component's CSS file, not here.
+> - If a component repeatedly overrides the same element rule, consider adding
+>   a variant here (e.g. a `.button-ghost` base rule) rather than fighting the
+>   theme per-component.
+> - This file only ever references `var(--...)` values from
+>   `application.tokens.css` — no hard-coded colors or sizes.
 
-### What does NOT belong in the theme
+---
 
-- Layout rules specific to one component (flex direction, grid template areas).
-- Anything that needs to be scoped to a subtree.
+## App shell — `application.css`
 
-### Loading the theme
+This file handles the **app component itself and its immediate structural
+wrappers** — the parts that only exist once on the page. Body defaults, the
+outermost layout grid, a top navigation bar: things that are global to the site
+but are layout rather than theme.
 
-Import it once, at the top of `application.mts`, before any component is
-mounted:
+```css
+body {
+  font-family: var(--font-family-base);
+  font-size:   var(--font-size-md);
+  line-height: var(--line-height);
+  color:       var(--color-on-surface);
+  background:  var(--color-surface);
+  margin: 0;
+}
 
-```ts
-import './application.theme.css'
-
-import { application } from '@rooted/components/application'
-// ...
+#app {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100dvh;
+}
 ```
+
+> [!TIP]
+> - Only rules that apply to the **single app shell** belong here. As soon as
+>   a rule belongs to a reusable component (a card, a dialog, a list) it should
+>   live in that component's CSS file instead.
+> - This file may reference both tokens and base element styles from the two
+>   files above.
 
 ---
 
 ## Component styles
 
-Each component owns a single `.css` file that sits next to its `.mts` file.
-These files are narrow: they describe *how the component lays out its own
-children* and *exceptions to the theme* that apply specifically in this context.
+Each component owns a single `.css` file placed next to its `.mts` file.
+These files handle *how the component arranges its own children* and *exceptions
+to the theme* that apply only in this context.
 
 ### What belongs in component styles
 
 **Layout of the component's children** — flex direction, grid areas, gap, and
-padding that are unique to this component:
+padding unique to this component:
 
 ```css
 /* counter.css */
@@ -171,7 +194,7 @@ padding that are unique to this component:
 ```
 
 **Sizing and positioning of the component itself** — use `:scope` to target the
-wrapper element directly:
+wrapper element directly rather than adding a wrapping `<div>`:
 
 ```css
 /* sidebar.css */
@@ -239,8 +262,9 @@ export const Card = component({
 ### What does NOT belong in component styles
 
 - Redefining token values — reference `var(--space-4)` rather than duplicating
-  `1rem`. If you need a new spacing value, add it to the theme.
+  `1rem`. New values go in `application.tokens.css`.
 - Base element appearance already covered by `application.theme.css`.
+- App-shell layout already covered by `application.css`.
 
 > [!TIP]
 > - **Use `:scope` for the host element** — `:scope` refers to the component's
@@ -250,8 +274,27 @@ export const Card = component({
 >   component is probably doing too much. Split it into sub-components, each
 >   with their own narrow stylesheet.
 > - **Avoid deep nesting** — rooted's scoping already adds one level of
->   specificity. Nesting further makes overrides harder. Prefer flat rules with
->   direct child combinators (`> h2`) over deep descendants.
+>   specificity. Nesting further makes overrides harder. Prefer flat selectors
+>   with direct child combinators (`> h2`) over deep descendants.
 > - **Animate at the component level** — keyframe animations unique to one
->   component belong in its CSS file. Shared timing values
->   (`--duration-normal`) still come from the theme.
+>   component belong in its CSS file. Shared timing values (`--duration-normal`)
+>   come from `application.tokens.css`.
+
+---
+
+## Loading the global files
+
+Import all three global files at the top of `application.mts`, in layer order,
+before any component is mounted:
+
+```ts
+import './application.tokens.css'
+import './application.theme.css'
+import './application.css'
+
+import { application } from '@rooted/components/application'
+// ...
+```
+
+The import order ensures tokens are defined before the theme rules that
+reference them, and theme rules are in place before the app shell layout runs.
