@@ -51,8 +51,8 @@ export type ValidatedRouterConfig<T extends RouterConfig> = {
  * @param value - Any component or gate definition.
  * @returns `true` if `value` is a {@link BoundGateDefinition}.
  */
-export function isGate(value: Component | BoundGateDefinition<any, any>): value is BoundGateDefinition<any, any> {
-	return typedParameter in value
+export function isGate(value: unknown): value is BoundGateDefinition<any, any> {
+	return typeof value === 'object' && value !== null && typedParameter in value
 }
 
 /**
