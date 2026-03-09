@@ -87,7 +87,7 @@ export function isGate(value: unknown): value is BoundGateDefinition<any, any> {
  * @example With auto-discovered routes (Vite plugin)
  * ```ts
  * import { router } from '@rooted/router'
- * import * as appRoutes from './_routes.g.mts'
+ * import { appRoutes } from './_routes.g.mts'
  *
  * const Router = router({ home, notFound, ...appRoutes })
  * ```
@@ -104,6 +104,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 	const gates: Array<{ key: string; gate: BoundGateDefinition<any, any> }> = []
 	for (const [key, value] of entries) {
 		if (!isGate(value)) continue
+		if (value.hasParent) continue   // child gates are composed by their parent, not router-mounted
 		if (!seen.has(value)) {
 			seen.add(value)
 			gates.push({ key, gate: value })
@@ -111,7 +112,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 	}
 
 	return component({
-		name: 'router',
+		name: 'rooted:router',
 		onMount({ append, signal }) {
 
 

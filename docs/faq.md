@@ -21,7 +21,7 @@ boundary.
    `p`) to minimise leakage.
 
 2. **`:scope` pseudo-class** — inside a component's styles, `:scope`
-   refers to the component's host element (`<r-gc>`). Use it to style the host
+   refers to the component's host element (`<r-->`). Use it to style the host
    or to scope rules more precisely:
 
    ```css

@@ -43,7 +43,7 @@ export function isComponent(value: unknown): value is Component<any> {
 
 /**
  * A rooted component — a {@link ComponentConstructor} enriched with an internal
- * brand symbol so the runtime can identify it and wrap it in a `<r-gc>` custom
+ * brand symbol so the runtime can identify it and wrap it in a `<r-->` custom
  * element.
  *
  * Create components with the {@link component} factory rather than
@@ -121,7 +121,7 @@ export function component<TOptions extends {}>(constructor: ComponentConstructor
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>) {
 
 	// Stable hash of the component name — safe to cache across page loads and builds
-	constructor[scopeId] = seededId(constructor.name)
+	constructor[scopeId] = 'r' + seededId(constructor.name)
 	constructor[definedAt] = dev.appendSourceLocation?.()
 	dev.componentNameCheck?.(constructor)
 
