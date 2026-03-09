@@ -126,7 +126,7 @@ Yes. `onMount` may return a `Promise`:
 
 ```ts
 onMount: async ({ append, signal }) => {
-  const data = await fetch('/api/data', { signal }).then(r => r.json())
+  const data = await fetch('/api/data', { signal }).then(response => response.json())
   append('p', { textContent: data.message })
 }
 ```
@@ -144,7 +144,7 @@ onMount: async ({ append, signal }) => {
     try {
       const data = await fetchData()
       append('p', { textContent: data.message })
-    } catch (err) {
+    } catch (error) {
       append('p', { textContent: 'Failed to load.' })
     }
   }
@@ -170,9 +170,9 @@ onMount: async ({ append, signal }) => {
 3. **Wrong selector** — pass a custom selector or element reference:
 
    ```ts
-   application(App, { selector: '#my-root' })
+   application(Application, { selector: '#my-root' })
    // or
-   application(App, { element: document.querySelector('main')! })
+   application(Application, { element: document.querySelector('main')! })
    ```
 
 ---

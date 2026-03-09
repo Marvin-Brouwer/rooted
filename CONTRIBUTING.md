@@ -12,6 +12,7 @@ need to get set up and submit a quality pull request.
 - [Project structure](#project-structure)
 - [Development workflow](#development-workflow)
 - [Coding standards](#coding-standards)
+  - [Naming](#naming)
 - [Testing](#testing)
 - [Commit messages](#commit-messages)
 - [Submitting a pull request](#submitting-a-pull-request)
@@ -134,6 +135,29 @@ pnpm lint:nofix   # lint without auto-fix (CI mode)
 ```
 
 All linting must pass before a PR is merged.
+
+### Naming
+
+Prefer full, descriptive names over abbreviations in all code — including
+documentation examples, tests, and library source.
+
+```ts
+// ❌ abbreviated
+const btn = append('button', { textContent: 'Submit' })
+catch (err) { ... }
+const el = document.getElementById('app')
+
+// ✅ full names
+const button = append('button', { textContent: 'Submit' })
+catch (error) { ... }
+const rootElement = document.getElementById('app')
+```
+
+**Exception:** the `#app` HTML id is a widely-recognised convention and may
+be used as-is in selectors and HTML markup.
+
+If you find an abbreviation in the codebase that you believe should become an
+additional exception, open an issue or PR for discussion before using it.
 
 ### Style
 

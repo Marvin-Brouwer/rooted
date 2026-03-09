@@ -189,8 +189,8 @@ Pass it to `addEventListener` and `fetch` to clean up automatically:
 
 ```ts
 onMount({ append, signal }) {
-  const btn = append('button', { textContent: 'Click me' })
-  btn.addEventListener('click', handler, { signal })
+  const button = append('button', { textContent: 'Click me' })
+  button.addEventListener('click', handler, { signal })
   //                                       ^^^^^^ removed on unmount
 
   const controller = new AbortController()
@@ -259,7 +259,7 @@ import { application } from '@rooted/components/application'
 ### Default — mount to `#app`
 
 ```ts
-application(App)
+application(Application)
 ```
 
 Expects `<div id="app"></div>` in the HTML. The element is replaced (not
@@ -268,15 +268,15 @@ appended to) by the component.
 ### Custom CSS selector
 
 ```ts
-application(App, { selector: '#root' })
-application(App, { selector: 'main' })
+application(Application, { selector: '#root' })
+application(Application, { selector: 'main' })
 ```
 
 ### Existing element reference
 
 ```ts
-const el = document.getElementById('my-root')!
-application(App, { element: el })
+const rootElement = document.getElementById('my-root')!
+application(Application, { element: rootElement })
 ```
 
 Throws `[rooted] Application root not found in document.` if the selector
@@ -353,13 +353,13 @@ export const Counter = component({
   onMount({ append, signal }) {
     let count = 0
     const display = append('output', { textContent: '0' })
-    const dec = append('button', { textContent: '−' })
-    const inc = append('button', { textContent: '+' })
+    const decrement = append('button', { textContent: '−' })
+    const increment = append('button', { textContent: '+' })
 
     const update = () => { display.textContent = String(count) }
 
-    dec.addEventListener('click', () => { count--; update() }, { signal })
-    inc.addEventListener('click', () => { count++; update() }, { signal })
+    decrement.addEventListener('click', () => { count--; update() }, { signal })
+    increment.addEventListener('click', () => { count++; update() }, { signal })
   },
 })
 ```

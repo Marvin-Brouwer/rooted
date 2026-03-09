@@ -270,7 +270,7 @@ attaches a `popstate` listener and calls its own `update()` function:
 popstate → update() → matchFrom(location.pathname)
                         ↓
                    match? → append(innerComponent, { gate: params })
-                   no match? → el.remove()
+                   no match? → element.remove()
 ```
 
 This means the router doesn't need to know about URL changes — each gate

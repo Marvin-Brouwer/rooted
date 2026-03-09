@@ -77,8 +77,8 @@ export const Counter = component({
 
     const label = append('span', { textContent: '0' })
 
-    const btn = append('button', { textContent: 'Increment' })
-    btn.addEventListener('click', () => {
+    const button = append('button', { textContent: 'Increment' })
+    button.addEventListener('click', () => {
       count++
       label.textContent = String(count)
     }, { signal })
@@ -95,7 +95,7 @@ import { application } from '@rooted/components/application'
 import { component } from '@rooted/components'
 import { Counter } from './counter.mts'
 
-const App = component({
+const Application = component({
   name: 'app',
   onMount({ append }) {
     append('h1', { textContent: 'My App' })
@@ -103,7 +103,7 @@ const App = component({
   },
 })
 
-application(App) // mounts to #app by default
+application(Application) // mounts to #app by default
 ```
 
 ### 3. Add routing (optional)
