@@ -9,8 +9,8 @@ export const NavigationMenu = component({
 	onMount({ append, create, signal }) {
 		const nav = append('nav', {})
 
-		nav.append(create(Link, { href: '/', className: 'nav-brand', children: 'Recipe Book' }))
-		nav.append(create(Link, { href: '/categories/', className: 'nav-link', children: 'Browse' }))
+		nav.append(create(Link, { href: '/', classes: 'nav-brand', children: 'Recipe Book' }))
+		nav.append(create(Link, { href: '/categories/', classes: 'nav-link', children: 'Browse' }))
 
 		const input = document.createElement('input')
 		input.type = 'search'

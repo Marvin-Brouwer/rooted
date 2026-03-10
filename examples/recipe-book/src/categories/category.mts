@@ -18,7 +18,7 @@ export const Category = component<CategoryOptions>({
 		const categoryname = category ? category.label : String(slug)
 
 		append('div', {
-			className: 'category-header',
+			classes: 'category-header',
 			children: [
 				create('h1', { textContent: categoryname }),
 				create('p', {
@@ -30,15 +30,15 @@ export const Category = component<CategoryOptions>({
 		})
 
 		if (category) {
-			const list = append('ul', { className: 'recipe-list' })
+			const list = append('ul', { classes: 'recipe-list' })
 			for (const recipe of category.recipes) {
 				const href = `/recipe/${recipe.id}/`
 				list.append(create('li', {
-					className: 'recipe-item',
+					classes: 'recipe-item',
 					children: [
 						create(Link, { href, children: recipe.title }),
 						create('span', {
-							className: 'recipe-item-meta',
+							classes: 'recipe-item-meta',
 							textContent: `${recipe.prepTime + recipe.cookTime} min · ${recipe.difficulty}`,
 						}),
 					],
@@ -46,7 +46,7 @@ export const Category = component<CategoryOptions>({
 			}
 		}
 
-		append('hr', { className: 'divider' })
+		append('hr', { classes: 'divider' })
 	},
 })
 

@@ -16,25 +16,25 @@ export const Recipe = component<RecipeOptions>({
 
 		if (!recipe) {
 
-			append(Link, { href: '/categories/', className: 'back-link', children: '← Browse' })
+			append(Link, { href: '/categories/', classes: 'back-link', children: '← Browse' })
 
-			const header = append('div', { className: 'recipe-header' })
+			const header = append('div', { classes: 'recipe-header' })
 			header.append(create('h2', { textContent: 'No recipe' }))
-			append('p', { className: 'not-found', textContent: 'Recipe not found.' })
+			append('p', { classes: 'not-found', textContent: 'Recipe not found.' })
 			return
 		}
 
 		const backHref = `/categories/${recipe.category}/`
 		append(Link, {
 			href: backHref,
-			className: 'back-link',
+			classes: 'back-link',
 			children: `← Back to ${recipe.category}`,
 		})
 
-		const header = append('div', { className: 'recipe-header' })
+		const header = append('div', { classes: 'recipe-header' })
 		header.append(create('h2', { textContent: recipe.title }))
 
-		const meta = create('ul', { className: 'recipe-meta' })
+		const meta = create('ul', { classes: 'recipe-meta' })
 		const badges = [
 			recipe.category,
 			`${recipe.servings} serving${recipe.servings !== 1 ? 's' : ''}`,
@@ -43,13 +43,13 @@ export const Recipe = component<RecipeOptions>({
 			recipe.difficulty,
 		]
 		for (const text of badges) {
-			meta.append(create('li', { className: 'meta-badge', textContent: text }))
+			meta.append(create('li', { classes: 'meta-badge', textContent: text }))
 		}
 		header.append(meta)
 
 		// Render the markdown-converted HTML body.
 		// Safe: content originates from version-controlled markdown files.
-		const body = append('div', { className: 'recipe-body' })
+		const body = append('div', { classes: 'recipe-body' })
 		body.innerHTML = recipe.html
 	},
 })

@@ -7,20 +7,36 @@ type RootedElementClass<TComponent extends RootedElement> = (new () => TComponen
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? A : B
 type WritableKeys<T> = { [P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never> }[keyof T]
 
-type RootedElementProps<TComponent extends RootedElement> = Pick<TComponent, WritableKeys<TComponent> & Exclude<keyof TComponent, 'children' | keyof RootedElement>> & {
+/** @todo write documentation */
+export type CssClass = string | undefined | null
+/** @todo write documentation */
+export type CssClassDictionary = Record<string, boolean | undefined | null>
+/** @todo write documentation */
+export type CssClasses = CssClass | Array<CssClass> | CssClassDictionary
+
+type RootedElementProps<TComponent extends RootedElement> = Pick<TComponent, WritableKeys<TComponent> & Exclude<keyof TComponent, 'children' | 'className' | 'classList' | keyof RootedElement>>
+
+type HtmlElementProps<TElement extends HTMLElement> = Partial<Pick<TElement, WritableKeys<TElement> & Exclude<keyof TElement, 'children' | 'className' | 'classList'>>> & {
 	children?: Array<Node> | Node
+	classes?: CssClasses
 }
 
-type HtmlElementProps<TElement extends HTMLElement> = Partial<Pick<TElement, WritableKeys<TElement> & Exclude<keyof TElement, 'children'>>> & {
-	children?: Array<Node> | Node
+function buildClassList(classes: CssClasses) {
+
+	if (classes === null || classes === undefined) return {}
+	if (Array.isArray(classes)) return { className: classes.filter(Boolean).join(' ') }
+	if (typeof classes === 'string') return { className: classes }
+
+	const classList = Object.entries(classes).filter(([_key, value]) => Boolean(value)).map(([key]) => key)
+	return { className: classList.join(' ') }
 }
 
 function createComponent<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: RootedElementProps<TComponent>) {
 	return createElement<TComponent>(component.tagName, properties as HtmlElementProps<TComponent>)
 }
 function createElement<TElement extends HTMLElement>(element: string, properties: HtmlElementProps<TElement>) {
-	const { children, ...assignableProperties } = properties
-	const newElement = Object.assign(document.createElement(element) as TElement, assignableProperties)
+	const { children, classes, ...assignableProperties } = properties
+	const newElement = Object.assign(document.createElement(element) as TElement, assignableProperties, buildClassList(classes))
 
 	if (Array.isArray(children)) {
 		for (const child of children) {
@@ -34,6 +50,7 @@ function createElement<TElement extends HTMLElement>(element: string, properties
 }
 
 /**
+ * @todo update docs with new styling approach
  * Creates a new DOM node — either a rooted {@link Component}, a native
  * {@link RootedElement} subclass, or a standard HTML element.
  *
