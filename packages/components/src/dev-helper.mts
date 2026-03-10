@@ -20,7 +20,6 @@ function componentNameChecker() {
 
 		validateComponentName(component.name)
 
-
 		const registeredForName = names.get(component.name) ?? []
 		if (registeredForName.length) {
 			console.warn(`[component] Duplicate component name detected: "${component.name}"`)
@@ -40,10 +39,14 @@ function componentNameChecker() {
 
 function appendComponentMetadata(element: HTMLElement, component: ComponentConstructor, options: unknown) {
 	if (isDevelopment()) {
-		Object.assign(element, {
-			component: Object.freeze(component),
-			options: Object.freeze(options),
-			definedAt: Object.freeze(component[definedAt])
+		Object.defineProperty(element, 'dev', {
+			value: Object.freeze({
+				name: Object.freeze(component.name),
+				options: Object.freeze(options),
+				definedAt: Object.freeze(component[definedAt])
+			}),
+			configurable: false,
+			enumerable: false,
 		})
 	}
 }

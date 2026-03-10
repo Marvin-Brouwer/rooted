@@ -116,7 +116,7 @@ With the `WeakMap` approach:
 - There is no public API to retrieve data from the store outside of rooted's own internals.
 - The store is module-scoped — it is not attached to `window` or any other globally accessible object.
 
-**In development**, `appendComponentMetaData()` additionally assigns `component`, `options`, and `definedAt` as direct properties on the element so they appear in DevTools element inspection. This is intentionally disabled in production builds.
+**In development**, `appendComponentMetaData()` additionally assigns a non-enumerable `dev` object to the element containing `name`, `options`, and `definedAt`, so they are accessible via `element.dev` in DevTools. This is intentionally disabled in production builds.
 
 ---
 
@@ -168,7 +168,7 @@ This makes the component name visible in the DevTools Elements panel without nee
 
 ### Source location tracking
 
-When `component()` is called, `dev.appendSourceLocation()` parses the current call stack and records the file path and line number in the `definedAt` symbol property of the constructor. This value appears in DevTools inspection of the element (via `appendComponentMetaData`) and in duplicate-name warnings.
+When `component()` is called, `dev.appendSourceLocation()` parses the current call stack and records the file path and line number in the `definedAt` symbol property of the constructor. This value is surfaced in DevTools as `element.dev.definedAt` (via `appendComponentMetaData`) and in duplicate-name warnings.
 
 ### Component name validation
 
