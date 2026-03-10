@@ -32,7 +32,7 @@ export const Category = component<CategoryOptions>({
 		if (category) {
 			const list = append('ul', { className: 'recipe-list' })
 			for (const recipe of category.recipes) {
-				const href = `/categories/${slug}/recipes/${recipe.id}/`
+				const href = `/recipe/${recipe.id}/`
 				list.append(create('li', {
 					className: 'recipe-item',
 					children: [
