@@ -1,10 +1,26 @@
-import { defineConfig } from 'vite'
+import { defineConfig, normalizePath } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { generateRouteManifest } from '@rooted/router/manifest'
 import matter from 'gray-matter'
 import { marked } from 'marked'
 import type { Plugin } from 'vite'
+import { analyzer } from 'vite-bundle-analyzer'
+import path, { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
+const rootedDir = normalizePath(path.join(dirname(fileURLToPath(import.meta.resolve('@rooted/router'))), '../../'))
+const manualChunks = (id: string) => {
+
+	// Just make all markdown a separate chunk
+	if (id.endsWith('.md')) return 'content+' + path.basename(id)
+
+	// We will create some tooling later where this will be placed
+	if (id.endsWith('.css?inline')) return 'css+' + path.basename(id)
+	if (id.startsWith('@rooted')) return '@r'
+
+	// PNPM monorepo doesn't remember @rooted apparently
+	if (id.startsWith(rootedDir)) return '@r'
+}
 /**
  * Transforms `.md` files into plain JS modules at build time (Node.js context).
  * Frontmatter becomes enumerable properties; the markdown body becomes `html`.
@@ -30,14 +46,31 @@ export default defineConfig({
 	dev: {
 		sourcemap: true
 	},
+	build: {
+		rollupOptions: {
+			treeshake: 'smallest',
+			output: {
+				manualChunks
+			}
+		},
+		target: 'esnext',
+		cssMinify: 'esbuild',
+		minify: 'terser',
+	},
 	esbuild: {
-		sourcemap: 'inline',
+		sourcemap: 'external',
+		minifyWhitespace: process.argv.includes('--minify'),
+		treeShaking: true,
 	},
 	plugins: [
 		markdownPlugin(),
 		generateRouteManifest({
 			glob: './src/**/_routes.mts',
 			root: './src/_routes.g.mts',
+		}),
+		analyzer({
+			analyzerMode: process.argv.includes('--analyze') ? 'server' : 'static',
+			openAnalyzer: process.argv.includes('--analyze')
 		}),
 		VitePWA({
 			registerType: 'autoUpdate',
@@ -64,3 +97,4 @@ export default defineConfig({
 		}),
 	],
 })
+
