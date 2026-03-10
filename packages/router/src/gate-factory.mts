@@ -219,8 +219,24 @@ type UnboundRouteDefinition = {
 	match(url: URL): Record<string, unknown> | false
 }
 
+/**
+ * An optional filter passed as the second argument to the {@link route} binder.
+ *
+ * When provided, the filter is called after the URL pattern matches. Returning
+ * `false` causes the route to be treated as a non-match — the router will fall
+ * through to the next best candidate and the `notFound` component will render
+ * if nothing else matches.
+ *
+ * For child routes, the parent's filter is evaluated first (as part of the
+ * parent's `matchFrom` call). The child filter only runs if the parent filter
+ * passes.
+ *
+ * @see {@link route}
+ */
+export type RouteFilter<T extends readonly RouteValue[]> = (params: GateParameters<{ readonly [typedParameter]: ExtractParams<T> }>) => boolean
+
 /** The curried binder returned by {@link route}. */
-type RouteBinder<T extends readonly RouteValue[]> = <O extends {}>(inner: Component<O>) => RouteDefinition<O, ExtractParams<T>>
+type RouteBinder<T extends readonly RouteValue[]> = <O extends {}>(inner: Component<O>, filter?: RouteFilter<T>) => RouteDefinition<O, ExtractParams<T>>
 
 /** Returns `true` if `v` is a {@link RouteDefinition}. */
 export function isRouteDefinition(v: unknown): v is RouteDefinition<any, any> {
@@ -248,7 +264,8 @@ export function isRouteDefinition(v: unknown): v is RouteDefinition<any, any> {
  * Routes are **not** self-managing components — they are descriptors consumed by
  * the router and by gates.
  *
- * @returns A binder function that accepts the destination component to render.
+ * @returns A binder function that accepts the destination component and an
+ *   optional {@link RouteFilter} to render.
  *
  * @example Basic route
  * ```ts
@@ -256,6 +273,14 @@ export function isRouteDefinition(v: unknown): v is RouteDefinition<any, any> {
  * import { Article } from './article.mts'
  *
  * export const ArticleRoute = route`/articles/${token('id', Number)}/`(Article)
+ * ```
+ *
+ * @example Route with a filter (returns `false` → treated as no-match)
+ * ```ts
+ * export const ArticleRoute = route`/articles/${token('id', Number)}/`(
+ *   Article,
+ *   ({ id }) => articles.some(a => a.id === id),
+ * )
  * ```
  *
  * @example Child route (parent interpolation for URL composition)
@@ -272,6 +297,7 @@ export function isRouteDefinition(v: unknown): v is RouteDefinition<any, any> {
  * @see {@link token}
  * @see {@link wildcard}
  * @see {@link router}
+ * @see {@link RouteFilter}
  * @see {@link GateParameters}
  */
 export function route<const T extends readonly RouteValue[]>(
@@ -285,14 +311,28 @@ export function route<const T extends readonly RouteValue[]>(
 	const childStrings = parentRoute ? strings.slice(1) as unknown as TemplateStringsArray : strings
 	const unbound = buildRoute(childStrings, pathValues, parentRoute as unknown as UnboundRouteDefinition | undefined)
 
-	return (<O extends {}>(inner: Component<O>) => {
+	return (<O extends {}>(inner: Component<O>, filter?: RouteFilter<T>) => {
+		const matchFrom = filter
+			? (path: string, offset?: number) => {
+				const result = unbound.matchFrom(path, offset)
+				if (!result) return false
+				return filter(result.params as any) ? result : false
+			}
+			: unbound.matchFrom.bind(unbound)
+		const match = filter
+			? (url: URL) => {
+				const result = unbound.match(url)
+				if (result === false) return false
+				return filter(result as any) ? result : false
+			}
+			: unbound.match.bind(unbound)
 		const routeDef: Writeable<RouteDefinition<O, AnyParam[]>> & { [typedParameter]: AnyParam[], [routeBrand]: true } = {
 			component: inner,
 			[typedParameter]: (unbound as any)[typedParameter],
 			[routeBrand]: true,
 			hasWildcard: unbound.hasWildcard,
-			matchFrom: unbound.matchFrom.bind(unbound),
-			match: unbound.match.bind(unbound),
+			matchFrom,
+			match,
 		}
 		return Object.freeze(routeDef) as RouteDefinition<O, AnyParam[]>
 	}) as RouteBinder<T>
