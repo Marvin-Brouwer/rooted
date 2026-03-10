@@ -1,7 +1,7 @@
 import styles from './recipe.css?inline'
 import { component } from '@rooted/components'
 import { type GateParameters, Link } from '@rooted/router'
-import { type RecipeRoute } from '../categories/_gates.mts'
+import { type RecipeRoute } from '../categories/_routes.mts'
 import { recipes } from './_data.mts'
 
 export type RecipeOptions = {

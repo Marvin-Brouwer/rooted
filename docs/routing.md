@@ -25,7 +25,7 @@ The matched value is passed to the component via `options.gate`:
 
 ```ts
 import { type GateParameters } from '@rooted/router'
-import { type ArticleRoute } from './_gates.mts'
+import { type ArticleRoute } from './_routes.mts'
 
 export type ArticleOptions = {
   gate: GateParameters<typeof ArticleRoute>
@@ -155,7 +155,7 @@ const Router = router({
 
 ## Route manifest (Vite plugin)
 
-The `generateRouteManifest` plugin discovers `_gates.mts` files and writes a single aggregator file that re-exports them all. The aggregator can be spread directly into `router()`.
+The `generateRouteManifest` plugin discovers `_routes.mts` files and writes a single aggregator file that re-exports them all. The aggregator can be spread directly into `router()`.
 
 ### `vite.config.ts`
 
@@ -165,7 +165,7 @@ import { generateRouteManifest } from '@rooted/router/manifest'
 export default defineConfig({
   plugins: [
     generateRouteManifest({
-      glob: './src/**/_gates.mts',  // pattern to discover route files
+      glob: './src/**/_routes.mts',  // pattern to discover route files
       root: './src/_routes.g.mts',  // output aggregator (gitignored)
     }),
   ],
@@ -181,7 +181,7 @@ import { appRoutes } from './_routes.g.mts'
 const Router = router({ home, notFound, ...appRoutes })
 ```
 
-The aggregator is regenerated on `buildStart`. In dev mode, adding or removing a `_gates.mts` file triggers a regeneration and a full page reload.
+The aggregator is regenerated on `buildStart`. In dev mode, adding or removing a `_routes.mts` file triggers a regeneration and a full page reload.
 
 The aggregator ensures duplicate names won't clash by hashing the filename. \
 Generating something that looks like:
@@ -197,12 +197,12 @@ Generating something that looks like:
 
 ### Convention
 
-Each route directory owns a `_gates.mts` file that exports its routes (and optionally gates):
+Each route directory owns a `_routes.mts` file that exports its routes (and optionally gates):
 
 ```
 src/
   article/
-    _gates.mts      ← exports ArticleRoute, CommentsRoute
+    _routes.mts      ← exports ArticleRoute, CommentsRoute
     article.mts
     comments.mts
 ```

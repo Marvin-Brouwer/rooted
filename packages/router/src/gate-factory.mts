@@ -109,10 +109,10 @@ type ParameterValueType<V extends ParameterValue> =
 // Extract PathParameter and WildcardParameter entries from a RouteValue tuple
 type ExtractParams<T extends readonly RouteValue[]> =
 	T extends readonly [infer H, ...infer R extends readonly RouteValue[]]
-		? H extends PathParameter | WildcardParameter
-			? [H, ...ExtractParams<R>]
-			: ExtractParams<R>
-		: []
+	? H extends PathParameter | WildcardParameter
+	? [H, ...ExtractParams<R>]
+	: ExtractParams<R>
+	: []
 
 /**
  * Extracts the typed parameter object from a {@link RouteDefinition} or {@link BoundGateDefinition}.
@@ -123,7 +123,7 @@ type ExtractParams<T extends readonly RouteValue[]> =
  * @example
  * ```ts
  * import { type GateParameters } from '@rooted/router'
- * import { type ArticleRoute } from './_gates.mts'
+ * import { type ArticleRoute } from './_routes.mts'
  *
  * export type ArticleOptions = {
  *   gate: GateParameters<typeof ArticleRoute>
@@ -140,7 +140,7 @@ type ExtractParams<T extends readonly RouteValue[]> =
 type AnyParam = PathParameter | WildcardParameter
 
 export type GateParameters<G> = G extends { [typedParameter]: infer T extends AnyParam[] }
-	? { [P in T[number] as P['key']]: P extends WildcardParameter ? string : ParameterValueType<(P & PathParameter)['matches']> }
+	? { [P in T[number]as P['key']]: P extends WildcardParameter ? string : ParameterValueType<(P & PathParameter)['matches']> }
 	: never
 
 /**

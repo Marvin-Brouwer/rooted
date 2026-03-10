@@ -1,7 +1,7 @@
 import styles from './category.css?inline'
 import { component } from '@rooted/components'
 import { type GateParameters, Link } from '@rooted/router'
-import { type CategoryRoute } from './_gates.mts'
+import { type CategoryRoute } from './_routes.mts'
 import { categories } from './_data.mts'
 
 export type CategoryOptions = {

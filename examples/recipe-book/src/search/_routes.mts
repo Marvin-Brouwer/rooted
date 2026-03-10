@@ -1,5 +1,3 @@
-/** @module gates */
-
 import { route, wildcard } from '@rooted/router'
 import { SearchPage } from './search.mjs'
 

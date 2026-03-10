@@ -1,7 +1,7 @@
 import styles from './search.css?inline'
 import { component } from '@rooted/components'
 import { type GateParameters, Link } from '@rooted/router'
-import { type SearchRoute } from './_gates.mts'
+import { type SearchRoute } from './_routes.mts'
 import { recipes } from '../recipes/_data.mts'
 
 export type SearchOptions = {

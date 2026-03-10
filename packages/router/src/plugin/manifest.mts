@@ -16,7 +16,7 @@ type Options = {
 	 * Glob pattern (relative to the Vite project root) used to discover gate
 	 * files. Matched files are re-exported from the aggregator.
 	 *
-	 * @example `'./src/**\/_gates.mts'`
+	 * @example `'./src/**\/_routes.mts'`
 	 */
 	glob: string
 	/**
@@ -36,7 +36,7 @@ type Options = {
 }
 
 /**
- * Vite plugin that auto-discovers `_gates.mts` files and writes a single
+ * Vite plugin that auto-discovers `_routes.mts` files and writes a single
  * aggregator module that re-exports all named gate exports.
  *
  * The aggregator can be spread directly into {@link router}:
@@ -48,7 +48,7 @@ type Options = {
  *
  * **Behaviour:**
  * - Regenerates the aggregator on every `buildStart`.
- * - In dev mode, adding or removing a `_gates.mts` file triggers regeneration
+ * - In dev mode, adding or removing a `_routes.mts` file triggers regeneration
  *   and a full page reload via Vite HMR.
  * - Exports are sorted alphabetically to produce a stable file on each run.
  *
@@ -62,7 +62,7 @@ type Options = {
  * export default defineConfig({
  *   plugins: [
  *     generateRouteManifest({
- *       glob: './src/**\/_gates.mts',
+ *       glob: './src/**\/_routes.mts',
  *       root: './src/_routes.g.mts',
  *     }),
  *   ],
@@ -107,11 +107,11 @@ export function generateRouteManifest(options: Options): Plugin {
 				return `/** @__PURE__ */ import * as gate_${getFileId(file)} from '${importPath.split('\\').join('/')}'`
 			}),
 			'',
-			'type GateModule = RouteDefinition<unknown, Array<unknown>>',
-			'type GateModules = Record<string, GateModule>',
+			'type RouteModule = RouteDefinition<unknown, Array<unknown>>',
+			'type RouteModules = Record<string, RouteModule>',
 			'',
 			'/** @__PURE__ */',
-			'function rename(gates: GateModules, hash: string) {',
+			'function rename(gates: RouteModules, hash: string) {',
 			'\treturn Object.fromEntries(Object',
 			'\t\t.entries(gates)',
 			'\t\t.filter(([key]) => key !== `default`)',
@@ -133,7 +133,7 @@ export function generateRouteManifest(options: Options): Plugin {
 			` * router({ home, notFound, ...appRoutes })`,
 			' * ```',
 			` */`,
-			`export const ${options.routeExport ?? 'appRoutes'}: GateModules = /** @__PURE__ */ Object.freeze(Object.assign({},`,
+			`export const ${options.routeExport ?? 'appRoutes'}: RouteModules = /** @__PURE__ */ Object.freeze(Object.assign({},`,
 			...files.map((file) => `\trename(gate_${getFileId(file)}, '${getFileId(file)}'),`),
 			`))`,
 			'',
