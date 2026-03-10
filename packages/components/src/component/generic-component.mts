@@ -76,7 +76,10 @@ export class GenericComponent extends RootedElement {
 		if (isDevelopment()) this.setAttribute('r-component', component.name)
 		this.setAttribute('r', component[scopeId]!)
 
-		this.style.setProperty('display', 'contents', 'important')
+		// In case the style didn't take
+		if (getDisplayStyle(this) !== 'contents')
+			this.style.setProperty('display', 'contents', 'important')
+
 		applyStyles(this, component)
 
 		// Re-create to cover remounting
@@ -122,3 +125,31 @@ export class GenericComponent extends RootedElement {
 }
 
 RootedElement.register(GenericComponent)
+
+// Try doing it by stylesheet to keep the dom clean
+// Make it oddly specific to prevent accidental overrides
+const genericComponentStyle = `
+	${GenericComponent.tagName},
+	${GenericComponent.tagName}[r] {
+		display: contents !important;
+	}
+`
+document.head.append(create('style', {
+	id: 'style-generic-component',
+	textContent: isDevelopment()
+		? genericComponentStyle
+		: genericComponentStyle
+			.replaceAll('\t\t', ' ')
+			.replaceAll('\t', ' ')
+			.replaceAll('\n', '')
+			.trim()
+}))
+
+
+function getDisplayStyle(element: Element) {
+	if (!('computedStyleMap' in Element.prototype))
+		return window.getComputedStyle(element, null).display
+
+	return element.computedStyleMap()?.get('display')?.toString()
+		?? window.getComputedStyle(element, null).display
+}
