@@ -73,8 +73,8 @@ export class GenericComponent extends RootedElement {
 		if (!data) throw new Error('[rooted] GenericComponent mounted without component data. Use create() to instantiate components.')
 		const { component, options } = data
 
-		if (component[scopeId]) this.setAttribute(component[scopeId], '')
-		if (isDevelopment()) this.setAttribute('data-component', component.name)
+		if (isDevelopment()) this.setAttribute('r-component', component.name)
+		this.setAttribute('r', component[scopeId]!)
 
 		this.style.setProperty('display', 'contents', 'important')
 		applyStyles(this, component)

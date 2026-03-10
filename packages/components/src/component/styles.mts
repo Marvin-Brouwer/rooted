@@ -38,7 +38,7 @@ const lineEnding = isDevelopment() ? '\n' : ''
  * The browser ranges align such that the fallback is always valid where needed.
  */
 function buildCss(id: string, css: string) {
-	const selector = `[${id}]`
+	const selector = `[r="${id}"]`
 	const content = scopeSupported
 		? [`@scope (${selector}) {`, indent + css, '}']
 		: [`${selector} {`, indent + css, '}']

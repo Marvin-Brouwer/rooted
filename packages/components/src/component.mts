@@ -121,7 +121,7 @@ export function component<TOptions extends {}>(constructor: ComponentConstructor
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>) {
 
 	// Stable hash of the component name — safe to cache across page loads and builds
-	constructor[scopeId] = 'r' + seededId(constructor.name)
+	constructor[scopeId] = seededId(constructor.name)
 	constructor[definedAt] = dev.appendSourceLocation?.()
 	dev.componentNameCheck?.(constructor)
 

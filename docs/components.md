@@ -312,7 +312,7 @@ component's `name`:
 
 When `component()` is called, the call stack is captured and the source file
 path and line number are stored on the constructor (under the `definedAt`
-symbol). In DevTools you can inspect the element and read `element.definedAt` to
+symbol). In DevTools you can inspect the element and read `element.dev.definedAt` to
 find exactly where the component was defined.
 
 ### Component name validation and duplicate detection
