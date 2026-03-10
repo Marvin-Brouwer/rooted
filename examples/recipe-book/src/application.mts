@@ -1,4 +1,4 @@
-import './style.css'
+import styles from './application.css?inline'
 
 import { application } from '@rooted/components/application'
 import { component } from '@rooted/components'
@@ -17,6 +17,7 @@ const Router = router({
 
 export const Application = component({
 	name: 'recipe-application',
+	styles,
 	onMount({ append, create }) {
 		document.title = 'Recipe Book'
 		append('div', {

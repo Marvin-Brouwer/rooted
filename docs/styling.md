@@ -5,8 +5,8 @@ most-specific:
 
 | Layer | File | Responsibility |
 |-------|------|----------------|
-| 1 | `application.tokens.css` | CSS custom properties — the full design vocabulary |
-| 2 | `application.theme.css` | Base element styles that reference those tokens |
+| 1 | `index.tokens.css` | CSS custom properties — the full design vocabulary |
+| 2 | `index.theme.css` | Base element styles that reference those tokens |
 | 3 | `application.css` | Layout of the app shell and top-level wrapper elements |
 | 4 | `component-name.css` | Per-component layout and exceptions to the theme |
 
@@ -17,15 +17,15 @@ reference token values and rely on the base styles established by layers 1–3.
 
 ## Contents
 
-- [Tokens — `application.tokens.css`](#tokens--applicationtokenscss)
-- [Theme — `application.theme.css`](#theme--applicationthemecss)
+- [Tokens — `index.tokens.css`](#tokens--indextokenscss)
+- [Theme — `index.theme.css`](#theme--indexthemecss)
 - [App shell — `application.css`](#app-shell--applicationcss)
 - [Component styles](#component-styles)
 - [Loading the global files](#loading-the-global-files)
 
 ---
 
-## Tokens — `application.tokens.css`
+## Tokens — `index.tokens.css`
 
 This file contains **only CSS custom properties**. No rules, no selectors
 beyond `:root` and the dark-mode media query. It is the single source of truth
@@ -91,14 +91,24 @@ for every value in the design vocabulary.
 
 ---
 
-## Theme — `application.theme.css`
+## Theme — `index.theme.css`
 
 This file styles **base HTML elements** by referencing the tokens defined in
-`application.tokens.css`. It sets the default appearance of headings, links,
-buttons, inputs, and other elements so components never have to restate them.
+`index.tokens.css`. It sets the default appearance of the document body,
+headings, links, buttons, inputs, and other elements so components never have
+to restate them.
 
 ```css
 *, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-family-base);
+  font-size:   var(--font-size-md);
+  line-height: var(--line-height);
+  color:       var(--color-on-surface);
+  background:  var(--color-surface);
+  margin: 0;
+}
 
 h1 { font-size: var(--font-size-2xl); }
 h2 { font-size: var(--font-size-xl);  }
@@ -136,27 +146,18 @@ input, select, textarea {
 >   a variant here (e.g. a `.button-ghost` base rule) rather than fighting the
 >   theme per-component.
 > - This file only ever references `var(--...)` values from
->   `application.tokens.css` — no hard-coded colors or sizes.
+>   `index.tokens.css` — no hard-coded colors or sizes.
 
 ---
 
 ## App shell — `application.css`
 
 This file handles the **app component itself and its immediate structural
-wrappers** — the parts that only exist once on the page. Body defaults, the
-outermost layout grid, a top navigation bar: things that are global to the site
-but are layout rather than theme.
+wrappers** — the parts that only exist once on the page. The outermost layout
+grid, a top navigation bar: things that are global to the site but are layout
+rather than theme.
 
 ```css
-body {
-  font-family: var(--font-family-base);
-  font-size:   var(--font-size-md);
-  line-height: var(--line-height);
-  color:       var(--color-on-surface);
-  background:  var(--color-surface);
-  margin: 0;
-}
-
 #app {
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -262,8 +263,8 @@ export const Card = component({
 ### What does NOT belong in component styles
 
 - Redefining token values — reference `var(--space-4)` rather than duplicating
-  `1rem`. New values go in `application.tokens.css`.
-- Base element appearance already covered by `application.theme.css`.
+  `1rem`. New values go in `index.tokens.css`.
+- Base element appearance already covered by `index.theme.css`.
 - App-shell layout already covered by `application.css`.
 
 > [!TIP]
@@ -278,23 +279,41 @@ export const Card = component({
 >   with direct child combinators (`> h2`) over deep descendants.
 > - **Animate at the component level** — keyframe animations unique to one
 >   component belong in its CSS file. Shared timing values (`--duration-normal`)
->   come from `application.tokens.css`.
+>   come from `index.tokens.css`.
 
 ---
 
 ## Loading the global files
 
-Import all three global files at the top of `application.mts`, in layer order,
-before any component is mounted:
+Layers 1 and 2 are plain CSS files that live at the project root alongside
+`index.html`. Link them directly in the `<head>`, in layer order, so they are
+parsed before any JavaScript runs:
 
-```ts
-import './application.tokens.css'
-import './application.theme.css'
-import './application.css'
-
-import { application } from '@rooted/components/application'
-// ...
+```html
+<link rel="stylesheet" href="/index.tokens.css" />
+<link rel="stylesheet" href="/index.theme.css" />
 ```
 
-The import order ensures tokens are defined before the theme rules that
-reference them, and theme rules are in place before the app shell layout runs.
+Layer 3 (`application.css`) is scoped to the application component and loaded
+inline like any other component stylesheet:
+
+```ts
+import styles from './application.css?inline'
+
+import { application } from '@rooted/components/application'
+import { component } from '@rooted/components'
+
+export const Application = component({
+  name: 'my-application',
+  styles,
+  onMount({ append, create }) {
+    // ...
+  },
+})
+
+application(Application)
+```
+
+Linking layers 1 and 2 from HTML ensures tokens and base element styles are
+available as soon as the browser starts rendering, with no dependency on the
+JavaScript bundle.
