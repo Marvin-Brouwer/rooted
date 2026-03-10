@@ -69,6 +69,23 @@ export const ArchiveRoute = route`/archive/${wildcard()}/`(Archive)
 
 ---
 
+### Route filters
+
+An optional filter function can be passed as the second argument to the component binder. When the URL pattern matches but the filter returns `false`, the route is treated as a non-match — the router falls through to the next best candidate, and `notFound` renders if nothing else matches.
+
+```ts
+export const CategoryRoute = route`${CategoriesRoute}/${token('slug', String)}/`(
+  Categories,
+  ({ slug }) => categories.some(c => c.slug === slug),
+)
+```
+
+The filter receives the same typed params object that would be injected as `options.gate`. Returning `false` for an unknown slug causes the router to show `notFound` instead of mounting the component with a broken state — no need to handle the not-found case inside the component itself.
+
+**Parent filters run first.** For child routes, the parent's filter is evaluated as part of the parent URL match. The child filter only runs if the parent filter passes — no extra wiring is needed.
+
+---
+
 ## Best-match routing
 
 The router mounts **all** registered routes and evaluates them on every navigation. Only the route whose pattern covers the most characters of the current URL renders its component — all other routes remain inactive.
@@ -137,6 +154,16 @@ In development, `route` validates the pattern at definition time and emits `cons
 | Wildcard not preceded by `/` | `Wildcard interpolation must be preceded by a slash` |
 
 Validation is removed in production builds — invalid patterns fail silently.
+
+At navigation time, a `console.warn` is emitted when a wildcard route and a specific route tie for the same URL:
+
+```
+[rooted/router] "ArchiveRoute" (wildcard) and "SpecificRoute" both matched "/archive/special/" —
+wildcard takes precedence. If "SpecificRoute" is intentionally a sub-route of "ArchiveRoute",
+remove it from the router config and export only a gate for it.
+```
+
+The wildcard always wins the tie. If the specific route is intentionally a sub-route, it should not be registered with the router — export only a `gate` for it and `append` it inside the wildcard route's shell component.
 
 ---
 
