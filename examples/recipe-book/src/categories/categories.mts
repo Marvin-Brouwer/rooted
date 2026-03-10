@@ -11,7 +11,7 @@ export const Categories = component({
 		append('h1', { textContent: 'Categories' })
 		append('p', { className: 'subtitle', textContent: 'Browse recipes by category.' })
 		append('div', { className: 'category-grid', children: mapCategories(create) })
-		append(CategoryGate, {})
+		append(CategoryGate)
 	},
 })
 

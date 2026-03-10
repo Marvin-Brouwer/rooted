@@ -325,7 +325,7 @@ export function route<const T extends readonly RouteValue[]>(
  * export const CategoryGate  = gate(CategoryRoute, Category)
  *
  * // Inside the Categories shell component:
- * append(CategoryGate, {})  // mounts Category at /categories/:slug/, unmounts otherwise
+ * append(CategoryGate)  // mounts Category at /categories/:slug/, unmounts otherwise
  * ```
  *
  * @see {@link route}
