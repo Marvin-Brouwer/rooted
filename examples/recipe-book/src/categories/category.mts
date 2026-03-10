@@ -13,11 +13,10 @@ export const Category = component<CategoryOptions>({
 	styles,
 	onMount({ append, create, options }) {
 		const { slug } = options.gate
+
 		const category = categories.find(c => c.slug === slug)
-
-		append(Link, { href: '/categories/', className: 'back-link', children: '← All categories' })
-
 		const categoryname = category ? category.label : String(slug)
+
 		append('div', {
 			className: 'category-header',
 			children: [
