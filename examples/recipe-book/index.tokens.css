@@ -1,0 +1,11 @@
+:root {
+  --color-bg:         #faf7f2;
+  --color-surface:    #ffffff;
+  --color-primary:    #b94040;
+  --color-text:       #2c1810;
+  --color-text-muted: #7a6359;
+  --color-border:     #e8ddd5;
+
+  --font-family-base: system-ui, -apple-system, sans-serif;
+  --line-height:      1.5;
+}
