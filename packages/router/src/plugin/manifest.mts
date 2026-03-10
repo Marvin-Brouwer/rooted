@@ -70,7 +70,7 @@ type Options = {
  * ```
  *
  * @see {@link router}
- * @see {@link gate}
+ * @see {@link route}
  */
 export function generateRouteManifest(options: Options): Plugin {
 	let config: ResolvedConfig
@@ -99,7 +99,7 @@ export function generateRouteManifest(options: Options): Plugin {
 			` * Updates automatically in watch mode.`,
 			' */',
 			'',
-			`import { BoundGateDefinition } from '@rooted/router'`,
+			`import { RouteDefinition } from '@rooted/router'`,
 			'',
 			...files.map((file) => {
 				const rel = relative(rootDir, resolve(config.root, file))
@@ -107,7 +107,7 @@ export function generateRouteManifest(options: Options): Plugin {
 				return `/** @__PURE__ */ import * as gate_${getFileId(file)} from '${importPath.split('\\').join('/')}'`
 			}),
 			'',
-			'type GateModule = BoundGateDefinition<unknown, Array<unknown>>',
+			'type GateModule = RouteDefinition<unknown, Array<unknown>>',
 			'type GateModules = Record<string, GateModule>',
 			'',
 			'/** @__PURE__ */',

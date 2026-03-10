@@ -5,35 +5,36 @@ vi.mock('@rooted/components', () => ({
 	isComponent: () => false,
 }))
 
-import { gate, junction, typedParameter } from '../src/gate-factory.mts'
-import { isGate } from '../src/router.mts'
+import { route, gate, typedParameter } from '../src/gate-factory.mts'
+import { isRoute } from '../src/router.mts'
 import type { ComponentConstructor } from '@rooted/components'
 
 function mockComponent(name: string): ComponentConstructor {
 	return { name, onMount: () => {} }
 }
 
-describe('isGate', () => {
+describe('isRoute', () => {
 	test('returns false for a plain object', () => {
-		expect(isGate({} as any)).toBe(false)
+		expect(isRoute({} as any)).toBe(false)
 	})
 
-	test('returns false for a ComponentConstructor without the gate symbol', () => {
-		expect(isGate(mockComponent('plain') as any)).toBe(false)
+	test('returns false for a ComponentConstructor without the route brand', () => {
+		expect(isRoute(mockComponent('plain') as any)).toBe(false)
 	})
 
-	test('returns true for an object with typedParameter manually attached', () => {
+	test('returns true for a route produced by route``()', () => {
+		const r = route`/route/`(mockComponent('test-route'))
+		expect(isRoute(r)).toBe(true)
+	})
+
+	test('returns false for a gate produced by gate(routeRef, comp)', () => {
+		const r = route`/route/`(mockComponent('test-route'))
+		const g = gate(r, mockComponent('test-gate'))
+		expect(isRoute(g as any)).toBe(false)
+	})
+
+	test('returns false for an object with only typedParameter attached (not routeBrand)', () => {
 		const obj = Object.assign({}, { [typedParameter]: [] })
-		expect(isGate(obj as any)).toBe(true)
-	})
-
-	test('returns true for a gate produced by gate``()', () => {
-		const g = gate`/route/`(mockComponent('test-gate'))
-		expect(isGate(g)).toBe(true)
-	})
-
-	test('returns true for a junction produced by junction``()', () => {
-		const g = junction`/route/`(mockComponent('junction-gate'))
-		expect(isGate(g)).toBe(true)
+		expect(isRoute(obj as any)).toBe(false)
 	})
 })

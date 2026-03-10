@@ -1,11 +1,11 @@
 import styles from './category.css?inline'
 import { component } from '@rooted/components'
 import { type GateParameters, Link } from '@rooted/router'
-import { type CategoryGate, RecipeGate } from './_gates.mts'
+import { type CategoryRoute } from './_gates.mts'
 import { categories } from './_data.mts'
 
 export type CategoryOptions = {
-	gate: GateParameters<typeof CategoryGate>
+	gate: GateParameters<typeof CategoryRoute>
 }
 
 export const Category = component<CategoryOptions>({
@@ -47,9 +47,5 @@ export const Category = component<CategoryOptions>({
 		}
 
 		append('hr', { className: 'divider' })
-
-		// RecipeGate is self-managing: it renders the recipe detail when
-		// the URL matches /categories/:slug/recipes/:id/
-		append(RecipeGate, {})
 	},
 })

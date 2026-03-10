@@ -2,7 +2,6 @@ import styles from './categories.css?inline'
 import { component, type ComponentContext } from '@rooted/components'
 import { categories } from './_data.mts'
 import { Link } from '@rooted/router'
-import { CategoryGate } from './_gates.mts'
 
 export const Categories = component({
 	name: 'categories-page',
@@ -11,7 +10,6 @@ export const Categories = component({
 		append('h1', { textContent: 'Categories' })
 		append('p', { className: 'subtitle', textContent: 'Browse recipes by category.' })
 		append('div', { className: 'category-grid', children: mapCategories(create) })
-		append(CategoryGate, {})
 	},
 })
 

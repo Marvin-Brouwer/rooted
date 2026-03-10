@@ -7,7 +7,7 @@ vi.mock('@rooted/components', () => ({
 	isComponent: () => false,
 }))
 
-import { gate, junction, token, wildcard } from '../src/gate-factory.mts'
+import { route, gate, token, wildcard, typedParameter } from '../src/gate-factory.mts'
 import type { ComponentConstructor } from '@rooted/components'
 
 function mockComponent(name: string): ComponentConstructor {
@@ -29,133 +29,138 @@ describe('token', () => {
 	})
 })
 
-describe('gate — static path matching', () => {
-	const routeGate = gate`/products/`(mockComponent('products'))
+describe('route — static path matching', () => {
+	const testRoute = route`/products/`(mockComponent('products'))
 
 	test('matchFrom returns match result for exact path', () => {
-		const result = routeGate.matchFrom('/products/')
+		const result = testRoute.matchFrom('/products/')
 		expect(result).not.toBe(false)
 		expect((result as { end: number; params: object }).end).toBe('/products/'.length)
 		expect((result as { end: number; params: object }).params).toEqual({})
 	})
 
 	test('matchFrom matches path prefix', () => {
-		expect(routeGate.matchFrom('/products/42')).not.toBe(false)
+		expect(testRoute.matchFrom('/products/42')).not.toBe(false)
 	})
 
 	test('matchFrom returns false for non-matching path', () => {
-		expect(routeGate.matchFrom('/other')).toBe(false)
+		expect(testRoute.matchFrom('/other')).toBe(false)
 	})
 
 	test('matchFrom returns false for empty string', () => {
-		expect(routeGate.matchFrom('')).toBe(false)
+		expect(testRoute.matchFrom('')).toBe(false)
 	})
 
 	test('match returns params object for matching URL', () => {
-		const result = routeGate.match(new URL('http://example.com/products/'))
+		const result = testRoute.match(new URL('http://example.com/products/'))
 		expect(result).toEqual({})
 	})
 
 	test('match returns false for non-matching URL', () => {
-		expect(routeGate.match(new URL('http://example.com/other'))).toBe(false)
+		expect(testRoute.match(new URL('http://example.com/other'))).toBe(false)
+	})
+
+	test('route has a component property', () => {
+		expect(testRoute.component).toBeDefined()
+		expect(testRoute.component.name).toBe('products')
 	})
 })
 
-describe('gate — number parameter', () => {
+describe('route — number parameter', () => {
 	const idToken = token('id', Number)
-	const routeGate = gate`/products/${idToken}/`(mockComponent('product-detail'))
+	const testRoute = route`/products/${idToken}/`(mockComponent('product-detail'))
 
 	test('extracts number parameter', () => {
-		const result = routeGate.matchFrom('/products/42/')
+		const result = testRoute.matchFrom('/products/42/')
 		expect((result as { params: Record<string, unknown> }).params).toEqual({ id: 42 })
 	})
 
 	test('extracts zero', () => {
-		const result = routeGate.matchFrom('/products/0/')
+		const result = testRoute.matchFrom('/products/0/')
 		expect((result as { params: Record<string, unknown> }).params).toEqual({ id: 0 })
 	})
 
 	test('extracts decimal number', () => {
-		const result = routeGate.matchFrom('/products/3.14/')
+		const result = testRoute.matchFrom('/products/3.14/')
 		expect((result as { params: Record<string, unknown> }).params).toEqual({ id: 3.14 })
 	})
 
 	test('extracts negative number', () => {
-		const result = routeGate.matchFrom('/products/-5/')
+		const result = testRoute.matchFrom('/products/-5/')
 		expect((result as { params: Record<string, unknown> }).params).toEqual({ id: -5 })
 	})
 
 	test('returns false for non-numeric value', () => {
-		expect(routeGate.matchFrom('/products/abc/')).toBe(false)
+		expect(testRoute.matchFrom('/products/abc/')).toBe(false)
 	})
 
 	test('returns false when parameter is missing', () => {
-		expect(routeGate.matchFrom('/products//')).toBe(false)
+		expect(testRoute.matchFrom('/products//')).toBe(false)
 	})
 
 	test('match() returns params object directly', () => {
-		const result = routeGate.match(new URL('http://example.com/products/7/'))
+		const result = testRoute.match(new URL('http://example.com/products/7/'))
 		expect(result).toEqual({ id: 7 })
 	})
 })
 
-describe('gate — string parameter', () => {
+describe('route — string parameter', () => {
 	const slugToken = token('slug', String)
-	const routeGate = gate`/category/${slugToken}/`(mockComponent('category'))
+	const testRoute = route`/category/${slugToken}/`(mockComponent('category'))
 
 	test('extracts string parameter', () => {
-		const result = routeGate.matchFrom('/category/electronics/')
+		const result = testRoute.matchFrom('/category/electronics/')
 		expect((result as { params: Record<string, unknown> }).params).toEqual({ slug: 'electronics' })
 	})
 })
 
-describe('gate — boolean parameter', () => {
+describe('route — boolean parameter', () => {
 	const flagToken = token('flag', Boolean)
-	const routeGate = gate`/toggle/${flagToken}/`(mockComponent('toggle'))
+	const testRoute = route`/toggle/${flagToken}/`(mockComponent('toggle'))
 
 	test('parses "true"', () => {
-		expect((routeGate.matchFrom('/toggle/true/') as { params: Record<string, unknown> })?.params).toEqual({ flag: true })
+		expect((testRoute.matchFrom('/toggle/true/') as { params: Record<string, unknown> })?.params).toEqual({ flag: true })
 	})
 
 	test('parses "false"', () => {
-		expect((routeGate.matchFrom('/toggle/false/') as { params: Record<string, unknown> })?.params).toEqual({ flag: false })
+		expect((testRoute.matchFrom('/toggle/false/') as { params: Record<string, unknown> })?.params).toEqual({ flag: false })
 	})
 
 	test('parses "1" as true', () => {
-		expect((routeGate.matchFrom('/toggle/1/') as { params: Record<string, unknown> })?.params).toEqual({ flag: true })
+		expect((testRoute.matchFrom('/toggle/1/') as { params: Record<string, unknown> })?.params).toEqual({ flag: true })
 	})
 
 	test('parses "0" as false', () => {
-		expect((routeGate.matchFrom('/toggle/0/') as { params: Record<string, unknown> })?.params).toEqual({ flag: false })
+		expect((testRoute.matchFrom('/toggle/0/') as { params: Record<string, unknown> })?.params).toEqual({ flag: false })
 	})
 
 	test('parses single-letter "t" as true', () => {
-		expect((routeGate.matchFrom('/toggle/t/') as { params: Record<string, unknown> })?.params).toEqual({ flag: true })
+		expect((testRoute.matchFrom('/toggle/t/') as { params: Record<string, unknown> })?.params).toEqual({ flag: true })
 	})
 
 	test('parses single-letter "f" as false', () => {
-		expect((routeGate.matchFrom('/toggle/f/') as { params: Record<string, unknown> })?.params).toEqual({ flag: false })
+		expect((testRoute.matchFrom('/toggle/f/') as { params: Record<string, unknown> })?.params).toEqual({ flag: false })
 	})
 
 	test('parses uppercase "T" as true (case-insensitive)', () => {
-		expect((routeGate.matchFrom('/toggle/T/') as { params: Record<string, unknown> })?.params).toEqual({ flag: true })
+		expect((testRoute.matchFrom('/toggle/T/') as { params: Record<string, unknown> })?.params).toEqual({ flag: true })
 	})
 
 	test('parses uppercase "F" as false (case-insensitive)', () => {
-		expect((routeGate.matchFrom('/toggle/F/') as { params: Record<string, unknown> })?.params).toEqual({ flag: false })
+		expect((testRoute.matchFrom('/toggle/F/') as { params: Record<string, unknown> })?.params).toEqual({ flag: false })
 	})
 
 	test('returns false for invalid boolean value', () => {
-		expect(routeGate.matchFrom('/toggle/maybe/')).toBe(false)
+		expect(testRoute.matchFrom('/toggle/maybe/')).toBe(false)
 	})
 })
 
-describe('gate — date parameter', () => {
+describe('route — date parameter', () => {
 	const dateToken = token('date', Date)
-	const routeGate = gate`/events/${dateToken}/`(mockComponent('events'))
+	const testRoute = route`/events/${dateToken}/`(mockComponent('events'))
 
 	test('extracts a valid date', () => {
-		const result = routeGate.matchFrom('/events/2024-01-15/')
+		const result = testRoute.matchFrom('/events/2024-01-15/')
 		expect(result).not.toBe(false)
 		const { date } = (result as { params: Record<string, unknown> }).params
 		expect(date).toBeInstanceOf(Date)
@@ -163,135 +168,135 @@ describe('gate — date parameter', () => {
 	})
 
 	test('returns false for invalid date', () => {
-		expect(routeGate.matchFrom('/events/not-a-date/')).toBe(false)
+		expect(testRoute.matchFrom('/events/not-a-date/')).toBe(false)
 	})
 })
 
-describe('gate — multiple parameters', () => {
+describe('route — multiple parameters', () => {
 	const categoryToken = token('category', String)
 	const idToken = token('id', Number)
-	const routeGate = gate`/${categoryToken}/items/${idToken}/`(mockComponent('item'))
+	const testRoute = route`/${categoryToken}/items/${idToken}/`(mockComponent('item'))
 
 	test('extracts both parameters', () => {
-		const result = routeGate.matchFrom('/books/items/99/')
+		const result = testRoute.matchFrom('/books/items/99/')
 		expect((result as { params: Record<string, unknown> }).params).toEqual({ category: 'books', id: 99 })
 	})
 })
 
-describe('junction — exact flag', () => {
-	const comp = mockComponent('exact-route')
-
-	test('exact is false for regular gate', () => {
-		const routeGate = gate`/path/`(comp)
-		expect(routeGate.exact).toBe(false)
-	})
-
-	test('exact is true for junction', () => {
-		const junctionGate = junction`/path/`(comp)
-		expect(junctionGate.exact).toBe(true)
-	})
-})
-
-describe('gate — hasChildren', () => {
-	const parentComp = mockComponent('parent-gate')
-	const childComp = mockComponent('child-gate')
-	const parentGate = gate`/parent/`(parentComp)
-
-	test('hasChildren is false before any child gate is defined', () => {
-		expect(parentGate.hasChildren).toBe(false)
-	})
-
-	test('hasChildren is true after a child gate references it as parent', () => {
-		gate`${parentGate}/child/`(childComp)
-		expect(parentGate.hasChildren).toBe(true)
-	})
-})
-
-describe('gate — matchFrom with explicit offset', () => {
-	const routeGate = gate`/products/`(mockComponent('offset-test'))
+describe('route — matchFrom with explicit offset', () => {
+	const testRoute = route`/products/`(mockComponent('offset-test'))
 
 	test('matches at a non-zero offset into the path', () => {
-		// '/prefix/products/' — the gate pattern starts at index 7
-		const result = routeGate.matchFrom('/prefix/products/', 7)
+		// '/prefix/products/' — the route pattern starts at index 7
+		const result = testRoute.matchFrom('/prefix/products/', 7)
 		expect(result).not.toBe(false)
 		expect((result as { end: number; params: object }).end).toBe(17)
 	})
 
 	test('returns false when offset is beyond the string length', () => {
-		expect(routeGate.matchFrom('/products/', 99)).toBe(false)
+		expect(testRoute.matchFrom('/products/', 99)).toBe(false)
 	})
 })
 
-describe('gate — nested routes via parent interpolation', () => {
+describe('route — nested routes via parent interpolation', () => {
 	const parentComp = mockComponent('nested-parent')
 	const childComp = mockComponent('nested-child')
-	const parentGate = gate`/api/`(parentComp)
-	const childGate = gate`${parentGate}/users/`(childComp)
+	const parentRoute = route`/api/`(parentComp)
+	const childRoute = route`${parentRoute}/users/`(childComp)
 
-	test('nested gate matches combined path', () => {
-		expect(childGate.matchFrom('/api/users/')).not.toBe(false)
+	test('nested route matches combined path', () => {
+		expect(childRoute.matchFrom('/api/users/')).not.toBe(false)
 	})
 
-	test('nested gate does not match parent path alone', () => {
-		expect(childGate.matchFrom('/api/')).toBe(false)
+	test('nested route does not match parent path alone', () => {
+		expect(childRoute.matchFrom('/api/')).toBe(false)
 	})
 
-	test('nested gate does not match child path without parent prefix', () => {
-		expect(childGate.matchFrom('/users/')).toBe(false)
+	test('nested route does not match child path without parent prefix', () => {
+		expect(childRoute.matchFrom('/users/')).toBe(false)
 	})
 
-	test('nested gate merges params from parent and child', () => {
+	test('nested route merges params from parent and child', () => {
 		// Parent pattern: /user/${id}/ — child pattern: /${name}/
 		const idToken = token('id', Number)
 		const nameToken = token('name', String)
-		const pGate = gate`/user/${idToken}/`(mockComponent('p'))
-		const cGate = gate`${pGate}/post/${nameToken}/`(mockComponent('c'))
+		const pRoute = route`/user/${idToken}/`(mockComponent('p'))
+		const cRoute = route`${pRoute}/post/${nameToken}/`(mockComponent('c'))
 
-		const result = cGate.matchFrom('/user/42/post/hello/')
+		const result = cRoute.matchFrom('/user/42/post/hello/')
 		expect(result).not.toBe(false)
 		expect((result as { params: Record<string, unknown> }).params).toEqual({ id: 42, name: 'hello' })
 	})
 })
 
-describe('gate — wildcard matching', () => {
-	const routeGate = gate`/archive/${wildcard('path')}/`(mockComponent('archive'))
+describe('route — wildcard matching', () => {
+	const testRoute = route`/archive/${wildcard('path')}/`(mockComponent('archive'))
 
 	test('matches a single segment after the prefix', () => {
-		expect(routeGate.matchFrom('/archive/foo/')).not.toBe(false)
+		expect(testRoute.matchFrom('/archive/foo/')).not.toBe(false)
 	})
 
 	test('matches multiple segments after the prefix', () => {
-		expect(routeGate.matchFrom('/archive/foo/bar/baz')).not.toBe(false)
+		expect(testRoute.matchFrom('/archive/foo/bar/baz')).not.toBe(false)
 	})
 
 	test('end position is the full path length', () => {
-		const result = routeGate.matchFrom('/archive/foo/bar/')
+		const result = testRoute.matchFrom('/archive/foo/bar/')
 		expect(result).not.toBe(false)
 		expect((result as { end: number }).end).toBe('/archive/foo/bar/'.length)
 	})
 
 	test('stores the matched path segments under the given key', () => {
-		const result = routeGate.matchFrom('/archive/foo/bar/')
+		const result = testRoute.matchFrom('/archive/foo/bar/')
 		expect((result as { params: Record<string, unknown> }).params).toEqual({ path: 'foo/bar/' })
 	})
 
 	test('single segment value is just the segment string', () => {
-		const result = routeGate.matchFrom('/archive/foo/')
+		const result = testRoute.matchFrom('/archive/foo/')
 		expect((result as { params: Record<string, unknown> }).params).toEqual({ path: 'foo/' })
 	})
 
 	test('returns false when nothing follows the prefix', () => {
-		expect(routeGate.matchFrom('/archive/')).toBe(false)
+		expect(testRoute.matchFrom('/archive/')).toBe(false)
 	})
 
 	test('returns false for non-matching prefix', () => {
-		expect(routeGate.matchFrom('/other/foo/')).toBe(false)
+		expect(testRoute.matchFrom('/other/foo/')).toBe(false)
 	})
 
 	test('defaults key to "path" when called with no arguments', () => {
-		const defaultGate = gate`/files/${wildcard()}/`(mockComponent('files'))
-		const result = defaultGate.matchFrom('/files/a/b/')
+		const defaultRoute = route`/files/${wildcard()}/`(mockComponent('files'))
+		const result = defaultRoute.matchFrom('/files/a/b/')
 		expect((result as { params: Record<string, unknown> }).params).toEqual({ path: 'a/b/' })
+	})
+})
+
+describe('gate — plain function', () => {
+	test('returns an object with typedParameter from the route', () => {
+		const idToken = token('id', Number)
+		const testRoute = route`/articles/${idToken}/`(mockComponent('article'))
+		const testGate = gate(testRoute, mockComponent('article-gate'))
+		expect(testGate[typedParameter]).toBe(testRoute[typedParameter])
+	})
+
+	test('copies matchFrom from the route', () => {
+		const testRoute = route`/articles/`(mockComponent('article'))
+		const testGate = gate(testRoute, mockComponent('article-gate'))
+		expect(testGate.matchFrom('/articles/')).not.toBe(false)
+		expect(testGate.matchFrom('/other/')).toBe(false)
+	})
+
+	test('copies match from the route', () => {
+		const testRoute = route`/articles/`(mockComponent('article'))
+		const testGate = gate(testRoute, mockComponent('article-gate'))
+		expect(testGate.match(new URL('http://example.com/articles/'))).toEqual({})
+		expect(testGate.match(new URL('http://example.com/other/'))).toBe(false)
+	})
+
+	test('gate is a component (has onMount)', () => {
+		const testRoute = route`/articles/`(mockComponent('article'))
+		const testGate = gate(testRoute, mockComponent('article-gate'))
+		expect(typeof testGate.onMount).toBe('function')
 	})
 })
 
@@ -304,50 +309,45 @@ describe('validatePattern — dev-mode errors', () => {
 	})
 
 	test('emits error when pattern does not start with slash', () => {
-		gate`no-leading-slash/`(mockComponent('bad'))
+		route`no-leading-slash/`(mockComponent('bad'))
 		expect(console.error).toHaveBeenCalledWith(expect.stringContaining('must start with a slash'))
 	})
 
 	test('emits error when pattern does not end with slash', () => {
-		gate`/no-trailing-slash`(mockComponent('bad'))
+		route`/no-trailing-slash`(mockComponent('bad'))
 		expect(console.error).toHaveBeenCalledWith(expect.stringContaining('must end with a slash'))
 	})
 
-	test('emits error when gate interpolation has preceding text', () => {
-		const parent = gate`/parent/`(mockComponent('parent'))
-		gate`/prefix/${parent}/suffix/` as any
+	test('emits error when route interpolation has preceding text', () => {
+		const parent = route`/parent/`(mockComponent('parent'))
+		route`/prefix/${parent}/suffix/` as any
 		expect(console.error).toHaveBeenCalledWith(expect.stringContaining('no preceding text'))
 	})
 
 	test('emits error when wildcard is not at the end', () => {
 		// TypeScript would catch this, but we test the runtime check
-		gate`/before/${wildcard('seg') as any}/${token('id', Number)}/`(mockComponent('bad'))
+		route`/before/${wildcard('seg') as any}/${token('id', Number)}/`(mockComponent('bad'))
 		expect(console.error).toHaveBeenCalledWith(expect.stringContaining('Wildcard interpolation must be at the end'))
 	})
 
 	test('emits error when wildcard is not preceded by a slash', () => {
-		gate`/noslash${wildcard('seg') as any}/` as any
+		route`/noslash${wildcard('seg') as any}/` as any
 		expect(console.error).toHaveBeenCalledWith(expect.stringContaining('must be preceded by a slash'))
 	})
 
-	test('no errors for a valid gate pattern', () => {
-		gate`/articles/${token('id', Number)}/`(mockComponent('ok'))
+	test('no errors for a valid route pattern', () => {
+		route`/articles/${token('id', Number)}/`(mockComponent('ok'))
 		expect(console.error).not.toHaveBeenCalled()
 	})
 
-	test('no errors for a valid child gate pattern', () => {
-		const parent = gate`/parent/`(mockComponent('parent'))
-		gate`${parent}/child/`(mockComponent('child'))
+	test('no errors for a valid child route pattern', () => {
+		const parent = route`/parent/`(mockComponent('parent'))
+		route`${parent}/child/`(mockComponent('child'))
 		expect(console.error).not.toHaveBeenCalled()
 	})
 
-	test('no errors for a valid wildcard gate pattern', () => {
-		gate`/archive/${wildcard('path')}/`(mockComponent('archive'))
-		expect(console.error).not.toHaveBeenCalled()
-	})
-
-	test('no errors for a valid junction pattern', () => {
-		junction`/articles/${token('id', Number)}/`(mockComponent('ok'))
+	test('no errors for a valid wildcard route pattern', () => {
+		route`/archive/${wildcard('path')}/`(mockComponent('archive'))
 		expect(console.error).not.toHaveBeenCalled()
 	})
 })
