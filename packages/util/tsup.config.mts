@@ -7,7 +7,7 @@ export default defineConfig({
 	treeshake: { moduleSideEffects: 'no-external' },
 	dts: true,
 	clean: true,
-	sourcemap: true,
+	sourcemap: 'inline',
 	shims: true,
 	cjsInterop: true,
 })
