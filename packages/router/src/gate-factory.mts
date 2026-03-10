@@ -140,7 +140,7 @@ type ExtractParams<T extends readonly RouteValue[]> =
 type AnyParam = PathParameter | WildcardParameter
 
 export type GateParameters<G> = G extends { [typedParameter]: infer T extends AnyParam[] }
-	? { [P in T[number]as P['key']]: P extends WildcardParameter ? string : ParameterValueType<(P & PathParameter)['matches']> }
+	? { [P in T[number]as P['key']]: P extends WildcardParameter ? string : P extends PathParameter ? ParameterValueType<P['matches']> : never }
 	: never
 
 /**
@@ -173,6 +173,11 @@ export type RouteDefinition<O extends {}, T extends AnyParam[]> = {
 	readonly [routeBrand]: true
 	/** `true` if this route's pattern ends with a {@link wildcard} parameter. */
 	readonly hasWildcard: boolean
+	/**
+	 * Tests whether `path` matches this route's URL pattern, ignoring any filter.
+	 * Used by the router to detect filter-rejected matches and suppress parent fallbacks.
+	 */
+	patternMatchFrom(path: string, offset?: number): MatchResult | false
 	/**
 	 * Tests whether `path` matches this route's pattern starting at `offset`.
 	 *
@@ -215,6 +220,7 @@ export type BoundGateDefinition<O extends {}, T extends AnyParam[]> = Component<
 
 type UnboundRouteDefinition = {
 	readonly hasWildcard: boolean
+	patternMatchFrom(path: string, offset?: number): MatchResult | false
 	matchFrom(path: string, offset?: number): MatchResult | false
 	match(url: URL): Record<string, unknown> | false
 }
@@ -223,9 +229,10 @@ type UnboundRouteDefinition = {
  * An optional filter passed as the second argument to the {@link route} binder.
  *
  * When provided, the filter is called after the URL pattern matches. Returning
- * `false` causes the route to be treated as a non-match — the router will fall
- * through to the next best candidate and the `notFound` component will render
- * if nothing else matches.
+ * `false` causes the route to be treated as a non-match and the `notFound`
+ * component will render. Crucially, a filtered-out route **blocks** any
+ * shorter parent route from matching as a fallback — if the URL was claimed by
+ * this pattern, the router will not fall back to a less-specific route.
  *
  * For child routes, the parent's filter is evaluated first (as part of the
  * parent's `matchFrom` call). The child filter only runs if the parent filter
@@ -275,7 +282,7 @@ export function isRouteDefinition(v: unknown): v is RouteDefinition<any, any> {
  * export const ArticleRoute = route`/articles/${token('id', Number)}/`(Article)
  * ```
  *
- * @example Route with a filter (returns `false` → treated as no-match)
+ * @example Route with a filter (returns `false` → notFound, no parent fallback)
  * ```ts
  * export const ArticleRoute = route`/articles/${token('id', Number)}/`(
  *   Article,
@@ -331,6 +338,7 @@ export function route<const T extends readonly RouteValue[]>(
 			[typedParameter]: (unbound as any)[typedParameter],
 			[routeBrand]: true,
 			hasWildcard: unbound.hasWildcard,
+			patternMatchFrom: unbound.matchFrom.bind(unbound),
 			matchFrom,
 			match,
 		}
@@ -476,6 +484,7 @@ function buildRoute(strings: TemplateStringsArray, values: AnyParam[], parent?: 
 	const routeDef: Writeable<UnboundRouteDefinition> & { [typedParameter]: AnyParam[] } = {
 		[typedParameter]: values,
 		hasWildcard: values.some(isWildcardParam),
+		patternMatchFrom: ownMatchFrom,
 		matchFrom: ownMatchFrom,
 		match: (url: URL) => {
 			const result = ownMatchFrom(url.pathname)

@@ -136,10 +136,14 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 				let bestEnd = -1
 				let bestIsWildcard = false
 				let bestParams: Record<string, unknown> = {}
+				let highestPatternEnd = -1
 				for (let i = 0; i < routes.length; i++) {
-					const result = routes[i]!.route.matchFrom(location.pathname)
+					const route = routes[i]!.route
+					const patternResult = route.patternMatchFrom(location.pathname)
+					if (patternResult && patternResult.end > highestPatternEnd) highestPatternEnd = patternResult.end
+					const result = route.matchFrom(location.pathname)
 					if (!result) continue
-					const isWc = routes[i]!.route.hasWildcard
+					const isWc = route.hasWildcard
 					if (result.end > bestEnd || (result.end === bestEnd && isWc && !bestIsWildcard)) {
 						if (result.end === bestEnd) {
 							dev.warnWildcardTie?.(routes[i]!, routes[bestIdx]!, location.pathname)
@@ -151,6 +155,12 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 					} else if (result.end === bestEnd && !isWc && bestIsWildcard) {
 						dev.warnWildcardTie?.(routes[bestIdx]!, routes[i]!, location.pathname)
 					}
+				}
+				// If a longer pattern matched but was filtered out, suppress the shorter parent match
+				if (highestPatternEnd > bestEnd) {
+					bestIdx = -1
+					bestEnd = -1
+					bestParams = {}
 				}
 
 				// Mount/unmount best-match route component

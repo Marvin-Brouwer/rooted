@@ -50,3 +50,8 @@ export const Category = component<CategoryOptions>({
 		append('hr', { className: 'divider' })
 	},
 })
+
+
+export function filterCategory(slug: string) {
+	return categories.some(c => c.slug === slug)
+}
