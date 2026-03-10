@@ -171,6 +171,8 @@ export type RouteDefinition<O extends {}, T extends AnyParam[]> = {
 	readonly [typedParameter]: T
 	/** Brand that identifies this object as a {@link RouteDefinition}. */
 	readonly [routeBrand]: true
+	/** `true` if this route's pattern ends with a {@link wildcard} parameter. */
+	readonly hasWildcard: boolean
 	/**
 	 * Tests whether `path` matches this route's pattern starting at `offset`.
 	 *
@@ -212,6 +214,7 @@ export type BoundGateDefinition<O extends {}, T extends AnyParam[]> = Component<
 }
 
 type UnboundRouteDefinition = {
+	readonly hasWildcard: boolean
 	matchFrom(path: string, offset?: number): MatchResult | false
 	match(url: URL): Record<string, unknown> | false
 }
@@ -287,6 +290,7 @@ export function route<const T extends readonly RouteValue[]>(
 			component: inner,
 			[typedParameter]: (unbound as any)[typedParameter],
 			[routeBrand]: true,
+			hasWildcard: unbound.hasWildcard,
 			matchFrom: unbound.matchFrom.bind(unbound),
 			match: unbound.match.bind(unbound),
 		}
@@ -431,6 +435,7 @@ function buildRoute(strings: TemplateStringsArray, values: AnyParam[], parent?: 
 
 	const routeDef: Writeable<UnboundRouteDefinition> & { [typedParameter]: AnyParam[] } = {
 		[typedParameter]: values,
+		hasWildcard: values.some(isWildcardParam),
 		matchFrom: ownMatchFrom,
 		match: (url: URL) => {
 			const result = ownMatchFrom(url.pathname)

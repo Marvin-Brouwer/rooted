@@ -72,6 +72,14 @@ function validatePattern(strings: TemplateStringsArray, values: readonly unknown
 	}
 }
 
+function warnWildcardTie(wildcard: Routes[number], specific: Routes[number], pathname: string) {
+	console.warn(
+		`[rooted/router] "${wildcard.key}" (wildcard) and "${specific.key}" both matched "${pathname}" — ` +
+		`wildcard takes precedence. If "${specific.key}" is intentionally a sub-route of "${wildcard.key}", ` +
+		`remove it from the router config and export only a gate for it.`
+	)
+}
+
 function validateDuplicateRoutes(entries: RouteEntries, routes: Routes) {
 	const devSeen = new Set<object>()
 	for (const [key, value] of entries) {
@@ -86,4 +94,5 @@ function validateDuplicateRoutes(entries: RouteEntries, routes: Routes) {
 export const dev = {
 	validateDuplicateRoutes: isDevelopment() ? validateDuplicateRoutes.bind(undefined) : void 0,
 	validatePattern: isDevelopment() ? validatePattern.bind(undefined) : void 0,
+	warnWildcardTie: isDevelopment() ? warnWildcardTie.bind(undefined) : void 0,
 }

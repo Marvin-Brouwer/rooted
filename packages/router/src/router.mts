@@ -131,16 +131,25 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 			const update = () => {
 				const isHome = location.pathname === '/'
 
-				// Find best-match route (highest end position)
+				// Find best-match route (highest end position; wildcard beats specific on tie)
 				let bestIdx = -1
 				let bestEnd = -1
+				let bestIsWildcard = false
 				let bestParams: Record<string, unknown> = {}
 				for (let i = 0; i < routes.length; i++) {
 					const result = routes[i]!.route.matchFrom(location.pathname)
-					if (result && result.end > bestEnd) {
+					if (!result) continue
+					const isWc = routes[i]!.route.hasWildcard
+					if (result.end > bestEnd || (result.end === bestEnd && isWc && !bestIsWildcard)) {
+						if (result.end === bestEnd) {
+							dev.warnWildcardTie?.(routes[i]!, routes[bestIdx]!, location.pathname)
+						}
 						bestIdx = i
 						bestEnd = result.end
+						bestIsWildcard = isWc
 						bestParams = result.params
+					} else if (result.end === bestEnd && !isWc && bestIsWildcard) {
+						dev.warnWildcardTie?.(routes[bestIdx]!, routes[i]!, location.pathname)
 					}
 				}
 
