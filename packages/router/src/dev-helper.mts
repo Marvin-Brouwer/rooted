@@ -1,11 +1,11 @@
 import { isDevelopment } from '@rooted/util/dev'
 
 import type { Component } from '@rooted/components'
-import { isGate } from './router.mts'
-import type { BoundGateDefinition } from './gate-factory.mts'
+import { isRoute } from './router.mts'
+import type { RouteDefinition, BoundGateDefinition } from './gate-factory.mts'
 
-type RouteEntries = [string, Component | BoundGateDefinition<any, any>][]
-type Gates = Array<{ key: string; gate: BoundGateDefinition<any, any> }>
+type RouteEntries = [string, Component | RouteDefinition<any, any> | BoundGateDefinition<any, any>][]
+type Routes = Array<{ key: string; route: RouteDefinition<any, any> }>
 
 // Use the global symbol registry to avoid a circular value import from gate-factory
 const wildcardBrand = Symbol.for('rooted:wildcard')
@@ -19,43 +19,43 @@ function reconstructPattern(strings: TemplateStringsArray, values: readonly unkn
 		if (i === 0) return str
 		const v = values[i - 1]
 		let label: string
-		if (isGate(v as any)) label = '${Gate}'
+		if (isRoute(v as any)) label = '${Route}'
 		else if (isWildcard(v)) label = `\${wildcard('${v.key}')}`
 		else label = `\${${(v as { key: string }).key}}`
 		return acc + label + str
 	}, '')
 }
 
-function validatePattern(strings: TemplateStringsArray, values: readonly unknown[], isJunction: boolean) {
+function validatePattern(strings: TemplateStringsArray, values: readonly unknown[]) {
 	const pattern = reconstructPattern(strings, values)
-	const kind = isJunction ? 'junction' : 'gate'
+	const startsWithRoute = isRoute(values[0] as any) && strings[0] === ''
 
-	// Must start with /
-	if (!strings[0]!.startsWith('/')) {
-		console.error(`[rooted/router] ${kind} pattern must start with a slash: "${pattern}"`)
+	// Must start with / — unless it starts with a parent route interpolation
+	if (!startsWithRoute && !strings[0]!.startsWith('/')) {
+		console.error(`[rooted/router] route pattern must start with a slash: "${pattern}"`)
 	}
 
 	// Must end with /
 	const lastString = strings[strings.length - 1]!
 	if (!lastString.endsWith('/')) {
-		console.error(`[rooted/router] ${kind} pattern must end with a slash: "${pattern}"`)
+		console.error(`[rooted/router] route pattern must end with a slash: "${pattern}"`)
 	}
 
 	for (let i = 0; i < values.length; i++) {
 		const v = values[i]
 
-		if (isGate(v as any)) {
-			// Gate/junction interpolation must be the very first interpolation
+		if (isRoute(v as any)) {
+			// Route interpolation must be the very first interpolation
 			if (i !== 0) {
-				console.error(`[rooted/router] Gate interpolation must be at the start of the pattern: "${pattern}"`)
+				console.error(`[rooted/router] Route interpolation must be at the start of the pattern: "${pattern}"`)
 			}
-			// Must be preceded by exactly a leading slash — strings[0] must be '/'
-			if (strings[0] !== '/') {
-				console.error(`[rooted/router] Gate interpolation must be preceded by a leading slash — use gate\`/\${ParentGate}/...\`: "${pattern}"`)
+			// Must have no preceding text — strings[0] must be ''
+			if (strings[0] !== '') {
+				console.error(`[rooted/router] Route interpolation must have no preceding text — use route\`\${ParentRoute}/...\`: "${pattern}"`)
 			}
 			// Must be followed immediately by a slash
 			if (!strings[1]?.startsWith('/')) {
-				console.error(`[rooted/router] Gate interpolation must be followed by a slash: "${pattern}"`)
+				console.error(`[rooted/router] Route interpolation must be followed by a slash: "${pattern}"`)
 			}
 		}
 
@@ -72,30 +72,27 @@ function validatePattern(strings: TemplateStringsArray, values: readonly unknown
 	}
 }
 
-function validateDuplicateRoutes(entries: RouteEntries, gates: Gates) {
-	const devSeen = new Set<object>()
-	for (const [key, value] of entries) {
-		if (!isGate(value)) continue
-		if (devSeen.has(value)) {
-			console.warn(`[rooted/router] Duplicate gate at key "${key}" — ignored (first-wins)`)
-		}
-		devSeen.add(value)
-	}
-	for (const { gate } of gates) {
-		if (gate.exact && !gate.hasChildren) {
-			console.warn(`[rooted/router] "${gate.name}" is a junction but has no child gates — it will never render`)
-		}
-	}
+function warnWildcardTie(wildcard: Routes[number], specific: Routes[number], pathname: string) {
+	console.warn(
+		`[rooted/router] "${wildcard.key}" (wildcard) and "${specific.key}" both matched "${pathname}" — ` +
+		`wildcard takes precedence. If "${specific.key}" is intentionally a sub-route of "${wildcard.key}", ` +
+		`remove it from the router config and export only a gate for it.`
+	)
 }
 
-function verifyExactWillResolve(name: string, exact: boolean, result: false | {}, renders: boolean) {
-	if (exact && result && !renders) {
-		console.warn(`[rooted/gate] "${name}" is a junction but the current path "${location.pathname}" has no subroute — it will not render`)
+function validateDuplicateRoutes(entries: RouteEntries, routes: Routes) {
+	const devSeen = new Set<object>()
+	for (const [key, value] of entries) {
+		if (!isRoute(value)) continue
+		if (devSeen.has(value)) {
+			console.warn(`[rooted/router] Duplicate route at key "${key}" — ignored (first-wins)`)
+		}
+		devSeen.add(value)
 	}
 }
 
 export const dev = {
-	verifyExactWillResolve: isDevelopment() ? verifyExactWillResolve.bind(undefined) : void 0,
 	validateDuplicateRoutes: isDevelopment() ? validateDuplicateRoutes.bind(undefined) : void 0,
 	validatePattern: isDevelopment() ? validatePattern.bind(undefined) : void 0,
+	warnWildcardTie: isDevelopment() ? warnWildcardTie.bind(undefined) : void 0,
 }

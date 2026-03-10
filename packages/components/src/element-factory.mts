@@ -73,7 +73,7 @@ function createElement<TElement extends HTMLElement>(element: string, properties
  * ```
  */
 export function create(component: Component): GenericComponent
-export function create<TOptions extends {}>(component: Component<TOptions>, options: TOptions): GenericComponent & { options: Readonly<TOptions> }
+export function create<TOptions extends {}>(component: Component<TOptions>, ...args: {} extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent & { options: Readonly<TOptions> }
 export function create<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProps<TComponent>>): TComponent
 export function create<KElement extends keyof HTMLElementTagNameMap>(element: KElement, properties: NoInfer<HtmlElementProps<HTMLElementTagNameMap[KElement]>>): HTMLElementTagNameMap[KElement]
 export function create(

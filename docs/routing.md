@@ -1,21 +1,21 @@
 # Routing
 
-Routing is provided by `@rooted/router`. The Vite plugin (`@rooted/router/manifest`) auto-discovers gate files and generates an import aggregator.
+Routing is provided by `@rooted/router`. The Vite plugin (`@rooted/router/manifest`) auto-discovers route files and generates an import aggregator.
 
 ---
 
-## Gates
+## Routes
 
-A gate binds a component to a URL pattern. It renders its component only when the current path matches.
+A route binds a URL pattern to a destination component. The router renders the destination component only when the current path best-matches the route's pattern.
 
 ```ts
-import { gate, token } from '@rooted/router'
+import { route, token } from '@rooted/router'
 import { Article } from './article.mts'
 
-export const ArticleGate = gate`/articles/${token('id', Number)}/`(Article)
+export const ArticleRoute = route`/articles/${token('id', Number)}/`(Article)
 ```
 
-`gate` is a tagged-template function — the URL pattern comes first, the component is bound after. Use `token` interpolations to declare typed parameters.
+`route` is a tagged-template function — the URL pattern comes first, the component is bound after. Use `token` interpolations to declare typed parameters.
 
 ### `token(key, Type)`
 
@@ -25,10 +25,10 @@ The matched value is passed to the component via `options.gate`:
 
 ```ts
 import { type GateParameters } from '@rooted/router'
-import { type ArticleGate } from './_gates.mts'
+import { type ArticleRoute } from './_routes.mts'
 
 export type ArticleOptions = {
-  gate: GateParameters<typeof ArticleGate>
+  gate: GateParameters<typeof ArticleRoute>
 }
 
 export const Article = component<ArticleOptions>({
@@ -39,30 +39,17 @@ export const Article = component<ArticleOptions>({
 })
 ```
 
-### `junction`
-
-A junction renders its component only when a **child route is also active**. Navigating directly to the junction's own path falls through to `notFound`.
-
-Use `junction` when the route is a layout or navigation point that exists solely to unlock child routes.
-
-```ts
-import { junction, token } from '@rooted/router'
-
-// Renders Article only when a child route is active — not at /articles/123/ itself
-export const ArticleGate = junction`/articles/${token('id', Number)}/`(Article)
-```
-
 ### Child routes
 
-A child gate references its parent as the **first interpolation** in its template string, preceded by a leading `/`. The child matches the parent's full pattern **plus** its own additional segment. Child gates receive the parent's params merged with their own.
+A child route composes its URL by interpolating a parent route as the **first interpolation** in its template string. The child matches the parent's full pattern **plus** its own additional segment. Child routes receive the parent's params merged with their own.
 
 ```ts
-export const ArticleGate  = junction`/articles/${token('id', Number)}/`(Article)
-export const CommentsGate = gate`/${ArticleGate}/comments/`(Comments)
-// CommentsGate matches /articles/123/comments/
+export const ArticleRoute  = route`/articles/${token('id', Number)}/`(Article)
+export const CommentsRoute = route`${ArticleRoute}/comments/`(Comments)
+// CommentsRoute matches /articles/123/comments/
 ```
 
-The leading `/` is mandatory — `gate\`${ArticleGate}/comments/\`` (no leading slash) is a validation error.
+When a parent route is interpolated it must be the first thing in the template (no preceding text). The child's own segment starts with the slash that follows the interpolation.
 
 ### `wildcard(key)`
 
@@ -71,67 +58,112 @@ A `wildcard` interpolation matches one or more remaining path segments. It must 
 The matched path string is exposed on `options.gate[key]` as a `string`.
 
 ```ts
-import { gate, wildcard } from '@rooted/router'
+import { route, wildcard } from '@rooted/router'
 
 // Explicit key — options.gate.slug
-export const ArchiveGate = gate`/archive/${wildcard('slug')}/`(Archive)
+export const ArchiveRoute = route`/archive/${wildcard('slug')}/`(Archive)
 
 // Default key ('path') — options.gate.path
-export const ArchiveGate = gate`/archive/${wildcard()}/`(Archive)
+export const ArchiveRoute = route`/archive/${wildcard()}/`(Archive)
 ```
 
-Unlike a junction, a gate with a wildcard **does** render at its own prefix path — the wildcard simply broadens what it matches.
+---
+
+### Route filters
+
+An optional filter function can be passed as the second argument to the component binder. When the URL pattern matches but the filter returns `false`, the route is treated as a non-match — the router falls through to the next best candidate, and `notFound` renders if nothing else matches.
+
+```ts
+export const CategoryRoute = route`${CategoriesRoute}/${token('slug', String)}/`(
+  Categories,
+  ({ slug }) => categories.some(c => c.slug === slug),
+)
+```
+
+The filter receives the same typed params object that would be injected as `options.gate`. Returning `false` for an unknown slug causes the router to show `notFound` instead of mounting the component with a broken state — no need to handle the not-found case inside the component itself.
+
+**Parent filters run first.** For child routes, the parent's filter is evaluated as part of the parent URL match. The child filter only runs if the parent filter passes — no extra wiring is needed.
+
+---
+
+## Best-match routing
+
+The router mounts **all** registered routes and evaluates them on every navigation. Only the route whose pattern covers the most characters of the current URL renders its component — all other routes remain inactive.
+
+The idiomatic pattern is to bind child routes to the same **shell component** as their parent, and use gates inside that shell to show child content:
+
+```ts
+export const ArticlesRoute  = route`/articles/`(Articles)
+export const ArticleRoute   = route`${ArticlesRoute}/${token('id', Number)}/`(Articles)
+export const ArticleGate    = gate(ArticleRoute, Article)
+
+// Inside the Articles shell component:
+onMount({ append }) {
+  append('ul', { /* article list */ })
+  append(ArticleGate, {})  // activates when ArticleRoute matches
+}
+```
+
+With this pattern the router selects the best-match route and renders `Articles`. Gates inside `Articles` then activate independently based on their own URL match:
+
+```
+/articles/      → ArticlesRoute is the best match → Articles renders, no gate active
+/articles/123/  → ArticleRoute is the best match  → Articles renders, ArticleGate activates → Article shown
+```
+
+Deep-linking works directly — the best-match route is selected and renders the shell component, which then activates the appropriate gate.
+
+---
+
+## `gate(RouteRef, Component)`
+
+`gate` is a plain function that subscribes a component to a route's URL pattern and returns a self-managing component. The gate listens to `popstate` and shows or removes its component whenever the route matches (or stops matching) the current URL.
+
+Use gates for **explicit embedded sub-content** inside a shell component. The idiomatic pattern is to bind child routes to the parent shell component and use gates inside it to render the child content:
+
+```ts
+import { route, gate, token } from '@rooted/router'
+
+export const ArticlesRoute = route`/articles/`(Articles)
+export const ArticleRoute  = route`${ArticlesRoute}/${token('id', Number)}/`(Articles)
+export const ArticleGate   = gate(ArticleRoute, Article)
+
+// Inside the Articles shell component:
+onMount({ append }) {
+    append('ul', { /* article list */ })
+    append(ArticleGate, {})  // self-managing: shows Article when ArticleRoute is active
+}
+```
+
+The router renders `Articles` at both `/articles/` and `/articles/123/` (best-match selects `ArticleRoute` at the deeper URL). `ArticleGate` inside the shell activates independently — it shows `Article` when `/articles/123/` matches and removes it when it does not.
 
 ---
 
 ## Route validation (dev mode)
 
-In development, `gate` and `junction` validate the pattern at definition time and emit `console.error` for violations:
+In development, `route` validates the pattern at definition time and emits `console.error` for violations:
 
 | Violation | Message |
 |-----------|---------|
-| Pattern does not start with `/` | `gate pattern must start with a slash` |
-| Pattern does not end with `/` | `gate pattern must end with a slash` |
-| Gate interpolation is not first | `Gate interpolation must be at the start of the pattern` |
-| Gate interpolation not preceded by `/` | `Gate interpolation must be preceded by a leading slash` |
-| Gate interpolation not followed by `/` | `Gate interpolation must be followed by a slash` |
+| Pattern does not start with `/` | `route pattern must start with a slash` |
+| Pattern does not end with `/` | `route pattern must end with a slash` |
+| Route interpolation is not first | `Route interpolation must be at the start of the pattern` |
+| Route interpolation has preceding text | `Route interpolation must have no preceding text` |
+| Route interpolation not followed by `/` | `Route interpolation must be followed by a slash` |
 | Wildcard is not the last interpolation | `Wildcard interpolation must be at the end of the pattern` |
 | Wildcard not preceded by `/` | `Wildcard interpolation must be preceded by a slash` |
 
-A junction with no child gates emits `console.warn` when mounted in a router (it will never render).
-
 Validation is removed in production builds — invalid patterns fail silently.
 
----
+At navigation time, a `console.warn` is emitted when a wildcard route and a specific route tie for the same URL:
 
-## Child gate composition
-
-Child gates (defined with `/${ParentGate}/`) are **not** auto-mounted by the router. The router only auto-mounts root gates — those whose pattern starts with a literal `/` with no parent gate interpolation.
-
-A child gate must be composed explicitly by its parent component via `append`:
-
-```ts
-// _gates.mts
-export const ArticlesGate = gate`/articles/`(Articles)                                    // root — auto-mounted
-export const ArticleGate  = gate`/${ArticlesGate}/${token('id', Number)}/`(Article)       // child
-export const CommentsGate = gate`/${ArticleGate}/comments/`(Comments)                    // grandchild
-
-// articles.mts
-onMount({ append }) {
-    // ... render article list ...
-    append(ArticleGate, {})    // self-managing: shows when URL matches /articles/:id/
-}
-
-// article.mts
-onMount({ append }) {
-    // ... render article detail ...
-    append(CommentsGate, {})   // self-managing: shows when URL matches /articles/:id/comments/
-}
+```
+[rooted/router] "ArchiveRoute" (wildcard) and "SpecificRoute" both matched "/archive/special/" —
+wildcard takes precedence. If "SpecificRoute" is intentionally a sub-route of "ArchiveRoute",
+remove it from the router config and export only a gate for it.
 ```
 
-All three gates can be exported from `_gates.mts` — the router simply skips the ones with a parent. Exporting child gates is still useful for type access (`GateParameters<typeof ArticleGate>`) and for other components to compose them.
-
-**Deep-linking** works because parent gates mount synchronously: navigating directly to `/articles/123/comments/` causes `ArticlesGate` to render `Articles`, which immediately appends `ArticleGate`, which renders `Article`, which appends `CommentsGate` — all before the first paint.
+The wildcard always wins the tie. If the specific route is intentionally a sub-route, it should not be registered with the router — export only a `gate` for it and `append` it inside the wildcard route's shell component.
 
 ---
 
@@ -143,26 +175,28 @@ import { router } from '@rooted/router'
 const Router = router({
   home:     HomeComponent,
   notFound: NotFoundComponent,
-  ArticleGate,
-  CommentsGate,
+  ArticleRoute,
+  CommentsRoute,
 })
 ```
 
 - `home` — rendered at `/`
-- `notFound` — rendered when no gate matches and the path is not `/`
-- All other keys must be `BoundGateDefinition` values
+- `notFound` — rendered when no route matches and the path is not `/`
+- All other keys should be `RouteDefinition` values produced by `route`
 
-Gates in the router self-manage their visibility via `popstate`. The router only coordinates `home` and `notFound`.
+`BoundGateDefinition` values (from `gate()`) may also be spread into the router config — they are silently ignored; gates are for explicit composition via `append()`, not top-level mounting.
 
-**Duplicate gates** (same reference under multiple keys) are silently deduplicated — the first key wins. In development a console warning is emitted.
+**Best-match selection** — on each navigation the router renders only the route with the highest pattern coverage. If params change while the same route matches, the component is remounted with the new params.
 
-**Type safety** — the router rejects gates whose component requires options beyond `gate`. Only gates whose component takes no options, or only a `gate` option, are accepted.
+**Duplicate routes** (same reference under multiple keys) are silently deduplicated — the first key wins. In development a console warning is emitted.
+
+**Type safety** — the router rejects routes whose component requires options beyond `gate`. Only routes whose component takes no options, or only a `gate` option, are accepted.
 
 ---
 
 ## Route manifest (Vite plugin)
 
-The `generateRouteManifest` plugin discovers `_gates.mts` files and writes a single aggregator file that re-exports them all. The aggregator can be spread directly into `router()`.
+The `generateRouteManifest` plugin discovers `_routes.mts` files and writes a single aggregator file that re-exports them all. The aggregator can be spread directly into `router()`.
 
 ### `vite.config.ts`
 
@@ -172,7 +206,7 @@ import { generateRouteManifest } from '@rooted/router/manifest'
 export default defineConfig({
   plugins: [
     generateRouteManifest({
-      glob: './src/**/_gates.mts',  // pattern to discover gate files
+      glob: './src/**/_routes.mts',  // pattern to discover route files
       root: './src/_routes.g.mts',  // output aggregator (gitignored)
     }),
   ],
@@ -188,33 +222,33 @@ import { appRoutes } from './_routes.g.mts'
 const Router = router({ home, notFound, ...appRoutes })
 ```
 
-The aggregator is regenerated on `buildStart`. In dev mode, adding or removing a `_gates.mts` file triggers a regeneration and a full page reload.
+The aggregator is regenerated on `buildStart`. In dev mode, adding or removing a `_routes.mts` file triggers a regeneration and a full page reload.
 
-The aggregator ensures duplicate names won't clash by hashing the filename. \ 
+The aggregator ensures duplicate names won't clash by hashing the filename. \
 Generating something that looks like:
 
 ```json
 {
-  "Rcb8948a4_CategoriesGate": { ... },
-  "Rcb8948a4_CategoryGate": { ... },
-  "Rcb8948a4_RecipeGate": { ... },
-  "R52252b9a_SearchGate": { ... }
+  "Rcb8948a4_CategoriesRoute": { ... },
+  "Rcb8948a4_CategoryRoute": { ... },
+  "Rcb8948a4_RecipeRoute": { ... },
+  "R52252b9a_SearchRoute": { ... }
 }
 ```
 
 ### Convention
 
-Each route directory owns a `_gates.mts` file that exports its gates:
+Each route directory owns a `_routes.mts` file that exports its routes (and optionally gates):
 
 ```
 src/
   article/
-    _gates.mts      ← exports ArticleGate, CommentsGate
+    _routes.mts      ← exports ArticleRoute, CommentsRoute
     article.mts
     comments.mts
 ```
 
-Gates **must** be named exports (not default) so they can be spread into `router()`.
+Routes **must** be named exports (not default) so they can be spread into `router()`.
 
 ---
 

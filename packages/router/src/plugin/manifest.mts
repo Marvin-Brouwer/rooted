@@ -1,6 +1,6 @@
 import type { Plugin, ResolvedConfig } from 'vite'
 import { glob } from 'tinyglobby'
-import { writeFile, mkdir } from 'node:fs/promises'
+import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, relative, dirname } from 'node:path'
 import { createHash } from 'node:crypto'
 
@@ -16,7 +16,7 @@ type Options = {
 	 * Glob pattern (relative to the Vite project root) used to discover gate
 	 * files. Matched files are re-exported from the aggregator.
 	 *
-	 * @example `'./src/**\/_gates.mts'`
+	 * @example `'./src/**\/_routes.mts'`
 	 */
 	glob: string
 	/**
@@ -36,7 +36,7 @@ type Options = {
 }
 
 /**
- * Vite plugin that auto-discovers `_gates.mts` files and writes a single
+ * Vite plugin that auto-discovers `_routes.mts` files and writes a single
  * aggregator module that re-exports all named gate exports.
  *
  * The aggregator can be spread directly into {@link router}:
@@ -48,7 +48,7 @@ type Options = {
  *
  * **Behaviour:**
  * - Regenerates the aggregator on every `buildStart`.
- * - In dev mode, adding or removing a `_gates.mts` file triggers regeneration
+ * - In dev mode, adding or removing a `_routes.mts` file triggers regeneration
  *   and a full page reload via Vite HMR.
  * - Exports are sorted alphabetically to produce a stable file on each run.
  *
@@ -62,7 +62,7 @@ type Options = {
  * export default defineConfig({
  *   plugins: [
  *     generateRouteManifest({
- *       glob: './src/**\/_gates.mts',
+ *       glob: './src/**\/_routes.mts',
  *       root: './src/_routes.g.mts',
  *     }),
  *   ],
@@ -70,7 +70,7 @@ type Options = {
  * ```
  *
  * @see {@link router}
- * @see {@link gate}
+ * @see {@link route}
  */
 export function generateRouteManifest(options: Options): Plugin {
 	let config: ResolvedConfig
@@ -99,7 +99,7 @@ export function generateRouteManifest(options: Options): Plugin {
 			` * Updates automatically in watch mode.`,
 			' */',
 			'',
-			`import { BoundGateDefinition } from '@rooted/router'`,
+			`import { RouteDefinition } from '@rooted/router'`,
 			'',
 			...files.map((file) => {
 				const rel = relative(rootDir, resolve(config.root, file))
@@ -107,11 +107,11 @@ export function generateRouteManifest(options: Options): Plugin {
 				return `/** @__PURE__ */ import * as gate_${getFileId(file)} from '${importPath.split('\\').join('/')}'`
 			}),
 			'',
-			'type GateModule = BoundGateDefinition<unknown, Array<unknown>>',
-			'type GateModules = Record<string, GateModule>',
+			'type RouteModule = RouteDefinition<unknown, Array<unknown>>',
+			'type RouteModules = Record<string, RouteModule>',
 			'',
 			'/** @__PURE__ */',
-			'function rename(gates: GateModules, hash: string) {',
+			'function rename(gates: RouteModules, hash: string) {',
 			'\treturn Object.fromEntries(Object',
 			'\t\t.entries(gates)',
 			'\t\t.filter(([key]) => key !== `default`)',
@@ -133,14 +133,21 @@ export function generateRouteManifest(options: Options): Plugin {
 			` * router({ home, notFound, ...appRoutes })`,
 			' * ```',
 			` */`,
-			`export const ${options.routeExport ?? 'appRoutes'}: GateModules = /** @__PURE__ */ Object.freeze(Object.assign({},`,
+			`export const ${options.routeExport ?? 'appRoutes'}: RouteModules = /** @__PURE__ */ Object.freeze(Object.assign({},`,
 			...files.map((file) => `\trename(gate_${getFileId(file)}, '${getFileId(file)}'),`),
 			`))`,
 			'',
 		]
 
+		const generatedManifest = lines.join('\n')
 		await mkdir(rootDir, { recursive: true })
-		await writeFile(rootPath, lines.join('\n'), 'utf-8')
+
+		const originalManifest = await readExistingManifest(rootPath)
+		if (originalManifest === generatedManifest) {
+			console.debug('Code change did not require manifest update.')
+			return
+		}
+		await writeFile(rootPath, generatedManifest, 'utf-8')
 	}
 
 	return {
@@ -178,4 +185,14 @@ export function hash(files: string[], version: string): string {
 
 	return hash.digest("hex")
 }
+
 const getFileId = (path: string) => createHash('md5').update(path).digest('hex').slice(0, 8)
+
+async function readExistingManifest(rootPath: string) {
+	try {
+		return await readFile(rootPath, 'utf-8')
+	}
+	catch {
+		return undefined
+	}
+}

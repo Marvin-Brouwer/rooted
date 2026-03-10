@@ -1,11 +1,11 @@
 import styles from './category.css?inline'
 import { component } from '@rooted/components'
 import { type GateParameters, Link } from '@rooted/router'
-import { type CategoryGate, RecipeGate } from './_gates.mts'
+import { type CategoryRoute } from './_routes.mts'
 import { categories } from './_data.mts'
 
 export type CategoryOptions = {
-	gate: GateParameters<typeof CategoryGate>
+	gate: GateParameters<typeof CategoryRoute>
 }
 
 export const Category = component<CategoryOptions>({
@@ -17,14 +17,15 @@ export const Category = component<CategoryOptions>({
 
 		append(Link, { href: '/categories/', className: 'back-link', children: '← All categories' })
 
+		const categoryname = category ? category.label : String(slug)
 		append('div', {
 			className: 'category-header',
 			children: [
-				create('h1', { textContent: category ? category.label : String(slug) }),
+				create('h1', { textContent: categoryname }),
 				create('p', {
 					textContent: category
 						? `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`
-						: 'Category not found',
+						: `Category '${categoryname}' not found`,
 				})
 			]
 		})
@@ -32,7 +33,7 @@ export const Category = component<CategoryOptions>({
 		if (category) {
 			const list = append('ul', { className: 'recipe-list' })
 			for (const recipe of category.recipes) {
-				const href = `/categories/${slug}/recipes/${recipe.id}/`
+				const href = `/recipe/${recipe.id}/`
 				list.append(create('li', {
 					className: 'recipe-item',
 					children: [
@@ -47,9 +48,10 @@ export const Category = component<CategoryOptions>({
 		}
 
 		append('hr', { className: 'divider' })
-
-		// RecipeGate is self-managing: it renders the recipe detail when
-		// the URL matches /categories/:slug/recipes/:id/
-		append(RecipeGate, {})
 	},
 })
+
+
+export function filterCategory(slug: string) {
+	return categories.some(c => c.slug === slug)
+}

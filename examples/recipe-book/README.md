@@ -16,7 +16,7 @@ A recipe book is a content-rich domain that maps naturally to every routing prim
 | Nested gate under junction | `RecipeGate` is a child of `CategoryGate` |
 | Scoped component styles | Each component declares its own CSS via `component({ styles })` |
 | `signal` cleanup | Navigation listeners are tied to the component lifetime |
-| `generateRouteManifest` | Vite plugin auto-discovers all `_gates.mts` files |
+| `generateRouteManifest` | Vite plugin auto-discovers all `_routes.mts` files |
 
 The domain is realistic enough to show meaningful architecture without being complex enough to distract from the framework itself.
 
@@ -46,7 +46,7 @@ src/
 │   └── home.mts            # Featured recipes grid (passed as router home:)
 │
 ├── categories/
-│   ├── _gates.mts          # CategoriesGate, CategoryGate (junction), RecipeGate
+│   ├── _routes.mts          # CategoriesGate, CategoryGate (junction), RecipeGate
 │   ├── categories.mts      # All-categories grid
 │   ├── category.mts        # Category page + embedded RecipeGate
 │   └── _data.mts           # Category list derived from recipes
@@ -62,11 +62,11 @@ src/
 │       └── beef-tacos.md
 │
 └── search/
-    ├── _gates.mts          # SearchGate (wildcard)
+    ├── _routes.mts          # SearchGate (wildcard)
     └── search.mts          # Search results filtered from Recipe[]
 ```
 
-Each slice owns its own gates, components, and data. The router is assembled automatically by the `generateRouteManifest` Vite plugin, which discovers all `_gates.mts` files and generates `src/_routes.g.mts`.
+Each slice owns its own gates, components, and data. The router is assembled automatically by the `generateRouteManifest` Vite plugin, which discovers all `_routes.mts` files and generates `src/_routes.g.mts`.
 
 ## Running the app
 

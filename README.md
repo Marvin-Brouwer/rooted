@@ -109,11 +109,11 @@ application(Application) // mounts to #app by default
 ### 3. Add routing (optional)
 
 ```ts
-// src/routes/article/_gates.mts
-import { gate, token } from '@rooted/router'
+// src/routes/article/_routes.mts
+import { route, token } from '@rooted/router'
 import { Article } from './article.mts'
 
-export const ArticleGate = gate(Article)`/articles/${token('id', Number)}/`
+export const ArticleRoute = route`/articles/${token('id', Number)}/`(Article)
 ```
 
 ```ts

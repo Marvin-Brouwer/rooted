@@ -1,75 +1,81 @@
 import { component } from '@rooted/components'
 import type { Component, GenericComponent } from '@rooted/components'
-import { typedParameter, type BoundGateDefinition, type OmitGate } from './gate-factory.mjs'
+import { routeBrand, type RouteDefinition, type BoundGateDefinition, type OmitGate } from './gate-factory.mjs'
 import { dev } from './dev-helper.mts'
 
 /**
  * Configuration object passed to {@link router}.
  *
  * - `home` — Component rendered at `/`.
- * - `notFound` — Component rendered when the path is not `/` and no gate matches.
- * - All other keys must be {@link BoundGateDefinition} values produced by {@link gate}.
+ * - `notFound` — Component rendered when the path is not `/` and no route matches.
+ * - All other keys must be {@link RouteDefinition} or {@link BoundGateDefinition} values.
+ *   Only `RouteDefinition` values are auto-mounted; `BoundGateDefinition` values are
+ *   silently ignored (they are meant for explicit composition via `append()`).
  */
 type RouterConfig = {
 	home: Component
 	notFound: Component
-	[key: string]: Component | BoundGateDefinition<any, any>
+	[key: string]: Component | RouteDefinition<any, any> | BoundGateDefinition<any, any>
 }
 
 /**
- * Constrains a gate to be **router-compatible**: its component must not require
+ * Constrains a route to be **router-compatible**: its component must not require
  * any external options beyond the automatically-injected `gate` parameter.
  *
- * A gate is compatible when:
+ * A route is compatible when:
  * - Its component has no options at all (`Component<never>`), **or**
  * - Every key in the options type beyond `gate` is optional (`{} extends OmitGate<O>`).
  *
- * Gates that require mandatory external options will produce a `never` type,
+ * Routes that require mandatory external options will produce a `never` type,
  * causing a compile-time error when passed to {@link router}.
  */
-// A gate is router-compatible if it has no required external options (everything beyond `gate`).
-// The [O] extends [never] check (non-distributive) handles Component<never> gates that have no options at all.
-export type RouterCompatibleGate<G> = G extends BoundGateDefinition<infer O, infer T>
-	? ([O] extends [never] ? BoundGateDefinition<O, T> : ({} extends OmitGate<O> ? BoundGateDefinition<O, T> : never))
+export type RouterCompatibleRoute<G> = G extends RouteDefinition<infer O, infer T>
+	? ([O] extends [never] ? RouteDefinition<O, T> : ({} extends OmitGate<O> ? RouteDefinition<O, T> : never))
 	: never
 
 /**
  * The validated version of a {@link RouterConfig}.
  *
- * `home` and `notFound` keys are passed through as-is. Every other key must be
- * a {@link RouterCompatibleGate}; incompatible gates produce `never` and
- * therefore a compile-time error.
+ * `home` and `notFound` keys are passed through as-is. Every other key that is
+ * a {@link RouteDefinition} must be a {@link RouterCompatibleRoute}; incompatible
+ * routes produce `never` and therefore a compile-time error. Non-route values
+ * (e.g. {@link BoundGateDefinition}) are passed through as-is.
  */
 export type ValidatedRouterConfig<T extends RouterConfig> = {
-	[K in keyof T]: K extends 'home' | 'notFound' ? T[K] : RouterCompatibleGate<T[K]>
+	[K in keyof T]: K extends 'home' | 'notFound' ? T[K] : RouterCompatibleRoute<T[K]>
 }
 
 /**
- * Type guard that identifies a {@link BoundGateDefinition} by the presence of the
- * internal `typedParameter` symbol.
+ * Type guard that identifies a {@link RouteDefinition} by the presence of the
+ * internal `routeBrand` symbol.
  *
- * @param value - Any component or gate definition.
- * @returns `true` if `value` is a {@link BoundGateDefinition}.
+ * @param value - Any value.
+ * @returns `true` if `value` is a {@link RouteDefinition}.
  */
-export function isGate(value: unknown): value is BoundGateDefinition<any, any> {
-	return typeof value === 'object' && value !== null && typedParameter in value
+export function isRoute(value: unknown): value is RouteDefinition<any, any> {
+	return typeof value === 'object' && value !== null && routeBrand in (value as object)
 }
 
 /**
  * Creates the application router component.
  *
- * The router mounts all provided gates, then independently manages the `home`
+ * The router mounts all provided routes, then independently manages the `home`
  * and `notFound` components based on the current URL:
  *
  * - **`home`** — mounted at `/`, unmounted everywhere else.
- * - **`notFound`** — mounted when the path is not `/` and no registered gate matches.
- * - **Gates** — self-managing; each gate listens to `popstate` and shows/hides
- *   its component when the URL matches its pattern.
+ * - **`notFound`** — mounted when the path is not `/` and no registered route matches.
+ * - **Routes** — evaluated on every navigation; only the best match (the route
+ *   whose pattern covers the most characters of the current URL) has its component
+ *   rendered. If a child route matches, its parent route does not render.
  *
- * Duplicate gates (same object reference under multiple keys) are silently
+ * {@link BoundGateDefinition} values in the config are silently ignored — gates
+ * are for explicit composition via `append()` inside route components, not for
+ * top-level mounting.
+ *
+ * Duplicate routes (same object reference under multiple keys) are silently
  * deduplicated — the first key wins. In development a console warning is emitted.
  *
- * @param config - Router configuration with `home`, `notFound`, and gate entries.
+ * @param config - Router configuration with `home`, `notFound`, and route entries.
  * @returns A {@link Component} that can be mounted like any other component.
  *
  * @example Basic usage
@@ -79,8 +85,8 @@ export function isGate(value: unknown): value is BoundGateDefinition<any, any> {
  * const Router = router({
  *   home:     HomeComponent,
  *   notFound: NotFoundComponent,
- *   ArticleGate,
- *   CommentsGate,
+ *   ArticleRoute,
+ *   CommentsRoute,
  * })
  * ```
  *
@@ -92,22 +98,21 @@ export function isGate(value: unknown): value is BoundGateDefinition<any, any> {
  * const Router = router({ home, notFound, ...appRoutes })
  * ```
  *
- * @see {@link gate}
+ * @see {@link route}
  * @see {@link generateRouteManifest}
  */
 export function router<const T extends RouterConfig>(config: ValidatedRouterConfig<T>): Component {
 	const { home, notFound } = config
 	const entries = Object.entries(config).filter(([k]) => k !== 'home' && k !== 'notFound')
 
-	// Deduplicate by identity — first-wins, applied in both dev and prod
+	// Collect only RouteDefinitions — BoundGateDefinitions are ignored
 	const seen = new Set<object>()
-	const gates: Array<{ key: string; gate: BoundGateDefinition<any, any> }> = []
+	const routes: Array<{ key: string; route: RouteDefinition<any, any> }> = []
 	for (const [key, value] of entries) {
-		if (!isGate(value)) continue
-		if (value.hasParent) continue   // child gates are composed by their parent, not router-mounted
+		if (!isRoute(value)) continue
 		if (!seen.has(value)) {
 			seen.add(value)
-			gates.push({ key, gate: value })
+			routes.push({ key, route: value })
 		}
 	}
 
@@ -115,27 +120,72 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 		name: 'rooted:router',
 		onMount({ append, signal }) {
 
-
-			dev.validateDuplicateRoutes?.(entries, gates)
-
-			// Gates self-manage their own visibility via popstate
-			for (const { gate } of gates) {
-				append(gate as unknown as Component)
-			}
+			dev.validateDuplicateRoutes?.(entries, routes)
 
 			let homeEl: GenericComponent | null = null
 			let notFoundEl: GenericComponent | null = null
+			let activeEl: GenericComponent | null = null
+			let lastRouteIdx = -1
+			let lastParams: string | undefined
 
 			const update = () => {
 				const isHome = location.pathname === '/'
-				const anyMatches = !isHome && gates.some(({ gate: g }) => {
-					const result = g.matchFrom(location.pathname)
-					return result !== false && (!g.exact || result.end < location.pathname.length)
-				})
 
+				// Find best-match route (highest end position; wildcard beats specific on tie)
+				let bestIdx = -1
+				let bestEnd = -1
+				let bestIsWildcard = false
+				let bestParams: Record<string, unknown> = {}
+				let highestPatternEnd = -1
+				for (let i = 0; i < routes.length; i++) {
+					const route = routes[i]!.route
+					const patternResult = route.patternMatchFrom(location.pathname)
+					if (patternResult && patternResult.end > highestPatternEnd) highestPatternEnd = patternResult.end
+					const result = route.matchFrom(location.pathname)
+					if (!result) continue
+					const isWc = route.hasWildcard
+					if (result.end > bestEnd || (result.end === bestEnd && isWc && !bestIsWildcard)) {
+						if (result.end === bestEnd) {
+							dev.warnWildcardTie?.(routes[i]!, routes[bestIdx]!, location.pathname)
+						}
+						bestIdx = i
+						bestEnd = result.end
+						bestIsWildcard = isWc
+						bestParams = result.params
+					} else if (result.end === bestEnd && !isWc && bestIsWildcard) {
+						dev.warnWildcardTie?.(routes[bestIdx]!, routes[i]!, location.pathname)
+					}
+				}
+				// If a longer pattern matched but was filtered out, suppress the shorter parent match
+				if (highestPatternEnd > bestEnd) {
+					bestIdx = -1
+					bestEnd = -1
+					bestParams = {}
+				}
+
+				// Mount/unmount best-match route component
+				const serialized = JSON.stringify(bestParams)
+				if (!isHome && (bestIdx !== lastRouteIdx || serialized !== lastParams)) {
+					activeEl?.remove()
+					activeEl = null
+					lastRouteIdx = bestIdx
+					lastParams = serialized
+					if (bestIdx >= 0) {
+						activeEl = append(routes[bestIdx]!.route.component, { gate: bestParams } as any)
+					}
+				} else if (isHome) {
+					activeEl?.remove()
+					activeEl = null
+					lastRouteIdx = -1
+					lastParams = undefined
+				}
+
+				// Home
 				if (isHome && !homeEl) homeEl = append(home)
 				else if (!isHome && homeEl) { homeEl.remove(); homeEl = null }
 
+				// Not found
+				const anyMatches = !isHome && bestIdx >= 0
 				if (!isHome && !anyMatches && !notFoundEl) notFoundEl = append(notFound)
 				else if ((isHome || anyMatches) && notFoundEl) { notFoundEl.remove(); notFoundEl = null }
 			}
