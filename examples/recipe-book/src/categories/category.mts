@@ -17,14 +17,15 @@ export const Category = component<CategoryOptions>({
 
 		append(Link, { href: '/categories/', className: 'back-link', children: '← All categories' })
 
+		const categoryname = category ? category.label : String(slug)
 		append('div', {
 			className: 'category-header',
 			children: [
-				create('h1', { textContent: category ? category.label : String(slug) }),
+				create('h1', { textContent: categoryname }),
 				create('p', {
 					textContent: category
 						? `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`
-						: 'Category not found',
+						: `Category '${categoryname}' not found`,
 				})
 			]
 		})
