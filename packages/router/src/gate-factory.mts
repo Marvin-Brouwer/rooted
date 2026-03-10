@@ -232,11 +232,18 @@ export function isRouteDefinition(v: unknown): v is RouteDefinition<any, any> {
  * {@link RouteDefinition} as the first interpolation to compose URL paths,
  * and {@link wildcard} as the last interpolation for catch-all matching.
  *
- * Routes are **not** self-managing components — they are descriptors used by
- * the {@link router}. The router evaluates all registered routes on each
- * navigation and renders only the best match (the route whose pattern covers
- * the most characters of the current URL). If a child route matches, its
- * parent route does not render.
+ * A `RouteDefinition` serves two purposes:
+ *
+ * 1. **Router registration** — the {@link router} evaluates all registered routes
+ *    on each navigation and renders only the best match (the route whose pattern
+ *    covers the most characters of the current URL).
+ *
+ * 2. **Gate binding** — pass the route to {@link gate} to create a self-managing
+ *    sub-component that shows its component whenever the route matches the current
+ *    URL, regardless of which route the router has selected as the best match.
+ *
+ * Routes are **not** self-managing components — they are descriptors consumed by
+ * the router and by gates.
  *
  * @returns A binder function that accepts the destination component to render.
  *
@@ -290,29 +297,35 @@ export function route<const T extends readonly RouteValue[]>(
 /**
  * Subscribes a component to a route, producing a {@link BoundGateDefinition}.
  *
- * `gate` is a plain function — it takes a route reference and a component, and
- * returns a self-managing component that listens to `popstate` events and shows
- * or hides the component whenever the route's URL pattern matches (or stops
- * matching) the current URL.
+ * When appended inside a shell component, a gate mounts its component as soon
+ * as the subscribed route's URL pattern matches the current URL, and unmounts
+ * it when the URL no longer matches. URL parameters parsed from the match are
+ * injected automatically as `options.gate`. If the parameters change without
+ * leaving the route (e.g. navigating from one article to another), the
+ * component is re-mounted with the updated values.
  *
- * Use gates to embed conditional sub-content inside a route component via
- * `append(gate, {})`. A gate activates independently of the router's best-match
- * selection — it is always active when its route's pattern matches the current URL.
+ * A gate activates based solely on its own URL match — it is unaffected by
+ * which route the router considers the best match. This is what makes gates the
+ * composition mechanism for shell components: a shell bound to multiple child
+ * routes uses `append(gate, {})` calls to show the correct sub-content at each
+ * URL depth.
  *
  * @param routeRef - The route whose URL pattern drives this gate's visibility.
- * @param inner    - The component to render when the route is active.
+ * @param inner    - The component to show when the route matches.
  * @returns A self-managing {@link BoundGateDefinition} component.
  *
  * @example
  * ```ts
  * import { route, gate, token } from '@rooted/router'
+ * import { Categories } from './categories.mts'
  * import { Category } from './category.mts'
  *
- * export const CategoryRoute = route`/${CategoriesRoute}/${token('slug', String)}/`(Category)
+ * // Child route binds to the shell component; gate binds to the content component
+ * export const CategoryRoute = route`${CategoriesRoute}/${token('slug', String)}/`(Categories)
  * export const CategoryGate  = gate(CategoryRoute, Category)
  *
- * // Inside the Categories component:
- * append(CategoryGate, {})  // self-managing: shows Category when CategoryRoute is active
+ * // Inside the Categories shell component:
+ * append(CategoryGate, {})  // mounts Category at /categories/:slug/, unmounts otherwise
  * ```
  *
  * @see {@link route}
