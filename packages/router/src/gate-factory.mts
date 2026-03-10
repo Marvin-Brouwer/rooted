@@ -1,3 +1,7 @@
+// TODO rename to route-factory and split gate functionality into a separate file.
+// Also rename options.gate to options.path for both routes and gates.
+// Then fix the readme and docs, apart from ADRs, junction is no longer a concept.
+
 import { component } from '@rooted/components'
 import type { Component, GenericComponent } from '@rooted/components'
 import { dev } from './dev-helper.mts'
@@ -40,7 +44,7 @@ type WildcardParameter<K extends string = string> = {
  * ```
  *
  * @see {@link route}
- * @see {@link GateParameters}
+ * @see {@link RouteParameters}
  */
 export function wildcard<K extends string = 'path'>(key = 'path' as K): WildcardParameter<K> {
 	return { key, [wildcardBrand]: true } as WildcardParameter<K>
@@ -72,7 +76,7 @@ function isWildcardParam(v: unknown): v is WildcardParameter {
  * ```
  *
  * @see {@link route}
- * @see {@link GateParameters}
+ * @see {@link RouteParameters}
  */
 export function token<K extends string, V extends ParameterValue>(key: K, matches: V) {
 	return { key, matches } as PathParameter<K, V>
@@ -114,6 +118,12 @@ type ExtractParams<T extends readonly RouteValue[]> =
 	: ExtractParams<R>
 	: []
 
+type ConvertPathParams<T extends readonly PathParameter<any, any>[]> = {
+	[P in T[number]as P['key']]: ParameterValueType<P['matches']>
+}
+
+type PathParameterDictionary<T extends AnyParam[]> = ConvertPathParams<ExtractParams<T>>
+
 /**
  * Extracts the typed parameter object from a {@link RouteDefinition} or {@link BoundGateDefinition}.
  *
@@ -139,7 +149,7 @@ type ExtractParams<T extends readonly RouteValue[]> =
  */
 type AnyParam = PathParameter | WildcardParameter
 
-export type GateParameters<G> = G extends { [typedParameter]: infer T extends AnyParam[] }
+export type RouteParameters<G> = G extends { [typedParameter]: infer T extends AnyParam[] }
 	? { [P in T[number]as P['key']]: P extends WildcardParameter ? string : P extends PathParameter ? ParameterValueType<P['matches']> : never }
 	: never
 
@@ -193,6 +203,29 @@ export type RouteDefinition<O extends {}, T extends AnyParam[]> = {
 	 * @returns The parsed params record, or `false` if there is no match.
 	 */
 	match(url: URL): Record<string, unknown> | false
+
+	/**
+	 * Utility to generate an absolute path back from the route definition
+	 *
+	 * @param parameters - A key value dictionary of the expected parameter values, similar to `options.gate`
+	 * @returns A constructed url with the values from the {@param parameters} interpolated.
+	 *
+	 * @example
+	 * ```ts
+	 * create(Link, {
+	 * 	className: 'category-card',
+	 * 	href: CategoryRoute.link(category), // actually `CategoryRoute.link({ slug: category.slug })` but the shape fits so the shorthand is preferred
+	 * 	children: [
+	 * 		create('div', { className: 'category-name', textContent: category.label }),
+	 * 		create('p', {
+	 * 			className: 'category-count',
+	 * 			textContent: `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`,
+	 * 		}),
+	 * 	],
+	 * })
+	 * ```
+	 */
+	link(parameters: PathParameterDictionary<T>): string
 }
 
 /**
@@ -240,7 +273,7 @@ type UnboundRouteDefinition = {
  *
  * @see {@link route}
  */
-export type RouteFilter<T extends readonly RouteValue[]> = (params: GateParameters<{ readonly [typedParameter]: ExtractParams<T> }>) => boolean
+export type RouteFilter<T extends readonly RouteValue[]> = (params: RouteParameters<{ readonly [typedParameter]: ExtractParams<T> }>) => boolean
 
 /** The curried binder returned by {@link route}. */
 type RouteBinder<T extends readonly RouteValue[]> = <O extends {}>(inner: Component<O>, filter?: RouteFilter<T>) => RouteDefinition<O, ExtractParams<T>>
@@ -305,7 +338,7 @@ export function isRouteDefinition(v: unknown): v is RouteDefinition<any, any> {
  * @see {@link wildcard}
  * @see {@link router}
  * @see {@link RouteFilter}
- * @see {@link GateParameters}
+ * @see {@link RouteParameters}
  */
 export function route<const T extends readonly RouteValue[]>(
 	strings: TemplateStringsArray, ...values: T
@@ -341,6 +374,12 @@ export function route<const T extends readonly RouteValue[]>(
 			patternMatchFrom: unbound.matchFrom.bind(unbound),
 			matchFrom,
 			match,
+			link(parameters) {
+				// TODO join all static parts into an array in the route function scope, then zip the required parameters by name to construct a correct url
+				// This includes the parent.
+				console.log(strings, values, parameters)
+				return ''
+			}
 		}
 		return Object.freeze(routeDef) as RouteDefinition<O, AnyParam[]>
 	}) as RouteBinder<T>
@@ -382,7 +421,7 @@ export function route<const T extends readonly RouteValue[]>(
  *
  * @see {@link route}
  * @see {@link router}
- * @see {@link GateParameters}
+ * @see {@link RouteParameters}
  */
 export function gate<O extends {}>(
 	routeRef: RouteDefinition<O, AnyParam[]>,
