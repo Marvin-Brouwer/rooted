@@ -1,18 +1,12 @@
 import { isComponent } from './component.mts'
 import type { Component } from './component.mts'
+import { CssClasses } from './component/classes.mts'
 import { componentStore, GenericComponent } from './component/generic-component.mts'
 import { RootedElement, RootedElementConstructor } from './rooted-element.mts'
 
 type RootedElementClass<TComponent extends RootedElement> = (new () => TComponent) & RootedElementConstructor
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? A : B
 type WritableKeys<T> = { [P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never> }[keyof T]
-
-/** @todo write documentation */
-export type CssClass = string | undefined | null
-/** @todo write documentation */
-export type CssClassDictionary = Record<string, boolean | undefined | null>
-/** @todo write documentation */
-export type CssClasses = CssClass | Array<CssClass> | CssClassDictionary
 
 type RootedElementProps<TComponent extends RootedElement> = Pick<TComponent, WritableKeys<TComponent> & Exclude<keyof TComponent, 'children' | 'className' | 'classList' | keyof RootedElement>>
 
@@ -21,14 +15,12 @@ type HtmlElementProps<TElement extends HTMLElement> = Partial<Pick<TElement, Wri
 	classes?: CssClasses
 }
 
-function buildClassList(classes: CssClasses) {
+function buildClassList(classes: CssClasses | undefined) {
 
 	if (classes === null || classes === undefined) return {}
 	if (Array.isArray(classes)) return { className: classes.filter(Boolean).join(' ') }
-	if (typeof classes === 'string') return { className: classes }
 
-	const classList = Object.entries(classes).filter(([_key, value]) => Boolean(value)).map(([key]) => key)
-	return { className: classList.join(' ') }
+	return { className: String(classes) }
 }
 
 function createComponent<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: RootedElementProps<TComponent>) {
