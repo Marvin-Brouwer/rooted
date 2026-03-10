@@ -269,8 +269,8 @@ manually or with a custom build script:
 
 ```ts
 // src/_routes.g.mts — written by hand or a custom script
-export * from './articles/_gates.mts'
-export * from './users/_gates.mts'
+export * from './articles/_routes.mts'
+export * from './users/_routes.mts'
 ```
 
 ---

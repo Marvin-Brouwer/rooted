@@ -29,7 +29,7 @@ export default defineConfig({
 	plugins: [
 		markdownPlugin(),
 		generateRouteManifest({
-			glob: './src/**/_gates.mts',
+			glob: './src/**/_routes.mts',
 			root: './src/_routes.g.mts',
 		}),
 		VitePWA({

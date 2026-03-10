@@ -1,11 +1,11 @@
 import styles from './recipe.css?inline'
 import { component } from '@rooted/components'
 import { type GateParameters, Link } from '@rooted/router'
-import { type RecipeGate } from '../categories/_gates.mts'
 import { recipes } from './_data.mts'
+import { type RecipeRoute } from './_routes.mts'
 
 export type RecipeOptions = {
-	gate: GateParameters<typeof RecipeGate>
+	gate: GateParameters<typeof RecipeRoute>
 }
 
 export const Recipe = component<RecipeOptions>({
@@ -15,6 +15,11 @@ export const Recipe = component<RecipeOptions>({
 		const recipe = recipes.find(r => r.id === options.gate.id)
 
 		if (!recipe) {
+
+			append(Link, { href: '/categories/', className: 'back-link', children: '← Browse' })
+
+			const header = append('div', { className: 'recipe-header' })
+			header.append(create('h2', { textContent: 'No recipe' }))
 			append('p', { className: 'not-found', textContent: 'Recipe not found.' })
 			return
 		}

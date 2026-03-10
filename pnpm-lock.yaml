@@ -65,13 +65,13 @@ importers:
       '@rooted/router':
         specifier: workspace:*
         version: link:../../packages/router
+    devDependencies:
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
       marked:
         specifier: ^15.0.0
         version: 15.0.12
-    devDependencies:
       typescript:
         specifier: ^5.5.0
         version: 5.9.3
