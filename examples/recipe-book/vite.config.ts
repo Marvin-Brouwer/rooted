@@ -26,6 +26,13 @@ function markdownPlugin(): Plugin {
 }
 
 export default defineConfig({
+	appType: 'spa',
+	dev: {
+		sourcemap: true
+	},
+	esbuild: {
+		sourcemap: 'inline',
+	},
 	plugins: [
 		markdownPlugin(),
 		generateRouteManifest({
