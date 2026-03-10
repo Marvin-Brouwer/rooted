@@ -14,7 +14,7 @@ export const HomePage = component({
 		append('div', {
 			className: 'recipe-grid',
 			children: recipes.filter(r => r.featured).map(recipe => {
-				const href = `/categories/${recipe.category}/recipes/${recipe.id}/`
+				const href = `/recipe/${recipe.id}/`
 				return create(Link, {
 					href,
 					className: 'recipe-card',
