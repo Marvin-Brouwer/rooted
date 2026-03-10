@@ -1,6 +1,6 @@
 import type { Plugin, ResolvedConfig } from 'vite'
 import { glob } from 'tinyglobby'
-import { writeFile, mkdir } from 'node:fs/promises'
+import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, relative, dirname } from 'node:path'
 import { createHash } from 'node:crypto'
 
@@ -139,8 +139,15 @@ export function generateRouteManifest(options: Options): Plugin {
 			'',
 		]
 
+		const generatedManifest = lines.join('\n')
 		await mkdir(rootDir, { recursive: true })
-		await writeFile(rootPath, lines.join('\n'), 'utf-8')
+
+		const originalManifest = await readExistingManifest(rootPath)
+		if (originalManifest === generatedManifest) {
+			console.debug('Code change did not require manifest update.')
+			return
+		}
+		await writeFile(rootPath, generatedManifest, 'utf-8')
 	}
 
 	return {
@@ -178,4 +185,14 @@ export function hash(files: string[], version: string): string {
 
 	return hash.digest("hex")
 }
+
 const getFileId = (path: string) => createHash('md5').update(path).digest('hex').slice(0, 8)
+
+async function readExistingManifest(rootPath: string) {
+	try {
+		return await readFile(rootPath, 'utf-8')
+	}
+	catch {
+		return undefined
+	}
+}
