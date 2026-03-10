@@ -1,5 +1,5 @@
 import styles from './categories.css?inline'
-import { component, type ComponentContext } from '@rooted/components'
+import { component, type ComponentContext, cssClass } from '@rooted/components'
 import { categories, Category } from './_data.mts'
 import { Link } from '@rooted/router'
 import { CategoryGate, CategoryRoute } from './_routes.mts'
@@ -25,7 +25,10 @@ function routeSelected(category: Category) {
 
 function mapCategories(create: ComponentContext['create']) {
 	return categories.map(category => create(Link, {
-		classes: { 'category-card': true, 'selected': routeSelected(category) },
+		classes: [
+			cssClass('category-card'),
+			cssClass('selected', routeSelected(category))
+		],
 		href: `/categories/${category.slug}/`,
 		children: [
 			create('div', { classes: 'category-name', textContent: category.label }),

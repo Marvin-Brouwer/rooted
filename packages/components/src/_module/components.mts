@@ -5,3 +5,4 @@
 
 export { component, type Component, type ComponentConstructor, type ComponentContext } from '../component.mts'
 export type { GenericComponent } from '../component/generic-component.mts'
+export * from '../component/classes.mts'
