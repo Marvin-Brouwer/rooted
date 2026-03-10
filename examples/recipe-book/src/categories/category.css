@@ -1,4 +1,4 @@
-.category-header { margin-bottom: 1.5rem; }
+.category-header { margin-top: 1.5rem; margin-bottom: 1.5rem; }
 .category-header h1 { margin: 0 0 0.25rem; font-size: 1.75rem; }
 .category-header p { color: var(--color-text-muted); margin: 0; }
 .back-link {
