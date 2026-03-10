@@ -71,16 +71,30 @@ export const ArchiveRoute = route`/archive/${wildcard()}/`(Archive)
 
 ## Best-match routing
 
-The router mounts **all** registered routes and evaluates them on every navigation. Only the route whose pattern covers the most characters of the current URL renders its component — all other routes remain inactive. If a child route matches, its parent route does not render.
+The router mounts **all** registered routes and evaluates them on every navigation. Only the route whose pattern covers the most characters of the current URL renders its component — all other routes remain inactive.
+
+The idiomatic pattern is to bind child routes to the same **shell component** as their parent, and use gates inside that shell to show child content:
+
+```ts
+export const ArticlesRoute  = route`/articles/`(Articles)
+export const ArticleRoute   = route`${ArticlesRoute}/${token('id', Number)}/`(Articles)
+export const ArticleGate    = gate(ArticleRoute, Article)
+
+// Inside the Articles shell component:
+onMount({ append }) {
+  append('ul', { /* article list */ })
+  append(ArticleGate, {})  // activates when ArticleRoute matches
+}
+```
+
+With this pattern the router selects the best-match route and renders `Articles`. Gates inside `Articles` then activate independently based on their own URL match:
 
 ```
-/articles/          → ArticleRoute does not match — no ID segment
-/articles/123/      → ArticleRoute matches (end = 14) — Article renders
-/articles/123/comments/  → CommentsRoute matches (end = 22) — Comments renders
-                          ArticleRoute is not rendered
+/articles/      → ArticlesRoute is the best match → Articles renders, no gate active
+/articles/123/  → ArticleRoute is the best match  → Articles renders, ArticleGate activates → Article shown
 ```
 
-This means each route component is a self-contained page. Deep-linking to any URL works directly — the best-match route is selected and rendered standalone.
+Deep-linking works directly — the best-match route is selected and renders the shell component, which then activates the appropriate gate.
 
 ---
 
@@ -88,23 +102,23 @@ This means each route component is a self-contained page. Deep-linking to any UR
 
 `gate` is a plain function that subscribes a component to a route's URL pattern and returns a self-managing component. The gate listens to `popstate` and shows or removes its component whenever the route matches (or stops matching) the current URL.
 
-Use gates for **explicit embedded sub-content** inside a route component — for example, a detail panel shown alongside a list when a sub-URL is active:
+Use gates for **explicit embedded sub-content** inside a shell component. The idiomatic pattern is to bind child routes to the parent shell component and use gates inside it to render the child content:
 
 ```ts
 import { route, gate, token } from '@rooted/router'
 
 export const ArticlesRoute = route`/articles/`(Articles)
-export const ArticleRoute  = route`${ArticlesRoute}/${token('id', Number)}/`(Article)
+export const ArticleRoute  = route`${ArticlesRoute}/${token('id', Number)}/`(Articles)
 export const ArticleGate   = gate(ArticleRoute, Article)
 
-// Inside the Articles component:
+// Inside the Articles shell component:
 onMount({ append }) {
     append('ul', { /* article list */ })
     append(ArticleGate, {})  // self-managing: shows Article when ArticleRoute is active
 }
 ```
 
-Note that with best-match routing, if `ArticleRoute` is also registered with the router, the router will render `Article` standalone at `/articles/123/` — the `Articles` component (and its appended `ArticleGate`) will not be active at that URL. Gates are most useful when the parent route is intended to be the only match at the relevant URL, or for UIs that keep a parent context visible alongside sub-content.
+The router renders `Articles` at both `/articles/` and `/articles/123/` (best-match selects `ArticleRoute` at the deeper URL). `ArticleGate` inside the shell activates independently — it shows `Article` when `/articles/123/` matches and removes it when it does not.
 
 ---
 
