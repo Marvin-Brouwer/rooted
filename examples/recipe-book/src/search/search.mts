@@ -26,7 +26,7 @@ export const SearchPage = component<SearchOptions>({
 			root.append(create('h1', {
 				children: [
 					document.createTextNode('Results for '),
-					create('span', { className: 'search-query', textContent: `"${displayQuery}"` }),
+					create('span', { classes: 'search-query', textContent: `"${displayQuery}"` }),
 				],
 			}))
 
@@ -38,23 +38,23 @@ export const SearchPage = component<SearchOptions>({
 			)
 
 			root.append(create('p', {
-				className: 'result-count',
+				classes: 'result-count',
 				textContent: `${matches.length} recipe${matches.length !== 1 ? 's' : ''} found`,
 			}))
 
 			if (matches.length === 0) {
-				root.append(create('p', { className: 'no-results', textContent: 'No recipes match your search.' }))
+				root.append(create('p', { classes: 'no-results', textContent: 'No recipes match your search.' }))
 				return
 			}
 
-			const list = create('ul', { className: 'result-list' })
+			const list = create('ul', { classes: 'result-list' })
 			for (const recipe of matches) {
 				const href = `/categories/${recipe.category}/recipes/${recipe.id}/`
 				list.append(create('li', {
-					className: 'result-item',
+					classes: 'result-item',
 					children: [
-						create('div', { className: 'result-title', children: create(Link, { href, children: recipe.title }) }),
-						create('p', { className: 'result-desc', textContent: recipe.description }),
+						create('div', { classes: 'result-title', children: create(Link, { href, children: recipe.title }) }),
+						create('p', { classes: 'result-desc', textContent: recipe.description }),
 					],
 				}))
 			}

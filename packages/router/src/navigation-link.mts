@@ -1,5 +1,6 @@
 import { component } from '@rooted/components'
 import { navigate } from './navigation.mts'
+import { CssClasses } from '@rooted/components/elements'
 
 /**
  * Options for {@link Link}.
@@ -8,7 +9,7 @@ export type LinkOptions = {
 	/** The destination URL passed to {@link navigate} on click. */
 	href: string
 	/** CSS class name applied to the rendered `<a>` element. */
-	className?: string
+	classes?: CssClasses
 	/**
 	 * Content rendered inside the anchor.
 	 * Pass a plain string, a single DOM {@link Node}, or an array of nodes.
@@ -60,9 +61,8 @@ export const Link = component<LinkOptions>({
 			typeof options.children === 'string'
 				? document.createTextNode(options.children)
 				: options.children
-		const a = append('a', { href: options.href, children: resolvedChildren })
-		if (options.className !== undefined) a.className = options.className
-		a.addEventListener('click', e => {
+		const anchorElement = append('a', { href: options.href, children: resolvedChildren, classes: options.classes })
+		anchorElement.addEventListener('click', e => {
 			e.preventDefault()
 			navigate(options.href)
 		}, { signal })

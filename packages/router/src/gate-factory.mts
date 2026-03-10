@@ -202,7 +202,7 @@ export type RouteDefinition<O extends {}, T extends AnyParam[]> = {
 	 * @param url - The URL to test.
 	 * @returns The parsed params record, or `false` if there is no match.
 	 */
-	match(url: URL): Record<string, unknown> | false
+	match(url: URL | Location): Record<string, unknown> | false
 
 	/**
 	 * Utility to generate an absolute path back from the route definition
@@ -255,7 +255,7 @@ type UnboundRouteDefinition = {
 	readonly hasWildcard: boolean
 	patternMatchFrom(path: string, offset?: number): MatchResult | false
 	matchFrom(path: string, offset?: number): MatchResult | false
-	match(url: URL): Record<string, unknown> | false
+	match(url: URL | Location): Record<string, unknown> | false
 }
 
 /**
@@ -360,7 +360,7 @@ export function route<const T extends readonly RouteValue[]>(
 			}
 			: unbound.matchFrom.bind(unbound)
 		const match = filter
-			? (url: URL) => {
+			? (url: URL | Location) => {
 				const result = unbound.match(url)
 				if (result === false) return false
 				return filter(result as any) ? result : false
@@ -525,7 +525,7 @@ function buildRoute(strings: TemplateStringsArray, values: AnyParam[], parent?: 
 		hasWildcard: values.some(isWildcardParam),
 		patternMatchFrom: ownMatchFrom,
 		matchFrom: ownMatchFrom,
-		match: (url: URL) => {
+		match: (url: URL | Location) => {
 			const result = ownMatchFrom(url.pathname)
 			return result === false ? false : result.params
 		},
