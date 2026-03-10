@@ -271,6 +271,36 @@ describe('route — wildcard matching', () => {
 	})
 })
 
+describe('route — filter', () => {
+	const allowed = new Set(['apple', 'banana'])
+	const filteredRoute = route`/fruit/${token('name', String)}/`(
+		mockComponent('fruit'),
+		({ name }) => allowed.has(name),
+	)
+
+	test('matchFrom passes when filter returns true', () => {
+		expect(filteredRoute.matchFrom('/fruit/apple/')).not.toBe(false)
+	})
+
+	test('matchFrom returns false when filter rejects', () => {
+		expect(filteredRoute.matchFrom('/fruit/mango/')).toBe(false)
+	})
+
+	test('patternMatchFrom matches regardless of filter', () => {
+		expect(filteredRoute.patternMatchFrom('/fruit/mango/')).not.toBe(false)
+	})
+
+	test('patternMatchFrom returns false when pattern itself does not match', () => {
+		expect(filteredRoute.patternMatchFrom('/other/')).toBe(false)
+	})
+
+	test('routes without a filter have patternMatchFrom === matchFrom result', () => {
+		const plain = route`/plain/`(mockComponent('plain'))
+		const path = '/plain/'
+		expect(plain.patternMatchFrom(path)).toEqual(plain.matchFrom(path))
+	})
+})
+
 describe('gate — plain function', () => {
 	test('returns an object with typedParameter from the route', () => {
 		const idToken = token('id', Number)
