@@ -16,13 +16,15 @@ type FakeComponentType = Component<{
 	}
 }>
 const FakeComponent: FakeComponentType = null!
-const FakeGateComponent: FakeComponentType = null!
 function append(..._any: any): void {}
 const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`(FakeComponent)
 
-const FakeGate = gate(r, FakeGateComponent)
 // usage
-append(FakeGate({ prop: true }))
+append(
+	// TODO is this more readable than just calling r.match().success in the component and returning false?
+	// TODO apply same fix as element, so this can be used correctly without props
+	gate(r, FakeComponent, { prop: true })
+)
 //
 
 /**
@@ -66,17 +68,24 @@ append(FakeGate({ prop: true }))
 export function gate<TRoute extends AnyRoute, T extends never, TComponent extends Component<T>>(
 	routeReference: TRoute,
 	component: TComponent,
-): () => GenericComponent
+): GenericComponent
 export function gate<TRoute extends AnyRoute, T extends {}, TComponent extends Component<T>>(
 	routeReference: TRoute,
 	component: TComponent,
-): (forwardedProps: T) => GenericComponent
+	forwardedProps: T
+): GenericComponent
 export function gate<TRoute extends AnyRoute, T extends { path: Partial<{ bool: boolean }> }, TComponent extends Component<T>>(
 	routeReference: TRoute,
 	component: TComponent,
-): (forwardedProps: T) => GenericComponent {
+	forwardedProps: T
+): GenericComponent
+export function gate<TRoute extends AnyRoute, T extends { path: Partial<{ bool: boolean }> }, TComponent extends Component<T>>(
+	routeReference: TRoute,
+	component: TComponent,
+	forwardedProps?: T
+): GenericComponent {
 
-	return (forwardedProps) => create(Gate, { routeReference, component, forwardedProps })
+	return create(Gate, { routeReference, component, forwardedProps })
 }
 
 type GateOptions<T extends {}> = {
