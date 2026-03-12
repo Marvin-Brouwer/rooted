@@ -106,8 +106,8 @@ export class GenericComponent extends RootedElement {
 			base.append(...realNodes)
 
 			return nodes.length === 1
-				? realNodes
-				: realNodes[0]
+				? realNodes[0]
+				: realNodes
 		}
 
 		const context: ComponentContext<any> = {

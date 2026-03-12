@@ -185,6 +185,7 @@ export function route<const T extends RouteParameter[]>(
 	function matchUrlPath(path: string, checkInclusive: boolean) {
 
 		let offset = 0
+		let parentParameters: Partial<PathParameterDictionary<any>> = {}
 		let parameters: Partial<PathParameterDictionary<T>> = {}
 
 		for (const part of routeParts) {
@@ -195,9 +196,17 @@ export function route<const T extends RouteParameter[]>(
 			}
 
 			if (!isParameterToken(part)) {
-				// TODO how do we do parent?
-				// And how do we get the parameters out
-				if (!part.match({ target: path.slice(offset), checkInclusive: false })) return tupleResult.error(`Path did not match Parent`)
+				// TODO do we want this recursive approach, or should this be the routers responsibility,
+				// if we move this to the router, the route simplifies, however,
+				// this means gates have no way of accessing parent parameters.
+				// Perhaps a route.getParameters(url|location|path) would help here?
+				// That way a gate will either show or not, but we no longer have to forward the parent route params
+				// and maybe a gate will also have gate.getParameters(url|location|path), in case a route is not exported and only used in a gate?
+				const result = part.match({ target: path.slice(offset), checkInclusive: false })
+				if (!result.success) return tupleResult.error(`Path did not match Parent`)
+
+				parentParameters = result.tokens
+
 				continue
 			}
 
@@ -209,7 +218,7 @@ export function route<const T extends RouteParameter[]>(
 		}
 
 		if (checkInclusive && path.slice(offset) !== '') return tupleResult.error('Route was longer than path')
-		return tupleResult.success(Object.freeze(parameters) as unknown as PathParameterDictionary<T>)
+		return tupleResult.success(Object.freeze({ ...parentParameters, ...parameters }) as unknown as PathParameterDictionary<T>)
 	}
 
 	function buildUrl(parameters: PathParameterDictionary<T>) {
@@ -252,7 +261,7 @@ export function route<const T extends RouteParameter[]>(
 		const lastValue = values.at(-1)
 		const hasWildcard = !!lastValue && isWildcardParameter(lastValue as ParameterToken)
 
-		// TODO This dictionary HAS to include the parent parameters too
+		// TODO This dictionary HAS to include the parent parameters too, or we only allow link building for this part of the route and the user should combine them
 		function link(parameters: PathParameterDictionary<T>) {
 			const [success, value, error] = buildUrl(parameters)
 			if (!success) throw error
@@ -294,3 +303,8 @@ export function route<const T extends RouteParameter[]>(
 		}
 	}
 }
+
+// TODO @Claude
+// I think this implementation is more readable than the V1 router, however I am torn on the way forward.
+// Either we include all the information of a parent route and make the code quite complex
+// Or we don't include parent information at all, and simplify the type information + users of the library are required to do more gymnastics

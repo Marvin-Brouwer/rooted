@@ -37,7 +37,6 @@ export type TokenMatchResult<T extends ParameterTokenType = ParameterTokenType> 
 
 export type ParameterToken<K extends string = string, T extends ParameterTokenType = ParameterTokenType> = {
 	key: K
-	// TODO maybe symbol
 	type: T
 
 	match(parameter: string): TokenMatchResult<T>

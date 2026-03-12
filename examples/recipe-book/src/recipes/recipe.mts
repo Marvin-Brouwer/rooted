@@ -1,7 +1,7 @@
 import styles from './recipe.css?inline'
-import { component } from '@rooted/components'
+import { component, ComponentContext } from '@rooted/components'
 import { type GateParameters, Link } from '@rooted/router'
-import { recipes } from './_data.mts'
+import { recipes, Recipe as DataRecipe } from './_data.mts'
 import { type RecipeRoute } from './_routes.mts'
 
 export type RecipeOptions = {
@@ -23,32 +23,40 @@ export const Recipe = component<RecipeOptions>({
 			create('p', { classes: 'not-found', textContent: 'Recipe not found.' })
 		)
 
-		// TODO incorrect pattern, see above
-		const backHref = `/categories/${recipe.category}/`
-		append(create(Link, {
-			href: backHref,
-			classes: 'back-link',
-			children: `← Back to ${recipe.category}`,
-		}))
+		append(
+			create(Link, {
+				href: `/categories/${recipe.category}/`,
+				classes: 'back-link',
+				children: `← Back to ${recipe.category}`,
+			}),
+			create('div', {
+				classes: 'recipe-header',
+				children: [
+					create('h2', { textContent: recipe.title }),
+					create('ul', {
+						classes: 'recipe-meta',
+						children: meta(create, recipe)
+					})
+				]
+			}),
 
-		const header = append(create('div', { classes: 'recipe-header' }))
-		header.append(create('h2', { textContent: recipe.title }))
-
-		const meta = create('ul', { classes: 'recipe-meta' })
-		const badges = [
-			recipe.category,
-			`${recipe.servings} serving${recipe.servings !== 1 ? 's' : ''}`,
-			`Prep ${recipe.prepTime} min`,
-			`Cook ${recipe.cookTime} min`,
-			recipe.difficulty,
-		]
-		for (const text of badges) {
-			meta.append(create('li', { classes: 'meta-badge', textContent: text }))
-		}
-		header.append(meta)
-
-		// Render the markdown-converted HTML body.
-		// Safe: content originates from version-controlled markdown files.
-		append(create('div', { classes: 'recipe-body', innerHTML: recipe.html }))
+			create('div', {
+				classes: 'recipe-body',
+				// Render the markdown-converted HTML body.
+				// Safe: content originates from version-controlled markdown files.
+				innerHTML: recipe.html
+			})
+		)
 	},
 })
+
+
+function meta(create: ComponentContext<typeof Recipe>['create'], recipe: DataRecipe) {
+	return [
+		create('li', { classes: 'meta-badge', textContent: recipe.category }),
+		create('li', { classes: 'meta-badge', textContent: `${recipe.servings} serving${recipe.servings !== 1 ? 's' : ''}` }),
+		create('li', { classes: 'meta-badge', textContent: `Prep ${recipe.prepTime} min` }),
+		create('li', { classes: 'meta-badge', textContent: `Cook ${recipe.cookTime} min` }),
+		create('li', { classes: 'meta-badge', textContent: recipe.difficulty }),
+	]
+}

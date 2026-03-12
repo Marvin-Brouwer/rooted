@@ -1,6 +1,7 @@
 import styles from './home.css?inline'
-import { component } from '@rooted/components'
-import { recipes } from '../recipes/_data.mts'
+
+import { component, ComponentContext } from '@rooted/components'
+import { Recipe, recipes } from '../recipes/_data.mts'
 import { Link } from '@rooted/router'
 
 export const HomePage = component({
@@ -14,27 +15,34 @@ export const HomePage = component({
 
 			create('div', {
 				classes: 'recipe-grid',
-				// TODO move to function in module scope
-				children: recipes.filter(r => r.featured).map(recipe => {
-					const href = `/recipe/${recipe.id}/`
-					return create(Link, {
-						href,
-						classes: 'recipe-card',
-						children: [
-							create('div', { classes: 'card-title', textContent: recipe.title }),
-							create('p', { classes: 'card-desc', textContent: recipe.description }),
-							create('div', {
-								classes: 'card-meta',
-								children: [
-									create('span', { classes: 'badge', textContent: recipe.category }),
-									create('span', { textContent: `${recipe.prepTime + recipe.cookTime} min` }),
-									create('span', { textContent: recipe.difficulty }),
-								],
-							}),
-						],
-					})
-				}),
+				children: grid(create),
 			})
 		)
 	},
 })
+
+function grid(create: ComponentContext<typeof HomePage>['create']): Node[] {
+	return recipes.filter(r => r.featured).map(recipe => {
+		const href = `/recipe/${recipe.id}/`
+		return create(Link, {
+			href,
+			classes: 'recipe-card',
+			children: card(create, recipe),
+		})
+	})
+}
+
+function card(create: ComponentContext<typeof HomePage>['create'], recipe: Recipe): Node[] {
+	return [
+		create('div', { classes: 'card-title', textContent: recipe.title }),
+		create('p', { classes: 'card-desc', textContent: recipe.description }),
+		create('div', {
+			classes: 'card-meta',
+			children: [
+				create('span', { classes: 'badge', textContent: recipe.category }),
+				create('span', { textContent: `${recipe.prepTime + recipe.cookTime} min` }),
+				create('span', { textContent: recipe.difficulty }),
+			],
+		})
+	]
+}
