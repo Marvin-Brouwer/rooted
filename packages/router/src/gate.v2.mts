@@ -20,6 +20,7 @@ function append(..._any: any): void {}
 const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`(FakeComponent)
 
 // usage
+// This no longer is a part of _routes.mts, you just define a gate inside of the page.
 append(
 	// TODO is this more readable than just calling r.match().success in the component and returning false?
 	// TODO apply same fix as element, so this can be used correctly without props
