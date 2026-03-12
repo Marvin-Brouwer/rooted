@@ -63,7 +63,6 @@ export const Link = component<LinkOptions>({
 			navigate(options.href)
 		}
 
-
 		append(
 			create('a', {
 				href: options.href,
