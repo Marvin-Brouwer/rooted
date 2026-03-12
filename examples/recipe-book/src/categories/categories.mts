@@ -8,10 +8,12 @@ export const Categories = component({
 	name: 'categories-page',
 	styles,
 	onMount({ append, create }) {
-		append('h1', { textContent: 'Categories' })
-		append('p', { classes: 'subtitle', textContent: 'Browse recipes by category.' })
-		append('div', { classes: 'category-grid', children: mapCategories(create) })
-		append(CategoryGate)
+		append(
+			create('h1', { textContent: 'Categories' }),
+			create('p', { classes: 'subtitle', textContent: 'Browse recipes by category.' }),
+			create('div', { classes: 'category-grid', children: mapCategories(create) }),
+			create(CategoryGate)
+		)
 	},
 })
 

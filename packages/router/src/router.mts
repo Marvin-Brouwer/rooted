@@ -118,7 +118,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 	return component({
 		name: 'rooted:router',
-		onMount({ append, signal }) {
+		onMount({ append, signal, create }) {
 
 			dev.validateDuplicateRoutes?.(entries, routes)
 
@@ -171,7 +171,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 					lastRouteIdx = bestIdx
 					lastParams = serialized
 					if (bestIdx >= 0) {
-						activeEl = append(routes[bestIdx]!.route.component, { gate: bestParams } as any)
+						activeEl = append(create(routes[bestIdx]!.route.component, { gate: bestParams } as any))
 					}
 				} else if (isHome) {
 					activeEl?.remove()
@@ -181,12 +181,12 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 				}
 
 				// Home
-				if (isHome && !homeEl) homeEl = append(home)
+				if (isHome && !homeEl) homeEl = append(create(home))
 				else if (!isHome && homeEl) { homeEl.remove(); homeEl = null }
 
 				// Not found
 				const anyMatches = !isHome && bestIdx >= 0
-				if (!isHome && !anyMatches && !notFoundEl) notFoundEl = append(notFound)
+				if (!isHome && !anyMatches && !notFoundEl) notFoundEl = append(create(notFound))
 				else if ((isHome || anyMatches) && notFoundEl) { notFoundEl.remove(); notFoundEl = null }
 			}
 

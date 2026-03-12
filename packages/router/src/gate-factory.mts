@@ -430,7 +430,7 @@ export function gate<O extends {}>(
 	const bound = component<OmitGate<O>>({
 		name: inner.name + '-gate',
 		onMount(ctx) {
-			const { append, signal } = ctx
+			const { append, create, signal } = ctx
 			const options = (ctx as any).options as OmitGate<O> | undefined
 			let el: GenericComponent | null = null
 			let lastParams: string | undefined
@@ -442,7 +442,7 @@ export function gate<O extends {}>(
 					const serialized = JSON.stringify(result.params)
 					if (!el || lastParams !== serialized) {
 						el?.remove()
-						el = append(inner, { ...options, gate: result.params } as unknown as O)
+						el = append(create(inner, { ...options, gate: result.params } as unknown as O))
 						lastParams = serialized
 					}
 				} else {

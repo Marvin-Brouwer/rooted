@@ -20,7 +20,7 @@ export const Application = component({
 	styles,
 	onMount({ append, create }) {
 		document.title = 'Recipe Book'
-		append('div', {
+		append(create('div', {
 			id: 'app',
 			children: [
 				create(NavigationMenu),
@@ -28,7 +28,7 @@ export const Application = component({
 					children: create(Router),
 				}),
 			],
-		})
+		}))
 	},
 })
 

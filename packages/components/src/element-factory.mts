@@ -15,6 +15,11 @@ type HtmlElementProps<TElement extends HTMLElement> = Partial<Pick<TElement, Wri
 	classes?: CssClasses
 }
 
+type RequiredKeys<T> = {
+	[K in keyof T]-?: {} extends Pick<T, K> ? never : K
+}[keyof T]
+type NoRequiredProps<T> = RequiredKeys<T> extends never ? true : false
+
 function buildClassList(classes: CssClasses | undefined) {
 
 	if (classes === null || classes === undefined) return {}
@@ -82,9 +87,14 @@ function createElement<TElement extends HTMLElement>(element: string, properties
  * ```
  */
 export function create(component: Component): GenericComponent
-export function create<TOptions extends {}>(component: Component<TOptions>, ...args: {} extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent & { options: Readonly<TOptions> }
+export function create<TOptions extends {}>(component: Component<TOptions>, ...args: {} extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent
 export function create<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProps<TComponent>>): TComponent
 export function create<KElement extends keyof HTMLElementTagNameMap>(element: KElement, properties: NoInfer<HtmlElementProps<HTMLElementTagNameMap[KElement]>>): HTMLElementTagNameMap[KElement]
+export function create<KElement extends keyof HTMLElementTagNameMap>(
+	element: KElement
+): NoRequiredProps<HtmlElementProps<HTMLElementTagNameMap[KElement]>> extends true
+	? HTMLElementTagNameMap[KElement]
+	: never
 export function create(
 	component: Component<any> | string | RootedElementClass<RootedElement>, properties?: unknown): unknown {
 

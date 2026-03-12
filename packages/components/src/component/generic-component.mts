@@ -90,16 +90,32 @@ export class GenericComponent extends RootedElement {
 			signal: this.abortController.signal
 		})
 
+		const base = this
+
+		function append<T extends Node | string | GenericComponent>(node: T): T
+		function append<T extends Node | string | GenericComponent>(...node: T[]): T[]
+		function append(...nodes: (Node | string | GenericComponent)[]): Node[]
+		function append(...nodes: (Node | string | GenericComponent)[]): Node[] | Node {
+
+			const realNodes = nodes.map(nodeOrString => {
+				return typeof nodeOrString === 'string'
+					? document.createTextNode(nodeOrString)
+					: nodeOrString as Node
+			})
+
+			base.append(...realNodes)
+
+			return nodes.length === 1
+				? realNodes
+				: realNodes[0]
+		}
+
 		const context: ComponentContext<any> = {
 			signal: this.abortController.signal,
 			options,
 			create,
 			// TODO also prepend etc
-			append: ((...forwardParameters: Parameters<typeof create>) => {
-				const element = create(...forwardParameters)
-				this.append(element)
-				return element
-			}) as typeof create
+			append
 		}
 
 		const handleError = (error: unknown) => {

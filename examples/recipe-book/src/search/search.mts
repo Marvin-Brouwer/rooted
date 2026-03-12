@@ -13,7 +13,7 @@ export const SearchPage = component<SearchOptions>({
 	styles,
 	onMount({ append, create, signal }) {
 		// Wrap all rendered content so we can replace it on re-search without remounting
-		const root = append('div', {})
+		const root = append(create('div'))
 
 		function render() {
 			root.replaceChildren()

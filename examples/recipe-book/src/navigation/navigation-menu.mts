@@ -7,17 +7,21 @@ export const NavigationMenu = component({
 	name: 'navigation-menu',
 	styles,
 	onMount({ append, create, signal }) {
-		const nav = append('nav', {})
+		const nav = append(create('nav'))
 
-		nav.append(create(Link, { href: '/', classes: 'nav-brand', children: 'Recipe Book' }))
-		nav.append(create(Link, { href: '/categories/', classes: 'nav-link', children: 'Browse' }))
+		nav.append(
+			create(Link, { href: '/', classes: 'nav-brand', children: 'Recipe Book' }),
+			create(Link, { href: '/categories/', classes: 'nav-link', children: 'Browse' })
+		)
 
+		// TODO incorrect pattern
 		const input = document.createElement('input')
 		input.type = 'search'
 		input.placeholder = 'Search recipes…'
 		input.className = 'search-input'
 		input.setAttribute('aria-label', 'Search recipes')
 
+		// TODO incorrect pattern
 		const btn = document.createElement('button')
 		btn.type = 'submit'
 		btn.className = 'search-btn'

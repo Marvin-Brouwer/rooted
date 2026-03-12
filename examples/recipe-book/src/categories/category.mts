@@ -17,20 +17,22 @@ export const Category = component<CategoryOptions>({
 		const category = categories.find(c => c.slug === slug)
 		const categoryname = category ? category.label : String(slug)
 
-		append('div', {
-			classes: 'category-header',
-			children: [
-				create('h1', { textContent: categoryname }),
-				create('p', {
-					textContent: category
-						? `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`
-						: `Category '${categoryname}' not found`,
-				})
-			]
-		})
+		append(
+			create('div', {
+				classes: 'category-header',
+				children: [
+					create('h1', { textContent: categoryname }),
+					create('p', {
+						textContent: category
+							? `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`
+							: `Category '${categoryname}' not found`,
+					})
+				]
+			})
+		)
 
 		if (category) {
-			const list = append('ul', { classes: 'recipe-list' })
+			const list = create('ul', { classes: 'recipe-list' })
 			for (const recipe of category.recipes) {
 				const href = `/recipe/${recipe.id}/`
 				list.append(create('li', {
@@ -44,9 +46,10 @@ export const Category = component<CategoryOptions>({
 					],
 				}))
 			}
+			append(list)
 		}
 
-		append('hr', { classes: 'divider' })
+		append(create('hr', { classes: 'divider' }))
 	},
 })
 

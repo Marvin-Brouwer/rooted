@@ -14,24 +14,24 @@ export const Recipe = component<RecipeOptions>({
 	onMount({ append, create, options }) {
 		const recipe = recipes.find(r => r.id === options.gate.id)
 
-		if (!recipe) {
+		if (!recipe) return void append(
+			create(Link, { href: '/categories/', classes: 'back-link', children: '← Browse' }),
+			create('div', {
+				classes: 'recipe-header',
+				children: create('h2', { textContent: 'No recipe' })
+			}),
+			create('p', { classes: 'not-found', textContent: 'Recipe not found.' })
+		)
 
-			append(Link, { href: '/categories/', classes: 'back-link', children: '← Browse' })
-
-			const header = append('div', { classes: 'recipe-header' })
-			header.append(create('h2', { textContent: 'No recipe' }))
-			append('p', { classes: 'not-found', textContent: 'Recipe not found.' })
-			return
-		}
-
+		// TODO incorrect pattern, see above
 		const backHref = `/categories/${recipe.category}/`
-		append(Link, {
+		append(create(Link, {
 			href: backHref,
 			classes: 'back-link',
 			children: `← Back to ${recipe.category}`,
-		})
+		}))
 
-		const header = append('div', { classes: 'recipe-header' })
+		const header = append(create('div', { classes: 'recipe-header' }))
 		header.append(create('h2', { textContent: recipe.title }))
 
 		const meta = create('ul', { classes: 'recipe-meta' })
@@ -49,7 +49,6 @@ export const Recipe = component<RecipeOptions>({
 
 		// Render the markdown-converted HTML body.
 		// Safe: content originates from version-controlled markdown files.
-		const body = append('div', { classes: 'recipe-body' })
-		body.innerHTML = recipe.html
+		append(create('div', { classes: 'recipe-body', innerHTML: recipe.html }))
 	},
 })

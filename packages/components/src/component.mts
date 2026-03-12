@@ -1,6 +1,7 @@
 import { seededId } from '@rooted/util'
 import { dev } from './dev-helper.mts'
 import { create } from './element-factory.mts'
+import { GenericComponent } from './component/generic-component.mts'
 
 /**
  * ## `ComponentContext`
@@ -11,12 +12,24 @@ export type ComponentContext<TOptions extends {} = never> = [TOptions] extends [
 	? BaseComponentContext
 	: BaseComponentContext & { options: Readonly<TOptions> }
 
-type BaseComponentContext = {
 
-	/** @inheritdoc {@link ComponentContext.create create} and append to this component immediately */
-	append: typeof create,
+type BaseComponentContext = & {
+
 	/** @inheritdoc */
 	create: typeof create,
+
+	/**
+	 * Inserts nodes after the last child of node, while replacing strings in nodes with equivalent Text nodes.
+	 *
+	 * Throws a "HierarchyRequestError" DOMException if the constraints of the node tree are violated.
+	 *
+	 * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Document/append)
+	 *
+	 *@todo find a way to automatically include the docs of HtmlElement['append'] without void return
+	 */
+	append<T extends Node | string | GenericComponent>(node: T): T,
+	append<T extends Node | string | GenericComponent>(...node: T[]): T[],
+	append(...nodes: (Node | string | GenericComponent)[]): Node[],
 
 	/**
 	 * Lifetime signal for the component, aborts when unmounted \
