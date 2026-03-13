@@ -50,6 +50,8 @@ const n = token('number', Number)
 const b = token('boolean', Boolean)
 const d = token('date', Date)
 const w = wildcard()
+
+console.log(s, n, b, d, w)
 //
 
 export function token<K extends string = string, T extends ParameterType = ParameterType>(name: K, type: T): Parameter<K, ParameterToTokenType<T>> {

@@ -114,9 +114,15 @@ const cr = route`/${r}/next/${token('id', String)}/${token('doThing', Boolean)}/
 const m = r.match({
 	target: '/hi/'
 })
+const m2 = cr.match({
+	target: '/hi/'
+})
 
-if (m.success) {
+if (m.success && m2.success) {
 	const t = m.tokens
+	const t2 = m2.tokens
+
+	console.log(t, t2)
 }
 //
 
