@@ -111,7 +111,7 @@ function join(urlOrPath: HrefBase, ...paths: Path[]): Url | Path {
 /** @deprecated Use href.url, or href.path to construct paths */
 function for_(url: URL): Url
 /** @deprecated Use href.url, or href.path to construct paths */
-function for_(url: Location): Url
+function for_(location: Location): Url
 function for_(href: Url): Url
 function for_(href: Path): Path
 /**
