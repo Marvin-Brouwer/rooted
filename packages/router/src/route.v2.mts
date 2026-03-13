@@ -1,5 +1,5 @@
 import { Component } from '@rooted/components'
-import { isParameterToken, isWildcardParameter, ParameterToken, ParameterToValueType, RouteParameter, token, wildcard } from './route.tokens.v2.mts'
+import { isParameterToken, isWildcardParameter, Parameter, ParameterToValueType, RouteParameter, token, wildcard } from './route.tokens.v2.mts'
 import { MatchRouteOptions, RouteMatch, routeMatcher } from './route.match.v2.mts'
 
 /** The typed path token descriptors declared with {@link token}. */
@@ -10,18 +10,18 @@ export const routeBrand: unique symbol = Symbol.for('rooted:route')
 export const routePartsBrand: unique symbol = Symbol.for('rooted:routeParts')
 
 /** Returns `true` if `token` is a {@link WildcardParameter}. */
-export function isRoute<T extends ParameterToken[]>(instance: unknown): instance is Route<RouteParameters<T>>
+export function isRoute<T extends Parameter[]>(instance: unknown): instance is Route<RouteParameters<T>>
 export function isRoute(instance: unknown): instance is Route<any> {
 	return typeof instance === 'object' && instance !== null && routeBrand in instance
 }
 
-type ConvertPathParameters<T extends readonly ParameterToken[]> = {
+type ConvertPathParameters<T extends readonly Parameter[]> = {
 	[P in T[number]as P['key']]: ParameterToValueType<P['type']>
 }
 
 export type FilterOutParent<T extends readonly RouteParameter[]> =
-	T extends readonly [infer H, ...infer R extends readonly ParameterToken[]]
-	? H extends ParameterToken
+	T extends readonly [infer H, ...infer R extends readonly Parameter[]]
+	? H extends Parameter
 	? [H, ...FilterOutParent<R>]
 	: FilterOutParent<R>
 	: []
@@ -54,7 +54,7 @@ export type RoutableComponent<T extends RouteParameter[]> = EmptyComponent | Com
  *
  * @see {@link route}
  */
-export type RouteFilter<T extends readonly ParameterToken[]> = (parameters: PathParameterDictionary<T>) => boolean
+export type RouteFilter<T extends readonly Parameter[]> = (parameters: PathParameterDictionary<T>) => boolean
 
 export type RouteBuilder<T extends RouteParameter[]> = <TComponent extends RoutableComponent<T>>(routedComponent: TComponent, filter?: RouteFilter<FilterOutParent<T>>) =>
 	// This is typed with an anonymous object on purpose.
@@ -70,13 +70,13 @@ export type RouteBuilder<T extends RouteParameter[]> = <TComponent extends Routa
 		parent: ExtractParent<T>
 	}>
 
-export type RouteParameters<T extends ParameterToken[]> = {
+export type RouteParameters<T extends Parameter[]> = {
 	parameters: FilterOutParent<T>,
 	component: RoutableComponent<FilterOutParent<T>>,
 	parent?: ExtractParent<T> | any
 }
 
-export type Route<T extends RouteParameters<ParameterToken[]>> = {
+export type Route<T extends RouteParameters<Parameter[]>> = {
 
 	/** The destination component rendered when this route is the best match. */
 	readonly component: T['component']
@@ -86,7 +86,7 @@ export type Route<T extends RouteParameters<ParameterToken[]>> = {
 	readonly [routeBrand]: true
 	/** Brand that identifies the split up route parts */
 	readonly [routePartsBrand]: Array<string | RouteParameter>
-	/** `true` if this route's pattern includes any {@link ParameterToken}s. */
+	/** `true` if this route's pattern includes any {@link Parameter}s. */
 	readonly hasParameterTokens: boolean
 	/** `true` if this route's pattern ends with a {@link wildcard} parameter. */
 	readonly hasWildcard: boolean
@@ -151,7 +151,7 @@ export function route<const T extends RouteParameter[]>(
 		// Do we want a shared store or per route?
 
 		const lastValue = values.at(-1)
-		const hasWildcard = !!lastValue && isWildcardParameter(lastValue as ParameterToken)
+		const hasWildcard = !!lastValue && isWildcardParameter(lastValue as Parameter)
 		const match = routeMatcher<T>(routeParts, filter)
 
 		return {

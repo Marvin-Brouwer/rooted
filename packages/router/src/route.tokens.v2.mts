@@ -35,14 +35,14 @@ export type ParameterToValueType<V extends ParameterTokenType> =
 
 export type TokenMatchResult<T extends ParameterTokenType = ParameterTokenType> = TupleResult<T>
 
-export type ParameterToken<K extends string = string, T extends ParameterTokenType = ParameterTokenType> = {
+export type Parameter<K extends string = string, T extends ParameterTokenType = ParameterTokenType> = {
 	key: K
 	type: T
 
 	match(parameter: string): TokenMatchResult<T>
 }
 
-export type RouteParameter = ParameterToken | Route<any>
+export type RouteParameter = Parameter | Route<any>
 
 // TODO these are just test values, remove when done
 const s = token('string', String)
@@ -52,7 +52,7 @@ const d = token('date', Date)
 const w = wildcard()
 //
 
-export function token<K extends string = string, T extends ParameterType = ParameterType>(name: K, type: T): ParameterToken<K, ParameterToTokenType<T>> {
+export function token<K extends string = string, T extends ParameterType = ParameterType>(name: K, type: T): Parameter<K, ParameterToTokenType<T>> {
 
 	const match = getMatcher<T>(type) as (value: string) => TokenMatchResult<ParameterToTokenType<T>>
 
@@ -109,9 +109,9 @@ function getMatcher<T extends ParameterType>(type: T) {
 const wildcardBrand: unique symbol = Symbol.for('rooted:wildcard')
 
 type Wildcard = string & { [wildcardBrand]: true }
-type WildcardParameter<K extends string> = ParameterToken<K, Wildcard>
+type WildcardParameter<K extends string> = Parameter<K, Wildcard>
 
-export function wildcard<K extends string = 'rest'>(name = 'rest' as K): ParameterToken<K, Wildcard> {
+export function wildcard<K extends string = 'rest'>(name = 'rest' as K): Parameter<K, Wildcard> {
 
 	// TODO either handle wildcard differently in router, or also post the entire route to match, or pass the current position to match
 
@@ -130,11 +130,11 @@ function isWildcardConstructor(type: ParameterType): type is Wildcard {
 	return typeof type === 'object' && type !== null && wildcardBrand in token
 }
 /** Returns `true` if `token` is a {@link WildcardParameter}. */
-export function isWildcardParameter<K extends string>(token: ParameterToken<K, any>): token is WildcardParameter<K> {
+export function isWildcardParameter<K extends string>(token: Parameter<K, any>): token is WildcardParameter<K> {
 	return typeof token === 'object' && token !== null && isWildcardConstructor(token.type)
 }
 /** Internal brand that distinguishes a {@link WildcardParameter} from a {@link PathParameter}. */
 const tokenBrand: unique symbol = Symbol.for('rooted:parameterToken')
-export function isParameterToken(token: unknown): token is ParameterToken {
+export function isParameterToken(token: unknown): token is Parameter {
 	return typeof token === 'object' && token !== null && tokenBrand in token
 }

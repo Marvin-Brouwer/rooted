@@ -1,9 +1,9 @@
 import { tupleResult } from '@rooted/util'
 import { href, Path, Url } from './href.mts'
-import { isParameterToken, ParameterToken, RouteParameter, TokenMatchResult } from './route.tokens.v2.mts'
+import { isParameterToken, Parameter, RouteParameter, TokenMatchResult } from './route.tokens.v2.mts'
 import { FilterOutParent, PathParameterDictionary, RouteFilter } from './route.v2.mts'
 
-export type RouteMatch<T extends ParameterToken[]> = {
+export type RouteMatch<T extends Parameter[]> = {
 	success: true,
 	tokens: PathParameterDictionary<T>
 } | {
