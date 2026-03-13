@@ -42,6 +42,8 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 				// Perhaps a route.getParameters(url|location|path) would help here?
 				// That way a gate will either show or not, but we no longer have to forward the parent route params
 				// and maybe a gate will also have gate.getParameters(url|location|path), in case a route is not exported and only used in a gate?
+				// On the other hand, this recursive approach is simpler for the user.
+				// Either way route.match and href.for should either both support including parent params or neither
 				const result = part.match({ target: path.pathOnly.slice(offset), checkInclusive: false })
 				if (!result.success) return tupleResult.error(`Path did not match Parent`)
 

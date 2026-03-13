@@ -1,7 +1,3 @@
-// TODO rename to route-factory and split gate functionality into a separate file.
-// Also rename options.gate to options.path for both routes and gates.
-// Then fix the readme and docs, apart from ADRs, junction is no longer a concept.
-
 import { component } from '@rooted/components'
 import type { Component, GenericComponent } from '@rooted/components'
 import { dev } from './dev-helper.mts'
@@ -375,8 +371,7 @@ export function route<const T extends readonly RouteValue[]>(
 			matchFrom,
 			match,
 			link(parameters) {
-				// TODO join all static parts into an array in the route function scope, then zip the required parameters by name to construct a correct url
-				// This includes the parent.
+				// Deprecated, solved correctly in route.v2
 				console.log(strings, values, parameters)
 				return ''
 			}

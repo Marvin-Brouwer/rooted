@@ -36,7 +36,7 @@ export type ExtractParent<T extends readonly RouteParameter[]> =
 export type PathParameterDictionary<T extends readonly RouteParameter[]> = ConvertPathParameters<FilterOutParent<T>>
 export type RouteParameterDictionary<TRoute extends Route<any>> = Required<PathParameterDictionary<TRoute[typeof tokenTypes]>>
 
-type EmptyComponent = Component<{}> | Component<never> // TODO which of the two?
+type EmptyComponent = Component<{}> | Component<never>
 export type RoutableComponent<T extends RouteParameter[]> = EmptyComponent | Component<{ path?: Partial<PathParameterDictionary<FilterOutParent<T>>> }>
 
 /**
@@ -108,9 +108,8 @@ type FakeComponentType = Component<{
 	}
 }>
 const FakeComponent: FakeComponentType = null!
-// TODO also allow routeBuilder as base?
 const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`(FakeComponent)
-const cr = route`/${r}/start/${token('id', String)}/${token('doThing', Boolean)}/example/${wildcard()}/`(FakeComponent)
+const cr = route`/${r}/next/${token('id', String)}/${token('doThing', Boolean)}/example/${wildcard()}/`(FakeComponent)
 
 const m = r.match({
 	target: '/hi/'
@@ -141,6 +140,9 @@ export function route<const T extends RouteParameter[]>(
 
 	// TODO dev.validatePatternV2?.(strings, values as unknown as ParameterToken[])
 	// A better option: 2 parts, validate the pattern, return invalid route if any errors
+	// How this invalid route looks like isn't determined yet, either way the manifest should pass it through and the router should
+	// know to ignore it.
+	// Perhaps returning an Error instead of a route will work, perhaps an invalid route type is also fine.
 	// dev.logRouteWarnings.(warnings)
 
 	const routeParts = zipTemplateParts(strings, values)

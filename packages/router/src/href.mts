@@ -47,7 +47,7 @@ export class Path extends HrefBase {
 	public get pathOnly() { return this.url.pathname }
 	public get href() { return super.href.replace(Path.baseUrl, '') }
 
-	// TODO check if this is necessary
+	// TODO check if this is necessary when overloading href
 	public toString() { return this.href }
 	public toJSON() { return this.href }
 }

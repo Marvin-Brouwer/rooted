@@ -24,14 +24,16 @@ import { isRoute, Route, RouteParameterDictionary, routePartsBrand } from './rou
  * })
  * ```
  */
-// TODO This dictionary HAS to include the parent parameters too, or we only allow link building for this part of the route and the user should combine them
+// TODO This dictionary HAS to include the parent parameters too, or we only allow link building for this part of the route and the user should combine them?
+// If we choose the latter, href.for() should accept multiple routes, not sure if that's feasible as href.for(...routes, parameters) Typescript doesn't support spread
+// if it's not the last parameter
 export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, parameters: RouteParameterDictionary<TRoute>) {
 
 	function buildUrl() {
 		let url = ''
 
 		for (const part of route[routePartsBrand]) {
-			// TODO, currently this doesn't work, the parent information gets lost.
+			// TODO, currently this doesn't work, the parent information gets lost in types, so these values aren't present.
 			if (isRoute(part)) {
 				url += buildPathForRoute(part, parameters)
 				continue

@@ -18,7 +18,7 @@ export const Categories = component({
 })
 
 // TODO make a utility to make this a more typed and cleaner check
-// Should be easier with new routing setup
+// Should be easier with new routing setup CategoryRoute.match(location).success
 function routeSelected(category: Category) {
 	const routeParams = CategoryRoute.match(location)
 	if (!routeParams) return false
