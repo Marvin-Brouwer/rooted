@@ -1,7 +1,6 @@
 import { Component } from '@rooted/components'
-import { isParameterToken, isWildcardParameter, ParameterToken, ParameterToValueType, RouteParameter, token, TokenMatchResult, wildcard } from './route.tokens.v2.mts'
-import { tupleResult } from '@rooted/util'
-import { href, Path, Url } from './href.mts'
+import { isParameterToken, isWildcardParameter, ParameterToken, ParameterToValueType, RouteParameter, token, wildcard } from './route.tokens.v2.mts'
+import { MatchRouteOptions, RouteMatch, routeMatcher } from './route.match.v2.mts'
 
 /** The typed path token descriptors declared with {@link token}. */
 export const tokenTypes: unique symbol = Symbol.for('rooted:typed-parameter')
@@ -16,42 +15,26 @@ export function isRoute(instance: unknown): instance is Route<any> {
 	return typeof instance === 'object' && instance !== null && routeBrand in instance
 }
 
-type ConvertPathParams<T extends readonly ParameterToken[]> = {
+type ConvertPathParameters<T extends readonly ParameterToken[]> = {
 	[P in T[number]as P['key']]: ParameterToValueType<P['type']>
 }
 
-type FilterOutParent<T extends readonly RouteParameter[]> =
+export type FilterOutParent<T extends readonly RouteParameter[]> =
 	T extends readonly [infer H, ...infer R extends readonly ParameterToken[]]
 	? H extends ParameterToken
 	? [H, ...FilterOutParent<R>]
 	: FilterOutParent<R>
 	: []
 
-type ExtractParent<T extends readonly RouteParameter[]> =
+export type ExtractParent<T extends readonly RouteParameter[]> =
 	T extends readonly [infer H, ...infer R extends readonly RouteParameter[]]
 	? H extends Route<any>
 	? H
 	: ExtractParent<R>
 	: never
 
-export type PathParameterDictionary<T extends readonly RouteParameter[]> = ConvertPathParams<FilterOutParent<T>>
+export type PathParameterDictionary<T extends readonly RouteParameter[]> = ConvertPathParameters<FilterOutParent<T>>
 export type RouteParameterDictionary<TRoute extends Route<any>> = Required<PathParameterDictionary<TRoute[typeof tokenTypes]>>
-
-export type RouteMatch<T extends ParameterToken[]> = {
-	success: true,
-	tokens: PathParameterDictionary<T>
-} | {
-	success: false
-}
-
-export type MatchRouteOptions = {
-	target?: string | Path | Url | URL | Location
-	offset?: number,
-	/** @default true */
-	applyFilters?: boolean
-	/** Checks if there's any url left after all parts match, and fails if true, @default true */
-	checkInclusive?: boolean
-}
 
 type EmptyComponent = Component<{}> | Component<never> // TODO which of the two?
 export type RoutableComponent<T extends RouteParameter[]> = EmptyComponent | Component<{ path?: Partial<PathParameterDictionary<FilterOutParent<T>>> }>
@@ -162,46 +145,6 @@ export function route<const T extends RouteParameter[]>(
 
 	const routeParts = zipTemplateParts(strings, values)
 
-	// TODO, maybe this should be a cursor style check?
-	function matchUrlPath(path: Path, checkInclusive: boolean) {
-
-		let offset = 0
-		let parentParameters: Partial<PathParameterDictionary<any>> = {}
-		let parameters: Partial<PathParameterDictionary<T>> = {}
-
-		for (const part of routeParts) {
-			if (typeof part === 'string') {
-				if (part !== path.pathOnly.slice(offset, part.length)) return tupleResult.error(`Path did not match '${part}'`)
-				offset += part.length
-				continue
-			}
-
-			if (!isParameterToken(part)) {
-				// TODO do we want this recursive approach, or should this be the routers responsibility,
-				// if we move this to the router, the route simplifies, however,
-				// this means gates have no way of accessing parent parameters.
-				// Perhaps a route.getParameters(url|location|path) would help here?
-				// That way a gate will either show or not, but we no longer have to forward the parent route params
-				// and maybe a gate will also have gate.getParameters(url|location|path), in case a route is not exported and only used in a gate?
-				const result = part.match({ target: path.pathOnly.slice(offset), checkInclusive: false })
-				if (!result.success) return tupleResult.error(`Path did not match Parent`)
-
-				parentParameters = result.tokens
-
-				continue
-			}
-
-			const nextPart = path.pathOnly.slice(offset)
-			const [success, result, error] = part.match(nextPart.slice(0, nextPart.indexOf('/'))) as TokenMatchResult<any>
-			if (success === false) return tupleResult.error(error)
-
-			parameters[part.key as keyof typeof parameters] = result
-		}
-
-		if (checkInclusive && path.pathOnly.slice(offset) !== '') return tupleResult.error('Route was longer than path')
-		return tupleResult.success(Object.freeze({ ...parentParameters, ...parameters }) as unknown as PathParameterDictionary<T>)
-	}
-
 	return (component, filter) => {
 
 		// TODO cache for match and link based on full input, erase on navigate? or ttl? or set length queue? use weakmap?
@@ -209,36 +152,7 @@ export function route<const T extends RouteParameter[]>(
 
 		const lastValue = values.at(-1)
 		const hasWildcard = !!lastValue && isWildcardParameter(lastValue as ParameterToken)
-
-		function getPath(target?: MatchRouteOptions['target']) {
-			if (typeof target === 'string') return href.path(target)
-			if (target instanceof Path) return target
-			if (target instanceof Url) return target.path
-			if (target instanceof URL) return href.for(target).path
-			if (target instanceof Location) return href.for(target).path
-
-			return href.current()
-		}
-
-		function match(options?: MatchRouteOptions): RouteMatch<FilterOutParent<T>> {
-
-			const path = getPath(options?.target)
-			const applyFilters = options?.applyFilters ?? true
-			const checkInclusive = options?.checkInclusive ?? true
-
-			const pathMatch = matchUrlPath(path, checkInclusive)
-			if (tupleResult.isError(pathMatch)) return {
-				success: false
-			}
-			const [success, tokens] = pathMatch
-
-			if (applyFilters && !filter?.(tokens)) return { success: false }
-
-			return {
-				success,
-				tokens
-			}
-		}
+		const match = routeMatcher<T>(routeParts, filter)
 
 		return {
 
