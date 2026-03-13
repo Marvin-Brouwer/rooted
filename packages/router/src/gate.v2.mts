@@ -1,32 +1,7 @@
 import { Component, component, GenericComponent } from '@rooted/components'
 import { Route, route } from './route.v2.mts'
-import { token } from './route.tokens.v2.mts'
 import { RouteParameters } from './gate-factory.mts'
 import { create } from '@rooted/components/elements'
-
-
-// TODO these are just test values, remove when done
-type FakeComponentType = Component<{
-
-	prop: boolean,
-	path: {
-		id: number,
-		time: Date,
-		rest: string
-	}
-}>
-const FakeComponent: FakeComponentType = null!
-function append(..._any: any): void {}
-const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`(FakeComponent)
-
-// usage
-// This no longer is a part of _routes.mts, you just define a gate inside of the page.
-append(
-	// TODO is this more readable than just calling r.match().success in the component and returning false?
-	// TODO apply same fix as element, so this can be used correctly without props
-	gate(r, FakeComponent, { prop: true })
-)
-//
 
 /**
  * Subscribes a component to a route, producing a {@link BoundGateDefinition}.
@@ -100,8 +75,8 @@ const Gate = component<GateOptions<any>>({
 		const { routeReference, ...componentOptions } = options
 		let innerComponent: GenericComponent | undefined = undefined
 
-		function checkGate() {
-			const match = options.routeReference.match()
+		async function checkGate() {
+			const match = await options.routeReference.match()
 
 			if (match.success) innerComponent = append(create(options.component, { ...componentOptions, tokens: match.tokens }))
 			else innerComponent = innerComponent?.remove() ?? undefined

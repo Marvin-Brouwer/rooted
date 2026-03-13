@@ -1,17 +1,17 @@
 import styles from './categories.css?inline'
 import { component, type ComponentContext, cssClass } from '@rooted/components'
-import { categories, Category } from './_data.mts'
 import { Link } from '@rooted/router'
 import { CategoryGate, CategoryRoute } from './_routes.mts'
+import { type Category } from '../_shared/data/data.mts'
 
 export const Categories = component({
 	name: 'categories-page',
 	styles,
-	onMount({ append, create }) {
+	async onMount({ append, create }) {
 		append(
 			create('h1', { textContent: 'Categories' }),
 			create('p', { classes: 'subtitle', textContent: 'Browse recipes by category.' }),
-			create('div', { classes: 'category-grid', children: mapCategories(create) }),
+			create('div', { classes: 'category-grid', children: await mapCategories(create) }),
 			create(CategoryGate)
 		)
 	},
@@ -26,7 +26,8 @@ function routeSelected(category: Category) {
 	return routeParams.slug === category.slug
 }
 
-function mapCategories(create: ComponentContext['create']) {
+async function mapCategories(create: ComponentContext['create']) {
+	const { categories } = await import('../_shared/data/data.mts')
 	return categories.map(category => create(Link, {
 		classes: [
 			cssClass('category-card'),

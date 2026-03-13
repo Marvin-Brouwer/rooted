@@ -269,7 +269,9 @@ type UnboundRouteDefinition = {
  *
  * @see {@link route}
  */
-export type RouteFilter<T extends readonly RouteValue[]> = (params: RouteParameters<{ readonly [typedParameter]: ExtractParams<T> }>) => boolean
+// @Claude, this being boolean | Promise<boolean> breaks the functionality
+// This is fine since we're building v2, this possibly being a promise is intentional
+export type RouteFilter<T extends readonly RouteValue[]> = (params: RouteParameters<{ readonly [typedParameter]: ExtractParams<T> }>) => boolean | Promise<boolean>
 
 /** The curried binder returned by {@link route}. */
 type RouteBinder<T extends readonly RouteValue[]> = <O extends {}>(inner: Component<O>, filter?: RouteFilter<T>) => RouteDefinition<O, ExtractParams<T>>

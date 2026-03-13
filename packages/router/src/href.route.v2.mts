@@ -1,6 +1,8 @@
 import { tupleResult } from '@rooted/util'
-import { isParameterToken, isWildcardParameter, TokenMatchResult } from './route.tokens.v2.mts'
-import { isRoute, Route, RouteParameterDictionary, routePartsBrand } from './route.v2.mts'
+import type { TokenMatchResult } from './route.tokens.v2.mts'
+import * as tokens from './route.tokens.v2.mts'
+import type { Route, RouteParameterDictionary } from './route.v2.mts'
+import * as route_ from './route.v2.mts'
 
 /**
  * Utility to generate an absolute path back from the route definition
@@ -32,21 +34,21 @@ export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, para
 	function buildUrl() {
 		let url = ''
 
-		for (const part of route[routePartsBrand]) {
+		for (const part of route[route_.routePartsBrand]) {
 			// TODO, currently this doesn't work, the parent information gets lost in types, so these values aren't present.
-			if (isRoute(part)) {
+			if (route_.isRoute(part)) {
 				url += buildPathForRoute(part, parameters)
 				continue
 			}
-			if (!isParameterToken(part)) {
+			if (!tokens.isParameterToken(part)) {
 				url += part
 				continue
 			}
-			if (isWildcardParameter(part)) {
+			if (tokens.isWildcardParameter(part)) {
 				url += parameters[part.key as keyof typeof parameters]
 				continue
 			}
-			if (isParameterToken(part)) {
+			if (tokens.isParameterToken(part)) {
 				// Feed through the matcher again to validate the value
 				const result = part.match(parameters[part.key as keyof typeof parameters] as any) as TokenMatchResult<any>
 				if (tupleResult.isError(result)) return result

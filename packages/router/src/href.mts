@@ -1,7 +1,5 @@
-import { PathParameterDictionary, Route, route, RouteParameterDictionary } from './route.v2.mts'
-import { token } from './route.tokens.v2.mts'
-import { buildPathForRoute } from './href.route.v2.mts'
-import { Component } from '@rooted/components'
+import type { PathParameterDictionary, Route, RouteParameterDictionary } from './route.v2.mts'
+const { buildPathForRoute } = await import('./href.route.v2.mts')
 
 /**
  * Unified Url and Path method. \
@@ -79,19 +77,22 @@ export class Url extends HrefBase {
 	public get password() { return super.url.password.length === 0 ? undefined : super.url.password }
 }
 
-function url(href: string) {
+/** @__PURE__ */
+export function url(href: string) {
 	return Url.fromString(href)
 }
 
-function path(href: string) {
+/** @__PURE__ */
+export function path(href: string) {
 	return Path.fromString(href)
 }
 
 const multiSlashPattern = /[\/{2,}\\*]/gmis
 
-function join(url: Url, ...paths: Path[]): Url
-function join(...paths: Path[]): Path
-function join(urlOrPath: HrefBase, ...paths: Path[]): Url | Path {
+/** @__PURE__ */
+export function join(url: Url, ...paths: Path[]): Url
+export function join(...paths: Path[]): Path
+export function join(urlOrPath: HrefBase, ...paths: Path[]): Url | Path {
 
 	let start = new URL(urlOrPath.href)
 
@@ -109,11 +110,11 @@ function join(urlOrPath: HrefBase, ...paths: Path[]): Url | Path {
 }
 
 /** @deprecated Use href.url, or href.path to construct paths */
-function for_(url: URL): Url
+export function forAny(url: URL): Url
 /** @deprecated Use href.url, or href.path to construct paths */
-function for_(location: Location): Url
-function for_(href: Url): Url
-function for_(href: Path): Path
+export function forAny(location: Location): Url
+export function forAny(href: Url): Url
+export function forAny(href: Path): Path
 /**
  * Utility to generate an absolute path back from the route definition
  *
@@ -136,8 +137,9 @@ function for_(href: Path): Path
  * })
  * ```
  */
-function for_<TRoute extends Route<any>>(route: TRoute, parameters: RouteParameterDictionary<TRoute>): Path
-function for_(target: Route<any> | URL | Location | HrefBase, dictionary?: NoInfer<PathParameterDictionary<any>>): HrefBase {
+export function forAny<TRoute extends Route<any>>(route: TRoute, parameters: RouteParameterDictionary<TRoute>): Path
+/** @__PURE__ */
+export function forAny(target: Route<any> | URL | Location | HrefBase, dictionary?: NoInfer<PathParameterDictionary<any>>): HrefBase {
 
 	if (target instanceof URL) return Url.fromUrl(target)
 	if (target instanceof Location) return Url.fromLocation(target)
@@ -147,35 +149,7 @@ function for_(target: Route<any> | URL | Location | HrefBase, dictionary?: NoInf
 	return Path.fromString(buildPathForRoute(target as Route<any>, dictionary!))
 }
 
-function current() {
+/** @__PURE__ */
+export function current() {
 	return Path.fromLocation(location)
 }
-
-export const href = {
-	url,
-	path,
-	join,
-	current,
-	for: for_
-}
-
-// TODO these are just test values, remove when done
-type FakeComponentType = Component<{
-
-	prop: boolean,
-	path: {
-		id: number,
-		time: Date,
-		rest: string
-	}
-}>
-const FakeComponent: FakeComponentType = null!
-const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`(FakeComponent)
-
-// usage
-
-href.for(r, {
-	id: 0,
-	time: new Date(),
-})
-//

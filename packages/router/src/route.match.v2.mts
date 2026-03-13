@@ -1,7 +1,7 @@
 import { tupleResult } from '@rooted/util'
-import { href, Path, Url } from './href.mts'
-import { isParameterToken, Parameter, RouteParameter, TokenMatchResult } from './route.tokens.v2.mts'
-import { FilterOutParent, PathParameterDictionary, RouteFilter } from './route.v2.mts'
+import type { Path, Url } from './href.mts'
+import { isParameterToken, type Parameter, type RouteParameter, type TokenMatchResult } from './route.tokens.v2.mts'
+import type { FilterOutParent, PathParameterDictionary, RouteFilter } from './route.v2.mts'
 
 export type RouteMatch<T extends Parameter[]> = {
 	success: true,
@@ -21,8 +21,13 @@ export type MatchRouteOptions = {
 
 export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<string | RouteParameter>, filter?: RouteFilter<FilterOutParent<T>> | undefined) {
 
+	// This import caused circular references
+	let href: typeof import('./href.mts')
+
 	// TODO, maybe this should be a cursor style check?
-	function matchUrlPath(path: Path, checkInclusive: boolean) {
+	async function matchUrlPath(path: Path, checkInclusive: boolean) {
+
+		href ??= await import('./href.mts')
 
 		let offset = 0
 		let parentParameters: Partial<PathParameterDictionary<any>> = {}
@@ -44,7 +49,7 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 				// and maybe a gate will also have gate.getParameters(url|location|path), in case a route is not exported and only used in a gate?
 				// On the other hand, this recursive approach is simpler for the user.
 				// Either way route.match and href.for should either both support including parent params or neither
-				const result = part.match({ target: path.pathOnly.slice(offset), checkInclusive: false })
+				const result = await part.match({ target: path.pathOnly.slice(offset), checkInclusive: false })
 				if (!result.success) return tupleResult.error(`Path did not match Parent`)
 
 				parentParameters = result.tokens
@@ -64,28 +69,29 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 	}
 
 	function getPath(target?: MatchRouteOptions['target']) {
+		console.log('href3', href)
 		if (typeof target === 'string') return href.path(target)
-		if (target instanceof Path) return target
-		if (target instanceof Url) return target.path
-		if (target instanceof URL) return href.for(target).path
-		if (target instanceof Location) return href.for(target).path
+		if (target instanceof href.Path) return target
+		if (target instanceof href.Url) return target.path
+		if (target instanceof URL) return href.forAny(target).path
+		if (target instanceof Location) return href.forAny(target).path
 
 		return href.current()
 	}
 
-	function match(options?: MatchRouteOptions): RouteMatch<FilterOutParent<T>> {
+	async function match(options?: MatchRouteOptions): Promise<RouteMatch<FilterOutParent<T>>> {
 
 		const path = getPath(options?.target)
 		const applyFilters = options?.applyFilters ?? true
 		const checkInclusive = options?.checkInclusive ?? true
 
-		const pathMatch = matchUrlPath(path, checkInclusive)
+		const pathMatch = await matchUrlPath(path, checkInclusive)
 		if (tupleResult.isError(pathMatch)) return {
 			success: false
 		}
 		const [success, tokens] = pathMatch
 
-		if (applyFilters && !filter?.(tokens)) return { success: false }
+		if (applyFilters && ! await filter?.(tokens)) return { success: false }
 
 		return {
 			success,

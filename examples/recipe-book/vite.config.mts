@@ -8,18 +8,23 @@ import { analyzer } from 'vite-bundle-analyzer'
 import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+// TODO create plugin that allows importing css normally, but the wrapping is done when generated to disk so CSP may still work
+// Just place when r="{id}" a file called {id}.css, and include a link pointing to the stylesheet
 const rootedDir = normalizePath(path.join(dirname(fileURLToPath(import.meta.resolve('@rooted/router'))), '../../'))
 const manualChunks = (id: string) => {
+	// TODO mangle chunk-names if prod build
 
 	// Just make all markdown a separate chunk
-	if (id.endsWith('.md')) return 'content+' + path.basename(id)
+	if (id.endsWith('.md')) return 'content-' + path.basename(id)
 
-	// We will create some tooling later where this will be placed
-	if (id.endsWith('.css?inline')) return 'css+' + path.basename(id)
-	if (id.startsWith('@rooted')) return '@r'
+	// Chunk shared if not imported correctly
+	if (id.includes('_shared/')) return 'shared-' + path.basename(id)
+
+	// TODO We will create some tooling later where this will be placed
+	if (id.startsWith('@rooted')) return 'r'
 
 	// PNPM monorepo doesn't remember @rooted apparently
-	if (id.startsWith(rootedDir)) return '@r'
+	if (id.startsWith(rootedDir)) return 'r'
 }
 /**
  * Transforms `.md` files into plain JS modules at build time (Node.js context).

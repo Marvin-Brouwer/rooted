@@ -1,13 +1,13 @@
 import styles from './home.css?inline'
 
 import { component, ComponentContext } from '@rooted/components'
-import { Recipe, recipes } from '../recipes/_data.mts'
 import { Link } from '@rooted/router'
+import { type Recipe } from '../_shared/data/data.mts'
 
 export const HomePage = component({
 	name: 'home-page',
 	styles,
-	onMount({ append, create }) {
+	async onMount({ append, create }) {
 		append(
 			create('h1', { textContent: 'Recipe Book' }),
 			create('p', { classes: 'subtitle', textContent: 'A collection of recipes, built with Rooted.' }),
@@ -15,13 +15,15 @@ export const HomePage = component({
 
 			create('div', {
 				classes: 'recipe-grid',
-				children: grid(create),
+				children: await grid(create),
 			})
 		)
 	},
 })
 
-function grid(create: ComponentContext<typeof HomePage>['create']): Node[] {
+async function grid(create: ComponentContext<typeof HomePage>['create']) {
+	const { recipes } = await import('../_shared/data/data.mts')
+
 	return recipes.filter(r => r.featured).map(recipe => {
 		const href = `/recipe/${recipe.id}/`
 		return create(Link, {

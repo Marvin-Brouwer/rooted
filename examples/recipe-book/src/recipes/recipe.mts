@@ -1,8 +1,8 @@
 import styles from './recipe.css?inline'
 import { component, ComponentContext } from '@rooted/components'
 import { type GateParameters, Link } from '@rooted/router'
-import { recipes, Recipe as DataRecipe } from './_data.mts'
 import { type RecipeRoute } from './_routes.mts'
+import { type Recipe as DataRecipe } from '../_shared/data/data.mts'
 
 export type RecipeOptions = {
 	gate: GateParameters<typeof RecipeRoute>
@@ -11,7 +11,8 @@ export type RecipeOptions = {
 export const Recipe = component<RecipeOptions>({
 	name: 'recipe-detail',
 	styles,
-	onMount({ append, create, options }) {
+	async onMount({ append, create, options }) {
+		const { recipes } = await import('../_shared/data/data.mts')
 		const recipe = recipes.find(r => r.id === options.gate.id)
 
 		if (!recipe) return void append(

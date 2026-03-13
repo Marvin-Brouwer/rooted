@@ -4,6 +4,14 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, relative, dirname } from 'node:path'
 import { createHash } from 'node:crypto'
 
+// TODO, for now, this generates a bundle per vertical slice.
+// However it's all loaded in immediately, since we need to read the routes.
+// It's possibly best to use JITI and generate a more complex manifest after routing V2 is done.
+// Maybe route`/asdf/asdf`(Component) is always a separate bundle, this will be the same as route`/asdf/asdf`(Component, { mode: 'async:defer' })
+// Maybe route`/asdf/asdf`(Component, { mode: 'static' }) is always in the main bundle together with home and notfound page
+// Maybe route`/asdf/asdf`(Component, { mode: 'async:direct' }) is still a separate bundle, however it's immediately awaited
+// that would be very close to prefetching a resource, perhaps we could even automatically include this to the prefetch via a separate plugin
+
 import packageJson from '../../package.json' assert { is: 'json' }
 
 const pluginName = 'vite-plugin:generate-rooted-route-manifest'

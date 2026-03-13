@@ -1,6 +1,6 @@
-import { Component } from '@rooted/components'
-import { isParameterToken, isWildcardParameter, Parameter, ParameterToValueType, RouteParameter, token, wildcard } from './route.tokens.v2.mts'
-import { MatchRouteOptions, RouteMatch, routeMatcher } from './route.match.v2.mts'
+import type { Component } from '@rooted/components'
+import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter, token, wildcard } from './route.tokens.v2.mts'
+import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.v2.mts'
 
 /** The typed path token descriptors declared with {@link token}. */
 export const tokenTypes: unique symbol = Symbol.for('rooted:typed-parameter')
@@ -54,7 +54,7 @@ export type RoutableComponent<T extends RouteParameter[]> = EmptyComponent | Com
  *
  * @see {@link route}
  */
-export type RouteFilter<T extends readonly Parameter[]> = (parameters: PathParameterDictionary<T>) => boolean
+export type RouteFilter<T extends readonly Parameter[]> = (parameters: PathParameterDictionary<T>) => boolean | Promise<boolean>
 
 export type RouteBuilder<T extends RouteParameter[]> = <TComponent extends RoutableComponent<T>>(routedComponent: TComponent, filter?: RouteFilter<FilterOutParent<T>>) =>
 	// This is typed with an anonymous object on purpose.
@@ -95,36 +95,8 @@ export type Route<T extends RouteParameters<Parameter[]>> = {
 	 * Simplified api, combination of previous match, patternMatchFrom and matchFrom
 	 * @todo redoc
 	 */
-	match(options?: MatchRouteOptions): RouteMatch<T['parameters']>
+	match(options?: MatchRouteOptions): Promise<RouteMatch<T['parameters']>>
 }
-
-
-// TODO these are just test values, remove when done
-type FakeComponentType = Component<{
-	path: {
-		id: number,
-		time: Date,
-		rest: string
-	}
-}>
-const FakeComponent: FakeComponentType = null!
-const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`(FakeComponent)
-const cr = route`/${r}/next/${token('id', String)}/${token('doThing', Boolean)}/example/${wildcard()}/`(FakeComponent)
-
-const m = r.match({
-	target: '/hi/'
-})
-const m2 = cr.match({
-	target: '/hi/'
-})
-
-if (m.success && m2.success) {
-	const t = m.tokens
-	const t2 = m2.tokens
-
-	console.log(t, t2)
-}
-//
 
 function zipTemplateParts<T>(strings: TemplateStringsArray, values: T[]) {
 	const parts: Array<string | T> = []
