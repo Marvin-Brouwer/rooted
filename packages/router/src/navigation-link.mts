@@ -1,13 +1,14 @@
 import { component } from '@rooted/components'
 import { navigate } from './navigation.mts'
 import { CssClasses } from '@rooted/components/elements'
+import { Path, Url } from './href.mts'
 
 /**
  * Options for {@link Link}.
  */
 export type LinkOptions = {
 	/** The destination URL passed to {@link navigate} on click. */
-	href: string
+	href: string | Url | Path
 	/** CSS class name applied to the rendered `<a>` element. */
 	classes?: CssClasses
 	/**
@@ -65,7 +66,9 @@ export const Link = component<LinkOptions>({
 
 		append(
 			create('a', {
-				href: options.href,
+				href: typeof options.href === 'string'
+					? options.href
+					: options.href.href,
 				children: typeof options.children === 'string'
 					? document.createTextNode(options.children)
 					: options.children,

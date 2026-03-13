@@ -1,11 +1,14 @@
 import { Component } from '@rooted/components'
 import { isParameterToken, isWildcardParameter, ParameterToken, ParameterToValueType, RouteParameter, token, TokenMatchResult, wildcard } from './route.tokens.v2.mts'
 import { tupleResult } from '@rooted/util'
+import { href, Path, Url } from './href.mts'
 
 /** The typed path token descriptors declared with {@link token}. */
 export const tokenTypes: unique symbol = Symbol.for('rooted:typed-parameter')
 /** Internal brand that identifies a {@link RouteDefinition}. */
 export const routeBrand: unique symbol = Symbol.for('rooted:route')
+/** Internal brand that identifies the split up route parts. */
+export const routePartsBrand: unique symbol = Symbol.for('rooted:routeParts')
 
 /** Returns `true` if `token` is a {@link WildcardParameter}. */
 export function isRoute<T extends ParameterToken[]>(instance: unknown): instance is Route<RouteParameters<T>>
@@ -31,7 +34,8 @@ type ExtractParent<T extends readonly RouteParameter[]> =
 	: ExtractParent<R>
 	: never
 
-type PathParameterDictionary<T extends readonly RouteParameter[]> = ConvertPathParams<FilterOutParent<T>>
+export type PathParameterDictionary<T extends readonly RouteParameter[]> = ConvertPathParams<FilterOutParent<T>>
+export type RouteParameterDictionary<TRoute extends Route<any>> = Required<PathParameterDictionary<TRoute[typeof tokenTypes]>>
 
 export type RouteMatch<T extends ParameterToken[]> = {
 	success: true,
@@ -41,7 +45,7 @@ export type RouteMatch<T extends ParameterToken[]> = {
 }
 
 export type MatchRouteOptions = {
-	target?: string | URL | Location
+	target?: string | Path | Url | URL | Location
 	offset?: number,
 	/** @default true */
 	applyFilters?: boolean
@@ -83,7 +87,7 @@ export type RouteBuilder<T extends RouteParameter[]> = <TComponent extends Routa
 		parent: ExtractParent<T>
 	}>
 
-type RouteParameters<T extends ParameterToken[]> = {
+export type RouteParameters<T extends ParameterToken[]> = {
 	parameters: FilterOutParent<T>,
 	component: RoutableComponent<FilterOutParent<T>>,
 	parent?: ExtractParent<T> | any
@@ -97,6 +101,8 @@ export type Route<T extends RouteParameters<ParameterToken[]>> = {
 	readonly [tokenTypes]: T['parameters']
 	/** Brand that identifies this object as a {@link Route}. */
 	readonly [routeBrand]: true
+	/** Brand that identifies the split up route parts */
+	readonly [routePartsBrand]: Array<string | RouteParameter>
 	/** `true` if this route's pattern includes any {@link ParameterToken}s. */
 	readonly hasParameterTokens: boolean
 	/** `true` if this route's pattern ends with a {@link wildcard} parameter. */
@@ -107,30 +113,6 @@ export type Route<T extends RouteParameters<ParameterToken[]>> = {
 	 * @todo redoc
 	 */
 	match(options?: MatchRouteOptions): RouteMatch<T['parameters']>
-
-	/**
-	 * Utility to generate an absolute path back from the route definition
-	 *
-	 * @param parameters - A key value dictionary of the expected parameter values, similar to `options.gate`
-	 * @returns A constructed url with the values from the {@param parameters} interpolated.
-	 *
-	 * @example
-	 * ```ts
-	 * create(Link, {
-	 * 	className: 'category-card',
-	 * 	// actually `CategoryRoute.link({ slug: category.slug })` but the shape fits so the shorthand is preferred
-	 * 	href: CategoryRoute.link(category),
-	 * 	children: [
-	 * 		create('div', { className: 'category-name', textContent: category.label }),
-	 * 		create('p', {
-	 * 			className: 'category-count',
-	 * 			textContent: `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`,
-	 * 		}),
-	 * 	],
-	 * })
-	 * ```
-	 */
-	link(parameters: PathParameterDictionary<T['parameters']>): string
 }
 
 
@@ -147,9 +129,8 @@ const FakeComponent: FakeComponentType = null!
 const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`(FakeComponent)
 const cr = route`/${r}/start/${token('id', String)}/${token('doThing', Boolean)}/example/${wildcard()}/`(FakeComponent)
 
-const l = r.link({ id: 1, time: new Date() })
 const m = r.match({
-	target: l
+	target: '/hi/'
 })
 
 if (m.success) {
@@ -182,7 +163,7 @@ export function route<const T extends RouteParameter[]>(
 	const routeParts = zipTemplateParts(strings, values)
 
 	// TODO, maybe this should be a cursor style check?
-	function matchUrlPath(path: string, checkInclusive: boolean) {
+	function matchUrlPath(path: Path, checkInclusive: boolean) {
 
 		let offset = 0
 		let parentParameters: Partial<PathParameterDictionary<any>> = {}
@@ -190,7 +171,7 @@ export function route<const T extends RouteParameter[]>(
 
 		for (const part of routeParts) {
 			if (typeof part === 'string') {
-				if (part !== path.slice(offset, part.length)) return tupleResult.error(`Path did not match '${part}'`)
+				if (part !== path.pathOnly.slice(offset, part.length)) return tupleResult.error(`Path did not match '${part}'`)
 				offset += part.length
 				continue
 			}
@@ -202,7 +183,7 @@ export function route<const T extends RouteParameter[]>(
 				// Perhaps a route.getParameters(url|location|path) would help here?
 				// That way a gate will either show or not, but we no longer have to forward the parent route params
 				// and maybe a gate will also have gate.getParameters(url|location|path), in case a route is not exported and only used in a gate?
-				const result = part.match({ target: path.slice(offset), checkInclusive: false })
+				const result = part.match({ target: path.pathOnly.slice(offset), checkInclusive: false })
 				if (!result.success) return tupleResult.error(`Path did not match Parent`)
 
 				parentParameters = result.tokens
@@ -210,47 +191,15 @@ export function route<const T extends RouteParameter[]>(
 				continue
 			}
 
-			const nextPart = path.slice(offset)
+			const nextPart = path.pathOnly.slice(offset)
 			const [success, result, error] = part.match(nextPart.slice(0, nextPart.indexOf('/'))) as TokenMatchResult<any>
 			if (success === false) return tupleResult.error(error)
 
 			parameters[part.key as keyof typeof parameters] = result
 		}
 
-		if (checkInclusive && path.slice(offset) !== '') return tupleResult.error('Route was longer than path')
+		if (checkInclusive && path.pathOnly.slice(offset) !== '') return tupleResult.error('Route was longer than path')
 		return tupleResult.success(Object.freeze({ ...parentParameters, ...parameters }) as unknown as PathParameterDictionary<T>)
-	}
-
-	function buildUrl(parameters: PathParameterDictionary<T>) {
-		let url = ''
-
-		for (const part of routeParts) {
-			// TODO, currently this doesn't work, the parent information gets lost.
-			if (isRoute(part)) {
-				url += part.link(routeParts)
-				continue
-			}
-			if (!isParameterToken(part)) {
-				url += part
-				continue
-			}
-			if (isWildcardParameter(part)) {
-				url += parameters[part.key as keyof typeof parameters]
-				continue
-			}
-			if (isParameterToken(part)) {
-				// Feed through the matcher again to validate the value
-				const result = part.match(parameters[part.key as keyof typeof parameters] as any) as TokenMatchResult<any>
-				if (tupleResult.isError(result)) return result
-				const [, value] = result
-				url += value
-				continue
-			}
-
-			return tupleResult.error(Object.assign(new Error(`Unrecognized route part '${part}'`), { part }))
-		}
-
-		return tupleResult.success(url)
 	}
 
 	return (component, filter) => {
@@ -261,16 +210,19 @@ export function route<const T extends RouteParameter[]>(
 		const lastValue = values.at(-1)
 		const hasWildcard = !!lastValue && isWildcardParameter(lastValue as ParameterToken)
 
-		// TODO This dictionary HAS to include the parent parameters too, or we only allow link building for this part of the route and the user should combine them
-		function link(parameters: PathParameterDictionary<T>) {
-			const [success, value, error] = buildUrl(parameters)
-			if (!success) throw error
-			return value
+		function getPath(target?: MatchRouteOptions['target']) {
+			if (typeof target === 'string') return href.path(target)
+			if (target instanceof Path) return target
+			if (target instanceof Url) return target.path
+			if (target instanceof URL) return href.for(target).path
+			if (target instanceof Location) return href.for(target).path
+
+			return href.current()
 		}
 
 		function match(options?: MatchRouteOptions): RouteMatch<FilterOutParent<T>> {
 
-			const path = (typeof options?.target === 'string' ? options?.target : options?.target?.pathname) ?? location.pathname
+			const path = getPath(options?.target)
 			const applyFilters = options?.applyFilters ?? true
 			const checkInclusive = options?.checkInclusive ?? true
 
@@ -292,13 +244,13 @@ export function route<const T extends RouteParameter[]>(
 
 			[routeBrand]: true,
 			[tokenTypes]: values.filter(value => !isParameterToken(value)) as FilterOutParent<T>,
+			[routePartsBrand]: routeParts,
 
 			component,
 
 			hasParameterTokens: values.length > 0,
 			hasWildcard,
 
-			link,
 			match
 		}
 	}
