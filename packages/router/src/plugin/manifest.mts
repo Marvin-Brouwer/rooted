@@ -11,6 +11,34 @@ import { createHash } from 'node:crypto'
 // Maybe route`/asdf/asdf`(Component, { mode: 'static' }) is always in the main bundle together with home and notfound page
 // Maybe route`/asdf/asdf`(Component, { mode: 'async:direct' }) is still a separate bundle, however it's immediately awaited
 // that would be very close to prefetching a resource, perhaps we could even automatically include this to the prefetch via a separate plugin
+// I guess the pattern described above would require significant rebuilding routes with JITI.
+// Alternatively, we can just parse the file, compile a list of routes that all await import('./_routes.mts).
+// Meaning, when one of the routes is requested, the _routes.mts is loaded and the feature is loaded in.
+// At the end of the day, that is the behavior we're looking for.
+// This is probably the simplest
+// Changing the pattern to this would probably be the simplest
+// export const CategoriesRoute = route`/categories/`(() => import('./categories.mjs').then(m => m.Categories)))
+// However, this doesn't do much for the readability
+
+/**
+This will probably be the cleanest option, however, quite clunky
+It does provide, however, a way to have the user decide whether the route is loaded lazy or not by making the resolve function async or not.
+And, it removes the need for routes to know of filters, you just return undefined and the route is 404
+
+export const CategoriesRoute = route`/categories/`({
+	async resolve() {
+		const { Categories } = await import('./categories.mjs')
+		return Categories
+	}
+})
+export const CategoryRoute = route`${CategoriesRoute}/${token('slug', String)}/`({
+	async resolve({ slug }) {
+		const { Category, filterCategory } = await import('./category.mjs')
+		if (!filterCategory(slug)) return undefined
+		return Category
+	}
+})
+ */
 
 import packageJson from '../../package.json' assert { is: 'json' }
 
