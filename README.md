@@ -1,6 +1,4 @@
-# rooted
-
-> Web components rooted very close to the original.
+# <img height="200" src="./docs/branding/banner.optimized.svg"/>
 
 Rooted is a minimal, framework-free TypeScript library for building web applications with native
 [custom elements](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements).
