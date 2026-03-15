@@ -1,197 +1,186 @@
-import { component } from '@rooted/components'
-import type { Component, GenericComponent } from '@rooted/components'
-import { routeBrand, type RouteDefinition, type BoundGateDefinition, type OmitGate } from './gate-factory.mjs'
-import { dev } from './dev-helper.mts'
+import { Component, component, GenericComponent } from '@rooted/components'
+import { Route, route } from './route.mts'
+import { isRoute, routeMetaData } from './route.metadata.mts'
+import { dev } from './dev-helper.v2.mts'
+import { create } from '@rooted/components/elements'
+import * as href from './href.mts'
+import { RouteMatch } from './route.match.mts'
 
 /**
  * Configuration object passed to {@link router}.
  *
- * - `home` — Component rendered at `/`.
- * - `notFound` — Component rendered when the path is not `/` and no route matches.
- * - All other keys must be {@link RouteDefinition} or {@link BoundGateDefinition} values.
- *   Only `RouteDefinition` values are auto-mounted; `BoundGateDefinition` values are
- *   silently ignored (they are meant for explicit composition via `append()`).
+ * - `home` — component rendered at `/`.
+ * - `notFound` — component rendered when no route matches the current URL.
+ * - All other keys — {@link Route} values registered with the router. The key
+ *   names are used only for duplicate-route detection in development; they have
+ *   no effect at runtime.
  */
 type RouterConfig = {
 	home: Component
 	notFound: Component
-	[key: string]: Component | RouteDefinition<any, any> | BoundGateDefinition<any, any>
+} & {
+	[key: string]: RouterCompatibleRoute<any>
 }
 
 /**
- * Constrains a route to be **router-compatible**: its component must not require
- * any external options beyond the automatically-injected `gate` parameter.
+ * Constrains a value to be a {@link Route}.
  *
- * A route is compatible when:
- * - Its component has no options at all (`Component<never>`), **or**
- * - Every key in the options type beyond `gate` is optional (`{} extends OmitGate<O>`).
- *
- * Routes that require mandatory external options will produce a `never` type,
- * causing a compile-time error when passed to {@link router}.
+ * Non-route values produce `never`, causing a compile-time error when used
+ * in a {@link RouterConfig}. This ensures only valid routes are registered.
  */
-export type RouterCompatibleRoute<G> = G extends RouteDefinition<infer O, infer T>
-	? ([O] extends [never] ? RouteDefinition<O, T> : ({} extends OmitGate<O> ? RouteDefinition<O, T> : never))
-	: never
+export type RouterCompatibleRoute<G> = G extends Route<any> ? G : never
 
 /**
  * The validated version of a {@link RouterConfig}.
  *
- * `home` and `notFound` keys are passed through as-is. Every other key that is
- * a {@link RouteDefinition} must be a {@link RouterCompatibleRoute}; incompatible
- * routes produce `never` and therefore a compile-time error. Non-route values
- * (e.g. {@link BoundGateDefinition}) are passed through as-is.
+ * `home` and `notFound` keys are passed through as-is. All other keys must
+ * satisfy {@link RouterCompatibleRoute}; incompatible values produce `never`
+ * and therefore a compile-time error.
  */
 export type ValidatedRouterConfig<T extends RouterConfig> = {
 	[K in keyof T]: K extends 'home' | 'notFound' ? T[K] : RouterCompatibleRoute<T[K]>
 }
 
 /**
- * Type guard that identifies a {@link RouteDefinition} by the presence of the
- * internal `routeBrand` symbol.
+ * Creates a self-managing router component that renders the best-matching route
+ * on every navigation.
  *
- * @param value - Any value.
- * @returns `true` if `value` is a {@link RouteDefinition}.
- */
-export function isRoute(value: unknown): value is RouteDefinition<any, any> {
-	return typeof value === 'object' && value !== null && routeBrand in (value as object)
-}
-
-/**
- * Creates the application router component.
+ * On each `popstate` event (and on initial mount), all registered routes are
+ * evaluated concurrently against the current path. The router selects the route
+ * whose pattern consumes the most characters. When two routes match the same
+ * length, the more specific (non-wildcard) one wins.
  *
- * The router mounts all provided routes, then independently manages the `home`
- * and `notFound` components based on the current URL:
+ * **Suppression:** if a route's `resolve` returns `undefined`, the router treats
+ * the URL as intentionally unmatched by that pattern and does _not_ fall back to
+ * any shorter-matching route. The `notFound` component is rendered instead.
  *
- * - **`home`** — mounted at `/`, unmounted everywhere else.
- * - **`notFound`** — mounted when the path is not `/` and no registered route matches.
- * - **Routes** — evaluated on every navigation; only the best match (the route
- *   whose pattern covers the most characters of the current URL) has its component
- *   rendered. If a child route matches, its parent route does not render.
+ * Route results are cached by pathname so `resolve` is only called once per
+ * unique path visited.
  *
- * {@link BoundGateDefinition} values in the config are silently ignored — gates
- * are for explicit composition via `append()` inside route components, not for
- * top-level mounting.
- *
- * Duplicate routes (same object reference under multiple keys) are silently
- * deduplicated — the first key wins. In development a console warning is emitted.
- *
- * @param config - Router configuration with `home`, `notFound`, and route entries.
- * @returns A {@link Component} that can be mounted like any other component.
- *
- * @example Basic usage
+ * @example
  * ```ts
  * import { router } from '@rooted/router'
  *
- * const Router = router({
- *   home:     HomeComponent,
- *   notFound: NotFoundComponent,
- *   ArticleRoute,
- *   CommentsRoute,
+ * export const App = router({
+ *   home: Home,
+ *   notFound: NotFound,
+ *   articles: ArticleRoute,
+ *   article: ArticleDetailRoute,
  * })
  * ```
  *
- * @example With auto-discovered routes (Vite plugin)
- * ```ts
- * import { router } from '@rooted/router'
- * import { appRoutes } from './_routes.g.mts'
- *
- * const Router = router({ home, notFound, ...appRoutes })
- * ```
- *
  * @see {@link route}
- * @see {@link generateRouteManifest}
+ * @see {@link RouterConfig}
  */
-export function router<const T extends RouterConfig>(config: ValidatedRouterConfig<T>): Component {
-	const { home, notFound } = config
-	const entries = Object.entries(config).filter(([k]) => k !== 'home' && k !== 'notFound')
+export function router<const T extends RouterConfig>(config: ValidatedRouterConfig<T>): GenericComponent {
 
-	// Collect only RouteDefinitions — BoundGateDefinitions are ignored
-	const seen = new Set<object>()
-	const routes: Array<{ key: string; route: RouteDefinition<any, any> }> = []
-	for (const [key, value] of entries) {
-		if (!isRoute(value)) continue
-		if (!seen.has(value)) {
-			seen.add(value)
-			routes.push({ key, route: value })
+	const { home: homeComponent, notFound: notFoundComponent, ...userRoutes } = config
+	const routes = [
+		route`/`({ resolve: ({ create }) => create(homeComponent) }),
+
+		...Object.values(userRoutes)
+			.filter(isRoute)
+			.filter(r => !r[routeMetaData].hasErrors)
+	]
+
+	dev.validateDuplicateRoutes?.(config)
+
+	return create(Router, { routes, fallback: notFoundComponent })
+}
+
+type RouterProps = {
+	routes: Array<RouterCompatibleRoute<any>>,
+	fallback: Component
+}
+const Router = component<RouterProps>({
+	name: 'rooted:router',
+	async onMount({ append, create, signal, options }) {
+
+        let activeEl: Element | undefined = undefined
+		let lastPath: string | undefined
+
+		const cache = new Map<string, undefined | { route: Route<any>, match: SuccessRouteMatch }>()
+
+		function renderRoute(element: Element | undefined) {
+			activeEl?.remove()
+			activeEl = append(element ?? create(options.fallback))
 		}
-	}
 
-	return component({
-		name: 'rooted:router',
-		onMount({ append, signal, create }) {
+		async function update() {
+			const target = href.current();
 
-			dev.validateDuplicateRoutes?.(entries, routes)
+			if (target.pathOnly === lastPath) return
+			lastPath = target.pathOnly
 
-			let homeEl: GenericComponent | null = null
-			let notFoundEl: GenericComponent | null = null
-			let activeEl: GenericComponent | null = null
-			let lastRouteIdx = -1
-			let lastParams: string | undefined
-
-			const update = () => {
-				const isHome = location.pathname === '/'
-
-				// Find best-match route (highest end position; wildcard beats specific on tie)
-				let bestIdx = -1
-				let bestEnd = -1
-				let bestIsWildcard = false
-				let bestParams: Record<string, unknown> = {}
-				let highestPatternEnd = -1
-				for (let i = 0; i < routes.length; i++) {
-					const route = routes[i]!.route
-					const patternResult = route.patternMatchFrom(location.pathname)
-					if (patternResult && patternResult.end > highestPatternEnd) highestPatternEnd = patternResult.end
-					const result = route.matchFrom(location.pathname)
-					if (!result) continue
-					const isWc = route.hasWildcard
-					if (result.end > bestEnd || (result.end === bestEnd && isWc && !bestIsWildcard)) {
-						if (result.end === bestEnd) {
-							dev.warnWildcardTie?.(routes[i]!, routes[bestIdx]!, location.pathname)
-						}
-						bestIdx = i
-						bestEnd = result.end
-						bestIsWildcard = isWc
-						bestParams = result.params
-					} else if (result.end === bestEnd && !isWc && bestIsWildcard) {
-						dev.warnWildcardTie?.(routes[bestIdx]!, routes[i]!, location.pathname)
-					}
-				}
-				// If a longer pattern matched but was filtered out, suppress the shorter parent match
-				if (highestPatternEnd > bestEnd) {
-					bestIdx = -1
-					bestEnd = -1
-					bestParams = {}
-				}
-
-				// Mount/unmount best-match route component
-				const serialized = JSON.stringify(bestParams)
-				if (!isHome && (bestIdx !== lastRouteIdx || serialized !== lastParams)) {
-					activeEl?.remove()
-					activeEl = null
-					lastRouteIdx = bestIdx
-					lastParams = serialized
-					if (bestIdx >= 0) {
-						activeEl = append(create(routes[bestIdx]!.route.component, { gate: bestParams } as any))
-					}
-				} else if (isHome) {
-					activeEl?.remove()
-					activeEl = null
-					lastRouteIdx = -1
-					lastParams = undefined
-				}
-
-				// Home
-				if (isHome && !homeEl) homeEl = append(create(home))
-				else if (!isHome && homeEl) { homeEl.remove(); homeEl = null }
-
-				// Not found
-				const anyMatches = !isHome && bestIdx >= 0
-				if (!isHome && !anyMatches && !notFoundEl) notFoundEl = append(create(notFound))
-				else if ((isHome || anyMatches) && notFoundEl) { notFoundEl.remove(); notFoundEl = null }
+			if (cache.has(target.pathOnly)) {
+				const cached = cache.get(target.pathOnly)
+				if (!cached) return renderRoute(undefined)
+				const element = await cached.route.resolve({ create, tokens: cached.match.tokens })
+				return renderRoute(element)
 			}
 
-			window.addEventListener('popstate', update, { signal })
-			update()
+			const matchRouteResult = await matchRoute(target, options.routes)
+			if (!matchRouteResult) {
+				cache.set(target.pathOnly, undefined)
+				return renderRoute(undefined)
+			}
+
+			cache.set(target.pathOnly, { route: matchRouteResult.route, match: matchRouteResult.match })
+			return renderRoute(matchRouteResult.element)
 		}
-	})
+
+		window.addEventListener('popstate', update, { signal })
+		update()
+	}
+})
+
+type SuccessRouteMatch = RouteMatch<any> & { success: true }
+type FilterRoutesResult = { route: Route<any>, match: SuccessRouteMatch, element: Element }
+
+type FilterRouteResult =
+    | { kind: 'no-match' }
+    | { kind: 'suppressed'; patternLength: number }
+    | { kind: 'matched'; match: SuccessRouteMatch; element: Element }
+
+async function filterRoute(route: Route<any>, target: href.Path): Promise<FilterRouteResult> {
+    const patternMatch = await route.match({ target })
+    if (!patternMatch.success) return { kind: 'no-match' }
+
+    const element = await route.resolve({ create, tokens: patternMatch.tokens })
+    if (!element) return { kind: 'suppressed', patternLength: patternMatch.length }
+
+    return { kind: 'matched', match: patternMatch, element }
+}
+
+async function matchRoute(target: href.Path, routes: Route<any>[]) {
+
+	// Find the best filtered route in parallel
+    const results = await Promise.all(routes.map(async route => ({
+        route,
+        result: await filterRoute(route, target)
+    })))
+
+    let best: FilterRoutesResult | undefined
+    let highestSuppressedLength = -1
+
+    for (const { route, result } of results) {
+        if (result.kind === 'suppressed') {
+            highestSuppressedLength = Math.max(highestSuppressedLength, result.patternLength)
+            continue
+        }
+        if (result.kind !== 'matched') continue
+
+        if (!best || result.match.length > best.match.length) {
+            best = { route, match: result.match, element: result.element }
+            continue
+        }
+        // Equal length: non-wildcard beats wildcard (more specific wins)
+        if (result.match.length === best.match.length && !route[routeMetaData].hasWildcard && best.route[routeMetaData].hasWildcard) {
+            best = { route, match: result.match, element: result.element }
+        }
+    }
+
+    // Suppression: a longer structural match was filtered — treat as no match
+    if (best && highestSuppressedLength > best.match.length) return undefined
+    return best
 }

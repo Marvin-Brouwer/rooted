@@ -1,6 +1,6 @@
 import { Component } from '@rooted/components'
-import { route } from './route.v2.mts'
-import { token, wildcard } from './route.tokens.v2.mts'
+import { route } from './route.mts'
+import { token, wildcard } from './route.tokens.mts'
 import { href } from './href.export.mts'
 
 // TODO these are just test values, remove file when done

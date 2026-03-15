@@ -1,7 +1,7 @@
 import { Component } from '@rooted/components'
-import { route } from './route.v2.mts'
-import { token } from './route.tokens.v2.mts'
-import { gate } from './gate.v2.mts'
+import { route } from './route.mts'
+import { token } from './route.tokens.mts'
+import { gate } from './gate.mts'
 import { create } from '@rooted/components/elements'
 
 // TODO these are just test values, remove file when done

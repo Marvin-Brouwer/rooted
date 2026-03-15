@@ -1,7 +1,7 @@
 import { tupleResult } from '@rooted/util'
 import type { Path, Url } from './href.mts'
-import { isParameterToken, type Parameter, type RouteParameter, type TokenMatchResult } from './route.tokens.v2.mts'
-import type { FilterOutParent, PathParameterDictionary } from './route.v2.mts'
+import { isParameterToken, type Parameter, type RouteParameter, type TokenMatchResult } from './route.tokens.mts'
+import type { FilterOutParent, PathParameterDictionary } from './route.mts'
 
 /**
  * Result of {@link Route.match}.

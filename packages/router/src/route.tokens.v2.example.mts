@@ -1,4 +1,4 @@
-import { token, wildcard } from './route.tokens.v2.mts'
+import { token, wildcard } from './route.tokens.mts'
 
 // TODO these are just test values, remove file when done
 const s = token('string', String)

@@ -3,9 +3,15 @@
  * @module
  */
 
-export { route, gate, wildcard, token, type RouteParameters as GateParameters, type RouteFilter, type RouteDefinition, type BoundGateDefinition, type OmitGate } from '../gate-factory.mjs'
-export { router, isRoute } from '../router.mts'
-
 export * from '../navigation.mts'
 export * from '../navigation-link.mts'
+
 export * from '../href.export.mts'
+
+export * from '../router.mts'
+export { token, wildcard, type Parameter, type RouteParameter, type ParameterType, type ParameterTokenType } from '../route.tokens.mts'
+export type { RouteMatch, MatchRouteOptions } from '../route.match.mts'
+
+export { route, type Route, type RouteBuilder, type RouteParameterDictionary } from '../route.mts'
+
+export * from '../gate.mts'

@@ -1,10 +1,8 @@
 import type { create } from '@rooted/components/elements'
-import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter, token, wildcard } from './route.tokens.v2.mts'
-import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.v2.mts'
+import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter, token, wildcard } from './route.tokens.mts'
+import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.mts'
 import { dev } from './dev-helper.v2.mts'
-import { routeMetaData, type RouteMetadata, isRoute } from './route.metadata.v2.mts'
-
-export { isRoute }
+import { routeMetaData, type RouteMetadata, isRoute } from './route.metadata.mts'
 
 type ConvertPathParameters<T extends readonly Parameter[]> = {
 	[P in T[number]as P['key']]: ParameterToValueType<P['type']>

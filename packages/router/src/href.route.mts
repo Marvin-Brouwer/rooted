@@ -1,14 +1,13 @@
 import { tupleResult } from '@rooted/util'
-import type { TokenMatchResult } from './route.tokens.v2.mts'
-import * as tokens from './route.tokens.v2.mts'
-import type { Route, RouteParameterDictionary } from './route.v2.mts'
-import * as route_ from './route.v2.mts'
-import { routeMetaData } from './route.metadata.v2.mts'
+import type { TokenMatchResult } from './route.tokens.mts'
+import * as tokens from './route.tokens.mts'
+import type { Route, RouteParameterDictionary } from './route.mts'
+import { isRoute, routeMetaData } from './route.metadata.mts'
 
 /**
  * @internal Builds a path string from a route and its parameter dictionary.
  * Each token value is fed back through its own matcher for validation.
- * Throws if any token value is invalid or an unrecognised part is encountered.
+ * Throws if any token value is invalid or an unrecognized part is encountered.
  */
 export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, parameters: RouteParameterDictionary<TRoute>) {
 
@@ -16,7 +15,7 @@ export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, para
 		let url = ''
 
 		for (const part of route[routeMetaData].routeParts) {
-			if (route_.isRoute(part)) {
+			if (isRoute(part)) {
 				url += buildPathForRoute(part, parameters as RouteParameterDictionary<typeof part>)
 				continue
 			}

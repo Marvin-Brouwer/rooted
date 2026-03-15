@@ -1,6 +1,6 @@
 import { tupleResult, TupleResult } from '@rooted/util'
-import { isRoute } from './route.metadata.v2.mts'
-import type { Route } from './route.v2.mts'
+import { isRoute } from './route.metadata.mts'
+import type { Route } from './route.mts'
 
 /** The constructor types accepted as the `type` argument to {@link token}. */
 export type ParameterType =

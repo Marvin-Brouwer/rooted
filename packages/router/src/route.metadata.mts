@@ -1,4 +1,4 @@
-import type { RouteParameter } from './route.tokens.v2.mts'
+import type { RouteParameter } from './route.tokens.mts'
 
 /** Symbol key for the {@link RouteMetadata} bag attached to every {@link Route}. */
 export const routeMetaData: unique symbol = Symbol.for('rooted:route-metadata')
@@ -25,9 +25,9 @@ export type RouteMetadata<T extends { parameters: any; parent?: any }> = {
 }
 
 /** Returns `true` if `instance` is a {@link Route}. */
-export function isRoute<T extends import('./route.tokens.v2.mts').Parameter[]>(
+export function isRoute<T extends import('./route.tokens.mts').Parameter[]>(
 	instance: unknown
-): instance is import('./route.v2.mts').Route<import('./route.v2.mts').RouteParameters<T>>
-export function isRoute(instance: unknown): instance is import('./route.v2.mts').Route<any> {
+): instance is import('./route.mts').Route<import('./route.mts').RouteParameters<T>>
+export function isRoute(instance: unknown): instance is import('./route.mts').Route<any> {
 	return typeof instance === 'object' && instance !== null && routeMetaData in instance
 }

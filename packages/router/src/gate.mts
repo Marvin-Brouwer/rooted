@@ -1,5 +1,5 @@
 import { component, GenericComponent } from '@rooted/components'
-import { Route, RouteParameterDictionary } from './route.v2.mts'
+import { Route, RouteParameterDictionary } from './route.mts'
 import { create } from '@rooted/components/elements'
 
 /**
