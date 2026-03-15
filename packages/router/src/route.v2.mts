@@ -1,4 +1,4 @@
-import type { Component } from '@rooted/components'
+import type { create } from '@rooted/components/elements'
 import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter, token, wildcard } from './route.tokens.v2.mts'
 import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.v2.mts'
 
@@ -50,7 +50,14 @@ export type RouteParameterDictionary<TRoute extends Route<any>, D extends number
 				: Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
 
 /**
- * A function that resolves the component to render for a matched route.
+ * A function that resolves the element to render for a matched route.
+ *
+ * Receives a context object with `create` (the component factory) and `tokens`
+ * (the typed path parameters). Use `create` to instantiate your component with
+ * whatever props you need:
+ * ```ts
+ * resolve: ({ create, tokens }) => create(MyComponent, { id: tokens.id })
+ * ```
  *
  * Returning `undefined` signals a 404 — the route is treated as a non-match
  * and blocks shorter parent routes from matching as a fallback (suppression).
@@ -61,8 +68,8 @@ export type RouteParameterDictionary<TRoute extends Route<any>, D extends number
  * @see {@link route}
  */
 export type RouteResolver<T extends readonly RouteParameter[]> =
-	(parameters: PathParameterDictionary<T>) =>
-		Component | undefined | Promise<Component | undefined>
+	(context: { create: typeof create, tokens: PathParameterDictionary<T> }) =>
+		Element | undefined | Promise<Element | undefined>
 
 export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: RouteResolver<T> }) =>
 	// This is typed with an anonymous object on purpose.

@@ -1,5 +1,5 @@
 import { Component, component, GenericComponent } from '@rooted/components'
-import { isRoute, Route, route, RouteParameterDictionary } from './route.v2.mts'
+import { isRoute, Route, route } from './route.v2.mts'
 import { create } from '@rooted/components/elements'
 import * as href from './href.mts'
 import { RouteMatch } from './route.match.v2.mts'
@@ -40,7 +40,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 	const { home: homeComponent, notFound: notFoundComponent, ...userRoutes } = config
 	const routes = [
-		route`/`({ resolve: () => homeComponent }),
+		route`/`({ resolve: ({ create }) => create(homeComponent) }),
 		...Object.values(userRoutes).filter(isRoute)
 	]
 
@@ -57,18 +57,14 @@ const Router = component<RouterProps>({
 	name: 'rooted:router',
 	async onMount({ append, create, signal, options }) {
 
-        let activeEl: GenericComponent | undefined = undefined
+        let activeEl: Element | undefined = undefined
 		let lastPath: string | undefined
 
-		const cache = new Map<string, undefined | FilterRoutesResult>()
+		const cache = new Map<string, undefined | { route: Route<any>, match: SuccessRouteMatch }>()
 
-		function renderRoute(component: Component | undefined, tokens: RouteParameterDictionary<Route<any>>) {
-			activeEl = activeEl?.remove() ?? undefined
-			if (component) {
-				activeEl = append(create(component, { tokens }))
-			} else {
-				activeEl = append(create(options.fallback))
-			}
+		function renderRoute(element: Element | undefined) {
+			activeEl?.remove()
+			activeEl = append(element ?? create(options.fallback))
 		}
 
 		async function update() {
@@ -78,21 +74,20 @@ const Router = component<RouterProps>({
 			lastPath = target.pathOnly
 
 			if (cache.has(target.pathOnly)) {
-				const { component, match } = cache.get(target.pathOnly)!
-				return renderRoute(component, match.tokens)
+				const cached = cache.get(target.pathOnly)
+				if (!cached) return renderRoute(undefined)
+				const element = await cached.route.resolve({ create, tokens: cached.match.tokens })
+				return renderRoute(element)
 			}
 
 			const matchRouteResult = await matchRoute(target, options.routes)
 			if (!matchRouteResult) {
 				cache.set(target.pathOnly, undefined)
-				return renderRoute(undefined, { })
+				return renderRoute(undefined)
 			}
 
-			cache.set(target.pathOnly, matchRouteResult)
-			return renderRoute(
-				matchRouteResult.component,
-				matchRouteResult.match.tokens
-			)
+			cache.set(target.pathOnly, { route: matchRouteResult.route, match: matchRouteResult.match })
+			return renderRoute(matchRouteResult.element)
 		}
 
 		window.addEventListener('popstate', update, { signal })
@@ -101,21 +96,21 @@ const Router = component<RouterProps>({
 })
 
 type SuccessRouteMatch = RouteMatch<any> & { success: true }
-type FilterRoutesResult = { route: Route<any>, match: SuccessRouteMatch, component: Component }
+type FilterRoutesResult = { route: Route<any>, match: SuccessRouteMatch, element: Element }
 
 type FilterRouteResult =
     | { kind: 'no-match' }
     | { kind: 'suppressed'; patternLength: number }
-    | { kind: 'matched'; match: SuccessRouteMatch; component: Component }
+    | { kind: 'matched'; match: SuccessRouteMatch; element: Element }
 
 async function filterRoute(route: Route<any>, target: href.Path): Promise<FilterRouteResult> {
     const patternMatch = await route.match({ target })
     if (!patternMatch.success) return { kind: 'no-match' }
 
-    const component = await route.resolve(patternMatch.tokens)
-    if (!component) return { kind: 'suppressed', patternLength: patternMatch.length }
+    const element = await route.resolve({ create, tokens: patternMatch.tokens })
+    if (!element) return { kind: 'suppressed', patternLength: patternMatch.length }
 
-    return { kind: 'matched', match: patternMatch, component }
+    return { kind: 'matched', match: patternMatch, element }
 }
 
 async function matchRoute(target: href.Path, routes: Route<any>[]) {
@@ -137,12 +132,12 @@ async function matchRoute(target: href.Path, routes: Route<any>[]) {
         if (result.kind !== 'matched') continue
 
         if (!best || result.match.length > best.match.length) {
-            best = { route, match: result.match, component: result.component }
+            best = { route, match: result.match, element: result.element }
             continue
         }
         // Equal length: non-wildcard beats wildcard (more specific wins)
         if (result.match.length === best.match.length && !route.hasWildcard && best.route.hasWildcard) {
-            best = { route, match: result.match, component: result.component }
+            best = { route, match: result.match, element: result.element }
         }
     }
 
