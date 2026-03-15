@@ -3,6 +3,12 @@ import type { RouteParameter } from './route.tokens.v2.mts'
 /** Symbol key for the {@link RouteMetadata} bag attached to every {@link Route}. */
 export const routeMetaData: unique symbol = Symbol.for('rooted:route-metadata')
 
+/**
+ * Internal metadata bag stored on every {@link Route} under the {@link routeMetaData} symbol key.
+ *
+ * Do not access directly from application code — use {@link isRoute} to test whether a value is a
+ * route, and access `route[routeMetaData]` only within router internals.
+ */
 export type RouteMetadata<T extends { parameters: any; parent?: any }> = {
 	/** The typed path token descriptors declared with {@link token}. */
 	readonly tokenTypes: T['parameters']

@@ -2,15 +2,20 @@ import * as href_ from './href.mts'
 export type { Url, Path } from './href.mts'
 
 /**
- * Unified Url and Path method. \
- * This may seem overkill, but, this ensures consistency between urls and paths
+ * Namespace for URL and path utilities.
  *
- * This file specifically exists for exporting from the module, users are required to use `href.url()` notation.
+ * Always import and use as a namespace — `href.for(route, params)`, `href.path('/...')`, etc.
+ *
+ * | Member | Description |
+ * |--------|-------------|
+ * | `href.for(route, params)` | Build a {@link Path} from a {@link Route} and its parameter values |
+ * | `href.path(string)` | Construct a {@link Path} from a pathname string |
+ * | `href.url(string)` | Construct a {@link Url} from a full URL string |
+ * | `href.join(base, ...paths)` | Join path segments onto a base, normalising slashes |
+ * | `href.current()` | Return a {@link Path} for the current `location.pathname` |
+ *
+ * @__PURE__
  */
-
-// TODO doc
-
-/** @__PURE__ */
 export const href = {
 	get url() { return href_.url },
 	get path() { return href_.path },

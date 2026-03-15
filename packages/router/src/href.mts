@@ -1,13 +1,6 @@
 import type { PathParameterDictionary, Route, RouteParameterDictionary } from './route.v2.mts'
 const { buildPathForRoute } = await import('./href.route.v2.mts')
 
-/**
- * Unified Url and Path method. \
- * This may seem overkill, but, this ensures consistency between urls and paths
- */
-
-// TODO doc and write tests
-
 class HrefBase {
 
 
@@ -24,6 +17,12 @@ class HrefBase {
 	public toJSON() { return this.href }
 }
 
+/**
+ * Represents a path-only URL (pathname, query string, and hash — no host or protocol).
+ *
+ * Use {@link href.path} to construct one from a string, or {@link href.current} to get
+ * the current browser path.
+ */
 export class Path extends HrefBase {
 
 	private static baseUrl = 'https://rooted.is/awesome'
@@ -46,6 +45,11 @@ export class Path extends HrefBase {
 	public get href() { return super.href.replace(Path.baseUrl, '') }
 }
 
+/**
+ * Represents a full URL including protocol, host, pathname, query string, and hash.
+ *
+ * Use {@link href.url} to construct one from a string.
+ */
 export class Url extends HrefBase {
 
 	static fromUrl(href: URL) {
@@ -73,19 +77,24 @@ export class Url extends HrefBase {
 	public get password() { return super.url.password.length === 0 ? undefined : super.url.password }
 }
 
-/** @__PURE__ */
+/** Constructs a {@link Url} from a string. @__PURE__ */
 export function url(href: string) {
 	return Url.fromString(href)
 }
 
-/** @__PURE__ */
+/** Constructs a {@link Path} from a pathname string. @__PURE__ */
 export function path(href: string) {
 	return Path.fromString(href)
 }
 
 const multiSlashPattern = /[\/{2,}\\*]/gmis
 
-/** @__PURE__ */
+/**
+ * Joins one or more {@link Path} segments onto a {@link Url} or {@link Path} base,
+ * normalising duplicate slashes. Query strings and hashes from each segment are
+ * merged in order.
+ * @__PURE__
+ */
 export function join(url: Url, ...paths: Path[]): Url
 export function join(...paths: Path[]): Path
 export function join(urlOrPath: HrefBase, ...paths: Path[]): Url | Path {
@@ -112,26 +121,20 @@ export function forAny(location: Location): Url
 export function forAny(href: Url): Url
 export function forAny(href: Path): Path
 /**
- * Utility to generate an absolute path back from the route definition
+ * Generates a {@link Path} from a {@link Route} and its typed parameter values.
  *
- * @param parameters - A key value dictionary of the expected parameter values, similar to `options.gate`
- * @returns A constructed url with the values from the {@param parameters} interpolated.
+ * @param route - The route whose URL pattern should be filled in.
+ * @param parameters - A key-value dictionary of the route's typed path parameters
+ *   (including any parent route parameters).
  *
  * @example
  * ```ts
  * create(Link, {
- * 	className: 'category-card',
- * 	// actually `href.for(CategoryRoute, { slug: category.slug })` but the shape fits so the shorthand is preferred
- * 	href: href.for(CategoryRoute, category),
- * 	children: [
- * 		create('div', { className: 'category-name', textContent: category.label }),
- * 		create('p', {
- * 			className: 'category-count',
- * 			textContent: `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`,
- * 		}),
- * 	],
+ *   href: href.for(CategoryRoute, { slug: category.slug }),
  * })
  * ```
+ *
+ * @see {@link RouteParameterDictionary}
  */
 export function forAny<TRoute extends Route<any>>(route: TRoute, parameters: RouteParameterDictionary<TRoute>): Path
 /** @__PURE__ */
@@ -145,7 +148,7 @@ export function forAny(target: Route<any> | URL | Location | Url | Path, diction
 	return Path.fromString(buildPathForRoute(target, dictionary!))
 }
 
-/** @__PURE__ */
+/** Returns a {@link Path} representing the current `location.pathname`. @__PURE__ */
 export function current() {
 	return Path.fromLocation(location)
 }
