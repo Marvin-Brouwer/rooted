@@ -139,14 +139,14 @@ export function forAny(href: Path): Path
  */
 export function forAny<TRoute extends Route<any>>(route: TRoute, parameters: RouteParameterDictionary<TRoute>): Path
 /** @__PURE__ */
-export function forAny(target: Route<any> | URL | Location | HrefBase, dictionary?: NoInfer<PathParameterDictionary<any>>): HrefBase {
+export function forAny(target: Route<any> | URL | Location | Url | Path, dictionary?: NoInfer<PathParameterDictionary<any>>): HrefBase {
 
 	if (target instanceof URL) return Url.fromUrl(target)
 	if (target instanceof Location) return Url.fromLocation(target)
 	if (target instanceof Url) return target
 	if (target instanceof Path) return target
 
-	return Path.fromString(buildPathForRoute<any>(target as Route<any>, dictionary))
+	return Path.fromString(buildPathForRoute(target, dictionary!))
 }
 
 /** @__PURE__ */

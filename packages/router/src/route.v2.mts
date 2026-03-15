@@ -37,12 +37,17 @@ export type ExtractParent<T extends readonly RouteParameter[]> =
 	: never
 
 export type PathParameterDictionary<T extends readonly RouteParameter[]> = ConvertPathParameters<FilterOutParent<T>>
-export type RouteParameterDictionary<TRoute extends Route<any>> =
-    [TRoute[typeof parentType]] extends [never]
-    ? Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
-    : TRoute[typeof parentType] extends Route<any>
-    ? Required<ConvertPathParameters<TRoute[typeof tokenTypes]>> & RouteParameterDictionary<TRoute[typeof parentType]>
-    : Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
+
+/** Type hack to prevent infinite recursion */
+type RecursionCounter = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10> =
+    D extends 0
+		? Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
+		: [TRoute[typeof parentType]] extends [never]
+			? Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
+			: TRoute[typeof parentType] extends Route<any>
+				? Required<ConvertPathParameters<TRoute[typeof tokenTypes]>> & RouteParameterDictionary<TRoute[typeof parentType], RecursionCounter[D]>
+				: Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
 
 type EmptyComponent = Component<{}> | Component<never>
 export type RoutableComponent<T extends RouteParameter[]> = EmptyComponent | Component<{ path?: Partial<PathParameterDictionary<FilterOutParent<T>>> }>

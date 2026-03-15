@@ -39,7 +39,8 @@ export type Parameter<K extends string = string, T extends ParameterTokenType = 
 	key: K
 	type: T
 
-	match(parameter: string): TokenMatchResult<T>
+	match(parameter: string): TokenMatchResult<T>,
+	[tokenBrand]: true,
 }
 
 export type RouteParameter = Parameter | Route<any>
@@ -51,7 +52,8 @@ export function token<K extends string = string, T extends ParameterType = Param
 	return {
 		key: name,
 		type: type as ParameterToTokenType<T>,
-		match
+		match,
+		[tokenBrand]: true,
 	}
 }
 
@@ -117,7 +119,8 @@ export function wildcard<K extends string = 'rest'>(name = 'rest' as K): Paramet
 	return {
 		key: name,
 		type: Object.assign(name, { [wildcardBrand]: true }) as Wildcard,
-		match
+		match,
+		[tokenBrand]: true,
 	}
 }
 
