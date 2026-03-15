@@ -1,5 +1,6 @@
 import { Component, component, GenericComponent } from '@rooted/components'
 import { isRoute, Route, route, errorBrand } from './route.v2.mts'
+import { dev } from './dev-helper.v2.mts'
 import { create } from '@rooted/components/elements'
 import * as href from './href.mts'
 import { RouteMatch } from './route.match.v2.mts'
@@ -44,7 +45,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 		...Object.values(userRoutes).filter(isRoute).filter(r => !r[errorBrand])
 	]
 
-	// TODO dev.validateDuplicateRoutes?.(config)
+	dev.validateDuplicateRoutes?.(config)
 
 	return create(Router, { routes, fallback: notFoundComponent })
 }

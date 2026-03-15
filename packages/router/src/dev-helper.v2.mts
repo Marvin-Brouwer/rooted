@@ -61,7 +61,18 @@ function logRouteErrors(errors: Error[]) {
 	}
 }
 
+function validateDuplicateRoutes(config: Record<string, unknown>) {
+	const seen = new Set<object>()
+	for (const [key, value] of Object.entries(config)) {
+		if (!isRoute(value)) continue
+		if (seen.has(value))
+			console.warn(`[rooted/router] Duplicate route at key "${key}" — ignored (first-wins)`)
+		seen.add(value)
+	}
+}
+
 export const dev = {
 	validatePattern: isDevelopment() ? validatePattern.bind(undefined) : void 0,
 	logRouteErrors: isDevelopment() ? logRouteErrors.bind(undefined) : void 0,
+	validateDuplicateRoutes: isDevelopment() ? validateDuplicateRoutes.bind(undefined) : void 0,
 }
