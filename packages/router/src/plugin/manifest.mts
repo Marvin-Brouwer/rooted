@@ -4,7 +4,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, relative, dirname } from 'node:path'
 import { createHash } from 'node:crypto'
 
-import packageJson from '../../package.json' with { is: 'json' }
+import packageJson from '../../package.json' with { type: 'json' }
 
 const pluginName = 'vite-plugin:generate-rooted-route-manifest'
 

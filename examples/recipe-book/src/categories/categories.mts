@@ -1,8 +1,9 @@
 import styles from './categories.css?inline'
 import { component, type ComponentContext, cssClass } from '@rooted/components'
-import { Link } from '@rooted/router'
-import { CategoryGate, CategoryRoute } from './_routes.mts'
-import { type Category } from '../_shared/data/data.mts'
+import { gate, Link } from '@rooted/router'
+import { CategoryRoute } from './_routes.mts'
+import { type Category as DataCategory } from '../_shared/data/data.mts'
+import { Category } from './category.mts'
 
 export const Categories = component({
 	name: 'categories-page',
@@ -12,12 +13,13 @@ export const Categories = component({
 			create('h1', { textContent: 'Categories' }),
 			create('p', { classes: 'subtitle', textContent: 'Browse recipes by category.' }),
 			create('div', { classes: 'category-grid', children: await mapCategories(create) }),
-			create(CategoryGate)
+
+			gate(CategoryRoute, (tokens) => create(Category, { slug: tokens.slug }))
 		)
 	},
 })
 
-async function routeSelected(category: Category): Promise<boolean> {
+async function routeSelected(category: DataCategory): Promise<boolean> {
 	const match = await CategoryRoute.match({ target: location.href })
 	if (!match.success) return false
 	return match.tokens.slug === category.slug

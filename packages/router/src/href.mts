@@ -145,7 +145,7 @@ export function forAny(target: Route<any> | URL | Location | Url | Path, diction
 	if (target instanceof Path) return target
 	if (typeof Location !== 'undefined' && target instanceof Location) return Url.fromLocation(target)
 
-	return Path.fromString(buildPathForRoute(target, dictionary!))
+	return Path.fromString(buildPathForRoute(target as Route<any>, dictionary!))
 }
 
 /** Returns a {@link Path} representing the current `location.pathname`. @__PURE__ */

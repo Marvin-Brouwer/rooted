@@ -1,7 +1,6 @@
 import { route, token, gate } from '@rooted/router'
-import { create } from '@rooted/components/elements'
 import { Categories } from './categories.mts'
-import { Category, filterCategory } from './category.mts'
+import { filterCategory } from './category.mts'
 
 export const CategoriesRoute = route`/categories/`({
 	resolve: ({ create }) => create(Categories),
@@ -14,5 +13,3 @@ export const CategoryRoute = route`${CategoriesRoute}${token('slug', String)}/`(
 		return create(Categories)
 	},
 })
-
-export const CategoryGate = gate(CategoryRoute, (tokens) => create(Category, { slug: tokens.slug }))
