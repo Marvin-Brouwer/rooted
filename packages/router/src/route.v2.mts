@@ -127,7 +127,6 @@ function zipTemplateParts<T>(strings: TemplateStringsArray, values: T[]) {
 	return parts
 }
 
-// TODO how do we match parent, and how do we build URL with parent?
 export function route<const T extends RouteParameter[]>(
 	strings: TemplateStringsArray, ...values: T
 ): RouteBuilder<T> {
@@ -144,8 +143,7 @@ export function route<const T extends RouteParameter[]>(
 
 	return ((component, filter) => {
 
-		// TODO cache for match and link based on full input, erase on navigate? or ttl? or set length queue? use weakmap?
-		// Do we want a shared store or per route?
+		// TODO now we validate the parent route in the router and here, is there a smart caching solution?
 
 		const lastValue = values.at(-1)
 		const hasWildcard = !!lastValue && isWildcardParameter(lastValue as Parameter)
