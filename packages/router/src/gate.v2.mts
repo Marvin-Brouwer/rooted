@@ -1,46 +1,47 @@
 import { component, GenericComponent } from '@rooted/components'
 import { Route, RouteParameterDictionary } from './route.v2.mts'
-import { RouteParameters } from './gate-factory.mts'
 import { create } from '@rooted/components/elements'
 
 /**
- * Subscribes a component to a route, producing a {@link BoundGateDefinition}.
+ * Creates a self-managing gate component that mounts and unmounts its content
+ * based on whether a route's URL pattern matches the current path.
  *
- * @todo redoc
- * When appended inside a shell component, a gate mounts its component as soon
- * as the subscribed route's URL pattern matches the current URL, and unmounts
- * it when the URL no longer matches. URL parameters parsed from the match are
- * injected automatically as `options.gate`. If the parameters change without
- * leaving the route (e.g. navigating from one article to another), the
- * component is re-mounted with the updated values.
+ * Unlike the {@link router}, a gate activates solely on its own URL match —
+ * it is unaffected by which route the router considers the best match. This
+ * makes gates the composition mechanism for shell components: a shell that
+ * covers multiple child URLs can use gates to show the correct sub-content at
+ * each depth.
  *
- * A gate activates based solely on its own URL match — it is unaffected by
- * which route the router considers the best match. This is what makes gates the
- * composition mechanism for shell components: a shell bound to multiple child
- * routes uses `append(gate, {})` calls to show the correct sub-content at each
- * URL depth.
+ * When the route matches, the `render` function is called with the typed token
+ * values and the returned `Element`(s) are appended. When the route no longer
+ * matches, the elements are removed. If the tokens change without leaving the
+ * route (e.g. navigating from one article to another), the content is replaced
+ * with freshly rendered elements.
  *
- * @param routeReference - The route whose URL pattern drives this gate's visibility.
- * @param component    - The component to show when the route matches.
- * @returns A self-managing {@link Gate} component.
+ * @param route - The route whose URL pattern drives this gate's visibility.
+ * @param render - A {@link GateRenderFunction} called with the matched token
+ *   values. May return a single `Element` or an array of `Element`s. May be
+ *   async to enable lazy loading.
+ * @returns A self-managing component ready to be appended to any parent.
  *
  * @example
  * ```ts
  * import { route, gate, token } from '@rooted/router'
- * import { Categories } from './categories.mts'
- * import { Category } from './category.mts'
  *
- * // Child route binds to the shell component; gate binds to the content component
- * export const CategoryRoute = route`${CategoriesRoute}/${token('slug', String)}/`(Categories)
- * export const CategoryGate  = gate(CategoryRoute, Category)
+ * export const ArticleRoute = route`/articles/${token('id', Number)}/`({
+ *   resolve: ({ create }) => create(ArticleShell)
+ * })
+ * export const ArticleGate = gate(ArticleRoute,
+ *   ({ id }) => create(ArticleContent, { id })
+ * )
  *
- * // Inside the Categories shell component:
- * append(CategoryGate)  // mounts Category at /categories/:slug/, unmounts otherwise
+ * // Inside ArticleShell:
+ * append(ArticleGate)  // renders ArticleContent while at /articles/:id/
  * ```
  *
  * @see {@link route}
  * @see {@link router}
- * @see {@link RouteParameters}
+ * @see {@link GateRenderFunction}
  */
 export function gate<TRoute extends AnyRoute>(
     route: TRoute,
@@ -89,7 +90,15 @@ const Gate = component<GateOptions<AnyRoute>>({
 	},
 })
 
+/** @internal */
 export type AnyRoute = Route<any>
+
+/**
+ * A sync or async function passed to {@link gate} that receives the matched route
+ * token values and returns one or more `Element` nodes to render.
+ *
+ * Use an `async` function to lazy-load the content module on first match.
+ */
 export type GateRenderFunction<TRoute extends AnyRoute> = AsyncGateRenderFunction<TRoute> | SyncGateRenderFunction<TRoute>
 type SyncGateRenderFunction<TRoute extends AnyRoute> = (tokens: RouteParameterDictionary<TRoute>) => Element | Element[]
 type AsyncGateRenderFunction<TRoute extends AnyRoute> = (tokens: RouteParameterDictionary<TRoute>) => Promise<Element | Element[]>

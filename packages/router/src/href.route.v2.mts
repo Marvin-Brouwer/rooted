@@ -6,26 +6,9 @@ import * as route_ from './route.v2.mts'
 import { routeMetaData } from './route.metadata.v2.mts'
 
 /**
- * Utility to generate an absolute path back from the route definition
- *
- * @param parameters - A key value dictionary of the expected parameter values, similar to `options.gate`
- * @returns A constructed url with the values from the {@param parameters} interpolated.
- *
- * @example
- * ```ts
- * create(Link, {
- * 	className: 'category-card',
- * 	// actually `href.for(CategoryRoute, { slug: category.slug })` but the shape fits so the shorthand is preferred
- * 	href: href.for(CategoryRoute, category),
- * 	children: [
- * 		create('div', { className: 'category-name', textContent: category.label }),
- * 		create('p', {
- * 			className: 'category-count',
- * 			textContent: `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`,
- * 		}),
- * 	],
- * })
- * ```
+ * @internal Builds a path string from a route and its parameter dictionary.
+ * Each token value is fed back through its own matcher for validation.
+ * Throws if any token value is invalid or an unrecognised part is encountered.
  */
 export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, parameters: RouteParameterDictionary<TRoute>) {
 

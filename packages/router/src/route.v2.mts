@@ -26,7 +26,22 @@ export type ExtractParent<T extends readonly RouteParameter[]> =
 
 export type PathParameterDictionary<T extends readonly RouteParameter[]> = ConvertPathParameters<FilterOutParent<T>>
 
-/** Type hack to prevent infinite recursion */
+/**
+ * Extracts the complete typed parameter dictionary for a route, including parameters
+ * inherited from any parent route (resolved recursively up to 10 levels deep).
+ *
+ * Use this as the type of the `parameters` argument when constructing links with
+ * {@link href.for}.
+ *
+ * @example
+ * ```ts
+ * import { type RouteParameterDictionary } from '@rooted/router'
+ *
+ * type ArticleParams = RouteParameterDictionary<typeof ArticleRoute>
+ * // { sectionSlug: string, id: number }
+ * ```
+ */
+// Type hack to prevent infinite recursion
 type RecursionCounter = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10> =
     D extends 0
@@ -48,10 +63,10 @@ export type RouteParameterDictionary<TRoute extends Route<any>, D extends number
  * ```
  *
  * Returning `undefined` signals a 404 — the route is treated as a non-match
- * and blocks shorter parent routes from matching as a fallback (suppression).
+ * and prevents shorter parent routes from matching as a fallback (suppression).
  *
- * When `resolve` is `async`, Vite will split the imported component into a
- * separate bundle chunk. When it is sync, the component stays in the main bundle.
+ * An `async` resolver enables bundle-splitting: the imported module is loaded
+ * lazily on first navigation to the route.
  *
  * @see {@link route}
  */
@@ -59,6 +74,10 @@ export type RouteResolver<T extends readonly RouteParameter[]> =
 	(context: { create: typeof create, tokens: PathParameterDictionary<T> }) =>
 		Element | undefined | Promise<Element | undefined>
 
+/**
+ * Curried builder returned by {@link route}. Call it with `{ resolve }` to
+ * produce a fully typed {@link Route}.
+ */
 export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: RouteResolver<T> }) =>
 	// This is typed with an anonymous object on purpose.
 	// It serves as a debug view as well as type information
@@ -77,13 +96,28 @@ export type RouteParameters<T extends Parameter[]> = {
 }
 
 export type Route<T extends RouteParameters<Parameter[]>> = {
-	/** Internal metadata bag. */
+	/** @internal Internal metadata bag — use {@link isRoute} to identify routes; do not access directly. */
 	readonly [routeMetaData]: RouteMetadata<T>
-	/** Resolves the component to render when this route is the best match. */
+	/**
+	 * Resolves the element to render when this route is the best match.
+	 *
+	 * Returning `undefined` signals a non-match and prevents shorter parent routes
+	 * from rendering as a fallback (suppression). The {@link router} calls this after
+	 * a successful URL pattern match.
+	 */
 	readonly resolve: RouteResolver<T['parameters']>
 	/**
-	 * Simplified api, combination of previous match, patternMatchFrom and matchFrom
-	 * @todo redoc
+	 * Tests whether this route's pattern matches a URL path.
+	 *
+	 * By default matches against the current `location`. Pass `options.target` to
+	 * match against an explicit path string, {@link Path}, {@link Url}, `URL`, or
+	 * `Location`. Set `options.checkInclusive` to `false` to allow prefix-only
+	 * matching (the router uses this internally when evaluating parent routes).
+	 *
+	 * @returns A {@link RouteMatch} — check `match.success` before reading `match.tokens`.
+	 *
+	 * @see {@link MatchRouteOptions}
+	 * @see {@link RouteMatch}
 	 */
 	match(options?: MatchRouteOptions): Promise<RouteMatch<T['parameters']>>
 }
@@ -145,6 +179,68 @@ function zipTemplateParts<T>(strings: TemplateStringsArray, values: T[]) {
 	return parts
 }
 
+/**
+ * Defines a route — a URL pattern bound to a component resolver.
+ *
+ * `route` is a tagged-template function. Write the URL pattern as a template
+ * string and interpolate {@link token}s for typed parameters, a parent {@link Route}
+ * as the first interpolation to compose URLs, and {@link wildcard} as the last
+ * interpolation for catch-all segments. The pattern must start and end with `/`.
+ *
+ * Call the returned {@link RouteBuilder} with `{ resolve }` to complete the definition.
+ * The `resolve` function receives `{ create, tokens }` and returns the `Element` to
+ * render. Returning `undefined` signals a non-match and suppresses parent fallbacks.
+ *
+ * Invalid patterns (missing leading/trailing slash, wildcard not at the end, etc.) are
+ * logged as warnings in development and produce a route that never matches.
+ *
+ * @returns A {@link RouteBuilder} — call it with `{ resolve }` to produce a {@link Route}.
+ *
+ * @example Basic route
+ * ```ts
+ * import { route } from '@rooted/router'
+ *
+ * export const HomeRoute = route`/`({
+ *   resolve: ({ create }) => create(Home)
+ * })
+ * ```
+ *
+ * @example Route with typed parameters
+ * ```ts
+ * export const ArticleRoute = route`/articles/${token('id', Number)}/`({
+ *   resolve: ({ create, tokens }) => create(Article, { id: tokens.id })
+ * })
+ * ```
+ *
+ * @example Child route (composes parent URL)
+ * ```ts
+ * export const CommentsRoute = route`${ArticleRoute}/comments/`({
+ *   resolve: ({ create, tokens }) => create(Comments, { articleId: tokens.id })
+ * })
+ * ```
+ *
+ * @example Wildcard (catch-all)
+ * ```ts
+ * export const ArchiveRoute = route`/archive/${wildcard()}/`({
+ *   resolve: ({ create, tokens }) => create(Archive, { slug: tokens.rest })
+ * })
+ * ```
+ *
+ * @example Async resolver (lazy-loaded bundle)
+ * ```ts
+ * export const HeavyRoute = route`/dashboard/`({
+ *   resolve: async ({ create }) => {
+ *     const { Dashboard } = await import('./dashboard.mts')
+ *     return create(Dashboard)
+ *   }
+ * })
+ * ```
+ *
+ * @see {@link token}
+ * @see {@link wildcard}
+ * @see {@link router}
+ * @see {@link RouteResolver}
+ */
 export function route<const T extends RouteParameter[]>(
 	strings: TemplateStringsArray, ...values: T
 ): RouteBuilder<T> {

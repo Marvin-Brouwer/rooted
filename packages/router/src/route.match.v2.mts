@@ -3,6 +3,13 @@ import type { Path, Url } from './href.mts'
 import { isParameterToken, type Parameter, type RouteParameter, type TokenMatchResult } from './route.tokens.v2.mts'
 import type { FilterOutParent, PathParameterDictionary } from './route.v2.mts'
 
+/**
+ * Result of {@link Route.match}.
+ *
+ * On success, `tokens` holds the parsed and typed path parameter values and
+ * `length` is the number of characters consumed from the path (used by the
+ * router to select the best match). On failure, only `success: false` is present.
+ */
 export type RouteMatch<T extends Parameter[]> = {
 	success: true,
 	tokens: PathParameterDictionary<T>,
@@ -11,13 +18,28 @@ export type RouteMatch<T extends Parameter[]> = {
 	success: false
 }
 
+/**
+ * Options for {@link Route.match}.
+ */
 export type MatchRouteOptions = {
+	/**
+	 * The path or URL to match against. Accepts a pathname string, a {@link Path},
+	 * a {@link Url}, a native `URL`, or `Location`.
+	 * Defaults to `location` (the current browser URL).
+	 */
 	target?: string | Path | Url | URL | Location
 	offset?: number,
-	/** Checks if there's any url left after all parts match, and fails if true, @default true */
+	/**
+	 * When `true` (the default), the match fails if any path characters remain
+	 * unconsumed after all route parts have matched. Set to `false` to allow
+	 * prefix-only matching (used internally when matching parent routes).
+	 *
+	 * @default true
+	 */
 	checkInclusive?: boolean
 }
 
+/** @internal */
 export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<string | RouteParameter>) {
 
 	// This import caused circular references

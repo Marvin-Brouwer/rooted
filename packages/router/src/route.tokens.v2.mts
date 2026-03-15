@@ -2,6 +2,7 @@ import { tupleResult, TupleResult } from '@rooted/util'
 import { isRoute } from './route.metadata.v2.mts'
 import type { Route } from './route.v2.mts'
 
+/** The constructor types accepted as the `type` argument to {@link token}. */
 export type ParameterType =
 	| NumberConstructor
 	| StringConstructor
@@ -26,6 +27,7 @@ type ParameterToTokenType<V extends ParameterType> =
 	V extends Route<any> ? V :
 	never
 
+/** Maps a {@link ParameterTokenType} to the TypeScript value type it produces at runtime. */
 export type ParameterToValueType<V extends ParameterTokenType> =
 	V extends Number ? number :
 	V extends String ? string :
@@ -36,6 +38,13 @@ export type ParameterToValueType<V extends ParameterTokenType> =
 
 export type TokenMatchResult<T extends ParameterTokenType = ParameterTokenType> = TupleResult<T>
 
+/**
+ * A typed path parameter descriptor produced by {@link token} or {@link wildcard}.
+ *
+ * Holds the parameter `key` (used as the property name in the tokens dictionary),
+ * its `type` token, and a `match` function that parses and validates a raw URL
+ * segment, returning a {@link TupleResult}.
+ */
 export type Parameter<K extends string = string, T extends ParameterTokenType = ParameterTokenType> = {
 	key: K
 	type: T
@@ -46,6 +55,28 @@ export type Parameter<K extends string = string, T extends ParameterTokenType = 
 
 export type RouteParameter = Parameter | Route<any>
 
+/**
+ * Declares a typed path parameter for use inside a {@link route} template string.
+ *
+ * The matched URL segment is automatically coerced to the specified `type`. If
+ * coercion fails (e.g. `"abc"` for `Number`), the route is treated as a non-match.
+ *
+ * @param name - Property name in the `tokens` dictionary passed to `resolve`.
+ * @param type - One of `Number`, `String`, `Boolean`, or `Date`.
+ *
+ * @example
+ * ```ts
+ * import { route, token } from '@rooted/router'
+ *
+ * export const ArticleRoute = route`/articles/${token('id', Number)}/`({
+ *   resolve: ({ create, tokens }) => create(Article, { id: tokens.id })
+ * })
+ * // tokens.id is typed as `number`
+ * ```
+ *
+ * @see {@link wildcard}
+ * @see {@link route}
+ */
 export function token<K extends string = string, T extends ParameterType = ParameterType>(name: K, type: T): Parameter<K, ParameterToTokenType<T>> {
 
 	const match = getMatcher<T>(type) as (value: string) => TokenMatchResult<ParameterToTokenType<T>>
@@ -106,6 +137,35 @@ const wildcardBrand: unique symbol = Symbol.for('rooted:wildcard')
 type Wildcard = string & { [wildcardBrand]: true }
 type WildcardParameter<K extends string> = Parameter<K, Wildcard>
 
+/**
+ * Declares a catch-all path parameter for use inside a {@link route} template string.
+ *
+ * A wildcard matches the remainder of the URL path (one or more characters) and
+ * exposes it as a `string`. It must be the last interpolation in the pattern and
+ * must be preceded by a `/`.
+ *
+ * @param name - Property name in the `tokens` dictionary. Defaults to `'rest'`.
+ *
+ * @example
+ * ```ts
+ * import { route, wildcard } from '@rooted/router'
+ *
+ * export const ArchiveRoute = route`/archive/${wildcard()}/`({
+ *   resolve: ({ create, tokens }) => create(Archive, { slug: tokens.rest })
+ * })
+ * // tokens.rest is typed as `string`
+ * ```
+ *
+ * @example Custom key
+ * ```ts
+ * export const ArchiveRoute = route`/archive/${wildcard('slug')}/`({
+ *   resolve: ({ create, tokens }) => create(Archive, { slug: tokens.slug })
+ * })
+ * ```
+ *
+ * @see {@link token}
+ * @see {@link route}
+ */
 export function wildcard<K extends string = 'rest'>(name = 'rest' as K): Parameter<K, Wildcard> {
 
 	function match(value: string): TokenMatchResult<Wildcard> {
@@ -129,6 +189,7 @@ export function isWildcardParameter<K extends string>(token: Parameter<K, any>):
 }
 /** Internal brand that distinguishes a {@link WildcardParameter} from a {@link PathParameter}. */
 const tokenBrand: unique symbol = Symbol.for('rooted:parameterToken')
+/** Returns `true` if `value` is a {@link Parameter}. */
 export function isParameterToken(token: unknown): token is Parameter {
 	return typeof token === 'object' && token !== null && tokenBrand in token
 }

@@ -9,7 +9,11 @@ import { RouteMatch } from './route.match.v2.mts'
 /**
  * Configuration object passed to {@link router}.
  *
- * @todo write doc
+ * - `home` — component rendered at `/`.
+ * - `notFound` — component rendered when no route matches the current URL.
+ * - All other keys — {@link Route} values registered with the router. The key
+ *   names are used only for duplicate-route detection in development; they have
+ *   no effect at runtime.
  */
 type RouterConfig = {
 	home: Component
@@ -19,25 +23,55 @@ type RouterConfig = {
 }
 
 /**
- * Constrains a route to be **router-compatible**: its component must not require
- * any external options beyond the automatically-injected `gate` parameter.
+ * Constrains a value to be a {@link Route}.
  *
- * @todo doc
+ * Non-route values produce `never`, causing a compile-time error when used
+ * in a {@link RouterConfig}. This ensures only valid routes are registered.
  */
 export type RouterCompatibleRoute<G> = G extends Route<any> ? G : never
 
 /**
  * The validated version of a {@link RouterConfig}.
  *
- * `home` and `notFound` keys are passed through as-is. Every other key that is
- * a {@link RouteDefinition} must be a {@link RouterCompatibleRoute}; incompatible
- * routes produce `never` and therefore a compile-time error. Non-route values
- * (e.g. {@link BoundGateDefinition}) are passed through as-is.
+ * `home` and `notFound` keys are passed through as-is. All other keys must
+ * satisfy {@link RouterCompatibleRoute}; incompatible values produce `never`
+ * and therefore a compile-time error.
  */
 export type ValidatedRouterConfig<T extends RouterConfig> = {
 	[K in keyof T]: K extends 'home' | 'notFound' ? T[K] : RouterCompatibleRoute<T[K]>
 }
 
+/**
+ * Creates a self-managing router component that renders the best-matching route
+ * on every navigation.
+ *
+ * On each `popstate` event (and on initial mount), all registered routes are
+ * evaluated concurrently against the current path. The router selects the route
+ * whose pattern consumes the most characters. When two routes match the same
+ * length, the more specific (non-wildcard) one wins.
+ *
+ * **Suppression:** if a route's `resolve` returns `undefined`, the router treats
+ * the URL as intentionally unmatched by that pattern and does _not_ fall back to
+ * any shorter-matching route. The `notFound` component is rendered instead.
+ *
+ * Route results are cached by pathname so `resolve` is only called once per
+ * unique path visited.
+ *
+ * @example
+ * ```ts
+ * import { router } from '@rooted/router'
+ *
+ * export const App = router({
+ *   home: Home,
+ *   notFound: NotFound,
+ *   articles: ArticleRoute,
+ *   article: ArticleDetailRoute,
+ * })
+ * ```
+ *
+ * @see {@link route}
+ * @see {@link RouterConfig}
+ */
 export function router<const T extends RouterConfig>(config: ValidatedRouterConfig<T>): GenericComponent {
 
 	const { home: homeComponent, notFound: notFoundComponent, ...userRoutes } = config
