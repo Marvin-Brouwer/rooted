@@ -17,21 +17,18 @@ export const Categories = component({
 	},
 })
 
-// TODO make a utility to make this a more typed and cleaner check
-// Should be easier with new routing setup CategoryRoute.match(location).success
-function routeSelected(category: Category) {
-	const routeParams = CategoryRoute.match(location)
-	if (!routeParams) return false
-
-	return routeParams.slug === category.slug
+async function routeSelected(category: Category): Promise<boolean> {
+	const match = await CategoryRoute.match({ target: location.href })
+	if (!match.success) return false
+	return match.tokens.slug === category.slug
 }
 
 async function mapCategories(create: ComponentContext['create']) {
 	const { categories } = await import('../_shared/data/data.mts')
-	return categories.map(category => create(Link, {
+	return Promise.all(categories.map(async category => create(Link, {
 		classes: [
 			cssClass('category-card'),
-			cssClass('selected', routeSelected(category))
+			cssClass('selected', await routeSelected(category))
 		],
 		href: `/categories/${category.slug}/`,
 		children: [
@@ -41,5 +38,5 @@ async function mapCategories(create: ComponentContext['create']) {
 				textContent: `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`,
 			}),
 		],
-	}))
+	})))
 }

@@ -14,6 +14,10 @@ export default defineConfig({
 				replacement: fileURLToPath(new URL('./packages/util/src/_module/util.mts', import.meta.url)),
 			},
 			{
+				find: '@rooted/components/elements',
+				replacement: fileURLToPath(new URL('./packages/components/src/_module/elements.mts', import.meta.url)),
+			},
+			{
 				find: '@rooted/components',
 				replacement: fileURLToPath(new URL('./packages/components/src/_module/components.mts', import.meta.url)),
 			},

@@ -1,13 +1,8 @@
 import styles from './search.css?inline'
 import { component } from '@rooted/components'
-import { type GateParameters, Link } from '@rooted/router'
-import { type SearchRoute } from './_routes.mts'
+import { Link } from '@rooted/router'
 
-export type SearchOptions = {
-	gate: GateParameters<typeof SearchRoute>
-}
-
-export const SearchPage = component<SearchOptions>({
+export const SearchPage = component({
 	name: 'search-page',
 	styles,
 	async onMount({ append, create, signal }) {
