@@ -146,7 +146,7 @@ export function forAny(target: Route<any> | URL | Location | HrefBase, dictionar
 	if (target instanceof Url) return target
 	if (target instanceof Path) return target
 
-	return Path.fromString(buildPathForRoute(target as Route<any>, dictionary!))
+	return Path.fromString(buildPathForRoute<any>(target as Route<any>, dictionary))
 }
 
 /** @__PURE__ */

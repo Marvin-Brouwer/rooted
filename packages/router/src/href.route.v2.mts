@@ -35,9 +35,8 @@ export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, para
 		let url = ''
 
 		for (const part of route[route_.routePartsBrand]) {
-			// TODO, currently this doesn't work, the parent information gets lost in types, so these values aren't present.
 			if (route_.isRoute(part)) {
-				url += buildPathForRoute(part, parameters)
+				url += buildPathForRoute(part, parameters as RouteParameterDictionary<typeof part>)
 				continue
 			}
 			if (!tokens.isParameterToken(part)) {

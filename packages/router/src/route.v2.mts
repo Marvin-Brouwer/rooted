@@ -4,6 +4,9 @@ import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.m
 
 /** The typed path token descriptors declared with {@link token}. */
 export const tokenTypes: unique symbol = Symbol.for('rooted:typed-parameter')
+/** The typed path token descriptors for the parent. */
+export const parentType: unique symbol = Symbol.for('rooted:parent-route')
+
 /** Internal brand that identifies a {@link RouteDefinition}. */
 export const routeBrand: unique symbol = Symbol.for('rooted:route')
 /** Internal brand that identifies the split up route parts. */
@@ -34,7 +37,12 @@ export type ExtractParent<T extends readonly RouteParameter[]> =
 	: never
 
 export type PathParameterDictionary<T extends readonly RouteParameter[]> = ConvertPathParameters<FilterOutParent<T>>
-export type RouteParameterDictionary<TRoute extends Route<any>> = Required<PathParameterDictionary<TRoute[typeof tokenTypes]>>
+export type RouteParameterDictionary<TRoute extends Route<any>> =
+    [TRoute[typeof parentType]] extends [never]
+    ? Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
+    : TRoute[typeof parentType] extends Route<any>
+    ? Required<ConvertPathParameters<TRoute[typeof tokenTypes]>> & RouteParameterDictionary<TRoute[typeof parentType]>
+    : Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
 
 type EmptyComponent = Component<{}> | Component<never>
 export type RoutableComponent<T extends RouteParameter[]> = EmptyComponent | Component<{ path?: Partial<PathParameterDictionary<FilterOutParent<T>>> }>
@@ -82,6 +90,9 @@ export type Route<T extends RouteParameters<Parameter[]>> = {
 	readonly component: T['component']
 	/** The typed path token descriptors declared with {@link token}. */
 	readonly [tokenTypes]: T['parameters']
+	/** The typed path token descriptors for the parent. */
+	readonly [parentType]: T extends { parent: infer P extends Route<any> } ? P : never
+
 	/** Brand that identifies this object as a {@link Route}. */
 	readonly [routeBrand]: true
 	/** Brand that identifies the split up route parts */
@@ -123,9 +134,10 @@ export function route<const T extends RouteParameter[]>(
 	// Perhaps returning an Error instead of a route will work, perhaps an invalid route type is also fine.
 	// dev.logRouteWarnings.(warnings)
 
+	const parent = values.length > 0 && isRoute(values[0]) ? values[0] : undefined
 	const routeParts = zipTemplateParts(strings, values)
 
-	return (component, filter) => {
+	return ((component, filter) => {
 
 		// TODO cache for match and link based on full input, erase on navigate? or ttl? or set length queue? use weakmap?
 		// Do we want a shared store or per route?
@@ -137,7 +149,10 @@ export function route<const T extends RouteParameter[]>(
 		return {
 
 			[routeBrand]: true,
+
 			[tokenTypes]: values.filter(value => !isParameterToken(value)) as FilterOutParent<T>,
+			[parentType]: parent as T extends { parent: infer P extends Route<any> } ? P : never,
+
 			[routePartsBrand]: routeParts,
 
 			component,
@@ -147,7 +162,7 @@ export function route<const T extends RouteParameter[]>(
 
 			match
 		}
-	}
+	}) as RouteBuilder<T>
 }
 
 // TODO @Claude
