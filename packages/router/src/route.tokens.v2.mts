@@ -92,11 +92,8 @@ function getMatcher<T extends ParameterType>(type: T) {
 	}
 
 	if (isRoute(type)) {
-		// TODO, this SHOULD never happen, we still need to implement proper routing though.
-		// If recursive, return type.match (possibly)
-		// If the none recursive approach is chosen, this should return an error, since it should be handled by the router and this
-		// should never be called.
-		return tupleResult.error(new Error('parent handling not yet implemented'))
+		// Parent routes are matched in routeMatcher directly, never via getMatcher
+		return tupleResult.error(new Error('unexpected: Route passed to getMatcher'))
 	}
 
 	return tupleResult.error(new Error('Custom parameter types are not yet implemented'))
