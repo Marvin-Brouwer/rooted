@@ -5,7 +5,8 @@ import type { FilterOutParent, PathParameterDictionary, RouteFilter } from './ro
 
 export type RouteMatch<T extends Parameter[]> = {
 	success: true,
-	tokens: PathParameterDictionary<T>
+	tokens: PathParameterDictionary<T>,
+	length: number
 } | {
 	success: false
 }
@@ -65,7 +66,7 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 		}
 
 		if (checkInclusive && path.pathOnly.slice(offset) !== '') return tupleResult.error('Route was longer than path')
-		return tupleResult.success(Object.freeze({ ...parentParameters, ...parameters }) as unknown as PathParameterDictionary<T>)
+		return tupleResult.success<[tokens: PathParameterDictionary<T>, offset: number]>([Object.freeze({ ...parentParameters, ...parameters }) as any, offset])
 	}
 
 	function getPath(target?: MatchRouteOptions['target']) {
@@ -89,13 +90,14 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 		if (tupleResult.isError(pathMatch)) return {
 			success: false
 		}
-		const [success, tokens] = pathMatch
+		const [success, [tokens, offset]] = pathMatch
 
 		if (applyFilters && ! await filter?.(tokens)) return { success: false }
 
 		return {
 			success,
-			tokens
+			tokens,
+			length: offset
 		}
 	}
 

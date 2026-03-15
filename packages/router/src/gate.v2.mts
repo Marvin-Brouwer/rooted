@@ -1,11 +1,12 @@
-import { Component, component, GenericComponent } from '@rooted/components'
-import { Route, route } from './route.v2.mts'
+import { component, GenericComponent } from '@rooted/components'
+import { Route, RouteParameterDictionary } from './route.v2.mts'
 import { RouteParameters } from './gate-factory.mts'
 import { create } from '@rooted/components/elements'
 
 /**
  * Subscribes a component to a route, producing a {@link BoundGateDefinition}.
  *
+ * @todo redoc
  * When appended inside a shell component, a gate mounts its component as soon
  * as the subscribed route's URL pattern matches the current URL, and unmounts
  * it when the URL no longer matches. URL parameters parsed from the match are
@@ -41,45 +42,46 @@ import { create } from '@rooted/components/elements'
  * @see {@link router}
  * @see {@link RouteParameters}
  */
-export function gate<TRoute extends AnyRoute, T extends never, TComponent extends Component<T>>(
-	routeReference: TRoute,
-	component: TComponent,
-): GenericComponent
-export function gate<TRoute extends AnyRoute, T extends {}, TComponent extends Component<T>>(
-	routeReference: TRoute,
-	component: TComponent,
-	forwardedProps: T
-): GenericComponent
-export function gate<TRoute extends AnyRoute, T extends { path: Partial<{ bool: boolean }> }, TComponent extends Component<T>>(
-	routeReference: TRoute,
-	component: TComponent,
-	forwardedProps: T
-): GenericComponent
-export function gate<TRoute extends AnyRoute, T extends { path: Partial<{ bool: boolean }> }, TComponent extends Component<T>>(
-	routeReference: TRoute,
-	component: TComponent,
-	forwardedProps?: T
+export function gate<TRoute extends AnyRoute>(
+    route: TRoute,
+    render: GateRenderFunction<TRoute>
 ): GenericComponent {
 
-	return create(Gate, { routeReference, component, forwardedProps })
+	const renderGate = render as GateRenderFunction<AnyRoute>
+	return create(Gate, { routeReference: route, renderGate })
 }
 
-type GateOptions<T extends {}> = {
+type GateOptions<TRoute extends AnyRoute> = {
 	routeReference: AnyRoute,
-	component: GateComponent<T>,
-	forwardedProps: T
+	renderGate: GateRenderFunction<TRoute>
 }
-const Gate = component<GateOptions<any>>({
+const Gate = component<GateOptions<AnyRoute>>({
 	name: 'sling:gate',
-	onMount({ options, append, create, signal }) {
-		const { routeReference, ...componentOptions } = options
-		let innerComponent: GenericComponent | undefined = undefined
+	onMount({ options, append, signal }) {
+		const { routeReference, renderGate } = options
+		let innerNodes: Element[] | undefined = undefined
 
+		function clear(newNodes: Element[] = []) {
+			if (!innerNodes) return;
+			for(const node of innerNodes){
+				if (newNodes.includes(node)) continue
+				node.remove()
+			}
+
+			innerNodes = newNodes.length === 0 ? undefined : newNodes
+		}
 		async function checkGate() {
-			const match = await options.routeReference.match()
+			const match = await routeReference.match()
 
-			if (match.success) innerComponent = append(create(options.component, { ...componentOptions, tokens: match.tokens }))
-			else innerComponent = innerComponent?.remove() ?? undefined
+			if (match.success){
+				const newComponents = await renderGate(match.tokens)
+				innerNodes = Array.isArray(newComponents) ? newComponents : [newComponents]
+				append(...innerNodes!)
+				clear(innerNodes)
+			}
+			else {
+				clear()
+			}
 		}
 
 		window.addEventListener('popstate', checkGate, { signal })
@@ -88,4 +90,6 @@ const Gate = component<GateOptions<any>>({
 })
 
 export type AnyRoute = Route<any>
-export type GateComponent<T extends {}> = Component<T | { tokens?: any }>
+export type GateRenderFunction<TRoute extends AnyRoute> = AsyncGateRenderFunction<TRoute> | SyncGateRenderFunction<TRoute>
+type SyncGateRenderFunction<TRoute extends AnyRoute> = (tokens: RouteParameterDictionary<TRoute>) => Element | Element[]
+type AsyncGateRenderFunction<TRoute extends AnyRoute> = (tokens: RouteParameterDictionary<TRoute>) => Promise<Element | Element[]>

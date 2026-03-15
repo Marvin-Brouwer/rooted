@@ -169,8 +169,3 @@ export function route<const T extends RouteParameter[]>(
 		}
 	}) as RouteBuilder<T>
 }
-
-// TODO @Claude
-// I think this implementation is more readable than the V1 router, however I am torn on the way forward.
-// Either we include all the information of a parent route and make the code quite complex
-// Or we don't include parent information at all, and simplify the type information + users of the library are required to do more gymnastics
