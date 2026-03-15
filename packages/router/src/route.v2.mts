@@ -121,6 +121,50 @@ export type Route<T extends RouteParameters<Parameter[]>> = {
 	match(options?: MatchRouteOptions): Promise<RouteMatch<T['parameters']>>
 }
 
+function reconstructPattern(strings: TemplateStringsArray, values: readonly RouteParameter[]): string {
+	return Array.from(strings).reduce((acc, str, i) => {
+		if (i === 0) return str
+		const v = values[i - 1]!
+		let label: string
+		if (isRoute(v)) label = '${Route}'
+		else if (isParameterToken(v) && isWildcardParameter(v as Parameter)) label = `\${wildcard('${(v as Parameter).key}')}`
+		else label = `\${${(v as Parameter).key}}`
+		return acc + label + str
+	}, '')
+}
+
+function validatePattern(strings: TemplateStringsArray, values: readonly RouteParameter[]): Error[] {
+	const errors: Error[] = []
+	const pattern = reconstructPattern(strings, values)
+	const startsWithRoute = values.length > 0 && isRoute(values[0]) && strings[0] === ''
+
+	if (!startsWithRoute && !strings[0]!.startsWith('/'))
+		errors.push(new Error(`route pattern must start with a slash: "${pattern}"`))
+
+	if (!strings[strings.length - 1]!.endsWith('/'))
+		errors.push(new Error(`route pattern must end with a slash: "${pattern}"`))
+
+	for (let i = 0; i < values.length; i++) {
+		const v = values[i]!
+		if (isRoute(v)) {
+			if (i !== 0)
+				errors.push(new Error(`Route interpolation must be at the start of the pattern: "${pattern}"`))
+			if (strings[0] !== '')
+				errors.push(new Error(`Route interpolation must have no preceding text — use route\`\${ParentRoute}/...\`: "${pattern}"`))
+			if (!strings[1]?.startsWith('/'))
+				errors.push(new Error(`Route interpolation must be followed by a slash: "${pattern}"`))
+		}
+		if (isParameterToken(v) && isWildcardParameter(v as Parameter)) {
+			if (i !== values.length - 1)
+				errors.push(new Error(`Wildcard interpolation must be at the end of the pattern: "${pattern}"`))
+			if (!strings[i]!.endsWith('/'))
+				errors.push(new Error(`Wildcard interpolation must be preceded by a slash: "${pattern}"`))
+		}
+	}
+
+	return errors
+}
+
 function zipTemplateParts<T>(strings: TemplateStringsArray, values: T[]) {
 	const parts: Array<string | T> = []
 
@@ -138,7 +182,7 @@ export function route<const T extends RouteParameter[]>(
 	strings: TemplateStringsArray, ...values: T
 ): RouteBuilder<T> {
 
-	const errors = dev.validatePattern?.(strings, values) ?? []
+	const errors = validatePattern(strings, values)
 	dev.logRouteErrors?.(errors)
 
 	if (errors.length > 0) {
