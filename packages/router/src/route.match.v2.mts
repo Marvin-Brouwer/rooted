@@ -1,7 +1,7 @@
 import { tupleResult } from '@rooted/util'
 import type { Path, Url } from './href.mts'
 import { isParameterToken, type Parameter, type RouteParameter, type TokenMatchResult } from './route.tokens.v2.mts'
-import type { FilterOutParent, PathParameterDictionary, RouteFilter } from './route.v2.mts'
+import type { FilterOutParent, PathParameterDictionary } from './route.v2.mts'
 
 export type RouteMatch<T extends Parameter[]> = {
 	success: true,
@@ -14,13 +14,11 @@ export type RouteMatch<T extends Parameter[]> = {
 export type MatchRouteOptions = {
 	target?: string | Path | Url | URL | Location
 	offset?: number,
-	/** @default true */
-	applyFilters?: boolean
 	/** Checks if there's any url left after all parts match, and fails if true, @default true */
 	checkInclusive?: boolean
 }
 
-export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<string | RouteParameter>, filter?: RouteFilter<FilterOutParent<T>> | undefined) {
+export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<string | RouteParameter>) {
 
 	// This import caused circular references
 	let href: typeof import('./href.mts')
@@ -76,7 +74,6 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 	async function match(options?: MatchRouteOptions): Promise<RouteMatch<FilterOutParent<T>>> {
 
 		const path = getPath(options?.target)
-		const applyFilters = options?.applyFilters ?? true
 		const checkInclusive = options?.checkInclusive ?? true
 
 		const pathMatch = await matchUrlPath(path, checkInclusive)
@@ -84,8 +81,6 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 			success: false
 		}
 		const [success, [tokens, offset]] = pathMatch
-
-		if (applyFilters && ! await filter?.(tokens)) return { success: false }
 
 		return {
 			success,
