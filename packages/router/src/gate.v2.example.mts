@@ -12,7 +12,9 @@ type FakeComponentType = Component<{
 }>
 const FakeComponent: FakeComponentType = null!
 function append(..._any: any): void {}
-const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`({ resolve: ({ create, tokens }) => create(FakeComponent, { id: tokens.id, prop: true }) })
+const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`({
+	resolve: ({ create, tokens }) => create(FakeComponent, { id: tokens.id, prop: true })
+})
 
 // usage
 // This no longer is a part of _routes.mts, you just define a gate inside of the page.

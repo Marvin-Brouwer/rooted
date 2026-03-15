@@ -14,8 +14,12 @@ type FakeComponentType = Component<{
 	}
 }>
 const FakeComponent: FakeComponentType = null!
-const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`({ resolve: ({ create, tokens }) => create(FakeComponent, { prop: true, path: { id: tokens.id, time: tokens.time, rest: '' } }) })
-const cr = route`/${r}/next/${token('id2', String)}/${token('doThing', Boolean)}/example/${wildcard()}/`({ resolve: ({ create, tokens }) => create(FakeComponent, { prop: tokens.doThing, path: { id: 0, time: new Date(), rest: tokens.rest } }) })
+const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`({
+	resolve: ({ create, tokens }) => create(FakeComponent, { prop: true, path: { id: tokens.id, time: tokens.time, rest: '' } })
+})
+const cr = route`/${r}/next/${token('id2', String)}/${token('doThing', Boolean)}/example/${wildcard()}/`({
+	resolve: ({ create, tokens }) => create(FakeComponent, { prop: tokens.doThing, path: { id: 0, time: new Date(), rest: tokens.rest } })
+})
 
 
 // usage
