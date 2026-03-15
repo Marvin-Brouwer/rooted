@@ -22,7 +22,7 @@ function componentNameChecker() {
 
 		const registeredForName = names.get(component.name) ?? []
 		if (registeredForName.length) {
-			console.warn(`[component] Duplicate component name detected: "${component.name}"`)
+			console.warn(`[@rooted/components] Duplicate component name detected: "${component.name}"`)
 			console.debug('  ', Object.defineProperty({}, 'listAll', {
 				get() {
 					return names.get(component.name)
