@@ -60,7 +60,7 @@ const Router = component<RouterProps>({
         let activeEl: Element | undefined = undefined
 		let lastPath: string | undefined
 
-		const cache = new Map<string, undefined | { route: Route<any>, match: SuccessRouteMatch }>()
+		const cache = new Map<string, undefined | Element>()
 
 		function renderRoute(element: Element | undefined) {
 			activeEl?.remove()
@@ -74,10 +74,7 @@ const Router = component<RouterProps>({
 			lastPath = target.pathOnly
 
 			if (cache.has(target.pathOnly)) {
-				const cached = cache.get(target.pathOnly)
-				if (!cached) return renderRoute(undefined)
-				const element = await cached.route.resolve({ create, tokens: cached.match.tokens })
-				return renderRoute(element)
+				return renderRoute(cache.get(target.pathOnly))
 			}
 
 			const matchRouteResult = await matchRoute(target, options.routes)
@@ -86,7 +83,7 @@ const Router = component<RouterProps>({
 				return renderRoute(undefined)
 			}
 
-			cache.set(target.pathOnly, { route: matchRouteResult.route, match: matchRouteResult.match })
+			cache.set(target.pathOnly, matchRouteResult.element)
 			return renderRoute(matchRouteResult.element)
 		}
 
