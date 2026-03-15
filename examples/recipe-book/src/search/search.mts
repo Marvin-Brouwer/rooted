@@ -44,7 +44,7 @@ export const SearchPage = component({
 
 			const list = create('ul', { classes: 'result-list' })
 			for (const recipe of matches) {
-				const href = `/categories/${recipe.category}/recipes/${recipe.id}/`
+				const href = `/recipe/${recipe.id}/`
 				list.append(create('li', {
 					classes: 'result-item',
 					children: [

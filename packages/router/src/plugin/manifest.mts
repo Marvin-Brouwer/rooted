@@ -104,7 +104,7 @@ export function generateRouteManifest(options: Options): Plugin {
 			...files.map((file) => {
 				const rel = relative(rootDir, resolve(config.root, file))
 				const importPath = rel.startsWith('.') ? rel : `./${rel}`
-				return `/** @__PURE__ */ const gate_${getFileId(file)} = () => /** @__PURE__ */ import('${importPath.split('\\').join('/')}').then(rename, '${getFileId(file)}')`
+				return `/** @__PURE__ */ const gate_${getFileId(file)} = /** @__PURE__ */ import('${importPath.split('\\').join('/')}').then(gates => rename(gates, '${getFileId(file)}'))`
 			}),
 			'',
 			'type RouteModule = RouteDefinition<unknown, Array<unknown>>',
@@ -135,9 +135,9 @@ export function generateRouteManifest(options: Options): Plugin {
 			' *',
 			' * @__PURE__',
 			` */`,
-			`export const ${options.routeExport ?? 'appRoutes'}: RouteModules = /** @__PURE__ */ Object.freeze(`,
+			`export const ${options.routeExport ?? 'appRoutes'}: RouteModules = /** @__PURE__ */ Object.freeze(Object.assign({},`,
 			...files.map((file) => `\tawait gate_${getFileId(file)},`),
-			`)`,
+			`))`,
 			'',
 		]
 
