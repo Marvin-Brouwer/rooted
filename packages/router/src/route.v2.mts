@@ -49,50 +49,45 @@ export type RouteParameterDictionary<TRoute extends Route<any>, D extends number
 				? Required<ConvertPathParameters<TRoute[typeof tokenTypes]>> & RouteParameterDictionary<TRoute[typeof parentType], RecursionCounter[D]>
 				: Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
 
-type EmptyComponent = Component<{}> | Component<never>
-export type RoutableComponent<T extends RouteParameter[]> = EmptyComponent | Component<{ path?: Partial<PathParameterDictionary<FilterOutParent<T>>> }>
-
 /**
- * An optional filter passed as the second argument to the {@link route} binder.
+ * A function that resolves the component to render for a matched route.
  *
- * When provided, the filter is called after the URL pattern matches. Returning
- * `false` causes the route to be treated as a non-match and the `notFound`
- * component will render. Crucially, a filtered-out route **blocks** any
- * shorter parent route from matching as a fallback — if the URL was claimed by
- * this pattern, the router will not fall back to a less-specific route.
+ * Returning `undefined` signals a 404 — the route is treated as a non-match
+ * and blocks shorter parent routes from matching as a fallback (suppression).
  *
- * For child routes, the parent's filter is evaluated first (as part of the
- * parent's `matchFrom` call). The child filter only runs if the parent filter
- * passes.
+ * When `resolve` is `async`, Vite will split the imported component into a
+ * separate bundle chunk. When it is sync, the component stays in the main bundle.
  *
  * @see {@link route}
  */
-export type RouteFilter<T extends readonly Parameter[]> = (parameters: PathParameterDictionary<T>) => boolean | Promise<boolean>
+export type RouteResolver<T extends readonly RouteParameter[]> =
+	(parameters: PathParameterDictionary<T>) =>
+		Component | undefined | Promise<Component | undefined>
 
-export type RouteBuilder<T extends RouteParameter[]> = <TComponent extends RoutableComponent<T>>(routedComponent: TComponent, filter?: RouteFilter<FilterOutParent<T>>) =>
+export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: RouteResolver<T> }) =>
 	// This is typed with an anonymous object on purpose.
 	// It serves as a debug view as well as type information
 	ExtractParent<T> extends never
 	? Route<{
 		parameters: FilterOutParent<T>,
-		component: TComponent,
+		resolve: RouteResolver<T>,
 	}>
 	: Route<{
 		parameters: FilterOutParent<T>,
-		component: TComponent,
+		resolve: RouteResolver<T>,
 		parent: ExtractParent<T>
 	}>
 
 export type RouteParameters<T extends Parameter[]> = {
 	parameters: FilterOutParent<T>,
-	component: RoutableComponent<FilterOutParent<T>>,
+	resolve: RouteResolver<T>,
 	parent?: ExtractParent<T> | any
 }
 
 export type Route<T extends RouteParameters<Parameter[]>> = {
 
-	/** The destination component rendered when this route is the best match. */
-	readonly component: T['component']
+	/** Resolves the component to render when this route is the best match. */
+	readonly resolve: T['resolve']
 	/** The typed path token descriptors declared with {@link token}. */
 	readonly [tokenTypes]: T['parameters']
 	/** The typed path token descriptors for the parent. */
@@ -141,13 +136,13 @@ export function route<const T extends RouteParameter[]>(
 	const parent = values.length > 0 && isRoute(values[0]) ? values[0] : undefined
 	const routeParts = zipTemplateParts(strings, values)
 
-	return ((component, filter) => {
+	return (({ resolve }) => {
 
 		// TODO now we validate the parent route in the router and here, is there a smart caching solution?
 
 		const lastValue = values.at(-1)
 		const hasWildcard = !!lastValue && isWildcardParameter(lastValue as Parameter)
-		const match = routeMatcher<T>(routeParts, filter)
+		const match = routeMatcher<T>(routeParts)
 
 		return {
 
@@ -158,7 +153,7 @@ export function route<const T extends RouteParameter[]>(
 
 			[routePartsBrand]: routeParts,
 
-			component,
+			resolve,
 
 			hasParameterTokens: values.length > 0,
 			hasWildcard,

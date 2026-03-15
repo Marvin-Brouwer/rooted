@@ -40,7 +40,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 	const { home: homeComponent, notFound: notFoundComponent, ...userRoutes } = config
 	const routes = [
-		route`/`(homeComponent),
+		route`/`({ resolve: () => homeComponent }),
 		...Object.values(userRoutes).filter(isRoute)
 	]
 
@@ -78,8 +78,8 @@ const Router = component<RouterProps>({
 			lastPath = target.pathOnly
 
 			if (cache.has(target.pathOnly)) {
-				const { route, match } = cache.get(target.pathOnly)!
-				return renderRoute(route.component, match.tokens)
+				const { component, match } = cache.get(target.pathOnly)!
+				return renderRoute(component, match.tokens)
 			}
 
 			const matchRouteResult = await matchRoute(target, options.routes)
@@ -90,7 +90,7 @@ const Router = component<RouterProps>({
 
 			cache.set(target.pathOnly, matchRouteResult)
 			return renderRoute(
-				matchRouteResult.route.component,
+				matchRouteResult.component,
 				matchRouteResult.match.tokens
 			)
 		}
@@ -101,21 +101,21 @@ const Router = component<RouterProps>({
 })
 
 type SuccessRouteMatch = RouteMatch<any> & { success: true }
-type FilterRoutesResult = { route: Route<any>, match: SuccessRouteMatch }
+type FilterRoutesResult = { route: Route<any>, match: SuccessRouteMatch, component: Component }
 
 type FilterRouteResult =
     | { kind: 'no-match' }
     | { kind: 'suppressed'; patternLength: number }
-    | { kind: 'matched'; match: SuccessRouteMatch }
+    | { kind: 'matched'; match: SuccessRouteMatch; component: Component }
 
 async function filterRoute(route: Route<any>, target: href.Path): Promise<FilterRouteResult> {
-    const patternMatch = await route.match({ target, applyFilters: false })
+    const patternMatch = await route.match({ target })
     if (!patternMatch.success) return { kind: 'no-match' }
 
-    const routeMatch = await route.match({ target, applyFilters: true })
-    if (!routeMatch.success) return { kind: 'suppressed', patternLength: patternMatch.length }
+    const component = await route.resolve(patternMatch.tokens)
+    if (!component) return { kind: 'suppressed', patternLength: patternMatch.length }
 
-    return { kind: 'matched', match: routeMatch }
+    return { kind: 'matched', match: patternMatch, component }
 }
 
 async function matchRoute(target: href.Path, routes: Route<any>[]) {
@@ -137,12 +137,12 @@ async function matchRoute(target: href.Path, routes: Route<any>[]) {
         if (result.kind !== 'matched') continue
 
         if (!best || result.match.length > best.match.length) {
-            best = { route, match: result.match }
+            best = { route, match: result.match, component: result.component }
             continue
         }
         // Equal length: non-wildcard beats wildcard (more specific wins)
         if (result.match.length === best.match.length && !route.hasWildcard && best.route.hasWildcard) {
-            best = { route, match: result.match }
+            best = { route, match: result.match, component: result.component }
         }
     }
 
