@@ -6,101 +6,106 @@ Routing is provided by `@rooted/router`. The Vite plugin (`@rooted/router/manife
 
 ## Routes
 
-A route binds a URL pattern to a destination component. The router renders the destination component only when the current path best-matches the route's pattern.
+A route binds a URL pattern to a resolver that produces the element to render. The router renders the returned element only when the current path best-matches the route's pattern.
 
 ```ts
 import { route, token } from '@rooted/router'
 import { Article } from './article.mts'
 
-export const ArticleRoute = route`/articles/${token('id', Number)}/`(Article)
+export const ArticleRoute = route`/articles/${token('id', Number)}/`({
+  resolve: ({ create, tokens }) => create(Article, { id: tokens.id })
+})
 ```
 
-`route` is a tagged-template function — the URL pattern comes first, the component is bound after. Use `token` interpolations to declare typed parameters.
+`route` is a tagged-template function — the URL pattern comes first, then the route is completed by calling the returned builder with `{ resolve }`. Use `token` interpolations to declare typed parameters. The `resolve` function receives `{ create, tokens }` and returns the `Element` to render.
 
 ### `token(key, Type)`
 
 Declares a typed path parameter. `Type` is one of `Number`, `String`, `Boolean`, or `Date`.
 
-The matched value is passed to the component via `options.gate`:
+The matched and coerced value is available as `tokens[key]` inside the `resolve` function:
 
 ```ts
-import { type GateParameters } from '@rooted/router'
-import { type ArticleRoute } from './_routes.mts'
+import { route, token } from '@rooted/router'
+import { Article } from './article.mts'
 
-export type ArticleOptions = {
-  gate: GateParameters<typeof ArticleRoute>
-}
-
-export const Article = component<ArticleOptions>({
-  name: 'article',
-  onMount({ options }) {
-    console.log(options.gate.id) // number
-  }
+export const ArticleRoute = route`/articles/${token('id', Number)}/`({
+  resolve: ({ create, tokens }) => create(Article, { id: tokens.id })
+  // tokens.id is typed as number
 })
 ```
 
 ### Child routes
 
-A child route composes its URL by interpolating a parent route as the **first interpolation** in its template string. The child matches the parent's full pattern **plus** its own additional segment. Child routes receive the parent's params merged with their own.
+A child route composes its URL by interpolating a parent route as the **first interpolation** in its template string. The child matches the parent's full pattern **plus** its own additional segment. Child routes receive the parent's tokens merged with their own.
+
+The parent route already ends with `/`, so the child template continues directly after the interpolation with no extra slash:
 
 ```ts
-export const ArticleRoute  = route`/articles/${token('id', Number)}/`(Article)
-export const CommentsRoute = route`${ArticleRoute}/comments/`(Comments)
-// CommentsRoute matches /articles/123/comments/
+export const ArticlesRoute  = route`/articles/`({ resolve: ({ create }) => create(Articles) })
+export const ArticleRoute   = route`${ArticlesRoute}${token('id', Number)}/`({
+  resolve: ({ create, tokens }) => create(Article, { id: tokens.id })
+})
+// ArticleRoute matches /articles/123/
 ```
 
-When a parent route is interpolated it must be the first thing in the template (no preceding text). The child's own segment starts with the slash that follows the interpolation.
+When a parent route is interpolated it must be the first thing in the template (no preceding text).
 
-### `wildcard(key)`
+### `wildcard(key?)`
 
-A `wildcard` interpolation matches one or more remaining path segments. It must be the last interpolation in the pattern and must be preceded by a `/`.
+A `wildcard` interpolation matches a single path segment (up to the next `/`). It must be the last interpolation in the pattern and must be preceded by a `/`.
 
-The matched path string is exposed on `options.gate[key]` as a `string`.
+The matched path string is exposed on `tokens[key]` as a `string`. The default key is `'rest'`.
 
 ```ts
 import { route, wildcard } from '@rooted/router'
 
-// Explicit key — options.gate.slug
-export const ArchiveRoute = route`/archive/${wildcard('slug')}/`(Archive)
+// Default key 'rest' — tokens.rest
+export const ArchiveRoute = route`/archive/${wildcard()}/`({
+  resolve: ({ create, tokens }) => create(Archive, { slug: tokens.rest })
+})
 
-// Default key ('path') — options.gate.path
-export const ArchiveRoute = route`/archive/${wildcard()}/`(Archive)
+// Explicit key — tokens.query
+export const SearchRoute = route`/search/${wildcard('query')}/`({
+  resolve: ({ create }) => create(SearchPage)
+})
 ```
 
 ---
 
-### Route filters
+### Suppression
 
-An optional filter function can be passed as the second argument to the component binder. When the URL pattern matches but the filter returns `false`, the route is treated as a non-match — the router falls through to the next best candidate, and `notFound` renders if nothing else matches.
+When `resolve` returns `undefined`, the route is treated as a non-match. The router falls through to the next best candidate, and `notFound` renders if nothing else matches. Use suppression to guard routes based on data:
 
 ```ts
-export const CategoryRoute = route`${CategoriesRoute}/${token('slug', String)}/`(
-  Categories,
-  ({ slug }) => categories.some(c => c.slug === slug),
-)
+export const CategoryRoute = route`${CategoriesRoute}${token('slug', String)}/`({
+  resolve: async ({ create, tokens }) => {
+    const found = await filterCategory(tokens.slug)
+    if (!found) return undefined
+    return create(Categories)
+  },
+})
 ```
 
-The filter receives the same typed params object that would be injected as `options.gate`. Returning `false` for an unknown slug causes the router to show `notFound` instead of mounting the component with a broken state — no need to handle the not-found case inside the component itself.
-
-**Parent filters run first.** For child routes, the parent's filter is evaluated as part of the parent URL match. The child filter only runs if the parent filter passes — no extra wiring is needed.
+Returning `undefined` for an unknown slug causes the router to show `notFound` instead of mounting the component with broken state — no need to handle the not-found case inside the component itself.
 
 ---
 
 ## Best-match routing
 
-The router mounts **all** registered routes and evaluates them on every navigation. Only the route whose pattern covers the most characters of the current URL renders its component — all other routes remain inactive.
+The router mounts **all** registered routes and evaluates them on every navigation. Only the route whose pattern covers the most characters of the current URL renders its element — all other routes remain inactive.
 
-The idiomatic pattern is to bind child routes to the same **shell component** as their parent, and use gates inside that shell to show child content:
+The idiomatic pattern is to resolve child routes to the same **shell component** as their parent, and use gates inside that shell to show child content:
 
 ```ts
-export const ArticlesRoute  = route`/articles/`(Articles)
-export const ArticleRoute   = route`${ArticlesRoute}/${token('id', Number)}/`(Articles)
-export const ArticleGate    = gate(ArticleRoute, Article)
+export const ArticlesRoute  = route`/articles/`({ resolve: ({ create }) => create(Articles) })
+export const ArticleRoute   = route`${ArticlesRoute}${token('id', Number)}/`({ resolve: ({ create }) => create(Articles) })
+export const ArticleGate    = gate(ArticleRoute, ({ id }) => create(ArticleContent, { id }))
 
 // Inside the Articles shell component:
 onMount({ append }) {
   append('ul', { /* article list */ })
-  append(ArticleGate, {})  // activates when ArticleRoute matches
+  append(ArticleGate)  // activates when ArticleRoute matches
 }
 ```
 
@@ -108,34 +113,37 @@ With this pattern the router selects the best-match route and renders `Articles`
 
 ```
 /articles/      → ArticlesRoute is the best match → Articles renders, no gate active
-/articles/123/  → ArticleRoute is the best match  → Articles renders, ArticleGate activates → Article shown
+/articles/123/  → ArticleRoute is the best match  → Articles renders, ArticleGate activates → ArticleContent shown
 ```
 
 Deep-linking works directly — the best-match route is selected and renders the shell component, which then activates the appropriate gate.
 
 ---
 
-## `gate(RouteRef, Component)`
+## `gate(route, renderFn)`
 
-`gate` is a plain function that subscribes a component to a route's URL pattern and returns a self-managing component. The gate listens to `popstate` and shows or removes its component whenever the route matches (or stops matching) the current URL.
+`gate` is a plain function that subscribes a render function to a route's URL pattern and returns a self-managing component. The gate listens to `popstate` and calls its render function whenever the route matches the current URL, replacing the previous content when it changes, and removing it when the route no longer matches.
 
-Use gates for **explicit embedded sub-content** inside a shell component. The idiomatic pattern is to bind child routes to the parent shell component and use gates inside it to render the child content:
+Use gates for **explicit embedded sub-content** inside a shell component:
 
 ```ts
 import { route, gate, token } from '@rooted/router'
+import { create } from '@rooted/components/elements'
 
-export const ArticlesRoute = route`/articles/`(Articles)
-export const ArticleRoute  = route`${ArticlesRoute}/${token('id', Number)}/`(Articles)
-export const ArticleGate   = gate(ArticleRoute, Article)
+export const ArticlesRoute = route`/articles/`({ resolve: ({ create }) => create(Articles) })
+export const ArticleRoute  = route`${ArticlesRoute}${token('id', Number)}/`({ resolve: ({ create }) => create(Articles) })
+export const ArticleGate   = gate(ArticleRoute, ({ id }) => create(ArticleContent, { id }))
 
 // Inside the Articles shell component:
 onMount({ append }) {
     append('ul', { /* article list */ })
-    append(ArticleGate, {})  // self-managing: shows Article when ArticleRoute is active
+    append(ArticleGate)  // self-managing: shows ArticleContent when ArticleRoute is active
 }
 ```
 
-The router renders `Articles` at both `/articles/` and `/articles/123/` (best-match selects `ArticleRoute` at the deeper URL). `ArticleGate` inside the shell activates independently — it shows `Article` when `/articles/123/` matches and removes it when it does not.
+The render function receives the fully typed token dictionary and returns one or more `Element` nodes. It may be `async` to enable lazy loading of the content module.
+
+The router renders `Articles` at both `/articles/` and `/articles/123/` (best-match selects `ArticleRoute` at the deeper URL). `ArticleGate` inside the shell activates independently — it shows `ArticleContent` when `/articles/123/` matches and removes it when it does not.
 
 ---
 
@@ -149,9 +157,11 @@ In development, `route` validates the pattern at definition time and emits `cons
 | Pattern does not end with `/` | `route pattern must end with a slash` |
 | Route interpolation is not first | `Route interpolation must be at the start of the pattern` |
 | Route interpolation has preceding text | `Route interpolation must have no preceding text` |
-| Route interpolation not followed by `/` | `Route interpolation must be followed by a slash` |
+| Route interpolation not followed by `/` or end of template | `Route interpolation must be followed by a slash` |
 | Wildcard is not the last interpolation | `Wildcard interpolation must be at the end of the pattern` |
 | Wildcard not preceded by `/` | `Wildcard interpolation must be preceded by a slash` |
+
+Invalid patterns produce a route that always returns `{ success: false }` — they never match.
 
 Validation is removed in production builds — invalid patterns fail silently.
 
@@ -182,15 +192,11 @@ const Router = router({
 
 - `home` — rendered at `/`
 - `notFound` — rendered when no route matches and the path is not `/`
-- All other keys should be `RouteDefinition` values produced by `route`
+- All other keys should be `Route` values produced by `route`
 
-`BoundGateDefinition` values (from `gate()`) may also be spread into the router config — they are silently ignored; gates are for explicit composition via `append()`, not top-level mounting.
-
-**Best-match selection** — on each navigation the router renders only the route with the highest pattern coverage. If params change while the same route matches, the component is remounted with the new params.
+**Best-match selection** — on each navigation the router renders only the route with the highest pattern coverage. If tokens change while the same route matches, the element is re-resolved with the new tokens.
 
 **Duplicate routes** (same reference under multiple keys) are silently deduplicated — the first key wins. In development a console warning is emitted.
-
-**Type safety** — the router rejects routes whose component requires options beyond `gate`. Only routes whose component takes no options, or only a `gate` option, are accepted.
 
 ---
 
@@ -243,7 +249,7 @@ Each route directory owns a `_routes.mts` file that exports its routes (and opti
 ```
 src/
   article/
-    _routes.mts      ← exports ArticleRoute, CommentsRoute
+    _routes.mts      ← exports ArticleRoute, CommentsRoute, ArticleGate
     article.mts
     comments.mts
 ```
@@ -290,7 +296,7 @@ create(Link, { href: '/about/', children: 'About us' })
 // Link wrapping richer content
 create(Link, {
   href: '/categories/italian/',
-  className: 'category-card',
+  classes: 'category-card',
   children: [
     create('div', { className: 'name', textContent: 'Italian' }),
     create('p',   { className: 'count', textContent: '3 recipes' }),
@@ -303,7 +309,7 @@ create(Link, {
 | Property | Type | Required | Description |
 |---|---|---|---|
 | `href` | `string` | yes | Destination URL |
-| `className` | `string` | no | CSS class applied to the `<a>` element |
+| `classes` | `CssClasses` | no | CSS classes applied to the `<a>` element |
 | `children` | `string \| Node \| Node[]` | no | Link content — text, a single node, or an array of nodes |
 
 `Link` is layout-transparent — the wrapper element uses `display: contents`
