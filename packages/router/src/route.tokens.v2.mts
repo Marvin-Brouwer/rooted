@@ -1,5 +1,6 @@
 import { tupleResult, TupleResult } from '@rooted/util'
-import { isRoute, Route } from './route.v2.mts'
+import { isRoute } from './route.metadata.v2.mts'
+import type { Route } from './route.v2.mts'
 
 export type ParameterType =
 	| NumberConstructor

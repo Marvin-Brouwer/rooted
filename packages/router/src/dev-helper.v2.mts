@@ -1,5 +1,5 @@
 import { isDevelopment } from '@rooted/util/dev'
-import { isRoute } from './route.v2.mts'
+import { isRoute } from './route.metadata.v2.mts'
 
 function logRouteErrors(errors: Error[]) {
 	for (const error of errors) {

@@ -1,5 +1,6 @@
 import { Component, component, GenericComponent } from '@rooted/components'
-import { isRoute, Route, route, errorBrand } from './route.v2.mts'
+import { isRoute, Route, route } from './route.v2.mts'
+import { routeMetaData } from './route.metadata.v2.mts'
 import { dev } from './dev-helper.v2.mts'
 import { create } from '@rooted/components/elements'
 import * as href from './href.mts'
@@ -42,7 +43,10 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 	const { home: homeComponent, notFound: notFoundComponent, ...userRoutes } = config
 	const routes = [
 		route`/`({ resolve: ({ create }) => create(homeComponent) }),
-		...Object.values(userRoutes).filter(isRoute).filter(r => !r[errorBrand])
+
+		...Object.values(userRoutes)
+			.filter(isRoute)
+			.filter(r => !r[routeMetaData].hasErrors)
 	]
 
 	dev.validateDuplicateRoutes?.(config)
@@ -137,7 +141,7 @@ async function matchRoute(target: href.Path, routes: Route<any>[]) {
             continue
         }
         // Equal length: non-wildcard beats wildcard (more specific wins)
-        if (result.match.length === best.match.length && !route.hasWildcard && best.route.hasWildcard) {
+        if (result.match.length === best.match.length && !route[routeMetaData].hasWildcard && best.route[routeMetaData].hasWildcard) {
             best = { route, match: result.match, element: result.element }
         }
     }

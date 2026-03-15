@@ -2,24 +2,9 @@ import type { create } from '@rooted/components/elements'
 import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter, token, wildcard } from './route.tokens.v2.mts'
 import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.v2.mts'
 import { dev } from './dev-helper.v2.mts'
+import { routeMetaData, type RouteMetadata, isRoute } from './route.metadata.v2.mts'
 
-/** The typed path token descriptors declared with {@link token}. */
-export const tokenTypes: unique symbol = Symbol.for('rooted:typed-parameter')
-/** The typed path token descriptors for the parent. */
-export const parentType: unique symbol = Symbol.for('rooted:parent-route')
-
-/** Internal brand that identifies a {@link RouteDefinition}. */
-export const routeBrand: unique symbol = Symbol.for('rooted:route')
-/** Internal brand that identifies the split up route parts. */
-export const routePartsBrand: unique symbol = Symbol.for('rooted:routeParts')
-/** Internal brand that marks a route as invalid due to pattern errors. */
-export const errorBrand: unique symbol = Symbol.for('rooted:route-error')
-
-/** Returns `true` if `token` is a {@link WildcardParameter}. */
-export function isRoute<T extends Parameter[]>(instance: unknown): instance is Route<RouteParameters<T>>
-export function isRoute(instance: unknown): instance is Route<any> {
-	return typeof instance === 'object' && instance !== null && routeBrand in instance
-}
+export { isRoute }
 
 type ConvertPathParameters<T extends readonly Parameter[]> = {
 	[P in T[number]as P['key']]: ParameterToValueType<P['type']>
@@ -45,12 +30,12 @@ export type PathParameterDictionary<T extends readonly RouteParameter[]> = Conve
 type RecursionCounter = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10> =
     D extends 0
-		? Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
-		: [TRoute[typeof parentType]] extends [never]
-			? Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
-			: TRoute[typeof parentType] extends Route<any>
-				? Required<ConvertPathParameters<TRoute[typeof tokenTypes]>> & RouteParameterDictionary<TRoute[typeof parentType], RecursionCounter[D]>
-				: Required<ConvertPathParameters<TRoute[typeof tokenTypes]>>
+		? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
+		: [TRoute[typeof routeMetaData]['parentType']] extends [never]
+			? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
+			: TRoute[typeof routeMetaData]['parentType'] extends Route<any>
+				? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetaData]['parentType'], RecursionCounter[D]>
+				: Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
 
 /**
  * A function that resolves the element to render for a matched route.
@@ -80,40 +65,22 @@ export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: R
 	ExtractParent<T> extends never
 	? Route<{
 		parameters: FilterOutParent<T>,
-		resolve: RouteResolver<T>,
 	}>
 	: Route<{
 		parameters: FilterOutParent<T>,
-		resolve: RouteResolver<T>,
 		parent: ExtractParent<T>
 	}>
 
 export type RouteParameters<T extends Parameter[]> = {
 	parameters: FilterOutParent<T>,
-	resolve: RouteResolver<T>,
 	parent?: ExtractParent<T> | any
 }
 
 export type Route<T extends RouteParameters<Parameter[]>> = {
-
+	/** Internal metadata bag. */
+	readonly [routeMetaData]: RouteMetadata<T>
 	/** Resolves the component to render when this route is the best match. */
-	readonly resolve: T['resolve']
-	/** The typed path token descriptors declared with {@link token}. */
-	readonly [tokenTypes]: T['parameters']
-	/** The typed path token descriptors for the parent. */
-	readonly [parentType]: T extends { parent: infer P extends Route<any> } ? P : never
-
-	/** Brand that identifies this object as a {@link Route}. */
-	readonly [routeBrand]: true
-	/** Set to `true` when the route pattern has validation errors. Filtered out by the router. */
-	readonly [errorBrand]?: true
-	/** Brand that identifies the split up route parts */
-	readonly [routePartsBrand]: Array<string | RouteParameter>
-	/** `true` if this route's pattern includes any {@link Parameter}s. */
-	readonly hasParameterTokens: boolean
-	/** `true` if this route's pattern ends with a {@link wildcard} parameter. */
-	readonly hasWildcard: boolean
-
+	readonly resolve: RouteResolver<T['parameters']>
 	/**
 	 * Simplified api, combination of previous match, patternMatchFrom and matchFrom
 	 * @todo redoc
@@ -184,20 +151,7 @@ export function route<const T extends RouteParameter[]>(
 
 	const errors = validatePattern(strings, values)
 	dev.logRouteErrors?.(errors)
-
-	if (errors.length > 0) {
-		return (({ resolve }) => ({
-			[routeBrand]: true,
-			[errorBrand]: true,
-			[tokenTypes]: [] as unknown as FilterOutParent<T>,
-			[parentType]: undefined as never,
-			[routePartsBrand]: [],
-			resolve,
-			hasParameterTokens: false,
-			hasWildcard: false,
-			match: async () => ({ success: false }),
-		})) as RouteBuilder<T>
-	}
+	if (errors.length > 0) return errorRoute<T>()
 
 	const parent = values.length > 0 && isRoute(values[0]) ? values[0] : undefined
 	const routeParts = zipTemplateParts(strings, values)
@@ -211,20 +165,32 @@ export function route<const T extends RouteParameter[]>(
 		const match = routeMatcher<T>(routeParts)
 
 		return {
-
-			[routeBrand]: true,
-
-			[tokenTypes]: values.filter(value => !isParameterToken(value)) as FilterOutParent<T>,
-			[parentType]: parent as T extends { parent: infer P extends Route<any> } ? P : never,
-
-			[routePartsBrand]: routeParts,
-
+			[routeMetaData]: {
+				tokenTypes: values.filter(value => !isParameterToken(value)) as FilterOutParent<T>,
+				parentType: parent as T extends { parent: infer P extends Route<any> } ? P : never,
+				hasParameterTokens: values.length > 0,
+				hasWildcard,
+				routeParts,
+			} satisfies RouteMetadata<any>,
 			resolve,
-
-			hasParameterTokens: values.length > 0,
-			hasWildcard,
-
 			match
 		}
 	}) as RouteBuilder<T>
+}
+
+const errorRoute_ = (({ resolve }: { resolve: RouteResolver<any>} ) => ({
+	[routeMetaData]: {
+		tokenTypes: [] as unknown as FilterOutParent<any>,
+		parentType: undefined as never,
+		hasParameterTokens: false,
+		hasWildcard: false,
+		hasErrors: true,
+		routeParts: [],
+	} satisfies RouteMetadata<any>,
+	resolve,
+	match: async () => ({ success: false }),
+})) as unknown as RouteBuilder<any>
+
+function errorRoute<const T extends RouteParameter[]>(): RouteBuilder<T> {
+	return errorRoute_ as RouteBuilder<T>
 }

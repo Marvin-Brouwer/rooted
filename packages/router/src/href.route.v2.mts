@@ -3,6 +3,7 @@ import type { TokenMatchResult } from './route.tokens.v2.mts'
 import * as tokens from './route.tokens.v2.mts'
 import type { Route, RouteParameterDictionary } from './route.v2.mts'
 import * as route_ from './route.v2.mts'
+import { routeMetaData } from './route.metadata.v2.mts'
 
 /**
  * Utility to generate an absolute path back from the route definition
@@ -31,7 +32,7 @@ export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, para
 	function buildUrl() {
 		let url = ''
 
-		for (const part of route[route_.routePartsBrand]) {
+		for (const part of route[routeMetaData].routeParts) {
 			if (route_.isRoute(part)) {
 				url += buildPathForRoute(part, parameters as RouteParameterDictionary<typeof part>)
 				continue
