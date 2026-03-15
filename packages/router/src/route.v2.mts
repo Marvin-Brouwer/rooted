@@ -158,8 +158,6 @@ export function route<const T extends RouteParameter[]>(
 
 	return (({ resolve }) => {
 
-		// TODO now we validate the parent route in the router and here, is there a smart caching solution?
-
 		const lastValue = values.at(-1)
 		const hasWildcard = !!lastValue && isWildcardParameter(lastValue as Parameter)
 		const match = routeMatcher<T>(routeParts)
