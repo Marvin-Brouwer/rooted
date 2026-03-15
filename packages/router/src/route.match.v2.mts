@@ -44,7 +44,7 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 				if (!result.success) return tupleResult.error(`Path did not match Parent`)
 
 				parentParameters = result.tokens
-
+				offset += result.length
 				continue
 			}
 
