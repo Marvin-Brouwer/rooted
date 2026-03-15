@@ -40,7 +40,7 @@ export const CategoryRoute = route`${CategoriesRoute}/${token('slug', String)}/`
 })
  */
 
-import packageJson from '../../package.json' assert { is: 'json' }
+import packageJson from '../../package.json' with { is: 'json' }
 
 const pluginName = 'vite-plugin:generate-rooted-route-manifest'
 
