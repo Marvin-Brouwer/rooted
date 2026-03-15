@@ -1,6 +1,7 @@
 import type { create } from '@rooted/components/elements'
 import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter, token, wildcard } from './route.tokens.v2.mts'
 import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.v2.mts'
+import { dev } from './dev-helper.v2.mts'
 
 /** The typed path token descriptors declared with {@link token}. */
 export const tokenTypes: unique symbol = Symbol.for('rooted:typed-parameter')
@@ -11,6 +12,8 @@ export const parentType: unique symbol = Symbol.for('rooted:parent-route')
 export const routeBrand: unique symbol = Symbol.for('rooted:route')
 /** Internal brand that identifies the split up route parts. */
 export const routePartsBrand: unique symbol = Symbol.for('rooted:routeParts')
+/** Internal brand that marks a route as invalid due to pattern errors. */
+export const errorBrand: unique symbol = Symbol.for('rooted:route-error')
 
 /** Returns `true` if `token` is a {@link WildcardParameter}. */
 export function isRoute<T extends Parameter[]>(instance: unknown): instance is Route<RouteParameters<T>>
@@ -102,6 +105,8 @@ export type Route<T extends RouteParameters<Parameter[]>> = {
 
 	/** Brand that identifies this object as a {@link Route}. */
 	readonly [routeBrand]: true
+	/** Set to `true` when the route pattern has validation errors. Filtered out by the router. */
+	readonly [errorBrand]?: true
 	/** Brand that identifies the split up route parts */
 	readonly [routePartsBrand]: Array<string | RouteParameter>
 	/** `true` if this route's pattern includes any {@link Parameter}s. */
@@ -133,12 +138,22 @@ export function route<const T extends RouteParameter[]>(
 	strings: TemplateStringsArray, ...values: T
 ): RouteBuilder<T> {
 
-	// TODO dev.validatePatternV2?.(strings, values as unknown as ParameterToken[])
-	// A better option: 2 parts, validate the pattern, return invalid route if any errors
-	// How this invalid route looks like isn't determined yet, either way the manifest should pass it through and the router should
-	// know to ignore it.
-	// Perhaps returning an Error instead of a route will work, perhaps an invalid route type is also fine.
-	// dev.logRouteWarnings.(warnings)
+	const errors = dev.validatePattern?.(strings, values) ?? []
+	dev.logRouteErrors?.(errors)
+
+	if (errors.length > 0) {
+		return (({ resolve }) => ({
+			[routeBrand]: true,
+			[errorBrand]: true,
+			[tokenTypes]: [] as unknown as FilterOutParent<T>,
+			[parentType]: undefined as never,
+			[routePartsBrand]: [],
+			resolve,
+			hasParameterTokens: false,
+			hasWildcard: false,
+			match: async () => ({ success: false }),
+		})) as RouteBuilder<T>
+	}
 
 	const parent = values.length > 0 && isRoute(values[0]) ? values[0] : undefined
 	const routeParts = zipTemplateParts(strings, values)
