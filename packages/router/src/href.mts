@@ -67,14 +67,14 @@ export class Url extends HrefBase {
 	}
 
 	public get path() { return Path.fromUrl(this.url) }
-	public get host() { return super.url.host }
-	public get hostName() { return super.url.hostname }
-	public get origin() { return super.url.origin }
-	public get protocol() { return super.url.protocol }
-	public get port() { return Number(super.url.port) }
+	public get host() { return this.url.host }
+	public get hostName() { return this.url.hostname }
+	public get origin() { return this.url.origin }
+	public get protocol() { return this.url.protocol }
+	public get port() { return Number(this.url.port) }
 
-	public get user() { return super.url.username.length === 0 ? undefined : super.url.username }
-	public get password() { return super.url.password.length === 0 ? undefined : super.url.password }
+	public get user() { return this.url.username.length === 0 ? undefined : this.url.username }
+	public get password() { return this.url.password.length === 0 ? undefined : this.url.password }
 }
 
 /** Constructs a {@link Url} from a string. @__PURE__ */
@@ -87,7 +87,7 @@ export function path(href: string) {
 	return Path.fromString(href)
 }
 
-const multiSlashPattern = /[\/{2,}\\*]/gmis
+const multiSlashPattern = /\/{2,}/g
 
 /**
  * Joins one or more {@link Path} segments onto a {@link Url} or {@link Path} base,
@@ -141,11 +141,11 @@ export function forAny<TRoute extends Route<any>>(route: TRoute, parameters: Rou
 export function forAny(target: Route<any> | URL | Location | Url | Path, dictionary?: NoInfer<PathParameterDictionary<any>>): HrefBase {
 
 	if (target instanceof URL) return Url.fromUrl(target)
-	if (target instanceof Location) return Url.fromLocation(target)
 	if (target instanceof Url) return target
 	if (target instanceof Path) return target
+	if (typeof Location !== 'undefined' && target instanceof Location) return Url.fromLocation(target)
 
-	return Path.fromString(buildPathForRoute(target, dictionary!))
+	return Path.fromString(buildPathForRoute(target as Route<any>, dictionary!))
 }
 
 /** Returns a {@link Path} representing the current `location.pathname`. @__PURE__ */

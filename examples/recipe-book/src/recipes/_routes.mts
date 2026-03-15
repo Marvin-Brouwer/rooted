@@ -1,4 +1,8 @@
 import { route, token } from '@rooted/router'
-import { Recipe } from './recipe.mjs'
 
-export const RecipeRoute = route`/recipe/${token('id', Number)}/`(Recipe)
+export const RecipeRoute = route`/recipe/${token('id', Number)}/`({
+	async resolve({ create, tokens }) {
+		const { Recipe } = await import('./recipe.mts')
+		return  create(Recipe, { id: tokens.id })
+	}
+})

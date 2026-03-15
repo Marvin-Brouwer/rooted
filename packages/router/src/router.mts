@@ -1,7 +1,7 @@
 import { Component, component, GenericComponent } from '@rooted/components'
 import { Route, route } from './route.mts'
 import { isRoute, routeMetaData } from './route.metadata.mts'
-import { dev } from './dev-helper.v2.mts'
+import { dev } from './dev-helper.mts'
 import { create } from '@rooted/components/elements'
 import * as href from './href.mts'
 import { RouteMatch } from './route.match.mts'

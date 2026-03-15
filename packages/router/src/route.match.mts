@@ -87,13 +87,14 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 		if (target instanceof href.Path) return target
 		if (target instanceof href.Url) return target.path
 		if (target instanceof URL) return href.forAny(target).path
-		if (target instanceof Location) return href.forAny(target).path
+		if (typeof Location !== 'undefined' && target instanceof Location) return href.forAny(target).path
 
 		return href.current()
 	}
 
 	async function match(options?: MatchRouteOptions): Promise<RouteMatch<FilterOutParent<T>>> {
 
+		href ??= await import('./href.mts')
 		const path = getPath(options?.target)
 		const checkInclusive = options?.checkInclusive ?? true
 

@@ -1,10 +1,9 @@
 import styles from './category.css?inline'
 import { component } from '@rooted/components'
-import { type GateParameters, Link } from '@rooted/router'
-import { type CategoryRoute } from './_routes.mts'
+import { Link } from '@rooted/router'
 
 export type CategoryOptions = {
-	gate: GateParameters<typeof CategoryRoute>
+	slug: string
 }
 
 export const Category = component<CategoryOptions>({
@@ -12,7 +11,7 @@ export const Category = component<CategoryOptions>({
 	styles,
 	async onMount({ append, create, options }) {
 		const { categories } = await import('../_shared/data/data.mts')
-		const { slug } = options.gate
+		const { slug } = options
 
 		const category = categories.find(c => c.slug === slug)
 		const categoryname = category ? category.label : String(slug)

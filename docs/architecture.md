@@ -183,11 +183,9 @@ If `onMount` throws (or its returned `Promise` rejects), rooted logs a `console.
 
 ### Router dev warnings
 
-The router dev helper adds two additional warnings:
+The router dev helper adds an additional warning:
 
-- **Duplicate gate** — a gate object registered under more than one key in `router({ ... })`. The duplicate is silently ignored (first-wins) but warned.
-- **Exact without children** — a gate marked `.exact` but no child gate has been `.append()`-ed to it. Such a gate will never render.
-- **Exact but no subroute** — a `.exact` gate whose pattern matches the current path but there is no additional path segment to satisfy the "exact requires more" condition.
+- **Duplicate route** — a route object registered under more than one key in `router({ ... })`. The duplicate is silently ignored (first-wins) but warned in development.
 
 ---
 
@@ -197,21 +195,23 @@ The router is a plain `Component` that mounts all registered gates and independe
 
 ### Gates are self-managing
 
-Each gate produced by `gate()` is itself a component. When it mounts, it attaches a `popstate` listener and calls its own `update()` function:
+Each gate produced by `gate()` is itself a component. When it mounts, it attaches a `popstate` listener and calls its own `checkGate()` function:
 
 ```mermaid
 flowchart LR
     popstate["popstate event"]
-    update["update()"]
-    match["matchFrom(location.pathname)"]
-    decision{"match?"}
-    append["append(innerComponent, { gate: params })"]
-    remove["element.remove()"]
+    check["checkGate()"]
+    match["route.match()"]
+    decision{"match.success?"}
+    render["renderFn(match.tokens) → Element(s)"]
+    append["append(...elements)"]
+    remove["elements.remove()"]
 
-    popstate  --> update
-    update    --> match
+    popstate  --> check
+    check     --> match
     match     --> decision
-    decision  -->|yes| append
+    decision  -->|yes| render
+    render    --> append
     decision  -->|no| remove
 ```
 
@@ -225,20 +225,6 @@ This means the router doesn't need to know about URL changes — each gate react
 
 Gates are compared by **object identity** (`===`). If the same gate object appears under multiple keys in the router config, only the first entry is used. This is intentional: when using the Vite manifest plugin, the aggregator re-exports all gates, and spreading the same module twice would otherwise register duplicate listeners.
 
-### `exact` semantics
+### Parent → child token merging
 
-A gate marked `.exact` matches the URL pattern but renders its component only when the URL has **additional path segments beyond the pattern**:
-
-```
-Pattern:  /articles/${id}/
-exact?    yes
-
-/articles/123/           → no render (exact, no subroute)
-/articles/123/comments/  → renders (has subroute)
-```
-
-The implementation checks `result.end < location.pathname.length` after a successful match. If that is false (the match consumed the entire path) and `exact` is true, the gate does not render.
-
-### Parent → child param merging
-
-Child gates produced by `.append()` build on a parent `UnboundGateDefinition`. `ownMatchFrom` first delegates to the parent's `matchFrom`, then runs its own match starting at the parent's end position. The resulting `params` objects are merged (`{ ...parentResult.params, ...ownResult.params }`) so child components receive a flat record of all URL parameters from both levels.
+When a child route interpolates a parent route (`route\`${ParentRoute}${token('id', Number)}/\``), the route matcher evaluates the parent pattern first and merges its tokens with the child's own tokens. The `resolve` function and the gate render function both receive a single flat dictionary containing all tokens from both levels.

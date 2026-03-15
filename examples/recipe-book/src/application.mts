@@ -25,7 +25,7 @@ export const Application = component({
 			children: [
 				create(NavigationMenu),
 				create('main', {
-					children: create(Router),
+					children: Router,
 				}),
 			],
 		}))

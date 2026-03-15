@@ -1,7 +1,7 @@
 import type { create } from '@rooted/components/elements'
 import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter, token, wildcard } from './route.tokens.mts'
 import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.mts'
-import { dev } from './dev-helper.v2.mts'
+import { dev } from './dev-helper.mts'
 import { routeMetaData, type RouteMetadata, isRoute } from './route.metadata.mts'
 
 type ConvertPathParameters<T extends readonly Parameter[]> = {
@@ -150,7 +150,7 @@ function validatePattern(strings: TemplateStringsArray, values: readonly RoutePa
 				errors.push(new Error(`Route interpolation must be at the start of the pattern: "${pattern}"`))
 			if (strings[0] !== '')
 				errors.push(new Error(`Route interpolation must have no preceding text — use route\`\${ParentRoute}/...\`: "${pattern}"`))
-			if (!strings[1]?.startsWith('/'))
+			if (strings[1] !== '' && !strings[1]?.startsWith('/'))
 				errors.push(new Error(`Route interpolation must be followed by a slash: "${pattern}"`))
 		}
 		if (isParameterToken(v) && isWildcardParameter(v as Parameter)) {
