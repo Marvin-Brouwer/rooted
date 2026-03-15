@@ -20,10 +20,18 @@ function isSuccess<T>(value: TupleResult<T>): value is SuccessTuple<T> {
 function isError<T>(value: TupleResult<T>): value is ErrorTuple {
 	return value.length == 3 && value[0] === false
 }
+function value<T>(tupleResult: ErrorTuple): Error
+function value<T>(tupleResult: SuccessTuple<T>): T
+function value<T>([success, value, error]: TupleResult<T>): T | Error {
+
+	if(!success) return error
+	return value
+}
 
 export const tupleResult = {
 	success,
 	isSuccess,
 	error,
-	isError
+	isError,
+	value
 }

@@ -1,5 +1,8 @@
-import { Component, GenericComponent } from '@rooted/components'
-import { Route } from './route.v2.mts'
+import { Component, component, GenericComponent } from '@rooted/components'
+import { isRoute, Route, route, RouteParameterDictionary } from './route.v2.mts'
+import { create } from '@rooted/components/elements'
+import * as href from './href.mts'
+import { RouteMatch } from './route.match.v2.mts'
 
 /**
  * Configuration object passed to {@link router}.
@@ -19,9 +22,7 @@ type RouterConfig = {
  *
  * @todo doc
  */
-export type RouterCompatibleRoute<G> = G extends Route<infer T>
-	? ([T] extends [never] ? Route<T> : never)
-	: never
+export type RouterCompatibleRoute<G> = G extends Route<any> ? G : never
 
 /**
  * The validated version of a {@link RouterConfig}.
@@ -36,13 +37,116 @@ export type ValidatedRouterConfig<T extends RouterConfig> = {
 }
 
 export function router<const T extends RouterConfig>(config: ValidatedRouterConfig<T>): GenericComponent {
-    // 1. collect Route<any> entries (using isRoute from route.v2.mts), deduplicate
-    // 2. component onMount:
-    //    - on update(): run all route.match() concurrently (Promise.all)
-    //    - pick the single successful match (or highest `end` on wildcard tie)
-    //    - mount/unmount via append(create(route.component, { path: tokens }))
-    //    - handle home (`/`) and notFound as before
-    //    - listen to popstate
 
-	throw new Error('not yet implemented')
+	const { home: homeComponent, notFound: notFoundComponent, ...userRoutes } = config
+	const routes = [
+		route`/`(homeComponent),
+		...Object.values(userRoutes).filter(isRoute)
+	]
+
+	// TODO dev.validateDuplicateRoutes?.(config)
+
+	return create(Router, { routes, fallback: notFoundComponent })
+}
+
+type RouterProps = {
+	routes: Array<RouterCompatibleRoute<any>>,
+	fallback: Component
+}
+const Router = component<RouterProps>({
+	name: 'rooted:router',
+	async onMount({ append, create, signal, options }) {
+
+        let activeEl: GenericComponent | undefined = undefined
+		let lastPath: string | undefined
+
+		const cache = new Map<string, undefined | FilterRoutesResult>()
+
+		function renderRoute(component: Component | undefined, tokens: RouteParameterDictionary<Route<any>>) {
+			activeEl = activeEl?.remove() ?? undefined
+			if (component) {
+				activeEl = append(create(component, { tokens }))
+			} else {
+				activeEl = append(create(options.fallback))
+			}
+		}
+
+		async function update() {
+			const target = href.current();
+
+			if (target.pathOnly === lastPath) return
+			lastPath = target.pathOnly
+
+			if (cache.has(target.pathOnly)) {
+				const { route, match } = cache.get(target.pathOnly)!
+				return renderRoute(route.component, match.tokens)
+			}
+
+			const matchRouteResult = await matchRoute(target, options.routes)
+			if (!matchRouteResult) {
+				cache.set(target.pathOnly, undefined)
+				return renderRoute(undefined, { })
+			}
+
+			cache.set(target.pathOnly, matchRouteResult)
+			return renderRoute(
+				matchRouteResult.route.component,
+				matchRouteResult.match.tokens
+			)
+		}
+
+		window.addEventListener('popstate', update, { signal })
+		update()
+	}
+})
+
+type SuccessRouteMatch = RouteMatch<any> & { success: true }
+type FilterRoutesResult = { route: Route<any>, match: SuccessRouteMatch }
+
+type FilterRouteResult =
+    | { kind: 'no-match' }
+    | { kind: 'suppressed'; patternLength: number }
+    | { kind: 'matched'; match: SuccessRouteMatch }
+
+async function filterRoute(route: Route<any>, target: href.Path): Promise<FilterRouteResult> {
+    const patternMatch = await route.match({ target, applyFilters: false })
+    if (!patternMatch.success) return { kind: 'no-match' }
+
+    const routeMatch = await route.match({ target, applyFilters: true })
+    if (!routeMatch.success) return { kind: 'suppressed', patternLength: patternMatch.length }
+
+    return { kind: 'matched', match: routeMatch }
+}
+
+async function matchRoute(target: href.Path, routes: Route<any>[]) {
+
+	// Find the best filtered route in parallel
+    const results = await Promise.all(routes.map(async route => ({
+        route,
+        result: await filterRoute(route, target)
+    })))
+
+    let best: FilterRoutesResult | undefined
+    let highestSuppressedLength = -1
+
+    for (const { route, result } of results) {
+        if (result.kind === 'suppressed') {
+            highestSuppressedLength = Math.max(highestSuppressedLength, result.patternLength)
+            continue
+        }
+        if (result.kind !== 'matched') continue
+
+        if (!best || result.match.length > best.match.length) {
+            best = { route, match: result.match }
+            continue
+        }
+        // Equal length: non-wildcard beats wildcard (more specific wins)
+        if (result.match.length === best.match.length && !route.hasWildcard && best.route.hasWildcard) {
+            best = { route, match: result.match }
+        }
+    }
+
+    // Suppression: a longer structural match was filtered — treat as no match
+    if (best && highestSuppressedLength > best.match.length) return undefined
+    return best
 }
