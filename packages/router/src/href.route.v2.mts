@@ -59,6 +59,5 @@ export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, para
 	}
 
 	const urlResult = buildUrl()
-	if (tupleResult.isError(urlResult)) throw tupleResult.value(urlResult)
-	return tupleResult.value(urlResult)
+	return tupleResult.unTuple(urlResult)
 }
