@@ -110,8 +110,6 @@ type WildcardParameter<K extends string> = Parameter<K, Wildcard>
 
 export function wildcard<K extends string = 'rest'>(name = 'rest' as K): Parameter<K, Wildcard> {
 
-	// TODO either handle wildcard differently in router, or also post the entire route to match, or pass the current position to match
-
 	function match(value: string): TokenMatchResult<Wildcard> {
 		return tupleResult.success(value as Wildcard)
 	}

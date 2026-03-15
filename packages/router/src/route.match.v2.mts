@@ -36,20 +36,12 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 
 		for (const part of routeParts) {
 			if (typeof part === 'string') {
-				if (part !== path.pathOnly.slice(offset, part.length)) return tupleResult.error(`Path did not match '${part}'`)
+				if (part !== path.pathOnly.slice(offset, offset + part.length)) return tupleResult.error(`Path did not match '${part}'`)
 				offset += part.length
 				continue
 			}
 
 			if (!isParameterToken(part)) {
-				// TODO do we want this recursive approach, or should this be the routers responsibility,
-				// if we move this to the router, the route simplifies, however,
-				// this means gates have no way of accessing parent parameters.
-				// Perhaps a route.getParameters(url|location|path) would help here?
-				// That way a gate will either show or not, but we no longer have to forward the parent route params
-				// and maybe a gate will also have gate.getParameters(url|location|path), in case a route is not exported and only used in a gate?
-				// On the other hand, this recursive approach is simpler for the user.
-				// Either way route.match and href.for should either both support including parent params or neither
 				const result = await part.match({ target: path.pathOnly.slice(offset), checkInclusive: false })
 				if (!result.success) return tupleResult.error(`Path did not match Parent`)
 
@@ -59,10 +51,12 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 			}
 
 			const nextPart = path.pathOnly.slice(offset)
-			const [success, result, error] = part.match(nextPart.slice(0, nextPart.indexOf('/'))) as TokenMatchResult<any>
+			const segment = nextPart.slice(0, nextPart.indexOf('/'))
+			const [success, result, error] = part.match(segment) as TokenMatchResult<any>
 			if (success === false) return tupleResult.error(error)
 
 			parameters[part.key as keyof typeof parameters] = result
+			offset += segment.length
 		}
 
 		if (checkInclusive && path.pathOnly.slice(offset) !== '') return tupleResult.error('Route was longer than path')
