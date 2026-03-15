@@ -72,14 +72,14 @@ function getMatcher<T extends ParameterType>(type: T) {
 
 	if (type === Number) return (value: string | number): TokenMatchResult<Number> => {
 		const numberValue = +value
-		if (Number.isNaN(numberValue)) tupleResult.error(new Error(`"${value}" is not a number`))
+		if (Number.isNaN(numberValue)) return tupleResult.error(new Error(`"${value}" is not a number`))
 		return tupleResult.success(numberValue)
 	}
 
 	if (type === Date) return (value: string | Date): TokenMatchResult<Date> => {
 		try {
 			const dateValue = (value instanceof Date) ? value : new Date(value)
-			if (Number.isNaN(dateValue.getTime())) tupleResult.error(new Error(`"${value}" is not a valid date`))
+			if (Number.isNaN(dateValue.getTime())) return tupleResult.error(new Error(`"${value}" is not a valid date`))
 			return tupleResult.success(dateValue)
 		} catch (error) {
 			return tupleResult.error(error)
