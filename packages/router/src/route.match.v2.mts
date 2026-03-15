@@ -50,10 +50,10 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 
 			const nextPart = path.pathOnly.slice(offset)
 			const segment = nextPart.slice(0, nextPart.indexOf('/'))
-			const [success, result, error] = part.match(segment) as TokenMatchResult<any>
-			if (success === false) return tupleResult.error(error)
+			const matchResult = part.match(segment) as TokenMatchResult<any>
+			if (tupleResult.isError(matchResult)) return matchResult
 
-			parameters[part.key as keyof typeof parameters] = result
+			parameters[part.key as keyof typeof parameters] = tupleResult.value(matchResult)
 			offset += segment.length
 		}
 
@@ -80,10 +80,10 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 		if (tupleResult.isError(pathMatch)) return {
 			success: false
 		}
-		const [success, [tokens, offset]] = pathMatch
+		const [tokens, offset] = tupleResult.value(pathMatch)
 
 		return {
-			success,
+			success: true,
 			tokens,
 			length: offset
 		}

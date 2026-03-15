@@ -48,8 +48,7 @@ export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, para
 				// Feed through the matcher again to validate the value
 				const result = part.match(parameters[part.key as keyof typeof parameters] as any) as TokenMatchResult<any>
 				if (tupleResult.isError(result)) return result
-				const [, value] = result
-				url += value
+				url += tupleResult.value(result)
 				continue
 			}
 
@@ -59,7 +58,7 @@ export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, para
 		return tupleResult.success(url)
 	}
 
-	const [success, value, error] = buildUrl()
-	if (!success) throw error
-	return value
+	const urlResult = buildUrl()
+	if (tupleResult.isError(urlResult)) throw tupleResult.value(urlResult)
+	return tupleResult.value(urlResult)
 }
