@@ -23,7 +23,6 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 	// This import caused circular references
 	let href: typeof import('./href.mts')
 
-	// TODO, maybe this should be a cursor style check?
 	async function matchUrlPath(path: Path, checkInclusive: boolean) {
 
 		href ??= await import('./href.mts')

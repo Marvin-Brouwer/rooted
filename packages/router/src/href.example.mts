@@ -14,7 +14,10 @@ type FakeComponentType = Component<{
 	}
 }>
 const FakeComponent: FakeComponentType = null!
-const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`(FakeComponent)
+const r = route`/start/${token('id', Number)}/${token('time', Date)}/example/`({
+	resolve() {
+		return FakeComponent
+	})
 const cr = route`/${r}/next/${token('id2', String)}/${token('doThing', Boolean)}/example/${wildcard()}/`(FakeComponent)
 
 
