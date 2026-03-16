@@ -1,4 +1,4 @@
-import { route, token } from '@rooted/router'
+import { route, token } from '@rooted/router/routes'
 
 export const CategoriesRoute = route`/categories/`({
 	async resolve({ create }) {

@@ -31,6 +31,14 @@
 			"import": "./dist/router.mjs",
 			"types": "./dist/router.d.mts"
 		},
+		"./application": {
+			"import": "./dist/application.mjs",
+			"types": "./dist/application.d.mts"
+		},
+		"./routes": {
+			"import": "./dist/application.mjs",
+			"types": "./dist/application.d.mts"
+		},
 		"./manifest": {
 			"import": "./dist/manifest.mjs",
 			"types": "./dist/manifest.d.mts"

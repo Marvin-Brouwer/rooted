@@ -2,7 +2,7 @@ import styles from './application.css?inline'
 
 import { application } from '@rooted/components/application'
 import { component } from '@rooted/components'
-import { router } from '@rooted/router'
+import { router } from '@rooted/router/application'
 
 import { appRoutes } from './_routes.g.mts'
 import { HomePage } from './navigation/home.mts'

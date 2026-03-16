@@ -99,7 +99,7 @@ export function generateRouteManifest(options: Options): Plugin {
 			` * Updates automatically in watch mode.`,
 			' */',
 			'',
-			`import { RouteDefinition } from '@rooted/router'`,
+			`import type { RouteDefinition } from '@rooted/router'`,
 			'',
 			...files.map((file) => {
 				const rel = relative(rootDir, resolve(config.root, file))
@@ -107,15 +107,15 @@ export function generateRouteManifest(options: Options): Plugin {
 				return `/** @__PURE__ */ import * as gate_${getFileId(file)} from '${importPath.split('\\').join('/')}'`
 			}),
 			'',
-			'/** @__PURE__ */ type RouteModule = RouteDefinition<unknown, Array<unknown>>',
-			'/** @__PURE__ */ type RouteModules = Record<string, RouteModule>',
+			'/** @__PURE__ */ type RouteModule = RouteDefinition<unknown, Array<unknown>>;',
+			'/** @__PURE__ */ type RouteModules = Record<string, RouteModule>;',
 			'',
 			'/** @__PURE__ */ function rename(gates: RouteModules, hash: string) {',
 			'\treturn Object.fromEntries(Object',
 			'\t\t.entries(gates)',
 			'\t\t.filter(([key]) => key !== `default`)',
 			'\t\t.map(([key, value]) => [`R${hash}_${key}`, value])',
-			'\t)',
+			'\t);',
 			'}',
 			'',
 			`/**`,
@@ -134,8 +134,8 @@ export function generateRouteManifest(options: Options): Plugin {
 			' *',
 			' * @__PURE__',
 			` */`,
-			`export const ${options.routeExport ?? 'appRoutes'}: RouteModules = /** @__PURE__ */ Object.freeze(Object.assign({},`,
-			...files.map((file) => `\trename(gate_${getFileId(file)}, '${getFileId(file)}'),`),
+			`export const ${options.routeExport ?? 'appRoutes'}: RouteModules = Object.freeze(/** @__PURE__ */ Object.assign({},`,
+			...files.map((file) => `\t/** @__PURE__ */ rename(gate_${getFileId(file)}, '${getFileId(file)}'),`),
 			`))`,
 			'',
 		]

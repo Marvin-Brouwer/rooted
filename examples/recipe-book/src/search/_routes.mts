@@ -1,4 +1,4 @@
-import { route, wildcard } from '@rooted/router'
+import { route, wildcard } from '@rooted/router/routes'
 
 export const SearchRoute = route`/search/${wildcard('query')}/`({
 	async resolve({ create }) {
