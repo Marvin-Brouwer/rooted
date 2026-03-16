@@ -1,7 +1,7 @@
 import styles from './recipe.css?inline'
 import { component, ComponentContext } from '@rooted/components'
 import { Link } from '@rooted/router'
-import { type Recipe as DataRecipe } from '../_shared/data/data.mts'
+import { type RecipeData as DataRecipe } from '../_shared/data/data.mts'
 
 export type RecipeOptions = {
 	id: number

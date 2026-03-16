@@ -2,7 +2,7 @@ import styles from './categories.css?inline'
 import { component, type ComponentContext, cssClass } from '@rooted/components'
 import { gate, Link } from '@rooted/router'
 import { CategoryRoute } from './_routes.mts'
-import { type Category as DataCategory } from '../_shared/data/data.mts'
+import { type CategoryData } from '../_shared/data/data.mts'
 import { Category } from './category.mts'
 
 export const Categories = component({
@@ -19,7 +19,7 @@ export const Categories = component({
 	},
 })
 
-async function routeSelected(category: DataCategory): Promise<boolean> {
+async function routeSelected(category: CategoryData): Promise<boolean> {
 	const match = await CategoryRoute.match({ target: location.href })
 	if (!match.success) return false
 	return match.tokens.slug === category.slug

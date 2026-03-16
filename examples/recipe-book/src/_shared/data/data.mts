@@ -8,7 +8,7 @@ import enchiladasData from '../content/chicken-enchiladas.md'
 import cremeBruleeData from '../content/creme-brulee.md'
 import stickyToffeeData from '../content/sticky-toffee-pudding.md'
 
-export type Recipe = {
+export type RecipeData = {
 	id: number
 	title: string
 	category: string
@@ -22,7 +22,7 @@ export type Recipe = {
 	html: string
 }
 
-export const recipes: Recipe[] = [
+export const recipes: RecipeData[] = [
 	{ id: 1, ...pastaData },
 	{ id: 2, ...tikkaData },
 	{ id: 3, ...lavaData },
@@ -34,17 +34,18 @@ export const recipes: Recipe[] = [
 	{ id: 9, ...stickyToffeeData },
 ]
 
-export type Category = {
+export type CategoryData = {
 	slug: string
 	label: string
-	recipes: Recipe[]
+	recipes: RecipeData[]
 }
 
 function toLabel(slug: string): string {
 	return slug.charAt(0).toUpperCase() + slug.slice(1)
 }
 
-export const categories: Category[] = [...new Set(recipes.map(r => r.category))]
+export const categories: CategoryData[] = recipes
+	.map(r => r.category)
 	.map(slug => ({
 		slug,
 		label: toLabel(slug),

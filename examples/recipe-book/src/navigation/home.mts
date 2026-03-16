@@ -2,7 +2,7 @@ import styles from './home.css?inline'
 
 import { component, ComponentContext } from '@rooted/components'
 import { Link } from '@rooted/router'
-import { type Recipe } from '../_shared/data/data.mts'
+import { type RecipeData } from '../_shared/data/data.mts'
 
 export const HomePage = component({
 	name: 'home-page',
@@ -34,7 +34,7 @@ async function grid(create: ComponentContext<typeof HomePage>['create']) {
 	})
 }
 
-function card(create: ComponentContext<typeof HomePage>['create'], recipe: Recipe): Node[] {
+function card(create: ComponentContext<typeof HomePage>['create'], recipe: RecipeData): Node[] {
 	return [
 		create('div', { classes: 'card-title', textContent: recipe.title }),
 		create('p', { classes: 'card-desc', textContent: recipe.description }),
