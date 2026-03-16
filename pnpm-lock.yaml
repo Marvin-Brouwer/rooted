@@ -90,6 +90,13 @@ importers:
       '@rooted/util':
         specifier: workspace:^
         version: link:../util
+    devDependencies:
+      '@rooted/tsup':
+        specifier: workspace:*
+        version: link:../../tooling/tsup
+      vite:
+        specifier: ^6.4.1
+        version: 6.4.1(@types/node@22.19.15)(terser@5.46.0)
 
   packages/router:
     dependencies:
@@ -103,6 +110,9 @@ importers:
         specifier: ^0.2.0
         version: 0.2.15
     devDependencies:
+      '@rooted/tsup':
+        specifier: workspace:*
+        version: link:../../tooling/tsup
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.15
@@ -111,6 +121,19 @@ importers:
         version: 6.4.1(@types/node@22.19.15)(terser@5.46.0)
 
   packages/util: {}
+
+  tooling/tsup:
+    dependencies:
+      typescript:
+        specifier: '>=5.0.0'
+        version: 5.9.3
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.15
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(postcss@8.5.8)(typescript@5.9.3)
 
 packages:
 

@@ -1,13 +1,14 @@
 import { component } from '@rooted/components'
 import { navigate } from './navigation.mts'
 import { CssClasses } from '@rooted/components/elements'
+import { Path, Url } from './href.mts'
 
 /**
  * Options for {@link Link}.
  */
 export type LinkOptions = {
 	/** The destination URL passed to {@link navigate} on click. */
-	href: string
+	href: string | Url | Path
 	/** CSS class name applied to the rendered `<a>` element. */
 	classes?: CssClasses
 	/**
@@ -55,16 +56,25 @@ export type LinkOptions = {
  * @see {@link LinkOptions}
  */
 export const Link = component<LinkOptions>({
-	name: 'rooted:navigation-link',
-	onMount({ options, append, signal }) {
-		const resolvedChildren =
-			typeof options.children === 'string'
-				? document.createTextNode(options.children)
-				: options.children
-		const anchorElement = append('a', { href: options.href, children: resolvedChildren, classes: options.classes })
-		anchorElement.addEventListener('click', e => {
-			e.preventDefault()
+	name: '@rooted/navigation-link',
+	onMount({ options, append, create, signal }) {
+
+		function navigateToHref(event: PointerEvent) {
+			event.preventDefault()
 			navigate(options.href)
-		}, { signal })
+		}
+
+		append(
+			create('a', {
+				href: typeof options.href === 'string'
+					? options.href
+					: options.href.href,
+				children: typeof options.children === 'string'
+					? document.createTextNode(options.children)
+					: options.children,
+				classes: options.classes
+			})
+		)
+			.addEventListener('click', navigateToHref, { signal })
 	},
 })

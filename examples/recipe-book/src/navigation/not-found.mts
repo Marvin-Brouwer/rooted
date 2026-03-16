@@ -7,7 +7,9 @@ export const NotFoundPage = component({
 	name: 'not-found-page',
 	styles,
 	onMount({ append, create }) {
-		const wrap = append('div', { classes: 'not-found' })
+		const wrap = append(
+			create('div', { classes: 'not-found' })
+		)
 		wrap.append(
 			create('h1', { textContent: '404' }),
 			create('p', { textContent: 'Page not found.' }),

@@ -8,6 +8,4 @@ export default defineConfig({
 	dts: true,
 	clean: true,
 	sourcemap: 'inline',
-	shims: true,
-	cjsInterop: true,
 })

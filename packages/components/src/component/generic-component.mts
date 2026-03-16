@@ -90,16 +90,91 @@ export class GenericComponent extends RootedElement {
 			signal: this.abortController.signal
 		})
 
+		const base = this
+
+		function append<T extends Node | string | GenericComponent>(node: T): T
+		function append<T extends Node | string | GenericComponent>(...node: T[]): T[]
+		function append(...nodes: (Node | string | GenericComponent)[]): Node[]
+		function append(...nodes: (Node | string | GenericComponent)[]): Node[] | Node {
+
+			const realNodes = nodes.map(nodeOrString => {
+				return typeof nodeOrString === 'string'
+					? document.createTextNode(nodeOrString)
+					: nodeOrString as Node
+			})
+
+			base.append(...realNodes)
+
+			return nodes.length === 1
+				? realNodes[0]
+				: realNodes
+		}
+
+		function prepend<T extends Node | string | GenericComponent>(node: T): T
+		function prepend<T extends Node | string | GenericComponent>(...node: T[]): T[]
+		function prepend(...nodes: (Node | string | GenericComponent)[]): Node[]
+		function prepend(...nodes: (Node | string | GenericComponent)[]): Node[] | Node {
+
+			const realNodes = nodes.map(nodeOrString => {
+				return typeof nodeOrString === 'string'
+					? document.createTextNode(nodeOrString)
+					: nodeOrString as Node
+			})
+
+			base.prepend(...realNodes)
+
+			return nodes.length === 1
+				? realNodes[0]
+				: realNodes
+		}
+
+		function replace<T extends Node | string | GenericComponent>(node: T): T
+		function replace<T extends Node | string | GenericComponent>(...node: T[]): T[]
+		function replace(...nodes: (Node | string | GenericComponent)[]): Node[]
+		function replace(...nodes: (Node | string | GenericComponent)[]): Node[] | Node {
+
+			const realNodes = nodes.map(nodeOrString => {
+				return typeof nodeOrString === 'string'
+					? document.createTextNode(nodeOrString)
+					: nodeOrString as Node
+			})
+
+			base.replaceChildren(...realNodes)
+
+			return nodes.length === 1
+				? realNodes[0]
+				: realNodes
+		}
+
+		function remove<T extends Node | string | GenericComponent>(node: T): T
+		function remove<T extends Node | string | GenericComponent>(...node: T[]): T[]
+		function remove(...nodes: (Node | string | GenericComponent)[]): Node[]
+		function remove(...nodes: (Node | string | GenericComponent)[]): Node[] | Node {
+
+			const realNodes = nodes.map(nodeOrString => {
+				return typeof nodeOrString === 'string'
+					? document.createTextNode(nodeOrString)
+					: nodeOrString as Node
+			})
+
+			for (const node of realNodes)
+				base.removeChild(node)
+
+			return nodes.length === 1
+				? realNodes[0]
+				: realNodes
+		}
+
 		const context: ComponentContext<any> = {
 			signal: this.abortController.signal,
 			options,
 			create,
-			// TODO also prepend etc
-			append: ((...forwardParameters: Parameters<typeof create>) => {
-				const element = create(...forwardParameters)
-				this.append(element)
-				return element
-			}) as typeof create
+			append,
+			prepend,
+			insertBefore: base.insertBefore,
+			swap: base.replaceChild,
+			replace,
+			remove
 		}
 
 		const handleError = (error: unknown) => {

@@ -1,55 +1,62 @@
 import styles from './recipe.css?inline'
-import { component } from '@rooted/components'
-import { type GateParameters, Link } from '@rooted/router'
-import { recipes } from './_data.mts'
-import { type RecipeRoute } from './_routes.mts'
+import { component, ComponentContext } from '@rooted/components'
+import { Link } from '@rooted/router'
+import { type RecipeData as DataRecipe } from '../_shared/data/data.mts'
 
 export type RecipeOptions = {
-	gate: GateParameters<typeof RecipeRoute>
+	id: number
 }
 
 export const Recipe = component<RecipeOptions>({
 	name: 'recipe-detail',
 	styles,
-	onMount({ append, create, options }) {
-		const recipe = recipes.find(r => r.id === options.gate.id)
+	async onMount({ append, create, options }) {
+		const { recipes } = await import('../_shared/data/data.mts')
+		const recipe = recipes.find(r => r.id === options.id)
 
-		if (!recipe) {
+		if (!recipe) return void append(
+			create(Link, { href: '/categories/', classes: 'back-link', children: '← Browse' }),
+			create('div', {
+				classes: 'recipe-header',
+				children: create('h2', { textContent: 'No recipe' })
+			}),
+			create('p', { classes: 'not-found', textContent: 'Recipe not found.' })
+		)
 
-			append(Link, { href: '/categories/', classes: 'back-link', children: '← Browse' })
+		append(
+			create(Link, {
+				href: `/categories/${recipe.category}/`,
+				classes: 'back-link',
+				children: `← Back to ${recipe.category}`,
+			}),
+			create('div', {
+				classes: 'recipe-header',
+				children: [
+					create('h2', { textContent: recipe.title }),
+					create('ul', {
+						classes: 'recipe-meta',
+						children: meta(create, recipe)
+					})
+				]
+			}),
 
-			const header = append('div', { classes: 'recipe-header' })
-			header.append(create('h2', { textContent: 'No recipe' }))
-			append('p', { classes: 'not-found', textContent: 'Recipe not found.' })
-			return
-		}
-
-		const backHref = `/categories/${recipe.category}/`
-		append(Link, {
-			href: backHref,
-			classes: 'back-link',
-			children: `← Back to ${recipe.category}`,
-		})
-
-		const header = append('div', { classes: 'recipe-header' })
-		header.append(create('h2', { textContent: recipe.title }))
-
-		const meta = create('ul', { classes: 'recipe-meta' })
-		const badges = [
-			recipe.category,
-			`${recipe.servings} serving${recipe.servings !== 1 ? 's' : ''}`,
-			`Prep ${recipe.prepTime} min`,
-			`Cook ${recipe.cookTime} min`,
-			recipe.difficulty,
-		]
-		for (const text of badges) {
-			meta.append(create('li', { classes: 'meta-badge', textContent: text }))
-		}
-		header.append(meta)
-
-		// Render the markdown-converted HTML body.
-		// Safe: content originates from version-controlled markdown files.
-		const body = append('div', { classes: 'recipe-body' })
-		body.innerHTML = recipe.html
+			create('div', {
+				classes: 'recipe-body',
+				// Render the markdown-converted HTML body.
+				// Safe: content originates from version-controlled markdown files.
+				innerHTML: recipe.html
+			})
+		)
 	},
 })
+
+
+function meta(create: ComponentContext<typeof Recipe>['create'], recipe: DataRecipe) {
+	return [
+		create('li', { classes: 'meta-badge', textContent: recipe.category }),
+		create('li', { classes: 'meta-badge', textContent: `${recipe.servings} serving${recipe.servings !== 1 ? 's' : ''}` }),
+		create('li', { classes: 'meta-badge', textContent: `Prep ${recipe.prepTime} min` }),
+		create('li', { classes: 'meta-badge', textContent: `Cook ${recipe.cookTime} min` }),
+		create('li', { classes: 'meta-badge', textContent: recipe.difficulty }),
+	]
+}

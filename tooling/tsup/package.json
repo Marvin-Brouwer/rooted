@@ -1,0 +1,32 @@
+{
+	"name": "@rooted/tsup",
+	"private": true,
+	"version": "0.1.0",
+	"description": "rooted — tsup plugins for the build pipeline",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "tooling/tsup"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"sideEffects": false,
+	"files": [
+		"src",
+		"README.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"exports": {
+		".": "./src/_module.mts"
+	},
+	"peerDependencies": {
+		"typescript": ">=5.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^22.0.0",
+		"tsup": "^8.5.1"
+	}
+}

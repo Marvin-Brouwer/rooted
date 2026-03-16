@@ -1,20 +1,27 @@
-import { appendSourceLocation, isDevelopment } from '@rooted/util/dev'
+/// <reference path="../node_modules/vite/types/import-meta.d.ts" />
 
+import { appendSourceLocation, isDevelopment } from '@rooted/util/dev'
 import { ComponentConstructor, definedAt } from '../../components/src/component.mts'
 
 function validateComponentName(name: string): void {
-	// Component names are used as attribute names on the wrapper element (e.g. data-component="name")
-	// and as CSS attribute selectors, so we validate against attribute name rules.
 	try {
-		document.createElement('div').setAttribute(name, '')
-	} catch {
-		throw new Error(`Invalid component name "${name}".`)
+		document.createElement('div').setAttribute("component-name", name)
+	} catch (innerError) {
+		throw new Error(`Invalid component name '${name}'.`, {
+			cause: innerError
+		})
 	}
 }
 
 function componentNameChecker() {
 
 	const names = new Map<string, string[]>()
+	// Clear names on vite reload, this is to prevent the reload causing duplicate component name warnings.
+	if (import.meta.hot) {
+		const clearNames = () => names.clear()
+		import.meta.hot.on('vite:beforeUpdate', clearNames)
+		import.meta.hot.on('vite:beforeFullReload', clearNames)
+	}
 
 	return function checkName(component: ComponentConstructor) {
 
@@ -22,7 +29,7 @@ function componentNameChecker() {
 
 		const registeredForName = names.get(component.name) ?? []
 		if (registeredForName.length) {
-			console.warn(`[component] Duplicate component name detected: "${component.name}"`)
+			console.warn(`[@rooted/components] Duplicate component name detected: "${component.name}"`)
 			console.debug('  ', Object.defineProperty({}, 'listAll', {
 				get() {
 					return names.get(component.name)

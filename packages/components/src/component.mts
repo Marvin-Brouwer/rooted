@@ -1,6 +1,7 @@
 import { seededId } from '@rooted/util'
 import { dev } from './dev-helper.mts'
 import { create } from './element-factory.mts'
+import { GenericComponent } from './component/generic-component.mts'
 
 /**
  * ## `ComponentContext`
@@ -11,24 +12,49 @@ export type ComponentContext<TOptions extends {} = never> = [TOptions] extends [
 	? BaseComponentContext
 	: BaseComponentContext & { options: Readonly<TOptions> }
 
-type BaseComponentContext = {
+type BaseComponentContext = & {
 
-	/** @inheritdoc {@link ComponentContext.create create} and append to this component immediately */
-	append: typeof create,
-	/** @inheritdoc */
+	/** {@inheritdoc typeof create} */
 	create: typeof create,
+
+	/** {@inheritdoc HTMLElement['append']} */
+	append<T extends Node | string | GenericComponent>(node: T): T,
+	append<T extends Node | string | GenericComponent>(...node: T[]): T[],
+	append(...nodes: (Node | string | GenericComponent)[]): Node[],
+
+	/** {@inheritdoc HTMLElement['prepend']} */
+	prepend<T extends Node | string | GenericComponent>(node: T): T,
+	prepend<T extends Node | string | GenericComponent>(...node: T[]): T[],
+	prepend(...nodes: (Node | string | GenericComponent)[]): Node[],
+
+	/** {@inheritdoc HTMLElement['insertBefore']} */
+	insertBefore<T extends Node>(node: T, child: Node | null | undefined): T,
+
+	/** {@inheritdoc HTMLElement['replaceChild']} */
+	swap<T extends Node>(node: Node, child: T): T,
+
+	/** {@inheritdoc HTMLElement['replaceChildren']} */
+	replace<T extends Node | string | GenericComponent>(node: T): T,
+	replace<T extends Node | string | GenericComponent>(...node: T[]): T[],
+	replace(...nodes: (Node | string | GenericComponent)[]): Node[],
+
+	/** {@inheritdoc HTMLElement['removeChild']} */
+	remove<T extends Node | string | GenericComponent>(node: T): T,
+	remove<T extends Node | string | GenericComponent>(...node: T[]): T[],
+	remove(...nodes: (Node | string | GenericComponent)[]): Node[],
 
 	/**
 	 * Lifetime signal for the component, aborts when unmounted \
 	 * automatically aborts when page unloads
 	 */
+
 	signal: AbortSignal
 }
 
 
-const componentBrand: unique symbol = Symbol('rooted:component')
-export const definedAt: unique symbol = Symbol('rooted:definedAt')
-export const scopeId: unique symbol = Symbol('rooted:scopeId')
+const componentBrand: unique symbol = Symbol('@rooted/component')
+export const definedAt: unique symbol = Symbol('@rooted/definedAt')
+export const scopeId: unique symbol = Symbol('@rooted/scopeId')
 
 /**
  * Type guard that tests whether `value` is a {@link Component} produced by

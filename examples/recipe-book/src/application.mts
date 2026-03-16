@@ -2,7 +2,7 @@ import styles from './application.css?inline'
 
 import { application } from '@rooted/components/application'
 import { component } from '@rooted/components'
-import { router } from '@rooted/router'
+import { router } from '@rooted/router/application'
 
 import { appRoutes } from './_routes.g.mts'
 import { HomePage } from './navigation/home.mts'
@@ -20,15 +20,15 @@ export const Application = component({
 	styles,
 	onMount({ append, create }) {
 		document.title = 'Recipe Book'
-		append('div', {
+		append(create('div', {
 			id: 'app',
 			children: [
 				create(NavigationMenu),
 				create('main', {
-					children: create(Router),
+					children: Router,
 				}),
 			],
-		})
+		}))
 	},
 })
 
