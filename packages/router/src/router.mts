@@ -93,7 +93,7 @@ type RouterProps = {
 	fallback: Component
 }
 const Router = component<RouterProps>({
-	name: 'rooted:router',
+	name: '@rooted/router',
 	async onMount({ append, create, signal, options }) {
 
 		let activeEl: Element | undefined = undefined

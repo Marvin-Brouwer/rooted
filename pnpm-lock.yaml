@@ -90,6 +90,10 @@ importers:
       '@rooted/util':
         specifier: workspace:^
         version: link:../util
+    devDependencies:
+      vite:
+        specifier: ^6.4.1
+        version: 6.4.1(@types/node@22.19.15)(terser@5.46.0)
 
   packages/router:
     dependencies:

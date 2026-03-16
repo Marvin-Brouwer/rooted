@@ -1,7 +1,7 @@
 import type { RouteParameter } from './route.tokens.mts'
 
 /** Symbol key for the {@link RouteMetadata} bag attached to every {@link Route}. */
-export const routeMetaData: unique symbol = Symbol.for('rooted:route-metadata')
+export const routeMetaData: unique symbol = Symbol.for('@rooted/route-metadata')
 
 /**
  * Internal metadata bag stored on every {@link Route} under the {@link routeMetaData} symbol key.

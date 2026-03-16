@@ -46,5 +46,8 @@
 	},
 	"dependencies": {
 		"@rooted/util": "workspace:^"
+	},
+	"devDependencies": {
+		"vite": "^6.4.1"
 	}
 }

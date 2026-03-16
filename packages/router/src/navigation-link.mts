@@ -56,7 +56,7 @@ export type LinkOptions = {
  * @see {@link LinkOptions}
  */
 export const Link = component<LinkOptions>({
-	name: 'rooted:navigation-link',
+	name: '@rooted/navigation-link',
 	onMount({ options, append, create, signal }) {
 
 		function navigateToHref(event: PointerEvent) {

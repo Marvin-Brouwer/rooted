@@ -39,9 +39,9 @@ type BaseComponentContext = & {
 }
 
 
-const componentBrand: unique symbol = Symbol('rooted:component')
-export const definedAt: unique symbol = Symbol('rooted:definedAt')
-export const scopeId: unique symbol = Symbol('rooted:scopeId')
+const componentBrand: unique symbol = Symbol('@rooted/component')
+export const definedAt: unique symbol = Symbol('@rooted/definedAt')
+export const scopeId: unique symbol = Symbol('@rooted/scopeId')
 
 /**
  * Type guard that tests whether `value` is a {@link Component} produced by

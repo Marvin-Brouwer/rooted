@@ -11,8 +11,19 @@ import { fileURLToPath } from 'node:url'
 // TODO create plugin that allows importing css normally, but the wrapping is done when generated to disk so CSP may still work
 // Just place when r="{id}" a file called {id}.scope.css and {id}.fallback.css, and include a link pointing to the stylesheet
 const rootedDir = normalizePath(path.join(dirname(fileURLToPath(import.meta.resolve('@rooted/router'))), '../../'))
-const mangle = !process.argv.includes('--no-mangle')
 
+/**
+ * Aliases `@rooted/*` to the dist files in the monorepo.
+ * Without this, PNPM can resolve the same package via both its bare specifier and its
+ * real file path, causing two module instances and duplicate component warnings.
+ * Subpath regex must come before the bare-package regex.
+ */
+const rootedAliases = [
+	{ find: /^@rooted\/([^/]+)\/([^/]+)$/, replacement: `${rootedDir}/$1/dist/$2.mjs` },
+	{ find: /^@rooted\/([^/]+)$/, replacement: `${rootedDir}/$1/dist/$1.mjs` },
+]
+
+const mangle = !process.argv.includes('--no-mangle')
 const manualChunks = (id: string) => {
 	// Just make all markdown a separate chunk
 	if (id.endsWith('.md')) return 'content/' + path.basename(id)
@@ -23,7 +34,7 @@ const manualChunks = (id: string) => {
 	// TODO We will create some tooling later where this will be placed
 	if (id.startsWith('@rooted')) return 'vendor/@rooted'
 
-	// PNPM monorepo doesn't remember @rooted, apparently
+	// In monorepo, forward aliases rewrite @rooted/* to rootedDir source paths
 	if (id.startsWith(rootedDir)) return 'vendor/@rooted'
 }
 /**
@@ -33,7 +44,7 @@ const manualChunks = (id: string) => {
  */
 function markdownPlugin(): Plugin {
 	return {
-		name: 'rooted:markdown',
+		name: 'vite-plugin:markdown',
 		transform(code, id) {
 			if (!id.endsWith('.md')) return null
 			const { data, content } = matter(code)
@@ -49,6 +60,9 @@ function markdownPlugin(): Plugin {
 const appId = 'rooted-recipe-book'
 export default defineConfig({
 	appType: 'spa',
+	resolve: {
+		alias: rootedAliases,
+	},
 	dev: {
 		sourcemap: true
 	},

@@ -132,7 +132,7 @@ function getMatcher<T extends ParameterType>(type: T) {
 }
 
 /** Internal brand that distinguishes a {@link WildcardParameter} from a {@link PathParameter}. */
-const wildcardBrand: unique symbol = Symbol.for('rooted:wildcard')
+const wildcardBrand: unique symbol = Symbol.for('@rooted/wildcardParameterToken')
 
 type Wildcard = string & { [wildcardBrand]: true }
 type WildcardParameter<K extends string> = Parameter<K, Wildcard>
@@ -188,7 +188,7 @@ export function isWildcardParameter<K extends string>(token: Parameter<K, any>):
 	return typeof token === 'object' && token !== null && isWildcardConstructor(token.type)
 }
 /** Internal brand that distinguishes a {@link WildcardParameter} from a {@link PathParameter}. */
-const tokenBrand: unique symbol = Symbol.for('rooted:parameterToken')
+const tokenBrand: unique symbol = Symbol.for('@rooted/parameterToken')
 /** Returns `true` if `value` is a {@link Parameter}. */
 export function isParameterToken(token: unknown): token is Parameter {
 	return typeof token === 'object' && token !== null && tokenBrand in token
