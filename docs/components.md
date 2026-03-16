@@ -165,12 +165,32 @@ onMount({ append, create }) {
 }
 ```
 
-**DOM property names** — properties are applied via `Object.assign`, so use DOM
-names, not HTML attribute names:
+**`classes`** — use the `classes` prop instead of `className` to set CSS
+classes on HTML elements. It accepts a single class string or an array of
+`CssClass` values (`string | undefined | null`); falsy entries are filtered out
+automatically:
+
+```ts
+import { cssClass } from '@rooted/components'
+
+append('button', {
+  classes: [
+    'btn',
+    cssClass('btn--active', isActive),
+    cssClass('btn--disabled', isDisabled),
+  ],
+})
+```
+
+`cssClass(name, visible)` returns the class name when `visible` is truthy and
+`undefined` otherwise, so it composes cleanly in an array without extra
+branching.
+
+**DOM property names** — other properties are applied via `Object.assign`, so
+use DOM property names, not HTML attribute names:
 
 | HTML attribute | DOM property |
 |---------------|--------------|
-| `class`       | `className`  |
 | `for`         | `htmlFor`    |
 | `readonly`    | `readOnly`   |
 | `tabindex`    | `tabIndex`   |
