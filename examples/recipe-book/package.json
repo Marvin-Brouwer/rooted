@@ -5,8 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"analyze": "vite build -- --minify --analyze",
-		"analyze:dev": "vite build --debug -- --analyze",
+		"analyze": "vite build -- --minify --no-mangle --analyze",
+		"analyze:dev": "vite build --debug -- --no-mangle --analyze",
 		"build": "vite build -- --minify",
 		"preview": "vite preview"
 	},

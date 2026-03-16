@@ -9,22 +9,22 @@ import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 // TODO create plugin that allows importing css normally, but the wrapping is done when generated to disk so CSP may still work
-// Just place when r="{id}" a file called {id}.css, and include a link pointing to the stylesheet
+// Just place when r="{id}" a file called {id}.scope.css and {id}.fallback.css, and include a link pointing to the stylesheet
 const rootedDir = normalizePath(path.join(dirname(fileURLToPath(import.meta.resolve('@rooted/router'))), '../../'))
-const manualChunks = (id: string) => {
-	// TODO mangle chunk-names if prod build
+const mangle = !process.argv.includes('--no-mangle')
 
+const manualChunks = (id: string) => {
 	// Just make all markdown a separate chunk
-	if (id.endsWith('.md')) return 'content-' + path.basename(id)
+	if (id.endsWith('.md')) return 'content/' + path.basename(id)
 
 	// Chunk shared if not imported correctly
-	if (id.includes('_shared/')) return 'shared-' + path.basename(id)
+	if (id.includes('_shared/')) return 'shared/' + path.basename(id)
 
 	// TODO We will create some tooling later where this will be placed
-	if (id.startsWith('@rooted')) return 'r'
+	if (id.startsWith('@rooted')) return 'vendor/@rooted'
 
-	// PNPM monorepo doesn't remember @rooted apparently
-	if (id.startsWith(rootedDir)) return 'r'
+	// PNPM monorepo doesn't remember @rooted, apparently
+	if (id.startsWith(rootedDir)) return 'vendor/@rooted'
 }
 /**
  * Transforms `.md` files into plain JS modules at build time (Node.js context).
@@ -46,6 +46,7 @@ function markdownPlugin(): Plugin {
 	}
 }
 
+const appId = 'rooted-recipe-book'
 export default defineConfig({
 	appType: 'spa',
 	dev: {
@@ -55,7 +56,12 @@ export default defineConfig({
 		rollupOptions: {
 			treeshake: 'smallest',
 			output: {
-				manualChunks
+				manualChunks,
+				...(mangle && {
+					entryFileNames: '[hash].js',
+					chunkFileNames: '[hash].js',
+					assetFileNames: '[hash][extname]',
+				})
 			}
 		},
 		target: 'esnext',
@@ -79,13 +85,21 @@ export default defineConfig({
 		}),
 		VitePWA({
 			registerType: 'autoUpdate',
+			filename: `worker.js`,
+			minify: process.argv.includes('--minify'),
+			manifestFilename: `${appId}.webmanifest`,
+			workbox: {
+				sourcemap: !process.argv.includes('--minify'),
+			},
 			manifest: {
+				id: appId,
 				name: 'Rooted Recipe Book',
 				short_name: 'Recipe Book',
 				description: 'A vertical-slice example app for @rooted/components',
 				theme_color: '#ffffff',
 				background_color: '#faf7f2',
 				display: 'standalone',
+				// TODO generate based on svg using svgo
 				icons: [
 					{
 						src: 'pwa-192x192.png',
