@@ -181,7 +181,7 @@ export function wildcard<K extends string = 'rest'>(name = 'rest' as K): Paramet
 }
 
 function isWildcardConstructor(type: ParameterType): type is Wildcard {
-	return typeof type === 'object' && type !== null && wildcardBrand in token
+	return typeof type === 'object' && type !== null && wildcardBrand in (type as object)
 }
 /** Returns `true` if `token` is a {@link WildcardParameter}. */
 export function isWildcardParameter<K extends string>(token: Parameter<K, any>): token is WildcardParameter<K> {

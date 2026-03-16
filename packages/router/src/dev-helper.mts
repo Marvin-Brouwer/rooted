@@ -1,9 +1,9 @@
 import { isDevelopment } from '@rooted/util/dev'
-import { isRoute } from './route.metadata.mts'
+import { isRoute } from './route.metadata.mjs'
 
 function logRouteErrors(errors: Error[]) {
 	for (const error of errors) {
-		console.warn(`[rooted/router] ${error.message}`)
+		console.warn(`[@rooted/router] ${error.message}`)
 	}
 }
 
@@ -12,7 +12,7 @@ function validateDuplicateRoutes(config: Record<string, unknown>) {
 	for (const [key, value] of Object.entries(config)) {
 		if (!isRoute(value)) continue
 		if (seen.has(value))
-			console.warn(`[rooted/router] Duplicate route at key "${key}" — ignored (first-wins)`)
+			console.warn(`[@rooted/router] Duplicate route at key "${key}" — ignored (first-wins)`)
 		seen.add(value)
 	}
 }

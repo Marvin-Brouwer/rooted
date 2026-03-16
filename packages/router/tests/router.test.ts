@@ -1,95 +1,131 @@
-import { describe, expect, test, vi } from 'vitest'
+import { describe, test, expect, vi } from 'vitest'
 
+// Mock component system to avoid DOM dependency
 vi.mock('@rooted/components', () => ({
-	component: (c: object) => c,
-	isComponent: () => false,
+	component: vi.fn((def: Record<string, unknown>) => ({ ...def, __isComponent: true })),
+	GenericComponent: class MockGenericComponent {},
 }))
 
-import { route, gate, token, typedParameter, type RouteDefinition } from '../src/gate-factory.mts'
-import { isRoute } from '../src/router.mts'
-import type { ComponentConstructor } from '@rooted/components'
+vi.mock('@rooted/components/elements', () => ({
+	create: vi.fn(() => ({ tagName: 'MOCK-ROUTER' })),
+}))
 
-function mockComponent(name: string): ComponentConstructor {
-	return { name, onMount: () => {} }
-}
+vi.mock('../src/dev-helper.v2.mts', () => ({ dev: {} }))
 
-/** Mirrors the router's best-match selection loop, including filter-suppression. */
-function selectBestRoute(routes: RouteDefinition<any, any>[], path: string): { idx: number; params: Record<string, unknown> } {
-	let bestIdx = -1
-	let bestEnd = -1
-	let bestParams: Record<string, unknown> = {}
-	let highestPatternEnd = -1
+import { route } from '../src/route.mts'
+import { token, wildcard } from '../src/route.tokens.mts'
+import { path } from '../src/href.mts'
+import { routeMetaData } from '../src/route.metadata.mts'
+import { isRoute } from '../src/route.metadata.mts'
+import type { Route } from '../src/route.mts'
 
-	for (let i = 0; i < routes.length; i++) {
-		const r = routes[i]!
-		const patternResult = r.patternMatchFrom(path)
-		if (patternResult && patternResult.end > highestPatternEnd) highestPatternEnd = patternResult.end
-		const result = r.matchFrom(path)
-		if (!result) continue
-		if (result.end > bestEnd) {
-			bestIdx = i
-			bestEnd = result.end
-			bestParams = result.params
+const mockElement = { tagName: 'MOCK' } as unknown as Element
+
+// Replicates the route-selection algorithm from router.mts
+async function selectRoute(routes: Route<any>[], targetPath: string) {
+	const target = path(targetPath)
+	const mockCreate = () => mockElement
+
+	const results = await Promise.all(
+		routes.map(async (r) => {
+			const match = await r.match({ target })
+			if (!match.success) return { kind: 'no-match' as const }
+			const element = await r.resolve({ create: mockCreate as typeof import('@rooted/components/elements').create, tokens: match.tokens })
+			if (!element) return { kind: 'suppressed' as const, length: match.length }
+			return { kind: 'matched' as const, route: r, match, element }
+		}),
+	)
+
+	let best:
+		| { kind: 'matched'; route: Route<any>; match: { success: true; tokens: Record<string, unknown>; length: number }; element: Element }
+		| undefined
+	let highestSuppressedLength = -1
+
+	for (const r of results) {
+		if (r.kind === 'suppressed') {
+			highestSuppressedLength = Math.max(highestSuppressedLength, r.length)
+			continue
+		}
+		if (r.kind !== 'matched') continue
+
+		if (!best || r.match.length > best.match.length) {
+			best = r as typeof best
+			continue
+		}
+		if (
+			r.match.length === best.match.length &&
+			!r.route[routeMetaData].hasWildcard &&
+			best.route[routeMetaData].hasWildcard
+		) {
+			best = r as typeof best
 		}
 	}
 
-	if (highestPatternEnd > bestEnd) return { idx: -1, params: {} }
-	return { idx: bestIdx, params: bestParams }
+	if (best && highestSuppressedLength > best.match.length) return undefined
+	return best
 }
 
-describe('route selection — filter suppresses parent fallback', () => {
-	const validSlugs = new Set(['apple', 'banana'])
-	const parentRoute = route`/categories/`(mockComponent('categories'))
-	const childRoute = route`${parentRoute}/${token('slug', String)}/`(
-		mockComponent('category'),
-		({ slug }) => validSlugs.has(slug),
-	)
-	const routes = [parentRoute, childRoute]
-
-	test('valid child slug → selects child route', () => {
-		const { idx, params } = selectBestRoute(routes, '/categories/apple/')
-		expect(idx).toBe(1)
-		expect(params).toEqual({ slug: 'apple' })
+describe('router — route selection', () => {
+	test('single matching route is selected', async () => {
+		const r = route`/categories/`({ resolve: async () => mockElement })
+		const result = await selectRoute([r], '/categories/')
+		expect(result?.route).toBe(r)
 	})
 
-	test('invalid child slug → no match (not-found), parent not selected', () => {
-		const { idx } = selectBestRoute(routes, '/categories/mango/')
-		expect(idx).toBe(-1)
+	test('no match returns undefined', async () => {
+		const r = route`/categories/`({ resolve: async () => mockElement })
+		expect(await selectRoute([r], '/other/')).toBeUndefined()
 	})
 
-	test('exact parent path → selects parent route', () => {
-		const { idx } = selectBestRoute(routes, '/categories/')
-		expect(idx).toBe(0)
+	test('longer match wins over shorter match', async () => {
+		const short = route`/categories/`({ resolve: async () => mockElement })
+		const long = route`/categories/italian/`({ resolve: async () => mockElement })
+		const result = await selectRoute([short, long], '/categories/italian/')
+		expect(result?.route).toBe(long)
 	})
 
-	test('completely unrelated path → no match', () => {
-		const { idx } = selectBestRoute(routes, '/other/')
-		expect(idx).toBe(-1)
+	test('non-wildcard beats wildcard of equal match length', async () => {
+		const specific = route`/search/hello/`({ resolve: async () => mockElement })
+		const wild = route`/search/${wildcard()}/`({ resolve: async () => mockElement })
+		const result = await selectRoute([wild, specific], '/search/hello/')
+		expect(result?.route).toBe(specific)
+	})
+
+	test('suppressed route (resolve returns undefined) prevents shorter fallback', async () => {
+		const suppressed = route`/categories/italian/`({ resolve: async () => undefined })
+		const fallback = route`/categories/`({ resolve: async () => mockElement })
+		const result = await selectRoute([suppressed, fallback], '/categories/italian/')
+		expect(result).toBeUndefined()
+	})
+
+	test('suppression only blocks when suppressed length > best match length', async () => {
+		const suppressed = route`/other/`({ resolve: async () => undefined })
+		const match = route`/categories/`({ resolve: async () => mockElement })
+		// suppressed is for /other/, not /categories/ — should not block /categories/
+		const result = await selectRoute([suppressed, match], '/categories/')
+		expect(result?.route).toBe(match)
 	})
 })
 
-describe('isRoute', () => {
-	test('returns false for a plain object', () => {
-		expect(isRoute({} as any)).toBe(false)
-	})
-
-	test('returns false for a ComponentConstructor without the route brand', () => {
-		expect(isRoute(mockComponent('plain') as any)).toBe(false)
-	})
-
-	test('returns true for a route produced by route``()', () => {
-		const r = route`/route/`(mockComponent('test-route'))
+describe('RouterCompatibleRoute type', () => {
+	test('valid routes pass isRoute check', () => {
+		const r = route`/test/`({ resolve: async () => undefined })
 		expect(isRoute(r)).toBe(true)
 	})
 
-	test('returns false for a gate produced by gate(routeRef, comp)', () => {
-		const r = route`/route/`(mockComponent('test-route'))
-		const g = gate(r, mockComponent('test-gate'))
-		expect(isRoute(g as any)).toBe(false)
+	test('routes have the routeMetaData symbol', () => {
+		const r = route`/test/${token('id', Number)}/`({ resolve: async () => undefined })
+		expect(r[routeMetaData]).toBeDefined()
+		expect(r[routeMetaData].hasParameterTokens).toBe(true)
 	})
 
-	test('returns false for an object with only typedParameter attached (not routeBrand)', () => {
-		const obj = Object.assign({}, { [typedParameter]: [] })
-		expect(isRoute(obj as any)).toBe(false)
+	test('wildcard route is flagged correctly', () => {
+		const r = route`/search/${wildcard()}/`({ resolve: async () => undefined })
+		expect(r[routeMetaData].hasWildcard).toBe(true)
+	})
+
+	test('non-wildcard route is flagged correctly', () => {
+		const r = route`/articles/`({ resolve: async () => undefined })
+		expect(r[routeMetaData].hasWildcard).toBe(false)
 	})
 })
