@@ -8,12 +8,12 @@ A recipe book is a content-rich domain that maps naturally to every routing prim
 
 | Rooted feature | How it's used |
 |---|---|
-| `gate` | Home, categories list, search results |
-| `junction` | Category page — persists the category header while a recipe is open |
+| `route` + `resolve` | Every route uses the builder pattern: `route\`/path/\`({ resolve: ({ create, tokens }) => ... })` |
+| `gate` | `CategoryGate` renders the `Category` component inside the `Categories` shell |
 | `token('slug', String)` | Category URL slug: `/categories/italian/` |
-| `token('id', Number)` | Recipe ID: `/categories/italian/recipes/1/` |
-| `wildcard('query')` | Search: `/search/pasta/` catches all remaining path segments |
-| Nested gate under junction | `RecipeGate` is a child of `CategoryGate` |
+| `token('id', Number)` | Recipe ID: `/recipe/1/` |
+| `wildcard('query')` | Search: `/search/pasta/` |
+| Suppression | `CategoryRoute.resolve` returns `undefined` for unknown slugs → router shows `notFound` |
 | Scoped component styles | Each component declares its own CSS via `component({ styles })` |
 | `signal` cleanup | Navigation listeners are tied to the component lifetime |
 | `generateRouteManifest` | Vite plugin auto-discovers all `_routes.mts` files |
@@ -46,12 +46,13 @@ src/
 │   └── home.mts            # Featured recipes grid (passed as router home:)
 │
 ├── categories/
-│   ├── _routes.mts          # CategoriesGate, CategoryGate (junction), RecipeGate
-│   ├── categories.mts      # All-categories grid
-│   ├── category.mts        # Category page + embedded RecipeGate
+│   ├── _routes.mts          # CategoriesRoute, CategoryRoute, CategoryGate
+│   ├── categories.mts      # All-categories grid (shell for CategoryGate)
+│   ├── category.mts        # Category detail component
 │   └── _data.mts           # Category list derived from recipes
 │
 ├── recipes/
+│   ├── _routes.mts          # RecipeRoute
 │   ├── recipe.mts          # Recipe detail component
 │   ├── _data.mts           # Parses .md files → Recipe[]
 │   └── content/            # One .md file per recipe
@@ -62,11 +63,11 @@ src/
 │       └── beef-tacos.md
 │
 └── search/
-    ├── _routes.mts          # SearchGate (wildcard)
+    ├── _routes.mts          # SearchRoute (wildcard)
     └── search.mts          # Search results filtered from Recipe[]
 ```
 
-Each slice owns its own gates, components, and data. The router is assembled automatically by the `generateRouteManifest` Vite plugin, which discovers all `_routes.mts` files and generates `src/_routes.g.mts`.
+Each slice owns its own routes, components, and data. The router is assembled automatically by the `generateRouteManifest` Vite plugin, which discovers all `_routes.mts` files and generates `src/_routes.g.mts`.
 
 ## Running the app
 
@@ -83,7 +84,7 @@ Then open `http://localhost:5173` in your browser.
 |---|---|
 | `/` | Home page with featured recipes |
 | `/categories/` | All category cards |
-| `/categories/italian/` | Category detail (junction) with recipe list |
-| `/categories/italian/recipes/1/` | Recipe detail rendered inside the category junction |
+| `/categories/italian/` | Category detail with `CategoryGate` active |
+| `/recipe/1/` | Recipe detail |
 | `/search/pasta/` | Search results matching "pasta" |
-| `/categories/unknown/` | Falls through to `notFound` |
+| `/categories/unknown/` | Falls through to `notFound` (suppression) |

@@ -3,8 +3,9 @@
  * @module
  */
 
-
-export { route, gate, wildcard, token, type RouteParameters as GateParameters, type RouteFilter, type RouteDefinition, type BoundGateDefinition, type OmitGate } from '../gate-factory.mjs'
-export { router, isRoute } from '../router.mts'
 export * from '../navigation.mts'
 export * from '../navigation-link.mts'
+
+export * from '../href.export.mts'
+
+export * from '../gate.mts'

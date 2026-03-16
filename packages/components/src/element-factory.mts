@@ -15,6 +15,11 @@ type HtmlElementProps<TElement extends HTMLElement> = Partial<Pick<TElement, Wri
 	classes?: CssClasses
 }
 
+type RequiredKeys<T> = {
+	[K in keyof T]-?: {} extends Pick<T, K> ? never : K
+}[keyof T]
+type NoRequiredProps<T> = RequiredKeys<T> extends never ? true : false
+
 function buildClassList(classes: CssClasses | undefined) {
 
 	if (classes === null || classes === undefined) return {}
@@ -27,7 +32,7 @@ function createComponent<TComponent extends RootedElement>(component: RootedElem
 	return createElement<TComponent>(component.tagName, properties as HtmlElementProps<TComponent>)
 }
 function createElement<TElement extends HTMLElement>(element: string, properties: HtmlElementProps<TElement>) {
-	const { children, classes, ...assignableProperties } = properties
+	const { children, classes, ...assignableProperties } = properties ?? {}
 	const newElement = Object.assign(document.createElement(element) as TElement, assignableProperties, buildClassList(classes))
 
 	if (Array.isArray(children)) {
@@ -42,18 +47,24 @@ function createElement<TElement extends HTMLElement>(element: string, properties
 }
 
 /**
- * @todo update docs with new styling approach
  * Creates a new DOM node — either a rooted {@link Component}, a native
  * {@link RootedElement} subclass, or a standard HTML element.
  *
  * The node is **not** appended to the document; use
  * {@link ComponentContext.append} to create-and-append in one step.
  *
- * **DOM property names** — when creating HTML elements, properties are set via
- * `Object.assign` and must use DOM property names, not HTML attribute names:
+ * **`classes`** — use the `classes` prop to set CSS classes on HTML elements.
+ * Accepts a single class string or a {@link CssClasses} array; falsy entries
+ * are filtered out automatically. Use {@link cssClass} for conditional classes:
+ * ```ts
+ * import { cssClass } from '@rooted/components'
+ * append('button', { classes: ['btn', cssClass('btn--active', isActive)] })
+ * ```
+ *
+ * **DOM property names** — other properties are set via `Object.assign` and
+ * must use DOM property names, not HTML attribute names:
  * | HTML attribute | DOM property |
  * |---------------|--------------|
- * | `class`       | `className`  |
  * | `for`         | `htmlFor`    |
  * | `readonly`    | `readOnly`   |
  *
@@ -73,7 +84,7 @@ function createElement<TElement extends HTMLElement>(element: string, properties
  * @example Creating an HTML element
  * ```ts
  * const div = create('div', {
- *   className: 'card',
+ *   classes: 'card',
  *   children: [
  *     create('h2', { textContent: 'Title' }),
  *     create('p',  { textContent: 'Body'  }),
@@ -82,9 +93,14 @@ function createElement<TElement extends HTMLElement>(element: string, properties
  * ```
  */
 export function create(component: Component): GenericComponent
-export function create<TOptions extends {}>(component: Component<TOptions>, ...args: {} extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent & { options: Readonly<TOptions> }
+export function create<TOptions extends {}>(component: Component<TOptions>, ...args: {} extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent
 export function create<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProps<TComponent>>): TComponent
 export function create<KElement extends keyof HTMLElementTagNameMap>(element: KElement, properties: NoInfer<HtmlElementProps<HTMLElementTagNameMap[KElement]>>): HTMLElementTagNameMap[KElement]
+export function create<KElement extends keyof HTMLElementTagNameMap>(
+	element: KElement
+): NoRequiredProps<HtmlElementProps<HTMLElementTagNameMap[KElement]>> extends true
+	? HTMLElementTagNameMap[KElement]
+	: never
 export function create(
 	component: Component<any> | string | RootedElementClass<RootedElement>, properties?: unknown): unknown {
 

@@ -1,19 +1,14 @@
 import styles from './search.css?inline'
 import { component } from '@rooted/components'
-import { type GateParameters, Link } from '@rooted/router'
-import { type SearchRoute } from './_routes.mts'
-import { recipes } from '../recipes/_data.mts'
+import { Link } from '@rooted/router'
 
-export type SearchOptions = {
-	gate: GateParameters<typeof SearchRoute>
-}
-
-export const SearchPage = component<SearchOptions>({
+export const SearchPage = component({
 	name: 'search-page',
 	styles,
-	onMount({ append, create, signal }) {
+	async onMount({ append, create, signal }) {
 		// Wrap all rendered content so we can replace it on re-search without remounting
-		const root = append('div', {})
+		const root = append(create('div'))
+		const { recipes } = await import('../_shared/data/data.mts')
 
 		function render() {
 			root.replaceChildren()
@@ -49,7 +44,7 @@ export const SearchPage = component<SearchOptions>({
 
 			const list = create('ul', { classes: 'result-list' })
 			for (const recipe of matches) {
-				const href = `/categories/${recipe.category}/recipes/${recipe.id}/`
+				const href = `/recipe/${recipe.id}/`
 				list.append(create('li', {
 					classes: 'result-item',
 					children: [

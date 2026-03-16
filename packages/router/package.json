@@ -31,6 +31,14 @@
 			"import": "./dist/router.mjs",
 			"types": "./dist/router.d.mts"
 		},
+		"./application": {
+			"import": "./dist/application.mjs",
+			"types": "./dist/application.d.mts"
+		},
+		"./routes": {
+			"import": "./dist/application.mjs",
+			"types": "./dist/application.d.mts"
+		},
 		"./manifest": {
 			"import": "./dist/manifest.mjs",
 			"types": "./dist/manifest.d.mts"
@@ -50,6 +58,7 @@
 		"vite": ">=6.0.0"
 	},
 	"devDependencies": {
+		"@rooted/tsup": "workspace:*",
 		"@types/node": "^22.0.0",
 		"vite": "^6.0.0"
 	}

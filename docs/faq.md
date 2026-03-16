@@ -64,39 +64,6 @@ locations of all components sharing the name (in development).
 
 ---
 
-### TypeScript error: a gate's component requires options beyond `gate`
-
-```
-Type 'BoundGateDefinition<..., ...>' is not assignable to type 'never'
-```
-
-The router enforces that gate components can only require options that come
-from the URL (i.e. the `gate` property). If your component declares mandatory
-options that the router cannot provide, TypeScript will refuse it.
-
-**Fix A — make the extra options optional:**
-
-```ts
-// ❌ mandatory options that the router can't supply
-type ArticleOptions = {
-  gate: GateParameters<typeof ArticleGate>
-  theme: string  // router doesn't know about this
-}
-
-// ✅ optional — the component provides its own default
-type ArticleOptions = {
-  gate: GateParameters<typeof ArticleGate>
-  theme?: string
-}
-```
-
-**Fix B — pass extra options from a parent gate using `.append()`:**
-
-If the options genuinely need to come from outside, use a parent gate that
-provides the options and a child gate for the URL portion.
-
----
-
 ### Why do I have to use `className` instead of `class`?
 
 `create()` sets properties using `Object.assign(element, props)`. This writes
@@ -183,20 +150,34 @@ onMount: async ({ append, signal }) => {
 
 **Checklist:**
 
-1. **Trailing slashes** — URL patterns are matched literally. If your gate
-   pattern ends with `/`, the URL must too:
+1. **Leading and trailing slashes** — patterns must start and end with `/`:
 
    ```ts
-   gate(Article)`/articles/${token('id', Number)}/`
-   //                                             ↑ trailing slash required
+   // ❌ missing trailing slash → pattern validation error → never matches
+   route`/articles/${token('id', Number)}`
+
+   // ✅ correct
+   route`/articles/${token('id', Number)}/`
    ```
 
-2. **`exact` flag** — a gate marked `.exact` will not render when the URL
-   matches its own pattern exactly. It only renders when there is an additional
-   path segment. If you navigate to `/articles/123/` with an exact gate, you'll
-   see `notFound`. Add a child gate for the base path.
+2. **`resolve` returning `undefined`** — if your `resolve` function returns
+   `undefined`, the route is suppressed and treated as a non-match. Check that
+   async data lookups resolve correctly and only return `undefined` when the
+   resource genuinely doesn't exist.
 
-3. **Navigation method** — gates listen to `popstate`. This event fires when
+3. **`await route.match()`** — `match()` is async. Forgetting `await` means
+   you're comparing a `Promise` against `true`, which always fails:
+
+   ```ts
+   // ❌ always false
+   if (MyRoute.match({ target: '/articles/1/' }).success) { ... }
+
+   // ✅ correct
+   const result = await MyRoute.match({ target: '/articles/1/' })
+   if (result.success) { ... }
+   ```
+
+4. **Navigation method** — gates listen to `popstate`. This event fires when
    `history.pushState` or `history.replaceState` is used. Direct assignment to
    `location.href` triggers a full page reload instead:
 
@@ -210,11 +191,10 @@ onMount: async ({ append, signal }) => {
    ```
 
    Note: `history.pushState` alone does not dispatch `popstate` — you must
-   dispatch it manually, or use a link with `<a href="...">` (which browsers
-   handle automatically for same-origin navigations without a full reload when
-   using History API).
+   dispatch it manually, or use `navigate()` from `@rooted/router` which does
+   this automatically.
 
-4. **Gate not registered** — make sure the gate is included in the `router()`
+5. **Route not registered** — make sure the route is included in the `router()`
    config or in an aggregated `_routes.g.mts` file.
 
 ---
@@ -229,30 +209,6 @@ bfcache is likely disabled for your page (due to `unload` listeners,
 
 **Without bfcache** — a back navigation causes a full page reload, and all
 components initialise fresh. This is expected browser behaviour.
-
----
-
-### A gate marked `.exact` never renders
-
-A `.exact` gate renders only when the URL has **additional path segments beyond
-its own pattern**. In development a console warning fires when an exact gate is
-visited without a child path:
-
-```
-[rooted/gate] "article-gate" is marked .exact but the current path
-"/articles/123/" has no subroute — it will not render
-```
-
-Also check: if the gate has no child gates appended to it at all, a warning
-fires at startup:
-
-```
-[rooted/router] "article-gate" is marked .exact but has no child gates
-appended to it — it will never render
-```
-
-Make sure you have created at least one child gate with `.append()` and
-registered it in the router.
 
 ---
 

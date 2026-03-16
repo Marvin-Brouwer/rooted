@@ -1,10 +1,31 @@
-import { route, token, gate } from '@rooted/router'
-import { Categories } from './categories.mjs'
-import { Category, filterCategory } from './category.mjs'
+import { route, token } from '@rooted/router/routes'
 
-export const CategoriesRoute = route`/categories/`(Categories)
-export const CategoryRoute = route`${CategoriesRoute}/${token('slug', String)}/`(Categories,
-	({ slug }) => filterCategory(slug)
-)
+/**
+ * ## Route for the category overview page
+ *
+ * Basic route, no specifics
+ */
+export const CategoriesRoute = route`/categories/`({
+	async resolve({ create }) {
+		const { Categories } = await import('./categories.mts')
+		return create(Categories)
+	},
+})
 
-export const CategoryGate = gate(CategoryRoute, Category)
+/**
+ * ## Route for category pages
+ *
+ * This illustrates how an additional filter can be used
+ * to return a not-found result for dynamic routes.
+ */
+export const CategoryRoute = route`/${CategoriesRoute}/${token('slug', String)}/`({
+	async resolve({ create, tokens }) {
+		const { filterCategory } = await import('./category.mts')
+		const { Categories } = await import('./categories.mts')
+
+		const found = await filterCategory(tokens.slug)
+		if (!found) return undefined
+
+		return create(Categories)
+	},
+})
