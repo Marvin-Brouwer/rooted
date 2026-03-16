@@ -3,7 +3,10 @@ import { basename, dirname, join, resolve } from 'node:path'
 import ts from 'typescript'
 import type { Plugin } from './tsup-plugin.mts'
 
-const INHERITDOC_RE = /\{@inheritdoc\s+([\w$]+)\[['"]([^'"]+)['"]\]\}/
+// Matches either:
+//   {@inheritdoc ClassName['member']}  → m[1]=cls, m[2]=member
+//   {@inheritdoc typeof identifier}    → m[3]=identifier
+const INHERITDOC_RE = /\{@inheritdoc\s+(?:([\w$]+)\[['"]([^'"]+)['"]\]|typeof\s+([\w$]+))\}/
 
 // ── TypeScript program ──────────────────────────────────────────────────────
 
@@ -86,6 +89,35 @@ function _resolveJsDoc(tsconfigPath: string, className: string, memberName: stri
 	return null
 }
 
+function resolveTopLevelJsDoc(tsconfigPath: string, name: string): string | null {
+	const key = `${resolve(tsconfigPath)}:typeof ${name}`
+	if (jsDocCache.has(key)) return jsDocCache.get(key)!
+
+	const { program } = getState(tsconfigPath)
+	let result: string | null = null
+
+	outer: for (const sf of program.getSourceFiles()) {
+		for (const stmt of sf.statements) {
+			if (ts.isFunctionDeclaration(stmt) && stmt.name?.text === name) {
+				// Try each overload — JSDoc is usually on the first, but check all
+				const doc = extractJsDoc(stmt)
+				if (doc) { result = doc; break outer }
+				// No `break` — continue scanning for the next overload
+			} else if (ts.isVariableStatement(stmt)) {
+				for (const decl of stmt.declarationList.declarations) {
+					if (ts.isIdentifier(decl.name) && decl.name.text === name) {
+						const doc = extractJsDoc(stmt)
+						if (doc) { result = doc; break outer }
+					}
+				}
+			}
+		}
+	}
+
+	jsDocCache.set(key, result)
+	return result
+}
+
 function extractJsDoc(node: ts.Node): string | null {
 	const sf = node.getSourceFile()
 	const text = sf.getFullText()
@@ -126,10 +158,13 @@ async function processFile(tsconfigPath: string, filePath: string): Promise<void
 		const m = inner.match(INHERITDOC_RE)
 		if (!m) return block
 
-		const [tag, cls, member] = m
-		const resolved = resolveJsDoc(tsconfigPath, cls, member)
+		const [tag, cls, member, identifier] = m
+		const resolved = identifier
+			? resolveTopLevelJsDoc(tsconfigPath, identifier)
+			: resolveJsDoc(tsconfigPath, cls, member)
 		if (!resolved) {
-			process.stderr.write(`[tsup:inheritdoc] warn: could not resolve {@inheritdoc ${cls}['${member}']}\n`)
+			const ref = identifier ? `typeof ${identifier}` : `${cls}['${member}']`
+			process.stderr.write(`[tsup:inheritdoc] warn: could not resolve {@inheritdoc ${ref}}\n`)
 			return block
 		}
 

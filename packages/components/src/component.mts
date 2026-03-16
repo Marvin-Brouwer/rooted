@@ -14,7 +14,7 @@ export type ComponentContext<TOptions extends {} = never> = [TOptions] extends [
 
 type BaseComponentContext = & {
 
-	/** {@inheritdoc create} */
+	/** {@inheritdoc typeof create} */
 	create: typeof create,
 
 	/** {@inheritdoc HTMLElement['append']} */
