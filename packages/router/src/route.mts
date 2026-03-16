@@ -135,9 +135,8 @@ function reconstructPattern(strings: TemplateStringsArray, values: readonly Rout
 function validatePattern(strings: TemplateStringsArray, values: readonly RouteParameter[]): Error[] {
 	const errors: Error[] = []
 	const pattern = reconstructPattern(strings, values)
-	const startsWithRoute = values.length > 0 && isRoute(values[0]) && strings[0] === ''
 
-	if (!startsWithRoute && !strings[0]!.startsWith('/'))
+	if (!strings[0]!.startsWith('/'))
 		errors.push(new Error(`route pattern must start with a slash: "${pattern}"`))
 
 	if (!strings[strings.length - 1]!.endsWith('/'))
@@ -148,9 +147,9 @@ function validatePattern(strings: TemplateStringsArray, values: readonly RoutePa
 		if (isRoute(v)) {
 			if (i !== 0)
 				errors.push(new Error(`Route interpolation must be at the start of the pattern: "${pattern}"`))
-			if (strings[0] !== '')
-				errors.push(new Error(`Route interpolation must have no preceding text — use route\`\${ParentRoute}/...\`: "${pattern}"`))
-			if (strings[1] !== '' && !strings[1]?.startsWith('/'))
+			if (strings[0] !== '/')
+				errors.push(new Error(`Route interpolation must be surrounded by slashes — use route\`/\${ParentRoute}/...\`: "${pattern}"`))
+			if (!strings[1]?.startsWith('/'))
 				errors.push(new Error(`Route interpolation must be followed by a slash: "${pattern}"`))
 		}
 		if (isParameterToken(v) && isWildcardParameter(v as Parameter)) {
@@ -164,15 +163,25 @@ function validatePattern(strings: TemplateStringsArray, values: readonly RoutePa
 	return errors
 }
 
-function zipTemplateParts<T>(strings: TemplateStringsArray, values: T[]) {
+function zipTemplateParts<T extends RouteParameter>(strings: TemplateStringsArray, values: T[]) {
 	const parts: Array<string | T> = []
 
 	for (let i = 0; i < values.length; i++) {
-		parts.push(strings[i])
-		parts.push(values[i])
+		let str = strings[i]!
+		// The '/' immediately before a parent route is part of the route's own
+		// leading slash — strip it so the parent route can consume it itself.
+		if (isRoute(values[i])) str = str.endsWith('/') ? str.slice(0, -1) : str
+		// The '/' immediately after a parent route is part of the route's own
+		// trailing slash — strip it so the parent route's trailing slash is used.
+		if (i > 0 && isRoute(values[i - 1])) str = str.startsWith('/') ? str.slice(1) : str
+		parts.push(str)
+		parts.push(values[i]!)
 	}
 
-	parts.push(strings[strings.length - 1])
+	let lastStr = strings[strings.length - 1]!
+	if (values.length > 0 && isRoute(values[values.length - 1]))
+		lastStr = lastStr.startsWith('/') ? lastStr.slice(1) : lastStr
+	parts.push(lastStr)
 
 	return parts
 }
@@ -212,7 +221,7 @@ function zipTemplateParts<T>(strings: TemplateStringsArray, values: T[]) {
  *
  * @example Child route (composes parent URL)
  * ```ts
- * export const CommentsRoute = route`${ArticleRoute}/comments/`({
+ * export const CommentsRoute = route`/${ArticleRoute}/comments/`({
  *   resolve: ({ create, tokens }) => create(Comments, { articleId: tokens.id })
  * })
  * ```

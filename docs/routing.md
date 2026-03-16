@@ -39,17 +39,17 @@ export const ArticleRoute = route`/articles/${token('id', Number)}/`({
 
 A child route composes its URL by interpolating a parent route as the **first interpolation** in its template string. The child matches the parent's full pattern **plus** its own additional segment. Child routes receive the parent's tokens merged with their own.
 
-The parent route already ends with `/`, so the child template continues directly after the interpolation with no extra slash:
+Surround the parent route interpolation with slashes, just like any other path segment:
 
 ```ts
 export const ArticlesRoute  = route`/articles/`({ resolve: ({ create }) => create(Articles) })
-export const ArticleRoute   = route`${ArticlesRoute}${token('id', Number)}/`({
+export const ArticleRoute   = route`/${ArticlesRoute}/${token('id', Number)}/`({
   resolve: ({ create, tokens }) => create(Article, { id: tokens.id })
 })
 // ArticleRoute matches /articles/123/
 ```
 
-When a parent route is interpolated it must be the first thing in the template (no preceding text).
+A parent route interpolation must be the first interpolation, preceded by exactly `/` and followed by `/`.
 
 ### `wildcard(key?)`
 
@@ -78,7 +78,7 @@ export const SearchRoute = route`/search/${wildcard('query')}/`({
 When `resolve` returns `undefined`, the route is treated as a non-match. The router falls through to the next best candidate, and `notFound` renders if nothing else matches. Use suppression to guard routes based on data:
 
 ```ts
-export const CategoryRoute = route`${CategoriesRoute}${token('slug', String)}/`({
+export const CategoryRoute = route`/${CategoriesRoute}/${token('slug', String)}/`({
   resolve: async ({ create, tokens }) => {
     const found = await filterCategory(tokens.slug)
     if (!found) return undefined
@@ -99,7 +99,7 @@ The idiomatic pattern is to resolve child routes to the same **shell component**
 
 ```ts
 export const ArticlesRoute  = route`/articles/`({ resolve: ({ create }) => create(Articles) })
-export const ArticleRoute   = route`${ArticlesRoute}${token('id', Number)}/`({ resolve: ({ create }) => create(Articles) })
+export const ArticleRoute   = route`/${ArticlesRoute}/${token('id', Number)}/`({ resolve: ({ create }) => create(Articles) })
 export const ArticleGate    = gate(ArticleRoute, ({ id }) => create(ArticleContent, { id }))
 
 // Inside the Articles shell component:
@@ -131,7 +131,7 @@ import { route, gate, token } from '@rooted/router'
 import { create } from '@rooted/components/elements'
 
 export const ArticlesRoute = route`/articles/`({ resolve: ({ create }) => create(Articles) })
-export const ArticleRoute  = route`${ArticlesRoute}${token('id', Number)}/`({ resolve: ({ create }) => create(Articles) })
+export const ArticleRoute  = route`/${ArticlesRoute}/${token('id', Number)}/`({ resolve: ({ create }) => create(Articles) })
 export const ArticleGate   = gate(ArticleRoute, ({ id }) => create(ArticleContent, { id }))
 
 // Inside the Articles shell component:
@@ -156,8 +156,8 @@ In development, `route` validates the pattern at definition time and emits `cons
 | Pattern does not start with `/` | `route pattern must start with a slash` |
 | Pattern does not end with `/` | `route pattern must end with a slash` |
 | Route interpolation is not first | `Route interpolation must be at the start of the pattern` |
-| Route interpolation has preceding text | `Route interpolation must have no preceding text` |
-| Route interpolation not followed by `/` or end of template | `Route interpolation must be followed by a slash` |
+| Route interpolation not surrounded by `/` | `Route interpolation must be surrounded by slashes` |
+| Route interpolation not followed by `/` | `Route interpolation must be followed by a slash` |
 | Wildcard is not the last interpolation | `Wildcard interpolation must be at the end of the pattern` |
 | Wildcard not preceded by `/` | `Wildcard interpolation must be preceded by a slash` |
 

@@ -71,6 +71,7 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 
 			const nextPart = path.pathOnly.slice(offset)
 			const segment = nextPart.slice(0, nextPart.indexOf('/'))
+			if (segment === '') return tupleResult.error('Empty path segment')
 			const matchResult = part.match(segment) as TokenMatchResult<any>
 			if (tupleResult.isError(matchResult)) return matchResult
 

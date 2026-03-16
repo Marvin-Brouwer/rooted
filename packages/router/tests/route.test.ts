@@ -124,7 +124,7 @@ describe('route() — wildcard matching', () => {
 describe('route() — parent route composition', () => {
 	test('child route matches the combined path', async () => {
 		const parent = route`/categories/`({ resolve: async () => undefined })
-		const child = route`${parent}${token('slug', String)}/`({ resolve: async () => undefined })
+		const child = route`/${parent}/${token('slug', String)}/`({ resolve: async () => undefined })
 		const match = await child.match({ target: '/categories/italian/' })
 		expect(match.success).toBe(true)
 		if (!match.success) return
@@ -133,13 +133,13 @@ describe('route() — parent route composition', () => {
 
 	test('child route does not match a different prefix', async () => {
 		const parent = route`/categories/`({ resolve: async () => undefined })
-		const child = route`${parent}${token('slug', String)}/`({ resolve: async () => undefined })
+		const child = route`/${parent}/${token('slug', String)}/`({ resolve: async () => undefined })
 		expect((await child.match({ target: '/other/italian/' })).success).toBe(false)
 	})
 
 	test('child tokens include parent tokens', async () => {
 		const parent = route`/a/${token('x', Number)}/`({ resolve: async () => undefined })
-		const child = route`${parent}${token('y', String)}/`({ resolve: async () => undefined })
+		const child = route`/${parent}/${token('y', String)}/`({ resolve: async () => undefined })
 		const match = await child.match({ target: '/a/5/hello/' })
 		expect(match.success).toBe(true)
 		if (!match.success) return

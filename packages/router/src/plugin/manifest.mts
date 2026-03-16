@@ -83,9 +83,9 @@ export function generateRouteManifest(options: Options): Plugin {
 		const globForComment = options.glob.replaceAll('*', '∗')
 
 		const lines = [
-			'/* @refresh reload */',
-			'/* eslint-disable */',
-			'// @ts-nocheck',
+			'/* @refresh reload */ \t //: Trigger hot-reload (if applicable) when the routes file is modified',
+			'/* eslint-disable */ \t //: Disable eslint for performance reasons',
+			'// @ts-nocheck // \t\t //: Disable typescript checker for performance reasons',
 			'',
 			'/**',
 			' * @generated -- AUTO-GENERATED FILE -- DO NOT EDIT',
@@ -99,7 +99,7 @@ export function generateRouteManifest(options: Options): Plugin {
 			` * Updates automatically in watch mode.`,
 			' */',
 			'',
-			`import type { RouteDefinition } from '@rooted/router'`,
+			`import type { Route } from '@rooted/router/routes'`,
 			'',
 			...files.map((file) => {
 				const rel = relative(rootDir, resolve(config.root, file))
@@ -107,7 +107,8 @@ export function generateRouteManifest(options: Options): Plugin {
 				return `/** @__PURE__ */ import * as gate_${getFileId(file)} from '${importPath.split('\\').join('/')}'`
 			}),
 			'',
-			'/** @__PURE__ */ type RouteModule = RouteDefinition<unknown, Array<unknown>>;',
+			`// @ts-expect-error: Type 'unknown' does not satisfy the constraint 'RouteParameters<Parameter<string, ParameterTokenType>[]>'`,
+			'/** @__PURE__ */ type RouteModule = Route<unknown>;',
 			'/** @__PURE__ */ type RouteModules = Record<string, RouteModule>;',
 			'',
 			'/** @__PURE__ */ function rename(gates: RouteModules, hash: string) {',

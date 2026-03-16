@@ -96,7 +96,7 @@ const Router = component<RouterProps>({
 	name: 'rooted:router',
 	async onMount({ append, create, signal, options }) {
 
-        let activeEl: Element | undefined = undefined
+		let activeEl: Element | undefined = undefined
 		let lastPath: string | undefined
 
 		const cache = new Map<string, undefined | { route: Route<any>, match: SuccessRouteMatch }>()
@@ -106,8 +106,19 @@ const Router = component<RouterProps>({
 			activeEl = append(element ?? create(options.fallback))
 		}
 
+		function normalizeHref(target: () => href.Path) {
+
+			const targetPath = target()
+			if (!targetPath.pathOnly.endsWith('/')) {
+				history.replaceState(history.state, '', targetPath.pathOnly + '/' + targetPath.queryString + targetPath.hash)
+				return target()
+			}
+
+			return targetPath
+		}
+
 		async function update() {
-			const target = href.current();
+			const target = normalizeHref(href.current)
 
 			if (target.pathOnly === lastPath) return
 			lastPath = target.pathOnly
@@ -138,49 +149,49 @@ type SuccessRouteMatch = RouteMatch<any> & { success: true }
 type FilterRoutesResult = { route: Route<any>, match: SuccessRouteMatch, element: Element }
 
 type FilterRouteResult =
-    | { kind: 'no-match' }
-    | { kind: 'suppressed'; patternLength: number }
-    | { kind: 'matched'; match: SuccessRouteMatch; element: Element }
+	| { kind: 'no-match' }
+	| { kind: 'suppressed'; patternLength: number }
+	| { kind: 'matched'; match: SuccessRouteMatch; element: Element }
 
 async function filterRoute(route: Route<any>, target: href.Path): Promise<FilterRouteResult> {
-    const patternMatch = await route.match({ target })
-    if (!patternMatch.success) return { kind: 'no-match' }
+	const patternMatch = await route.match({ target })
+	if (!patternMatch.success) return { kind: 'no-match' }
 
-    const element = await route.resolve({ create, tokens: patternMatch.tokens })
-    if (!element) return { kind: 'suppressed', patternLength: patternMatch.length }
+	const element = await route.resolve({ create, tokens: patternMatch.tokens })
+	if (!element) return { kind: 'suppressed', patternLength: patternMatch.length }
 
-    return { kind: 'matched', match: patternMatch, element }
+	return { kind: 'matched', match: patternMatch, element }
 }
 
 async function matchRoute(target: href.Path, routes: Route<any>[]) {
 
 	// Find the best filtered route in parallel
-    const results = await Promise.all(routes.map(async route => ({
-        route,
-        result: await filterRoute(route, target)
-    })))
+	const results = await Promise.all(routes.map(async route => ({
+		route,
+		result: await filterRoute(route, target)
+	})))
 
-    let best: FilterRoutesResult | undefined
-    let highestSuppressedLength = -1
+	let best: FilterRoutesResult | undefined
+	let highestSuppressedLength = -1
 
-    for (const { route, result } of results) {
-        if (result.kind === 'suppressed') {
-            highestSuppressedLength = Math.max(highestSuppressedLength, result.patternLength)
-            continue
-        }
-        if (result.kind !== 'matched') continue
+	for (const { route, result } of results) {
+		if (result.kind === 'suppressed') {
+			highestSuppressedLength = Math.max(highestSuppressedLength, result.patternLength)
+			continue
+		}
+		if (result.kind !== 'matched') continue
 
-        if (!best || result.match.length > best.match.length) {
-            best = { route, match: result.match, element: result.element }
-            continue
-        }
-        // Equal length: non-wildcard beats wildcard (more specific wins)
-        if (result.match.length === best.match.length && !route[routeMetaData].hasWildcard && best.route[routeMetaData].hasWildcard) {
-            best = { route, match: result.match, element: result.element }
-        }
-    }
+		if (!best || result.match.length > best.match.length) {
+			best = { route, match: result.match, element: result.element }
+			continue
+		}
+		// Equal length: non-wildcard beats wildcard (more specific wins)
+		if (result.match.length === best.match.length && !route[routeMetaData].hasWildcard && best.route[routeMetaData].hasWildcard) {
+			best = { route, match: result.match, element: result.element }
+		}
+	}
 
-    // Suppression: a longer structural match was filtered — treat as no match
-    if (best && highestSuppressedLength > best.match.length) return undefined
-    return best
+	// Suppression: a longer structural match was filtered — treat as no match
+	if (best && highestSuppressedLength > best.match.length) return undefined
+	return best
 }
