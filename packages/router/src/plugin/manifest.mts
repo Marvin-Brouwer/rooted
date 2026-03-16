@@ -104,14 +104,13 @@ export function generateRouteManifest(options: Options): Plugin {
 			...files.map((file) => {
 				const rel = relative(rootDir, resolve(config.root, file))
 				const importPath = rel.startsWith('.') ? rel : `./${rel}`
-				return `/** @__PURE__ */ const gate_${getFileId(file)} = /** @__PURE__ */ import('${importPath.split('\\').join('/')}').then(gates => rename(gates, '${getFileId(file)}'))`
+				return `/** @__PURE__ */ import * as gate_${getFileId(file)} from '${importPath.split('\\').join('/')}'`
 			}),
 			'',
-			'type RouteModule = RouteDefinition<unknown, Array<unknown>>',
-			'type RouteModules = Record<string, RouteModule>',
+			'/** @__PURE__ */ type RouteModule = RouteDefinition<unknown, Array<unknown>>',
+			'/** @__PURE__ */ type RouteModules = Record<string, RouteModule>',
 			'',
-			'/** @__PURE__ */',
-			'function rename(gates: RouteModules, hash: string) {',
+			'/** @__PURE__ */ function rename(gates: RouteModules, hash: string) {',
 			'\treturn Object.fromEntries(Object',
 			'\t\t.entries(gates)',
 			'\t\t.filter(([key]) => key !== `default`)',
@@ -136,7 +135,7 @@ export function generateRouteManifest(options: Options): Plugin {
 			' * @__PURE__',
 			` */`,
 			`export const ${options.routeExport ?? 'appRoutes'}: RouteModules = /** @__PURE__ */ Object.freeze(Object.assign({},`,
-			...files.map((file) => `\tawait gate_${getFileId(file)},`),
+			...files.map((file) => `\trename(gate_${getFileId(file)}, '${getFileId(file)}'),`),
 			`))`,
 			'',
 		]
