@@ -44,8 +44,8 @@ import { create } from '@rooted/components/elements'
  * @see {@link GateRenderFunction}
  */
 export function gate<TRoute extends AnyRoute>(
-    route: TRoute,
-    render: GateRenderFunction<TRoute>
+	route: TRoute,
+	render: GateRenderFunction<TRoute>
 ): GenericComponent {
 
 	const renderGate = render as GateRenderFunction<AnyRoute>
@@ -58,30 +58,20 @@ type GateOptions<TRoute extends AnyRoute> = {
 }
 const Gate = component<GateOptions<AnyRoute>>({
 	name: 'sling:gate',
-	onMount({ options, append, signal }) {
+	onMount({ options, replace, remove, signal }) {
 		const { routeReference, renderGate } = options
 		let innerNodes: Element[] | undefined = undefined
 
-		function clear(newNodes: Element[] = []) {
-			if (!innerNodes) return;
-			for(const node of innerNodes){
-				if (newNodes.includes(node)) continue
-				node.remove()
-			}
-
-			innerNodes = newNodes.length === 0 ? undefined : newNodes
-		}
 		async function checkGate() {
 			const match = await routeReference.match()
 
-			if (match.success){
+			if (match.success) {
 				const newComponents = await renderGate(match.tokens)
 				innerNodes = Array.isArray(newComponents) ? newComponents : [newComponents]
-				append(...innerNodes!)
-				clear(innerNodes)
+				replace(...innerNodes!)
 			}
 			else {
-				clear()
+				innerNodes = void remove(...innerNodes ?? [])
 			}
 		}
 

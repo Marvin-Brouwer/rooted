@@ -1,7 +1,7 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 import ts from 'typescript'
-import { Plugin } from './tsup-plugin.mts'
+import type { Plugin } from './tsup-plugin.mts'
 
 const INHERITDOC_RE = /\{@inheritdoc\s+([\w$]+)\[['"]([^'"]+)['"]\]\}/
 

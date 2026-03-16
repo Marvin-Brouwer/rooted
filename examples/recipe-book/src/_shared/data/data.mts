@@ -44,8 +44,7 @@ function toLabel(slug: string): string {
 	return slug.charAt(0).toUpperCase() + slug.slice(1)
 }
 
-export const categories: CategoryData[] = recipes
-	.map(r => r.category)
+export const categories: CategoryData[] = [...new Set(recipes.map(r => r.category))]
 	.map(slug => ({
 		slug,
 		label: toLabel(slug),

@@ -94,16 +94,14 @@ type RouterProps = {
 }
 const Router = component<RouterProps>({
 	name: '@rooted/router',
-	async onMount({ append, create, signal, options }) {
+	async onMount({ replace, create, signal, options }) {
 
-		let activeEl: Element | undefined = undefined
 		let lastPath: string | undefined
 
 		const cache = new Map<string, undefined | { route: Route<any>, match: SuccessRouteMatch }>()
 
 		function renderRoute(element: Element | undefined) {
-			activeEl?.remove()
-			activeEl = append(element ?? create(options.fallback))
+			replace(element ?? create(options.fallback))
 		}
 
 		function normalizeHref(target: () => href.Path) {

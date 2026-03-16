@@ -1,4 +1,4 @@
-import { Plugin } from './tsup-plugin.mts'
+import type { Plugin } from './tsup-plugin.mts'
 
 /**
  * tsup plugin that removes duplicate `//# sourceMappingURL=` comments from
