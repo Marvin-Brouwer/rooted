@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup'
+import { inheritdocPlugin } from '@rooted/tsup'
 
 export default defineConfig({
 	entry: ['src/_module/*.mts'],
@@ -8,4 +9,5 @@ export default defineConfig({
 	dts: true,
 	clean: true,
 	sourcemap: 'inline',
+	plugins: [inheritdocPlugin()],
 })

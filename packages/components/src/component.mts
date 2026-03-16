@@ -18,15 +18,7 @@ type BaseComponentContext = & {
 	/** @inheritdoc */
 	create: typeof create,
 
-	/**
-	 * Inserts nodes after the last child of node, while replacing strings in nodes with equivalent Text nodes.
-	 *
-	 * Throws a "HierarchyRequestError" DOMException if the constraints of the node tree are violated.
-	 *
-	 * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Document/append)
-	 *
-	 *@todo find a way to automatically include the docs of HtmlElement['append'] without void return
-	 */
+	/** {@inheritdoc HTMLElement['append']} */
 	append<T extends Node | string | GenericComponent>(node: T): T,
 	append<T extends Node | string | GenericComponent>(...node: T[]): T[],
 	append(...nodes: (Node | string | GenericComponent)[]): Node[],
@@ -35,6 +27,7 @@ type BaseComponentContext = & {
 	 * Lifetime signal for the component, aborts when unmounted \
 	 * automatically aborts when page unloads
 	 */
+
 	signal: AbortSignal
 }
 

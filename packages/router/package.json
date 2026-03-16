@@ -58,6 +58,7 @@
 		"vite": ">=6.0.0"
 	},
 	"devDependencies": {
+		"@rooted/tsup": "workspace:*",
 		"@types/node": "^22.0.0",
 		"vite": "^6.0.0"
 	}
