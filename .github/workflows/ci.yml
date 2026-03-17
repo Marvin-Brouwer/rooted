@@ -42,3 +42,30 @@ jobs:
 
       - name: API diff
         run: pnpm --filter @rooted/pipeline api-diff
+
+      - name: Stamp prerelease version
+        if: github.event_name == 'pull_request'
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          PR=${{ github.event.pull_request.number }}
+          pnpm -r exec -- node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            if (pkg.private) process.exit(0);
+            const base = pkg.version.replace(/-.*/, '');
+            pkg.version = base + '-pr${PR}.' + '$SHA';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
+            console.log(pkg.name + '@' + pkg.version);
+          "
+
+      - name: Pack
+        if: github.event_name == 'pull_request'
+        run: pnpm -r --filter '!@rooted/monorepo' exec pnpm pack --pack-destination "$GITHUB_WORKSPACE/dist"
+
+      - name: Upload artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-packages-pr${{ github.event.pull_request.number }}
+          path: dist/*.tgz
+          if-no-files-found: error
