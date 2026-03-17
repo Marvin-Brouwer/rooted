@@ -213,9 +213,15 @@ Common types:
 | `feat` | New feature |
 | `fix` | Bug fix |
 | `docs` | Documentation only |
-| `refactor` | Code change with no behaviour change |
 | `test` | Adding or updating tests |
 | `chore` | Build scripts, dependencies, tooling |
+| `ci` | CI/CD configuration |
+| `perf` | Performance improvement |
+| `revert` | Reverting a previous commit |
+
+> **Note:** `refactor` is not used in this project. If a code change has no
+> observable behaviour change use `chore`; if it does have one, use `fix` or
+> `feat` as appropriate.
 
 Examples:
 

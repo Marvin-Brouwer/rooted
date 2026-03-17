@@ -1,0 +1,28 @@
+{
+	"name": "@rooted/pipeline",
+	"private": true,
+	"version": "0.1.0",
+	"description": "rooted — CI/CD pipeline scripts",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "tooling/pipeline"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"scripts": {
+		"bump-level": "node --import tsx/esm src/bump-level.mts",
+		"api-diff": "node --import tsx/esm src/api-diff.mts",
+		"pr-validate": "node --import tsx/esm src/pr-validate.mts"
+	},
+	"devDependencies": {
+		"@microsoft/api-extractor": "^7.50.0",
+		"@types/node": "^22.0.0",
+		"tsx": "^4.19.0",
+		"typescript": "^5.5.0"
+	}
+}
