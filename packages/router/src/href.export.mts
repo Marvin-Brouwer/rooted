@@ -14,6 +14,7 @@ export type { Url, Path } from './href.mts'
  * | `href.join(base, ...paths)` | Join path segments onto a base, normalising slashes |
  * | `href.current()` | Return a {@link Path} for the current `location.pathname` |
  *
+ * @__PURE__
  */
 export const href = {
 	get url() { return href_.url },
