@@ -9,8 +9,6 @@ import { analyzer } from 'vite-bundle-analyzer'
 import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// TODO create plugin that allows importing css normally, but the wrapping is done when generated to disk so CSP may still work
-// Just place when r="{id}" a file called {id}.scope.css and {id}.fallback.css, and include a link pointing to the stylesheet
 const rootedDir = normalizePath(path.join(dirname(fileURLToPath(import.meta.resolve('@rooted/router'))), '../../'))
 
 /**
@@ -94,7 +92,9 @@ export default defineConfig({
 			glob: './src/**/_routes.mts',
 			root: './src/_routes.g.mts',
 		}),
-		cssLoader(),
+		cssLoader({
+			minify: process.argv.includes('--minify')
+		}),
 		analyzer({
 			analyzerMode: process.argv.includes('--analyze') ? 'server' : 'static',
 			openAnalyzer: process.argv.includes('--analyze')

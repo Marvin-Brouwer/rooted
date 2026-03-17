@@ -72,6 +72,17 @@ type PendingAsset = {
 	taggedToken: string
 }
 
+/** Options for the {@link cssLoader} Vite plugin. */
+export type CssLoaderOptions = {
+	/**
+	 * Minify emitted CSS artifacts during production builds.
+	 * Has no effect in dev mode (`vite serve`).
+	 * @default false
+	 */
+	minify?: boolean
+}
+
+
 /**
  * Vite plugin that transforms plain `.css` imports into `CssModule` objects.
  *
@@ -92,10 +103,10 @@ type PendingAsset = {
  * @example `vite.config.ts`
  * ```ts
  * import { cssLoader } from '@rooted/components/plugin'
- * export default defineConfig({ plugins: [cssLoader()] })
+ * export default defineConfig({ plugins: [cssLoader({ minify: true })] })
  * ```
  */
-export function cssLoader(): Plugin[] {
+export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 	let config: ResolvedConfig
 	const devArtifacts = new Map<string, string>()
 	/** CSS content and tokens for files awaiting asset emission. */
@@ -243,14 +254,20 @@ export function cssLoader(): Plugin[] {
 	const outputPlugin: Plugin = {
 		name: 'vite-plugin:rooted-css-loader-output',
 
-		renderChunk(code) {
+		async renderChunk(code) {
 			if (pending.size === 0) return null
+			const { transform } = options.minify ? await import('esbuild') : { transform: null }
+			const minify = async (css: string) => transform
+				? (await transform(css, { loader: 'css', minify: true })).code
+				: css
 			// Emit CSS assets on first chunk (Rollup deduplicates by content+name).
 			for (const [path, { stem, scopedCss, taggedCss }] of pending) {
 				if (!emittedRefs.has(path)) {
+					const scoped = await minify(scopedCss)
+					const tagged = await minify(taggedCss)
 					emittedRefs.set(path, {
-						scopedRef: this.emitFile({ type: 'asset', name: `${stem}.scoped.css`, source: scopedCss }),
-						taggedRef: this.emitFile({ type: 'asset', name: `${stem}.tagged.css`, source: taggedCss }),
+						scopedRef: this.emitFile({ type: 'asset', name: `${stem}.scoped.css`, source: scoped }),
+						taggedRef: this.emitFile({ type: 'asset', name: `${stem}.tagged.css`, source: tagged }),
 					})
 				}
 			}
