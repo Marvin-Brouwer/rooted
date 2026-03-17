@@ -12,7 +12,7 @@ vi.mock('@rooted/components/elements', () => ({
 	create: vi.fn(() => ({ tagName: 'MOCK-GATE', __isMockElement: true })),
 }))
 
-vi.mock('../src/dev-helper.v2.mts', () => ({ dev: {} }))
+vi.mock('../src/dev-helper.mts', () => ({ devHelper: {} }))
 
 import { gate } from '../src/gate.mts'
 import { route } from '../src/route.mts'

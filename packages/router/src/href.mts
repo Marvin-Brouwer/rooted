@@ -98,7 +98,9 @@ const multiSlashPattern = /\/{2,}/g
 export function join(url: Url, ...paths: Path[]): Url
 export function join(...paths: Path[]): Path
 export function join(urlOrPath: HrefBase, ...paths: Path[]): Url | Path {
-	const start = new URL(urlOrPath.href)
+	const start = urlOrPath instanceof Path
+		? new URL(urlOrPath.pathOnly, 'https://rooted-is.awesome')
+		: new URL(urlOrPath.href)
 
 	for (const path of paths) {
 		start.pathname += path.pathOnly

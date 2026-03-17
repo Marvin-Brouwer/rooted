@@ -1,9 +1,9 @@
 import { describe, expect, test, vi } from 'vitest'
 
 // Mock dev-helper to avoid DOM dependency (validateComponentName uses document.createElement)
-vi.mock('../src/dev-helper.mts', () => ({ dev: {} }))
+vi.mock('../src/dev-helper.mts', () => ({ devHelper: {} }))
 
-import { component, definedAt, isComponent, scopeId } from '../src/component.mts'
+import { component, definedAt, isComponent } from '../src/component.mts'
 
 describe('isComponent', () => {
 	test('returns false for null', () => {
@@ -40,24 +40,11 @@ describe('component', () => {
 		expect(isComponent(c)).toBe(true)
 	})
 
-	test('sets scopeId to a non-empty base-36 string on the constructor', () => {
-		const ctor = { name: 'scoped', onMount() {} }
-		component(ctor)
-		expect(typeof ctor[scopeId]).toBe('string')
-		expect(ctor[scopeId]).toMatch(/^[0-9a-z]+$/)
-	})
-
-	test('definedAt is undefined when dev.appendSourceLocation is absent', () => {
-		// The mock returns dev: {} so appendSourceLocation?.() is undefined
+	test('definedAt is undefined when devHelper.appendSourceLocation is absent', () => {
+		// The mock returns devHelper: {} so appendSourceLocation?.() is undefined
 		const ctor = { name: 'no-location', onMount() {} }
 		component(ctor)
 		expect(ctor[definedAt]).toBeUndefined()
-	})
-
-	test('two calls with the same name produce different scopeId values', () => {
-		const c1 = component({ name: 'duplicate', onMount() {} })
-		const c2 = component({ name: 'duplicate', onMount() {} })
-		expect(c1[scopeId]).not.toBe(c2[scopeId])
 	})
 
 	test('original constructor reference is the returned component', () => {

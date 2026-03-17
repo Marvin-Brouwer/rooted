@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeAll, afterAll } from 'vitest'
 
-vi.mock('../src/dev-helper.v2.mts', () => ({ dev: {} }))
+vi.mock('../src/dev-helper.mts', () => ({ devHelper: {} }))
 
 beforeAll(() => {
 	vi.stubGlobal('location', {

@@ -28,6 +28,7 @@
 		"eslint-plugin-unicorn": "^62.0.0",
 		"eslint-plugin-unused-imports": "^4.3.0",
 		"globals": "^17.3.0",
+		"happy-dom": "^20.8.4",
 		"husky": "^9.0.0",
 		"multi-semantic-release": "^3.0.2",
 		"tsup": "^8.0.0",

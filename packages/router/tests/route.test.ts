@@ -1,7 +1,7 @@
 import { describe, test, expect, vi } from 'vitest'
 
 // Suppress dev warnings during tests
-vi.mock('../src/dev-helper.v2.mts', () => ({ dev: {} }))
+vi.mock('../src/dev-helper.mts', () => ({ devHelper: {} }))
 
 import { isRoute } from '../src/route.metadata.mts'
 import { route } from '../src/route.mts'

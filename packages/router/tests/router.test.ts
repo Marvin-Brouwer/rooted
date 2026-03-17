@@ -10,7 +10,7 @@ vi.mock('@rooted/components/elements', () => ({
 	create: vi.fn(() => ({ tagName: 'MOCK-ROUTER' })),
 }))
 
-vi.mock('../src/dev-helper.v2.mts', () => ({ dev: {} }))
+vi.mock('../src/dev-helper.mts', () => ({ devHelper: {} }))
 
 import { path } from '../src/href.mts'
 import { routeMetaData, isRoute } from '../src/route.metadata.mts'
