@@ -8,13 +8,13 @@ import { navigate } from './navigation.mts'
  * Options for {@link Link}.
  */
 export type LinkOptions = {
-	/** The destination URL passed to {@link navigate} on click. */
+	/** The destination URL passed to `navigate` on click. */
 	href: string | Url | Path
 	/** CSS class name applied to the rendered `<a>` element. */
 	classes?: CssClasses
 	/**
 	 * Content rendered inside the anchor.
-	 * Pass a plain string, a single DOM {@link Node}, or an array of nodes.
+	 * Pass a plain string, a single DOM `Node`, or an array of nodes.
 	 */
 	children?: string | Node | Node[]
 }
@@ -53,7 +53,7 @@ export type LinkOptions = {
  * })
  * ```
  *
- * @see {@link navigate} for programmatic navigation without a link element
+ * @see `navigate` for programmatic navigation without a link element
  * @see {@link LinkOptions}
  */
 export const Link = component<LinkOptions>({

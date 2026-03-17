@@ -7,7 +7,7 @@ import { Route, RouteParameterDictionary } from './route.mts'
  * Creates a self-managing gate component that mounts and unmounts its content
  * based on whether a route's URL pattern matches the current path.
  *
- * Unlike the {@link router}, a gate activates solely on its own URL match —
+ * Unlike `router`, a gate activates solely on its own URL match —
  * it is unaffected by which route the router considers the best match. This
  * makes gates the composition mechanism for shell components: a shell that
  * covers multiple child URLs can use gates to show the correct sub-content at
@@ -40,8 +40,8 @@ import { Route, RouteParameterDictionary } from './route.mts'
  * append(ArticleGate)  // renders ArticleContent while at /articles/:id/
  * ```
  *
- * @see {@link route}
- * @see {@link router}
+ * @see `route`
+ * @see `router`
  * @see {@link GateRenderFunction}
  */
 export function gate<TRoute extends AnyRoute>(

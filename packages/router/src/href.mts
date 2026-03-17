@@ -77,12 +77,12 @@ export class Url extends HrefBase {
 	public get password() { return this.url.password.length === 0 ? undefined : this.url.password }
 }
 
-/** Constructs a {@link Url} from a string. @__PURE__ */
+/** Constructs a {@link Url} from a string. */
 export function url(href: string) {
 	return Url.fromString(href)
 }
 
-/** Constructs a {@link Path} from a pathname string. @__PURE__ */
+/** Constructs a {@link Path} from a pathname string. */
 export function path(href: string) {
 	return Path.fromString(href)
 }
@@ -93,7 +93,6 @@ const multiSlashPattern = /\/{2,}/g
  * Joins one or more {@link Path} segments onto a {@link Url} or {@link Path} base,
  * normalising duplicate slashes. Query strings and hashes from each segment are
  * merged in order.
- * @__PURE__
  */
 export function join(url: Url, ...paths: Path[]): Url
 export function join(...paths: Path[]): Path
@@ -142,7 +141,6 @@ export function forAny<TRoute extends Route<any>>(
 		? [route: TRoute, parameters?: RouteParameterDictionary<TRoute>]
 		: [route: TRoute, parameters: RouteParameterDictionary<TRoute>]
 ): Path
-/** @__PURE__ */
 export function forAny(target: Route<any> | URL | Location | Url | Path, dictionary?: NoInfer<PathParameterDictionary<any>>): HrefBase {
 	if (target instanceof URL) return Url.fromUrl(target)
 	if (target instanceof Url) return target
