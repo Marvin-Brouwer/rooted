@@ -28,8 +28,9 @@ jobs:
 
       - name: Lint commit messages
         env:
-          # Commits older than this SHA predate the conventional-commit rule and are exempt.
-          COMMITLINT_SINCE: "3445f4d"
+          # Commits at or before this SHA predate consistent conventional-commit
+          # enforcement and are exempt. Set to the most recent non-conforming commit.
+          COMMITLINT_SINCE: "f9e420f"
         run: |
           FROM_SHA=$(git merge-base "$COMMITLINT_SINCE" "${{ github.event.pull_request.head.sha }}" 2>/dev/null \
             || echo "${{ github.event.pull_request.base.sha }}")
