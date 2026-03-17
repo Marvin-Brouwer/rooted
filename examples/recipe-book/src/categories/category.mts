@@ -3,6 +3,7 @@ import styles from './category.css'
 import { component } from '@rooted/components'
 import { Link, href } from '@rooted/router'
 import { RecipeRoute } from '../recipes/_routes.mts'
+import { recipeData } from '../_shared/data/data.mts'
 
 export type CategoryOptions = {
 	slug: string
@@ -12,10 +13,9 @@ export const Category = component<CategoryOptions>({
 	name: 'category-page',
 	styles,
 	async onMount({ append, create, options }) {
-		const { categories } = await import('../_shared/data/data.mts')
 		const { slug } = options
 
-		const category = categories.find(c => c.slug === slug)
+		const category = await recipeData.findCategoryBySlug(slug)
 		const categoryname = category ? category.label : String(slug)
 
 		append(
@@ -55,6 +55,6 @@ export const Category = component<CategoryOptions>({
 
 
 export async function filterCategory(slug: string) {
-	const { categories } = await import('../_shared/data/data.mts')
-	return categories.some(c => c.slug === slug)
+	const category = await recipeData.findCategoryBySlug(slug)
+	return !!category
 }

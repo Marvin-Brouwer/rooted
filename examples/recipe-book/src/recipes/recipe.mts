@@ -2,7 +2,7 @@ import styles from './recipe.css'
 
 import { component, ComponentContext } from '@rooted/components'
 import { href, Link } from '@rooted/router'
-import { type RecipeData as DataRecipe } from '../_shared/data/data.mts'
+import { type RecipeData as DataRecipe, recipeData } from '../_shared/data/data.mts'
 import { CategoriesRoute, CategoryRoute } from '../categories/_routes.mts'
 
 export type RecipeOptions = {
@@ -13,8 +13,7 @@ export const Recipe = component<RecipeOptions>({
 	name: 'recipe-detail',
 	styles,
 	async onMount({ append, create, options }) {
-		const { recipes } = await import('../_shared/data/data.mts')
-		const recipe = recipes.find(r => r.id === options.id)
+		const recipe = await recipeData.getRecipeById(options.id)
 
 		if (!recipe) return void append(
 			create(Link, { href: href.for(CategoriesRoute), classes: styles.backLink, children: '← Browse' }),

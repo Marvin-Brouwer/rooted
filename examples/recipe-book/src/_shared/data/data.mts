@@ -22,7 +22,7 @@ export type RecipeData = {
 	html: string
 }
 
-export const recipes: RecipeData[] = [
+const recipes: RecipeData[] = [
 	{ id: 1, ...pastaData },
 	{ id: 2, ...tikkaData },
 	{ id: 3, ...lavaData },
@@ -44,9 +44,17 @@ function toLabel(slug: string): string {
 	return slug.charAt(0).toUpperCase() + slug.slice(1)
 }
 
-export const categories: CategoryData[] = [...new Set(recipes.map(r => r.category))]
+const categories: CategoryData[] = [...new Set(recipes.map(r => r.category))]
 	.map(slug => ({
 		slug,
 		label: toLabel(slug),
 		recipes: recipes.filter(r => r.category === slug),
 	}))
+
+/** Fake database for demo purposes */
+export const recipeData = {
+	getRecipeById(id: number) { return Promise.resolve(recipes.find(recipe => recipe.id === id)) },
+	listRecipes() { return Promise.resolve(recipes) },
+	findCategoryBySlug(slug: string) { return Promise.resolve(categories.find(category => category.slug === slug)) },
+	listCategories() { return Promise.resolve(categories) }
+}

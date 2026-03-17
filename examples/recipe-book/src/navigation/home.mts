@@ -2,7 +2,7 @@ import styles from './home.css'
 
 import { component, ComponentContext } from '@rooted/components'
 import { href, Link } from '@rooted/router'
-import { type RecipeData } from '../_shared/data/data.mts'
+import { type RecipeData, recipeData } from '../_shared/data/data.mts'
 import { RecipeRoute } from '../recipes/_routes.mts'
 
 export const HomePage = component({
@@ -23,7 +23,7 @@ export const HomePage = component({
 })
 
 async function grid(create: ComponentContext<typeof HomePage>['create']) {
-	const { recipes } = await import('../_shared/data/data.mts')
+	const recipes = await recipeData.listRecipes()
 
 	return recipes.filter(r => r.featured).map(recipe => {
 		return create(Link, {

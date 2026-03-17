@@ -3,7 +3,7 @@ import styles from './categories.css'
 import { component, type ComponentContext, cssClass } from '@rooted/components'
 import { gate, href, Link } from '@rooted/router'
 import { CategoryRoute } from './_routes.mts'
-import { type CategoryData } from '../_shared/data/data.mts'
+import { type CategoryData, recipeData } from '../_shared/data/data.mts'
 import { Category } from './category.mts'
 
 export const Categories = component({
@@ -27,7 +27,8 @@ async function routeSelected(category: CategoryData): Promise<boolean> {
 }
 
 async function mapCategories(create: ComponentContext['create']) {
-	const { categories } = await import('../_shared/data/data.mts')
+	const categories = await recipeData.listCategories()
+
 	return Promise.all(categories.map(async category => create(Link, {
 		classes: [
 			cssClass(styles.categoryCard),
