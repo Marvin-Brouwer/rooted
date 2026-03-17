@@ -1,4 +1,5 @@
-import styles from './recipe.css?inline'
+import styles from './recipe.css'
+
 import { component, ComponentContext } from '@rooted/components'
 import { Link } from '@rooted/router'
 import { type RecipeData as DataRecipe } from '../_shared/data/data.mts'

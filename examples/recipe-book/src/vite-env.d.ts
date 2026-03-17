@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="@rooted/components/css-loader/styles" />
 
 /**
  * Type for markdown recipe files imported directly (e.g. `import pasta from './pasta.md'`).

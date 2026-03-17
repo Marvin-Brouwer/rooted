@@ -1,6 +1,7 @@
 import { defineConfig, normalizePath } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { generateRouteManifest } from '@rooted/router/manifest'
+import { cssLoader } from '@rooted/components/css-loader'
 import matter from 'gray-matter'
 import { marked } from 'marked'
 import type { Plugin } from 'vite'
@@ -93,6 +94,7 @@ export default defineConfig({
 			glob: './src/**/_routes.mts',
 			root: './src/_routes.g.mts',
 		}),
+		cssLoader(),
 		analyzer({
 			analyzerMode: process.argv.includes('--analyze') ? 'server' : 'static',
 			openAnalyzer: process.argv.includes('--analyze')

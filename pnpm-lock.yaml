@@ -94,6 +94,9 @@ importers:
       '@rooted/tsup':
         specifier: workspace:*
         version: link:../../tooling/tsup
+      '@types/node':
+        specifier: ^22.19.15
+        version: 22.19.15
       vite:
         specifier: ^6.4.1
         version: 6.4.1(@types/node@22.19.15)(terser@5.46.0)

@@ -1,4 +1,4 @@
-import styles from './application.css?inline'
+import styles from './application.css'
 
 import { application } from '@rooted/components/application'
 import { component } from '@rooted/components'

@@ -1,7 +1,7 @@
-import { seededId } from '@rooted/util'
 import { dev } from './dev-helper.mts'
 import { create } from './element-factory.mts'
 import { GenericComponent } from './component/generic-component.mts'
+import { injectStyles } from './component/styles.mts'
 
 /**
  * ## `ComponentContext`
@@ -54,7 +54,6 @@ type BaseComponentContext = & {
 
 const componentBrand: unique symbol = Symbol('@rooted/component')
 export const definedAt: unique symbol = Symbol('@rooted/definedAt')
-export const scopeId: unique symbol = Symbol('@rooted/scopeId')
 
 /**
  * Type guard that tests whether `value` is a {@link Component} produced by
@@ -117,12 +116,14 @@ export type ComponentConstructor<TOptions extends {} = never> = {
 	 *   Duplicate names will result in duplicate style injection.
 	 */
 	name: string,
-	/** CSS for this component only, get's wrapped in context */
-	styles?: string,
+	/**
+	 * CSS for this component, provided as a {@link CssModule}
+	 * imported from a `.css` file via the rooted CSS loader Vite plugin.
+	 */
+	styles?: import('./component/css-artifacts.mts').CssModule,
 	/** Custom component constructor */
 	onMount(context: ComponentContext<TOptions>): void | Promise<void>
 	[definedAt]?: string
-	[scopeId]?: string
 }
 
 /**
@@ -146,10 +147,9 @@ export function component(constructor: ComponentConstructor): Component
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>): Component<TOptions>
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>) {
 
-	// Stable hash of the component name — safe to cache across page loads and builds
-	constructor[scopeId] = seededId(constructor.name)
 	constructor[definedAt] = dev.appendSourceLocation?.()
 	dev.componentNameCheck?.(constructor)
+	if (constructor.styles) injectStyles(constructor.styles)
 
 	return Object.assign(constructor, { [componentBrand]: true }) as unknown as Component<TOptions>
 }

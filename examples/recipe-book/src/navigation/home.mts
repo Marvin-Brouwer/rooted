@@ -1,4 +1,4 @@
-import styles from './home.css?inline'
+import styles from './home.css'
 
 import { component, ComponentContext } from '@rooted/components'
 import { Link } from '@rooted/router'

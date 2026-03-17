@@ -1,4 +1,5 @@
-import styles from './search.css?inline'
+import styles from './search.css'
+
 import { component } from '@rooted/components'
 import { Link } from '@rooted/router'
 

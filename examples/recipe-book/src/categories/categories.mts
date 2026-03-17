@@ -1,4 +1,5 @@
-import styles from './categories.css?inline'
+import styles from './categories.css'
+
 import { component, type ComponentContext, cssClass } from '@rooted/components'
 import { gate, Link } from '@rooted/router'
 import { CategoryRoute } from './_routes.mts'

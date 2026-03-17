@@ -37,6 +37,13 @@
 		"./elements": {
 			"import": "./dist/elements.mjs",
 			"types": "./dist/elements.d.mjs"
+		},
+		"./css-loader": {
+			"import": "./dist/css-loader.mjs",
+			"types": "./dist/css-loader.d.mts"
+		},
+		"./css-loader/styles": {
+			"types": "./plugin/styles.d.ts"
 		}
 	},
 	"scripts": {
@@ -47,8 +54,12 @@
 	"dependencies": {
 		"@rooted/util": "workspace:^"
 	},
+	"peerDependencies": {
+		"vite": ">=5.0.0"
+	},
 	"devDependencies": {
 		"@rooted/tsup": "workspace:*",
+		"@types/node": "^22.19.15",
 		"vite": "^6.4.1"
 	}
 }

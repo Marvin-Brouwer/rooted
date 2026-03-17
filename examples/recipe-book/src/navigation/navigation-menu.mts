@@ -1,5 +1,6 @@
-import { Link, navigate } from '@rooted/router'
-import styles from './navigation-menu.css?inline'
+import styles from './navigation-menu.css'
+
+import { Link } from '@rooted/router'
 
 import { component } from '@rooted/components'
 import { SearchBar } from '../search/search-bar.mts'

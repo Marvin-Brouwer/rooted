@@ -1,6 +1,6 @@
-import { Link } from '@rooted/router'
-import styles from './not-found.css?inline'
+import styles from './not-found.css'
 
+import { Link } from '@rooted/router'
 import { component } from '@rooted/components'
 
 export const NotFoundPage = component({

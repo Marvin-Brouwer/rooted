@@ -1,62 +1,53 @@
-import { isDevelopment } from '@rooted/util/dev'
-import { ComponentConstructor, scopeId } from '../component.mts'
-import { create } from '../element-factory.mts'
+/// <reference path="../../node_modules/vite/types/import-meta.d.ts" />
 
-const styleSheets = new WeakMap<Document, WeakSet<ComponentConstructor>>()
+import { type CssArtifacts, cssArtifacts, type CssModule } from './css-artifacts.mts'
 
-const scopeSupported = (() => {
-	try {
-		new CSSStyleSheet().replaceSync('@scope {}')
-		return true
-	} catch {
-		return false
-	}
+/** Map from injected href to its <link> element, for cache-busting on HMR. */
+const injectedLinks = new Map<string, HTMLLinkElement>()
+
+/** True when the browser supports `@scope` — detected once at module load time. */
+const supportsScope: boolean = await (async () => {
+	try { await new CSSStyleSheet().replace('@scope {}'); return true }
+	catch { return false }
 })()
-const indent = isDevelopment() ? '\t' : ''
-const lineEnding = isDevelopment() ? '\n' : ''
 
-/**
- * Wraps component CSS in a scope tied to its unique attribute selector.
- *
- * **Primary path — `@scope`** (Chrome 118+, Firefox 128+, Safari 17.4+):
- * ```css
- * @scope ([r1a2b3c]) {
- *   p { color: red }
- * }
- * ```
- * `@scope` limits style application to descendants of the matching element,
- * so component styles never leak out to the rest of the page.
- *
- * **Fallback — CSS nesting** (Chrome 112+, Firefox 117+, Safari 16.5+):
- * ```css
- * [r1a2b3c] {
- *   p { color: red }
- * }
- * ```
- * Browsers that lack `@scope` support CSS nesting, which desugars nested rules
- * to `[r1a2b3c] p { color: red }` — equivalent descendant scoping via the cascade.
- * The browser ranges align such that the fallback is always valid where needed.
- */
-function buildCss(id: string, css: string) {
-	const selector = `[r="${id}"]`
-	const content = scopeSupported
-		? [`@scope (${selector}) {`, indent + css, '}']
-		: [`${selector} {`, indent + css, '}']
-
-	return content.join(lineEnding)
+export function injectStyles(styles: CssModule) {
+	const artifacts = styles[cssArtifacts]
+	const href = supportsScope ? artifacts.scoped : artifacts.tagged
+	if (injectedLinks.has(href)) return
+	const link = document.createElement('link')
+	link.rel = 'stylesheet'
+	link.href = href
+	document.head.appendChild(link)
+	injectedLinks.set(href, link)
 }
 
-export function applyStyles(element: HTMLElement, component: ComponentConstructor) {
-	if (!component.styles) return
-	const doc = element.ownerDocument
-	const components = styleSheets.get(doc) ?? new WeakSet<ComponentConstructor>()
-	if (components.has(component)) return
-	components.add(component)
-	styleSheets.set(doc, components)
-	doc.head.append(create('style', {
-		id: isDevelopment()
-			? `style-${component.name}`
-			: `style-${component[scopeId]}`,
-		textContent: buildCss(component[scopeId]!, component.styles)
-	}))
+function getDisplayStyle(element: Element) {
+	if (!('computedStyleMap' in Element.prototype))
+		return window.getComputedStyle(element, null).display
+
+	return element.computedStyleMap()?.get('display')?.toString()
+		?? window.getComputedStyle(element, null).display
 }
+
+// In case the style didn't take
+export function applyContentStyleFallback(element: HTMLElement) {
+	if (getDisplayStyle(element) === 'contents') return
+
+	element.style.setProperty('display', 'contents', 'important')
+}
+
+export function applyScope(element: HTMLElement, styles: CssModule | undefined) {
+	if (!styles) return
+
+	element.setAttribute('r', styles[cssArtifacts].scopeId)
+}
+
+// Dev-mode HMR: when a source CSS file changes, the plugin sends this event
+// so we can force-refetch the stylesheet without a full page reload.
+import.meta.hot?.on('@rooted/components:css-update', ({ scoped, tagged }: CssArtifacts) => {
+	for (const href of [scoped, tagged]) {
+		const link = injectedLinks.get(href)
+		if (link) link.href = `${href}?t=${Date.now()}`
+	}
+})
