@@ -1,8 +1,9 @@
 import styles from './home.css'
 
 import { component, ComponentContext } from '@rooted/components'
-import { Link } from '@rooted/router'
+import { href, Link } from '@rooted/router'
 import { type RecipeData } from '../_shared/data/data.mts'
+import { RecipeRoute } from '../recipes/_routes.mts'
 
 export const HomePage = component({
 	name: 'home-page',
@@ -10,11 +11,11 @@ export const HomePage = component({
 	async onMount({ append, create }) {
 		append(
 			create('h1', { textContent: 'Recipe Book' }),
-			create('p', { classes: 'subtitle', textContent: 'A collection of recipes, built with Rooted.' }),
+			create('p', { classes: styles.subtitle, textContent: 'A collection of recipes, built with Rooted.' }),
 			create('h2', { textContent: 'Featured Recipes' }),
 
 			create('div', {
-				classes: 'recipe-grid',
+				classes: styles.recipeGrid,
 				children: await grid(create),
 			})
 		)
@@ -25,10 +26,9 @@ async function grid(create: ComponentContext<typeof HomePage>['create']) {
 	const { recipes } = await import('../_shared/data/data.mts')
 
 	return recipes.filter(r => r.featured).map(recipe => {
-		const href = `/recipe/${recipe.id}/`
 		return create(Link, {
-			href,
-			classes: 'recipe-card',
+			href: href.for(RecipeRoute, recipe),
+			classes: styles.recipeCard,
 			children: card(create, recipe),
 		})
 	})
@@ -36,12 +36,12 @@ async function grid(create: ComponentContext<typeof HomePage>['create']) {
 
 function card(create: ComponentContext<typeof HomePage>['create'], recipe: RecipeData): Node[] {
 	return [
-		create('div', { classes: 'card-title', textContent: recipe.title }),
-		create('p', { classes: 'card-desc', textContent: recipe.description }),
+		create('div', { classes: styles.cardTitle, textContent: recipe.title }),
+		create('p', { classes: styles.cardDescription, textContent: recipe.description }),
 		create('div', {
-			classes: 'card-meta',
+			classes: styles.cardMeta,
 			children: [
-				create('span', { classes: 'badge', textContent: recipe.category }),
+				create('span', { classes: styles.badge, textContent: recipe.category }),
 				create('span', { textContent: `${recipe.prepTime + recipe.cookTime} min` }),
 				create('span', { textContent: recipe.difficulty }),
 			],

@@ -89,14 +89,18 @@ export type Component<TOptions extends {} = never> = ComponentConstructor<TOptio
  *
  * @example
  * ```ts
+ * import styles from './example.css'
+ *
  * export const Example = component({
  * 	name: 'example',
+ * 	styles,
  * 	onMount({ append, create }) {
- * 		append('div', {
- * 			children: create('p', {
+ * 		append(
+ * 			create('p', {
+ * 				classes: styles.message,
  * 				textContent: 'This is just an example'
  * 			})
- * 		})
+ * 		)
  * 	}
  * })
  * ```
@@ -131,14 +135,18 @@ export type ComponentConstructor<TOptions extends {} = never> = {
  *
  * @example
  * ```ts
+ * import styles from './example.css'
+ *
  * export const Example = component({
  * 	name: 'example',
+ * 	styles,
  * 	onMount({ append, create }) {
- * 		append('div', {
- * 			children: create('p', {
+ * 		append(
+ * 			create('p', {
+ * 				classes: styles.message,
  * 				textContent: 'This is just an example'
  * 			})
- * 		})
+ * 		)
  * 	}
  * })
  * ```

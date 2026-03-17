@@ -25,7 +25,7 @@ class HrefBase {
  */
 export class Path extends HrefBase {
 
-	private static baseUrl = 'https://rooted.is/awesome'
+	private static baseUrl = 'https://rooted-is.awesome'
 
 	static fromUrl(href: URL) {
 		return new Path(href)
@@ -136,7 +136,11 @@ export function forAny(href: Path): Path
  *
  * @see {@link RouteParameterDictionary}
  */
-export function forAny<TRoute extends Route<any>>(route: TRoute, parameters: RouteParameterDictionary<TRoute>): Path
+export function forAny<TRoute extends Route<any>>(
+	...args: keyof RouteParameterDictionary<TRoute> extends never
+		? [route: TRoute, parameters?: RouteParameterDictionary<TRoute>]
+		: [route: TRoute, parameters: RouteParameterDictionary<TRoute>]
+): Path
 /** @__PURE__ */
 export function forAny(target: Route<any> | URL | Location | Url | Path, dictionary?: NoInfer<PathParameterDictionary<any>>): HrefBase {
 

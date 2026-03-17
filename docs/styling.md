@@ -247,15 +247,17 @@ button[type="submit"] {
 Pair the CSS file with its component:
 
 ```ts
-import styles from './card.css?inline'
+import styles from './card.css'
 import { component } from '@rooted/components'
 
 export const Card = component({
   name: 'card',
   styles,
-  onMount({ append }) {
-    append('h2', { textContent: 'Card title' })
-    append('p',  { textContent: 'Card body' })
+  onMount({ append, create }) {
+    append(
+      create('h2', { classes: styles.cardTitle, textContent: 'Card title' }),
+      create('p',  { classes: styles.cardBody,  textContent: 'Card body'  }),
+    )
   },
 })
 ```
@@ -298,7 +300,7 @@ Layer 3 (`application.css`) is scoped to the application component and loaded
 inline like any other component stylesheet:
 
 ```ts
-import styles from './application.css?inline'
+import styles from './application.css'
 
 import { application } from '@rooted/components/application'
 import { component } from '@rooted/components'

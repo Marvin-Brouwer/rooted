@@ -1,8 +1,9 @@
 import styles from './recipe.css'
 
 import { component, ComponentContext } from '@rooted/components'
-import { Link } from '@rooted/router'
+import { href, Link } from '@rooted/router'
 import { type RecipeData as DataRecipe } from '../_shared/data/data.mts'
+import { CategoriesRoute, CategoryRoute } from '../categories/_routes.mts'
 
 export type RecipeOptions = {
 	id: number
@@ -16,18 +17,18 @@ export const Recipe = component<RecipeOptions>({
 		const recipe = recipes.find(r => r.id === options.id)
 
 		if (!recipe) return void append(
-			create(Link, { href: '/categories/', classes: 'back-link', children: '← Browse' }),
+			create(Link, { href: href.for(CategoriesRoute), classes: styles.backLink, children: '← Browse' }),
 			create('div', {
-				classes: 'recipe-header',
+				classes: styles.recipeHeader,
 				children: create('h2', { textContent: 'No recipe' })
 			}),
-			create('p', { classes: 'not-found', textContent: 'Recipe not found.' })
+			create('p', { classes: styles.notFound, textContent: 'Recipe not found.' })
 		)
 
 		append(
 			create(Link, {
-				href: `/categories/${recipe.category}/`,
-				classes: 'back-link',
+				href: href.for(CategoryRoute, { slug: recipe.category }),
+				classes: styles.backLink,
 				children: `← Back to ${recipe.category}`,
 			}),
 			create('div', {
@@ -35,14 +36,14 @@ export const Recipe = component<RecipeOptions>({
 				children: [
 					create('h2', { textContent: recipe.title }),
 					create('ul', {
-						classes: 'recipe-meta',
+						classes: styles.recipeMeta,
 						children: meta(create, recipe)
 					})
 				]
 			}),
 
 			create('div', {
-				classes: 'recipe-body',
+				classes: styles.recipeBody,
 				// Render the markdown-converted HTML body.
 				// Safe: content originates from version-controlled markdown files.
 				innerHTML: recipe.html

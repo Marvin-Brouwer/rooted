@@ -1,7 +1,8 @@
 import styles from './search.css'
 
 import { component } from '@rooted/components'
-import { Link } from '@rooted/router'
+import { href, Link } from '@rooted/router'
+import { RecipeRoute } from '../recipes/_routes.mts'
 
 export const SearchPage = component({
 	name: 'search-page',
@@ -22,7 +23,7 @@ export const SearchPage = component({
 			root.append(create('h1', {
 				children: [
 					document.createTextNode('Results for '),
-					create('span', { classes: 'search-query', textContent: `"${displayQuery}"` }),
+					create('span', { classes: styles.searchQuery, textContent: `"${displayQuery}"` }),
 				],
 			}))
 
@@ -34,23 +35,25 @@ export const SearchPage = component({
 			)
 
 			root.append(create('p', {
-				classes: 'result-count',
+				classes: styles.resultCount,
 				textContent: `${matches.length} recipe${matches.length !== 1 ? 's' : ''} found`,
 			}))
 
 			if (matches.length === 0) {
-				root.append(create('p', { classes: 'no-results', textContent: 'No recipes match your search.' }))
+				root.append(create('p', { classes: styles.noResults, textContent: 'No recipes match your search.' }))
 				return
 			}
 
-			const list = create('ul', { classes: 'result-list' })
+			const list = create('ul', { classes: styles.resultList })
 			for (const recipe of matches) {
-				const href = `/recipe/${recipe.id}/`
 				list.append(create('li', {
 					classes: 'result-item',
 					children: [
-						create('div', { classes: 'result-title', children: create(Link, { href, children: recipe.title }) }),
-						create('p', { classes: 'result-desc', textContent: recipe.description }),
+						create('div', {
+							classes: styles.resultTitle,
+							children: create(Link, { href: href.for(RecipeRoute, recipe), children: recipe.title })
+						}),
+						create('p', { classes: styles.resultDesc, textContent: recipe.description }),
 					],
 				}))
 			}
