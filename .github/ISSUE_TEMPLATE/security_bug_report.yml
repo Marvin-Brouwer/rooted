@@ -1,22 +1,30 @@
 name: Security bug report
-description: Report a security vulnerability
+description: Report a security vulnerability — please use the private advisory flow instead
 labels: [bug, security]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!WARNING]
+        > **Please do not report security vulnerabilities publicly.**
+        > Use the [private security advisory](https://github.com/Marvin-Brouwer/rooted/security/advisories/new)
+        > so the issue can be assessed and patched before public disclosure.
+
   - type: input
     id: package-version
     attributes:
       label: Package + Version
-      description: NuGet package name and version, or a link to the version on nuget.org.
-      placeholder: e.g. Rooted.DependencyInjection 1.2.3
+      description: npm package name and version, or a link to the version on npmjs.com.
+      placeholder: e.g. @rooted/components 1.2.3
     validations:
       required: true
 
   - type: input
-    id: framework-version
+    id: environment
     attributes:
-      label: Framework version
-      description: The framework version(s) to which this vulnerability applies.
-      placeholder: e.g. .NET 8.0
+      label: Environment
+      description: Node version and browser (if a runtime bug).
+      placeholder: e.g. Node 22.4.0 / Chrome 124
     validations:
       required: true
 

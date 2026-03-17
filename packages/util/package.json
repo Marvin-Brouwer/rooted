@@ -22,7 +22,7 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"readme.md"
 	],
 	"engines": {
 		"node": ">=22.0.0",

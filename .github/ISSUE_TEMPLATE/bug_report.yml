@@ -6,17 +6,17 @@ body:
     id: package-version
     attributes:
       label: Package + Version
-      description: NuGet package name and version, or a link to the version on nuget.org.
-      placeholder: e.g. Rooted.DependencyInjection 1.2.3
+      description: npm package name and version, or a link to the version on npmjs.com.
+      placeholder: e.g. @rooted/components 1.2.3
     validations:
       required: true
 
   - type: input
-    id: framework-version
+    id: environment
     attributes:
-      label: Framework version
-      description: The framework version(s) to which this bug applies.
-      placeholder: e.g. .NET 8.0
+      label: Environment
+      description: Node version and browser (if a runtime bug).
+      placeholder: e.g. Node 22.4.0 / Chrome 124
     validations:
       required: true
 
