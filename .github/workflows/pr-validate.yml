@@ -27,9 +27,14 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint commit messages
+        env:
+          # Commits older than this SHA predate the conventional-commit rule and are exempt.
+          COMMITLINT_SINCE: "3445f4d"
         run: |
+          FROM_SHA=$(git merge-base "$COMMITLINT_SINCE" "${{ github.event.pull_request.head.sha }}" 2>/dev/null \
+            || echo "${{ github.event.pull_request.base.sha }}")
           pnpm exec commitlint \
-            --from ${{ github.event.pull_request.base.sha }} \
+            --from "$FROM_SHA" \
             --to ${{ github.event.pull_request.head.sha }} \
             --verbose
 
