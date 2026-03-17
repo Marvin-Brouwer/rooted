@@ -1,11 +1,10 @@
 import { RootedElement } from '../rooted-element.mts'
-import { ComponentConstructor, ComponentContext, scopeId } from '../component.mts'
+import { ComponentConstructor, ComponentContext } from '../component.mts'
 import { create } from '../element-factory.mts'
 import { pageSignal } from '../page-context.mts'
-import { applyStyles } from './styles.mts'
+import { applyContentStyleFallback, applyScope } from './styles.mts'
 import { isDevelopment } from '@rooted/util/dev'
 import { dev } from '../dev-helper.mts'
-
 
 type ComponentData<T> = {
 	component: Readonly<ComponentConstructor>,
@@ -74,13 +73,9 @@ export class GenericComponent extends RootedElement {
 		const { component, options } = data
 
 		if (isDevelopment()) this.setAttribute('r-component', component.name)
-		this.setAttribute('r', component[scopeId]!)
 
-		// In case the style didn't take
-		if (getDisplayStyle(this) !== 'contents')
-			this.style.setProperty('display', 'contents', 'important')
-
-		applyStyles(this, component)
+		applyContentStyleFallback(this)
+		applyScope(this, component.styles)
 
 		// Re-create to cover remounting
 		this.abortController?.abort('remounted')
@@ -201,30 +196,6 @@ export class GenericComponent extends RootedElement {
 
 RootedElement.register(GenericComponent)
 
-// Try doing it by stylesheet to keep the dom clean
-// Make it oddly specific to prevent accidental overrides
-const genericComponentStyle = `
-	${GenericComponent.tagName},
-	${GenericComponent.tagName}[r] {
-		display: contents !important;
-	}
-`
-document.head.append(create('style', {
-	id: 'style-generic-component',
-	textContent: isDevelopment()
-		? genericComponentStyle
-		: genericComponentStyle
-			.replaceAll('\t\t', ' ')
-			.replaceAll('\t', ' ')
-			.replaceAll('\n', '')
-			.trim()
-}))
-
-
-function getDisplayStyle(element: Element) {
-	if (!('computedStyleMap' in Element.prototype))
-		return window.getComputedStyle(element, null).display
-
-	return element.computedStyleMap()?.get('display')?.toString()
-		?? window.getComputedStyle(element, null).display
-}
+const sheet = new CSSStyleSheet()
+await sheet.replace(`${GenericComponent.tagName}, ${GenericComponent.tagName}[r] { display: contents !important; }`)
+document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]

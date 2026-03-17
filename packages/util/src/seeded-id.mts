@@ -1,35 +1,27 @@
 /**
- * ## Derive a scope ID from a component name
+ * ## Derive a scope ID from a string (e.g. a CSS file path)
  *
- * Uses FNV-1a (64-bit) seeded with a global counter to hash the component name
- * into a base-36 string (8–14 chars, 2^64 space).
+ * Pure FNV-1a (64-bit) hash of the input string.
+ * Returns a base-36 string (8–14 chars, 2^64 space).
  *
  * Implemented with two 32-bit integers instead of BigInt for performance.
  * All intermediate products stay within `Number.MAX_SAFE_INTEGER`, so arithmetic
  * is exact without needing 64-bit types.
  *
- * The result is deterministic within a single page load as long as components are
- * defined in the same order (i.e. module evaluation order is stable), so CSS selectors
- * remain consistent for the lifetime of the page.
- *
- * The counter ensures that duplicate component names still produce distinct scope IDs,
- * preventing style sheet collisions — duplicate names are warned about in development.
+ * The result is deterministic and stable across builds and machines —
+ * the same input always produces the same output.
  *
  * **Not cryptographically secure** — intended only for CSS scope selectors.
  */
 
 // FNV-1a 64-bit offset basis: 0xcbf29ce4_84222325
-// Split into two 32-bit words; incremented per call so duplicate names produce distinct IDs
-let seedHi = 0xcbf29ce4 >>> 0
-let seedLo = 0x84222325 >>> 0
+// Split into two 32-bit words
+const seedHi = 0xcbf29ce4 >>> 0
+const seedLo = 0x84222325 >>> 0
 
 export function seededId(name: string): string {
 	let hi = seedHi
 	let lo = seedLo
-
-	// Increment 64-bit seed for next call
-	seedLo = (seedLo + 1) >>> 0
-	if (seedLo === 0) seedHi = (seedHi + 1) >>> 0
 
 	for (let i = 0; i < name.length; i++) {
 		// FNV-1a: XOR then multiply

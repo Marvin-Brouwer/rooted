@@ -24,11 +24,10 @@ describe('seededId', () => {
 		expect(id.length).toBeLessThanOrEqual(14)
 	})
 
-	test('consecutive calls with the same name return different ids', () => {
+	test('same input always returns the same id', () => {
 		const id1 = seededId('duplicate-name')
 		const id2 = seededId('duplicate-name')
-		// Counter increments per call so duplicate names produce distinct scope ids
-		expect(id1).not.toBe(id2)
+		expect(id1).toBe(id2)
 	})
 
 	test('consecutive calls with different names return different ids', () => {

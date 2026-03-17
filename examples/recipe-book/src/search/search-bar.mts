@@ -1,5 +1,6 @@
+import styles from './search-bar.css'
+
 import { navigate } from '@rooted/router'
-import styles from './search-bar.css?inline'
 import { component } from '@rooted/components'
 
 export const SearchBar = component({

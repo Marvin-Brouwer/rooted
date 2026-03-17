@@ -1,4 +1,5 @@
-import styles from './category.css?inline'
+import styles from './category.css'
+
 import { component } from '@rooted/components'
 import { Link } from '@rooted/router'
 
