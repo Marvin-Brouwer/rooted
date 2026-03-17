@@ -140,6 +140,7 @@ vite.config.ts.timestamp-*
 
 # Generated files
 **/*.g.mts
+temp/
 
 # LLM
 .claude/settings.local.json
