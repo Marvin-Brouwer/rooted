@@ -1,7 +1,8 @@
 import styles from './category.css'
 
 import { component } from '@rooted/components'
-import { Link } from '@rooted/router'
+import { Link, href } from '@rooted/router'
+import { RecipeRoute } from '../recipes/_routes.mts'
 
 export type CategoryOptions = {
 	slug: string
@@ -34,13 +35,12 @@ export const Category = component<CategoryOptions>({
 		if (category) {
 			const list = create('ul', { classes: 'recipe-list' })
 			for (const recipe of category.recipes) {
-				const href = `/recipe/${recipe.id}/`
 				list.append(create('li', {
-					classes: 'recipe-item',
+					classes: styles.recipeItem,
 					children: [
-						create(Link, { href, children: recipe.title }),
+						create(Link, { href: href.for(RecipeRoute, recipe), children: recipe.title }),
 						create('span', {
-							classes: 'recipe-item-meta',
+							classes: styles.recipeItemMeta,
 							textContent: `${recipe.prepTime + recipe.cookTime} min · ${recipe.difficulty}`,
 						}),
 					],

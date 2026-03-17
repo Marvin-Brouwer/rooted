@@ -59,16 +59,18 @@ export const Link = component<LinkOptions>({
 	name: '@rooted/navigation-link',
 	onMount({ options, append, create, signal }) {
 
+		const stringHref = typeof options.href === 'string'
+			? options.href
+			: options.href.href
+
 		function navigateToHref(event: PointerEvent) {
 			event.preventDefault()
-			navigate(options.href)
+			navigate(stringHref)
 		}
 
 		append(
 			create('a', {
-				href: typeof options.href === 'string'
-					? options.href
-					: options.href.href,
+				href: stringHref,
 				children: typeof options.children === 'string'
 					? document.createTextNode(options.children)
 					: options.children,

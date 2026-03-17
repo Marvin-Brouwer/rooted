@@ -40,7 +40,7 @@ export type CssClasses = Array<CssClass> | CssClass
  * })
  * ```
  */
-export function cssClass(className: string, visible: boolean | null | undefined = true) {
+export function cssClass(className: string | CssClass, visible: boolean | null | undefined = true) {
 	if (visible !== true) return undefined
 	return className as CssClass
 }

@@ -66,11 +66,11 @@ A lowercase, HTML-valid identifier for the component (`[a-z][a-z0-9\-]*`).
 ### `styles`
 
 ```ts
-styles?: string
+styles?: CssModule
 ```
 
-A CSS string scoped to this component. Import it from a `.css` file — Vite
-resolves CSS imports to their string content:
+A CSS module for this component. Import it from a `.css` file via the rooted
+CSS loader Vite plugin — class names are exported as typed `CssClass` values:
 
 ```ts
 import styles from './card.css'
@@ -87,9 +87,11 @@ import { component } from '@rooted/components'
 export const Card = component({
   name: 'card',
   styles,
-  onMount({ append }) {
-    append('h2', { textContent: 'Card title' })
-    append('p',  { textContent: 'Card body'  })
+  onMount({ append, create }) {
+    append(
+      create('h2', { classes: styles.cardTitle, textContent: 'Card title' }),
+      create('p',  { classes: styles.cardBody,  textContent: 'Card body'  }),
+    )
   },
 })
 ```
