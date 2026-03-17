@@ -21,5 +21,5 @@ export const href = {
 	get path() { return href_.path },
 	get join() { return href_.join },
 	get current() { return href_.current },
-	get for() { return href_.forAny }
+	get for() { return href_.forAny },
 } as const

@@ -1,7 +1,8 @@
 import { component } from '@rooted/components'
-import { navigate } from './navigation.mts'
 import { CssClasses } from '@rooted/components/elements'
+
 import { Path, Url } from './href.mts'
+import { navigate } from './navigation.mts'
 
 /**
  * Options for {@link Link}.
@@ -58,7 +59,6 @@ export type LinkOptions = {
 export const Link = component<LinkOptions>({
 	name: '@rooted/navigation-link',
 	onMount({ options, append, create, signal }) {
-
 		const stringHref = typeof options.href === 'string'
 			? options.href
 			: options.href.href
@@ -74,8 +74,8 @@ export const Link = component<LinkOptions>({
 				children: typeof options.children === 'string'
 					? document.createTextNode(options.children)
 					: options.children,
-				classes: options.classes
-			})
+				classes: options.classes,
+			}),
 		)
 			.addEventListener('click', navigateToHref, { signal })
 	},

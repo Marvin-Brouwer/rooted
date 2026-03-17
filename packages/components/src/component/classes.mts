@@ -1,4 +1,3 @@
-
 /**
  * A single CSS class value. Falsy variants (`undefined` and `null`) are
  * automatically filtered out when building a class list, so conditional
@@ -41,6 +40,6 @@ export type CssClasses = Array<CssClass> | CssClass
  * ```
  */
 export function cssClass(className: string | CssClass, visible: boolean | null | undefined = true) {
-	if (visible !== true) return undefined
-	return className as CssClass
+	if (visible !== true) return
+	return className
 }

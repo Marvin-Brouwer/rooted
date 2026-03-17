@@ -1,40 +1,44 @@
 import { tupleResult, TupleResult } from '@rooted/util'
+
 import { isRoute } from './route.metadata.mts'
+
 import type { Route } from './route.mts'
 
+/* eslint-disable @typescript-eslint/no-wrapper-object-types, @typescript-eslint/no-explicit-any */
+
 /** The constructor types accepted as the `type` argument to {@link token}. */
-export type ParameterType =
-	| NumberConstructor
+export type ParameterType
+	= NumberConstructor
 	| StringConstructor
 	| BooleanConstructor
 	| DateConstructor
 	| Wildcard
 
-export type ParameterTokenType =
-	| Number
+export type ParameterTokenType
+	= Number
 	| String
 	| Boolean
 	| Date
 	| Wildcard
 	| Route<any>
 
-type ParameterToTokenType<V extends ParameterType> =
-	V extends NumberConstructor ? Number :
-	V extends StringConstructor ? String :
-	V extends BooleanConstructor ? Boolean :
-	V extends DateConstructor ? Date :
-	V extends Wildcard ? Wildcard :
-	V extends Route<any> ? V :
-	never
+type ParameterToTokenType<V extends ParameterType>
+	= V extends NumberConstructor ? number
+	: V extends StringConstructor ? string
+	: V extends BooleanConstructor ? boolean
+	: V extends DateConstructor ? Date
+	: V extends Wildcard ? Wildcard
+	: V extends Route<any> ? V
+	: never
 
 /** Maps a {@link ParameterTokenType} to the TypeScript value type it produces at runtime. */
-export type ParameterToValueType<V extends ParameterTokenType> =
-	V extends Number ? number :
-	V extends String ? string :
-	V extends Boolean ? boolean :
-	V extends Date ? Date :
-	V extends Wildcard ? string :
-	never
+export type ParameterToValueType<V extends ParameterTokenType>
+	= V extends Number ? number
+	: V extends String ? string
+	: V extends Boolean ? boolean
+	: V extends Date ? Date
+	: V extends Wildcard ? string
+	: never
 
 export type TokenMatchResult<T extends ParameterTokenType = ParameterTokenType> = TupleResult<T>
 
@@ -49,8 +53,8 @@ export type Parameter<K extends string = string, T extends ParameterTokenType = 
 	key: K
 	type: T
 
-	match(parameter: string): TokenMatchResult<T>,
-	[tokenBrand]: true,
+	match(parameter: string): TokenMatchResult<T>
+	[tokenBrand]: true
 }
 
 export type RouteParameter = Parameter | Route<any>
@@ -78,7 +82,6 @@ export type RouteParameter = Parameter | Route<any>
  * @see {@link route}
  */
 export function token<K extends string = string, T extends ParameterType = ParameterType>(name: K, type: T): Parameter<K, ParameterToTokenType<T>> {
-
 	const match = getMatcher<T>(type) as (value: string) => TokenMatchResult<ParameterToTokenType<T>>
 
 	return {
@@ -111,9 +114,10 @@ function getMatcher<T extends ParameterType>(type: T) {
 	if (type === Date) return (value: string | Date): TokenMatchResult<Date> => {
 		try {
 			const dateValue = (value instanceof Date) ? value : new Date(value)
-			if (Number.isNaN(dateValue.getTime())) return tupleResult.error(new Error(`"${value}" is not a valid date`))
+			if (Number.isNaN(dateValue.getTime())) return tupleResult.error(new Error(`"${String(value)}" is not a valid date`))
 			return tupleResult.success(dateValue)
-		} catch (error) {
+		}
+		catch (error) {
 			return tupleResult.error(error)
 		}
 	}
@@ -167,7 +171,6 @@ type WildcardParameter<K extends string> = Parameter<K, Wildcard>
  * @see {@link route}
  */
 export function wildcard<K extends string = 'rest'>(name = 'rest' as K): Parameter<K, Wildcard> {
-
 	function match(value: string): TokenMatchResult<Wildcard> {
 		return tupleResult.success(value as Wildcard)
 	}
@@ -185,6 +188,7 @@ function isWildcardConstructor(type: ParameterType): type is Wildcard {
 }
 /** Returns `true` if `token` is a {@link WildcardParameter}. */
 export function isWildcardParameter<K extends string>(token: Parameter<K, any>): token is WildcardParameter<K> {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 	return typeof token === 'object' && token !== null && isWildcardConstructor(token.type)
 }
 /** Internal brand that distinguishes a {@link WildcardParameter} from a {@link PathParameter}. */

@@ -1,5 +1,5 @@
-import { defineConfig } from 'tsup'
 import { inheritdocPlugin } from '@rooted/tsup'
+import { defineConfig } from 'tsup'
 
 export default defineConfig([
 	{
@@ -17,6 +17,7 @@ export default defineConfig([
 		format: ['esm'],
 		platform: 'node',
 		tsconfig: 'tsconfig.plugin.json',
+		external: ['esbuild'],
 		dts: true,
 		sourcemap: 'inline',
 	},

@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
+
 import { appendSourceLocation, formatStackFrame, isDevelopment } from '../src/development.mts'
 
 // formatStackFrame strips location.origin from stack frame URLs
@@ -22,7 +23,7 @@ describe('isDevelopment', () => {
 
 describe('formatStackFrame', () => {
 	test('returns undefined for undefined input', () => {
-		expect(formatStackFrame(undefined)).toBeUndefined()
+		expect(formatStackFrame(void 0)).toBeUndefined()
 	})
 
 	test('returns undefined for empty string', () => {

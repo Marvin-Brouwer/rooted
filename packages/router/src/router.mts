@@ -1,10 +1,13 @@
 import { Component, component, GenericComponent } from '@rooted/components'
-import { Route, route } from './route.mts'
-import { isRoute, routeMetaData } from './route.metadata.mts'
-import { dev } from './dev-helper.mts'
 import { create } from '@rooted/components/elements'
+
+import { devHelper } from './dev-helper.mts'
 import * as href from './href.mts'
 import { RouteMatch } from './route.match.mts'
+import { isRoute, routeMetaData } from './route.metadata.mts'
+import { Route, route } from './route.mts'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Configuration object passed to {@link router}.
@@ -73,46 +76,33 @@ export type ValidatedRouterConfig<T extends RouterConfig> = {
  * @see {@link RouterConfig}
  */
 export function router<const T extends RouterConfig>(config: ValidatedRouterConfig<T>): GenericComponent {
-
 	const { home: homeComponent, notFound: notFoundComponent, ...userRoutes } = config
 	const routes = [
 		route`/`({ resolve: ({ create }) => create(homeComponent) }),
 
-		...Object.values(userRoutes)
-			.filter(isRoute)
-			.filter(r => !r[routeMetaData].hasErrors)
+		...Object.values(userRoutes as Record<string, Route<any>>)
+			.filter(r => isRoute(r))
+			.filter(r => !r[routeMetaData].hasErrors),
 	]
 
-	dev.validateDuplicateRoutes?.(config)
+	devHelper.validateDuplicateRoutes?.(config)
 
 	return create(Router, { routes, fallback: notFoundComponent })
 }
 
-type RouterProps = {
-	routes: Array<RouterCompatibleRoute<any>>,
+type RouterProperties = {
+	routes: Array<Route<any>>
 	fallback: Component
 }
-const Router = component<RouterProps>({
+const Router = component<RouterProperties>({
 	name: '@rooted/router',
 	async onMount({ replace, create, signal, options }) {
-
 		let lastPath: string | undefined
 
 		const cache = new Map<string, undefined | { route: Route<any>, match: SuccessRouteMatch }>()
 
 		function renderRoute(element: Element | undefined) {
 			replace(element ?? create(options.fallback))
-		}
-
-		function normalizeHref(target: () => href.Path) {
-
-			const targetPath = target()
-			if (!targetPath.pathOnly.endsWith('/')) {
-				history.replaceState(history.state, '', targetPath.pathOnly + '/' + targetPath.queryString + targetPath.hash)
-				return target()
-			}
-
-			return targetPath
 		}
 
 		async function update() {
@@ -123,7 +113,7 @@ const Router = component<RouterProps>({
 
 			if (cache.has(target.pathOnly)) {
 				const cached = cache.get(target.pathOnly)
-				if (!cached) return renderRoute(undefined)
+				if (!cached) return renderRoute(void 0)
 				const element = await cached.route.resolve({ create, tokens: cached.match.tokens })
 				return renderRoute(element)
 			}
@@ -131,25 +121,25 @@ const Router = component<RouterProps>({
 			const matchRouteResult = await matchRoute(target, options.routes)
 			if (!matchRouteResult) {
 				cache.set(target.pathOnly, undefined)
-				return renderRoute(undefined)
+				return renderRoute(void 0)
 			}
 
 			cache.set(target.pathOnly, { route: matchRouteResult.route, match: matchRouteResult.match })
 			return renderRoute(matchRouteResult.element)
 		}
 
-		window.addEventListener('popstate', update, { signal })
-		update()
-	}
+		globalThis.addEventListener('popstate', () => void update(), { signal })
+		await update()
+	},
 })
 
 type SuccessRouteMatch = RouteMatch<any> & { success: true }
 type FilterRoutesResult = { route: Route<any>, match: SuccessRouteMatch, element: Element }
 
-type FilterRouteResult =
-	| { kind: 'no-match' }
-	| { kind: 'suppressed'; patternLength: number }
-	| { kind: 'matched'; match: SuccessRouteMatch; element: Element }
+type FilterRouteResult
+	= { kind: 'no-match' }
+	| { kind: 'suppressed', patternLength: number }
+	| { kind: 'matched', match: SuccessRouteMatch, element: Element }
 
 async function filterRoute(route: Route<any>, target: href.Path): Promise<FilterRouteResult> {
 	const patternMatch = await route.match({ target })
@@ -162,11 +152,10 @@ async function filterRoute(route: Route<any>, target: href.Path): Promise<Filter
 }
 
 async function matchRoute(target: href.Path, routes: Route<any>[]) {
-
 	// Find the best filtered route in parallel
 	const results = await Promise.all(routes.map(async route => ({
 		route,
-		result: await filterRoute(route, target)
+		result: await filterRoute(route, target),
 	})))
 
 	let best: FilterRoutesResult | undefined
@@ -190,6 +179,16 @@ async function matchRoute(target: href.Path, routes: Route<any>[]) {
 	}
 
 	// Suppression: a longer structural match was filtered — treat as no match
-	if (best && highestSuppressedLength > best.match.length) return undefined
+	if (best && highestSuppressedLength > best.match.length) return
 	return best
+}
+
+function normalizeHref(target: () => href.Path) {
+	const targetPath = target()
+	if (!targetPath.pathOnly.endsWith('/')) {
+		history.replaceState(history.state, '', targetPath.pathOnly + '/' + targetPath.queryString + targetPath.hash)
+		return target()
+	}
+
+	return targetPath
 }

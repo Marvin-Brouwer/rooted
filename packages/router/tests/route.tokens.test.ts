@@ -1,4 +1,5 @@
 import { describe, test, expect } from 'vitest'
+
 import { token, wildcard, isParameterToken, isWildcardParameter } from '../src/route.tokens.mts'
 
 describe('token()', () => {
@@ -101,8 +102,9 @@ describe('wildcard()', () => {
 })
 
 describe('isParameterToken()', () => {
+	// eslint-disable-next-line unicorn/no-null
 	test('returns false for null', () => expect(isParameterToken(null)).toBe(false))
-	test('returns false for undefined', () => expect(isParameterToken(undefined)).toBe(false))
+	test('returns false for undefined', () => expect(isParameterToken(void 0)).toBe(false))
 	test('returns false for plain object', () => expect(isParameterToken({})).toBe(false))
 	test('returns false for a string', () => expect(isParameterToken('hello')).toBe(false))
 	test('returns true for token result', () => expect(isParameterToken(token('x', String))).toBe(true))

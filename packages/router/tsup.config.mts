@@ -1,5 +1,5 @@
-import { defineConfig } from 'tsup'
 import { dedupeSourcemapsPlugin } from '@rooted/tsup'
+import { defineConfig } from 'tsup'
 
 export default defineConfig([
 	{

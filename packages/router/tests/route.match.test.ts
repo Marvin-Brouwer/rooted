@@ -14,13 +14,13 @@ afterAll(() => {
 	vi.unstubAllGlobals()
 })
 
+import { path, url, Path, Url } from '../src/href.mts'
 import { route } from '../src/route.mts'
 import { token } from '../src/route.tokens.mts'
-import { path, url, Path, Url } from '../src/href.mts'
 
 describe('RouteMatch — success shape', () => {
 	test('success match has tokens and length', async () => {
-		const r = route`/items/${token('id', Number)}/`({ resolve: async () => undefined })
+		const r = route`/items/${token('id', Number)}/`({ resolve: () => Promise.resolve(void 0) })
 		const match = await r.match({ target: '/items/7/' })
 		expect(match.success).toBe(true)
 		if (!match.success) return
@@ -30,7 +30,7 @@ describe('RouteMatch — success shape', () => {
 	})
 
 	test('length equals the number of characters consumed', async () => {
-		const r = route`/hello/`({ resolve: async () => undefined })
+		const r = route`/hello/`({ resolve: () => Promise.resolve(void 0) })
 		const match = await r.match({ target: '/hello/' })
 		expect(match.success).toBe(true)
 		if (!match.success) return
@@ -40,7 +40,7 @@ describe('RouteMatch — success shape', () => {
 
 describe('RouteMatch — failure shape', () => {
 	test('failure match has only success: false', async () => {
-		const r = route`/hello/`({ resolve: async () => undefined })
+		const r = route`/hello/`({ resolve: () => Promise.resolve(void 0) })
 		const match = await r.match({ target: '/other/' })
 		expect(match.success).toBe(false)
 		expect((match as { tokens?: unknown }).tokens).toBeUndefined()
@@ -48,7 +48,7 @@ describe('RouteMatch — failure shape', () => {
 })
 
 describe('MatchRouteOptions — target types', () => {
-	const r = route`/test/`({ resolve: async () => undefined })
+	const r = route`/test/`({ resolve: () => Promise.resolve(void 0) })
 
 	test('string target', async () => {
 		expect((await r.match({ target: '/test/' })).success).toBe(true)
@@ -71,26 +71,26 @@ describe('MatchRouteOptions — target instances are recognised', () => {
 	test('Path instance is recognised', async () => {
 		const p = path('/hello/')
 		expect(p).toBeInstanceOf(Path)
-		const r = route`/hello/`({ resolve: async () => undefined })
+		const r = route`/hello/`({ resolve: () => Promise.resolve(void 0) })
 		expect((await r.match({ target: p })).success).toBe(true)
 	})
 
 	test('Url instance uses its path', async () => {
 		const u = url('https://example.com/hello/')
 		expect(u).toBeInstanceOf(Url)
-		const r = route`/hello/`({ resolve: async () => undefined })
+		const r = route`/hello/`({ resolve: () => Promise.resolve(void 0) })
 		expect((await r.match({ target: u })).success).toBe(true)
 	})
 })
 
 describe('MatchRouteOptions — checkInclusive', () => {
 	test('checkInclusive defaults to true (full path must be consumed)', async () => {
-		const r = route`/a/`({ resolve: async () => undefined })
+		const r = route`/a/`({ resolve: () => Promise.resolve(void 0) })
 		expect((await r.match({ target: '/a/extra/' })).success).toBe(false)
 	})
 
 	test('checkInclusive: false allows trailing content', async () => {
-		const r = route`/a/`({ resolve: async () => undefined })
+		const r = route`/a/`({ resolve: () => Promise.resolve(void 0) })
 		const match = await r.match({ target: '/a/extra/', checkInclusive: false })
 		expect(match.success).toBe(true)
 		if (!match.success) return

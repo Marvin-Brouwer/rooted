@@ -16,25 +16,25 @@
 
 // FNV-1a 64-bit offset basis: 0xcbf29ce4_84222325
 // Split into two 32-bit words
-const seedHi = 0xcbf29ce4 >>> 0
-const seedLo = 0x84222325 >>> 0
+const seedHi = 0xCB_F2_9C_E4 >>> 0
+const seedLo = 0x84_22_23_25 >>> 0
 
 export function seededId(name: string): string {
 	let hi = seedHi
 	let lo = seedLo
 
-	for (let i = 0; i < name.length; i++) {
+	for (let index = 0; index < name.length; index++) {
 		// FNV-1a: XOR then multiply
-		lo = (lo ^ name.charCodeAt(i)) >>> 0
+		lo = (lo ^ name.charCodeAt(index)) >>> 0
 
 		// Multiply (hi:lo) by FNV-1a 64-bit prime 0x00000100_000001b3
 		//   prime_hi = 0x100 (256),  prime_lo = 0x1b3 (435)
 		//   lo  * prime_lo  ≤ (2³²−1) × 435  ≈ 1.87e12  — within MAX_SAFE_INTEGER ✓
 		//   lo  * prime_hi  ≤ (2³²−1) × 256  ≈ 1.10e12  — within MAX_SAFE_INTEGER ✓
 		//   hi  * prime_lo  ≤ (2³²−1) × 435  ≈ 1.87e12  — within MAX_SAFE_INTEGER ✓
-		const product = lo * 0x1b3
-		const carry   = Math.floor(product / 0x100000000)
-		hi = (lo * 0x100 + hi * 0x1b3 + carry) >>> 0
+		const product = lo * 0x1_B3
+		const carry = Math.floor(product / 0x1_00_00_00_00)
+		hi = (lo * 0x1_00 + hi * 0x1_B3 + carry) >>> 0
 		lo = product >>> 0
 	}
 

@@ -27,6 +27,6 @@
 		"noUncheckedSideEffectImports": true
 	},
 	"include": [
-		"packages/*/tests/**/*"
+		"packages/*/tests"
 	]
 }

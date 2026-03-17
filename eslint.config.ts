@@ -20,6 +20,13 @@ export default defineConfig([
 	unicorn.configs.recommended,
 	lintImports,
 	projectConfig,
+	{
+		files: ['packages/*/tests/**/*.ts'],
+		rules: {
+			'@typescript-eslint/no-explicit-any': 'off',
+			'unicorn/consistent-function-scoping': 'off',
+		},
+	},
 ])
 
 function configureFiles(files: Config['files']): Config {

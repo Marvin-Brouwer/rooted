@@ -1,6 +1,7 @@
 import { component, GenericComponent } from '@rooted/components'
-import { Route, RouteParameterDictionary } from './route.mts'
 import { create } from '@rooted/components/elements'
+
+import { Route, RouteParameterDictionary } from './route.mts'
 
 /**
  * Creates a self-managing gate component that mounts and unmounts its content
@@ -45,22 +46,21 @@ import { create } from '@rooted/components/elements'
  */
 export function gate<TRoute extends AnyRoute>(
 	route: TRoute,
-	render: GateRenderFunction<TRoute>
+	render: GateRenderFunction<TRoute>,
 ): GenericComponent {
-
 	const renderGate = render as GateRenderFunction<AnyRoute>
 	return create(Gate, { routeReference: route, renderGate })
 }
 
 type GateOptions<TRoute extends AnyRoute> = {
-	routeReference: AnyRoute,
+	routeReference: AnyRoute
 	renderGate: GateRenderFunction<TRoute>
 }
 const Gate = component<GateOptions<AnyRoute>>({
 	name: 'sling:gate',
 	onMount({ options, replace, remove, signal }) {
 		const { routeReference, renderGate } = options
-		let innerNodes: Element[] | undefined = undefined
+		let innerNodes: Element[] | undefined
 
 		async function checkGate() {
 			const match = await routeReference.match()
@@ -68,14 +68,14 @@ const Gate = component<GateOptions<AnyRoute>>({
 			if (match.success) {
 				const newComponents = await renderGate(match.tokens)
 				innerNodes = Array.isArray(newComponents) ? newComponents : [newComponents]
-				replace(...innerNodes!)
+				replace(...innerNodes)
 			}
 			else {
 				innerNodes = void remove(...innerNodes ?? [])
 			}
 		}
 
-		window.addEventListener('popstate', checkGate, { signal })
+		globalThis.addEventListener('popstate', checkGate, { signal })
 		checkGate()
 	},
 })

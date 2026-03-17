@@ -1,6 +1,8 @@
 import { tupleResult } from '@rooted/util'
-import type { Path, Url } from './href.mts'
+
 import { isParameterToken, type Parameter, type RouteParameter, type TokenMatchResult } from './route.tokens.mts'
+
+import type { Path, Url } from './href.mts'
 import type { FilterOutParent, PathParameterDictionary } from './route.mts'
 
 /**
@@ -11,8 +13,8 @@ import type { FilterOutParent, PathParameterDictionary } from './route.mts'
  * router to select the best match). On failure, only `success: false` is present.
  */
 export type RouteMatch<T extends Parameter[]> = {
-	success: true,
-	tokens: PathParameterDictionary<T>,
+	success: true
+	tokens: PathParameterDictionary<T>
 	length: number
 } | {
 	success: false
@@ -28,7 +30,7 @@ export type MatchRouteOptions = {
 	 * Defaults to `location` (the current browser URL).
 	 */
 	target?: string | Path | Url | URL | Location
-	offset?: number,
+	offset?: number
 	/**
 	 * When `true` (the default), the match fails if any path characters remain
 	 * unconsumed after all route parts have matched. Set to `false` to allow
@@ -41,17 +43,15 @@ export type MatchRouteOptions = {
 
 /** @internal */
 export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<string | RouteParameter>) {
-
 	// This import caused circular references
 	let href: typeof import('./href.mts')
 
 	async function matchUrlPath(path: Path, checkInclusive: boolean) {
-
 		href ??= await import('./href.mts')
 
 		let offset = 0
 		let parentParameters: Partial<PathParameterDictionary<any>> = {}
-		let parameters: Partial<PathParameterDictionary<T>> = {}
+		const parameters: Partial<PathParameterDictionary<T>> = {}
 
 		for (const part of routeParts) {
 			if (typeof part === 'string') {
@@ -94,21 +94,20 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 	}
 
 	async function match(options?: MatchRouteOptions): Promise<RouteMatch<FilterOutParent<T>>> {
-
 		href ??= await import('./href.mts')
 		const path = getPath(options?.target)
 		const checkInclusive = options?.checkInclusive ?? true
 
 		const pathMatch = await matchUrlPath(path, checkInclusive)
 		if (tupleResult.isError(pathMatch)) return {
-			success: false
+			success: false,
 		}
 		const [tokens, offset] = tupleResult.value(pathMatch)
 
 		return {
 			success: true,
 			tokens,
-			length: offset
+			length: offset,
 		}
 	}
 

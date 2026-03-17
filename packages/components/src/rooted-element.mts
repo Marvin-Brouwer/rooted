@@ -1,4 +1,3 @@
-
 /**
  * Constructor shape expected by {@link RootedElement.register}.
  *
@@ -56,7 +55,7 @@ const validTagName = /^[a-z][a-z0-9\-]*$/
  * ```
  */
 export abstract class RootedElement extends HTMLElement {
-	static rootedElement = true;
+	static rootedElement = true
 
 	/**
 	 * Validates that `name` is a legal custom-element tag name.
@@ -71,14 +70,14 @@ export abstract class RootedElement extends HTMLElement {
 	static validateTagName(name: string): void {
 		if (!validTagName.test(name)) {
 			throw new Error(
-				`Invalid tagName "${name}". ` +
-				`Must start with a lowercase letter and contain only lowercase letters, numbers, and hyphens.`
+				`Invalid tagName "${name}". \n`
+				+ `Must start with a lowercase letter and contain only lowercase letters, numbers, and hyphens.`,
 			)
 		}
 		if (!name.includes('-')) {
 			throw new Error(
-				`Invalid tagName "${name}". ` +
-				`Custom elements must contain a hyphen (e.g. "my-element").`
+				`Invalid tagName "${name}". \n`
+				+ `Custom elements must contain a hyphen (e.g. "my-element").`,
 			)
 		}
 	}

@@ -1,23 +1,24 @@
-import { RootedElement } from '../rooted-element.mts'
+import { isDevelopment } from '@rooted/util/dev'
+
 import { ComponentConstructor, ComponentContext } from '../component.mts'
+import { devHelper } from '../dev-helper.mts'
 import { create } from '../element-factory.mts'
 import { pageSignal } from '../page-context.mts'
+import { RootedElement } from '../rooted-element.mts'
+
 import { applyContentStyleFallback, applyScope } from './styles.mts'
-import { isDevelopment } from '@rooted/util/dev'
-import { dev } from '../dev-helper.mts'
 
 type ComponentData<T> = {
-	component: Readonly<ComponentConstructor>,
+	component: Readonly<ComponentConstructor>
 	options: T
 }
 
 function createComponentStore() {
-
 	const store = new WeakMap<GenericComponent, ComponentData<unknown>>()
 
 	function set(element: GenericComponent, component: ComponentConstructor, options: unknown) {
 		store.set(element, { component, options })
-		dev.appendComponentMetaData?.(element, component, options)
+		devHelper.appendComponentMetaData?.(element, component, options)
 	}
 
 	function get<T>(element: GenericComponent) {
@@ -25,7 +26,7 @@ function createComponentStore() {
 	}
 
 	return {
-		get, set
+		get, set,
 	}
 }
 
@@ -68,8 +69,10 @@ export class GenericComponent extends RootedElement {
 	private abortController!: AbortController
 
 	protected onMount() {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const data = componentStore.get<any>(this)
 		if (!data) throw new Error('[rooted] GenericComponent mounted without component data. Use create() to instantiate components.')
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const { component, options } = data
 
 		if (isDevelopment()) this.setAttribute('r-component', component.name)
@@ -80,19 +83,19 @@ export class GenericComponent extends RootedElement {
 		// Re-create to cover remounting
 		this.abortController?.abort('remounted')
 		this.abortController = new AbortController()
-		pageSignal.addEventListener('abort', (reason) => this.abortController.abort(reason), {
+		pageSignal.addEventListener('abort', reason => this.abortController.abort(reason), {
 			// Un register on unmount if the page is still alive
-			signal: this.abortController.signal
+			signal: this.abortController.signal,
 		})
 
+		// eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias -- necessary for closures
 		const base = this
 
 		function append<T extends Node | string | GenericComponent>(node: T): T
 		function append<T extends Node | string | GenericComponent>(...node: T[]): T[]
 		function append(...nodes: (Node | string | GenericComponent)[]): Node[]
 		function append(...nodes: (Node | string | GenericComponent)[]): Node[] | Node {
-
-			const realNodes = nodes.map(nodeOrString => {
+			const realNodes = nodes.map((nodeOrString) => {
 				return typeof nodeOrString === 'string'
 					? document.createTextNode(nodeOrString)
 					: nodeOrString as Node
@@ -109,8 +112,7 @@ export class GenericComponent extends RootedElement {
 		function prepend<T extends Node | string | GenericComponent>(...node: T[]): T[]
 		function prepend(...nodes: (Node | string | GenericComponent)[]): Node[]
 		function prepend(...nodes: (Node | string | GenericComponent)[]): Node[] | Node {
-
-			const realNodes = nodes.map(nodeOrString => {
+			const realNodes = nodes.map((nodeOrString) => {
 				return typeof nodeOrString === 'string'
 					? document.createTextNode(nodeOrString)
 					: nodeOrString as Node
@@ -127,8 +129,7 @@ export class GenericComponent extends RootedElement {
 		function replace<T extends Node | string | GenericComponent>(...node: T[]): T[]
 		function replace(...nodes: (Node | string | GenericComponent)[]): Node[]
 		function replace(...nodes: (Node | string | GenericComponent)[]): Node[] | Node {
-
-			const realNodes = nodes.map(nodeOrString => {
+			const realNodes = nodes.map((nodeOrString) => {
 				return typeof nodeOrString === 'string'
 					? document.createTextNode(nodeOrString)
 					: nodeOrString as Node
@@ -145,14 +146,14 @@ export class GenericComponent extends RootedElement {
 		function remove<T extends Node | string | GenericComponent>(...node: T[]): T[]
 		function remove(...nodes: (Node | string | GenericComponent)[]): Node[]
 		function remove(...nodes: (Node | string | GenericComponent)[]): Node[] | Node {
-
-			const realNodes = nodes.map(nodeOrString => {
+			const realNodes = nodes.map((nodeOrString) => {
 				return typeof nodeOrString === 'string'
 					? document.createTextNode(nodeOrString)
 					: nodeOrString as Node
 			})
 
 			for (const node of realNodes)
+				// eslint-disable-next-line unicorn/prefer-dom-node-remove -- remove does not exist on type Node
 				base.removeChild(node)
 
 			return nodes.length === 1
@@ -160,16 +161,18 @@ export class GenericComponent extends RootedElement {
 				: realNodes
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const context: ComponentContext<any> = {
 			signal: this.abortController.signal,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			options,
 			create,
 			append,
 			prepend,
-			insertBefore: base.insertBefore,
-			swap: base.replaceChild,
+			insertBefore: base.insertBefore.bind(base),
+			swap: base.replaceChild.bind(base),
 			replace,
-			remove
+			remove,
 		}
 
 		const handleError = (error: unknown) => {
@@ -177,14 +180,15 @@ export class GenericComponent extends RootedElement {
 			if (isDevelopment()) {
 				this.append(create('pre', {
 					role: 'alert',
-					textContent: String(error)
+					textContent: String(error),
 				}))
 			}
 		}
 
 		try {
 			Promise.resolve(component.onMount.call(context, context)).catch(handleError)
-		} catch (error) {
+		}
+		catch (error) {
 			handleError(error)
 		}
 	}

@@ -1,16 +1,17 @@
-import { isComponent } from './component.mts'
-import type { Component } from './component.mts'
 import { CssClasses } from './component/classes.mts'
 import { componentStore, GenericComponent } from './component/generic-component.mts'
+import { isComponent } from './component.mts'
 import { RootedElement, RootedElementConstructor } from './rooted-element.mts'
+
+import type { Component } from './component.mts'
 
 type RootedElementClass<TComponent extends RootedElement> = (new () => TComponent) & RootedElementConstructor
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? A : B
 type WritableKeys<T> = { [P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never> }[keyof T]
 
-type RootedElementProps<TComponent extends RootedElement> = Pick<TComponent, WritableKeys<TComponent> & Exclude<keyof TComponent, 'children' | 'className' | 'classList' | keyof RootedElement>>
+type RootedElementProperties<TComponent extends RootedElement> = Pick<TComponent, WritableKeys<TComponent> & Exclude<keyof TComponent, 'children' | 'className' | 'classList' | keyof RootedElement>>
 
-type HtmlElementProps<TElement extends HTMLElement> = Partial<Pick<TElement, WritableKeys<TElement> & Exclude<keyof TElement, 'children' | 'className' | 'classList'>>> & {
+type HtmlElementProperties<TElement extends HTMLElement> = Partial<Pick<TElement, WritableKeys<TElement> & Exclude<keyof TElement, 'children' | 'className' | 'classList'>>> & {
 	children?: Array<Node> | Node
 	classes?: CssClasses
 }
@@ -18,20 +19,19 @@ type HtmlElementProps<TElement extends HTMLElement> = Partial<Pick<TElement, Wri
 type RequiredKeys<T> = {
 	[K in keyof T]-?: {} extends Pick<T, K> ? never : K
 }[keyof T]
-type NoRequiredProps<T> = RequiredKeys<T> extends never ? true : false
+type NoRequiredProperties<T> = RequiredKeys<T> extends never ? true : false
 
 function buildClassList(classes: CssClasses | undefined) {
-
 	if (classes === null || classes === undefined) return {}
 	if (Array.isArray(classes)) return { className: classes.filter(Boolean).join(' ') }
 
 	return { className: String(classes) }
 }
 
-function createComponent<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: RootedElementProps<TComponent>) {
-	return createElement<TComponent>(component.tagName, properties as HtmlElementProps<TComponent>)
+function createComponent<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: RootedElementProperties<TComponent>) {
+	return createElement<TComponent>(component.tagName, properties as HtmlElementProperties<TComponent>)
 }
-function createElement<TElement extends HTMLElement>(element: string, properties: HtmlElementProps<TElement>) {
+function createElement<TElement extends HTMLElement>(element: string, properties: HtmlElementProperties<TElement>) {
 	const { children, classes, ...assignableProperties } = properties ?? {}
 	const newElement = Object.assign(document.createElement(element) as TElement, assignableProperties, buildClassList(classes))
 
@@ -39,7 +39,8 @@ function createElement<TElement extends HTMLElement>(element: string, properties
 		for (const child of children) {
 			newElement.append(child)
 		}
-	} else if (children) {
+	}
+	else if (children) {
 		newElement.append(children)
 	}
 
@@ -93,17 +94,16 @@ function createElement<TElement extends HTMLElement>(element: string, properties
  * ```
  */
 export function create(component: Component): GenericComponent
-export function create<TOptions extends {}>(component: Component<TOptions>, ...args: {} extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent
-export function create<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProps<TComponent>>): TComponent
-export function create<KElement extends keyof HTMLElementTagNameMap>(element: KElement, properties: NoInfer<HtmlElementProps<HTMLElementTagNameMap[KElement]>>): HTMLElementTagNameMap[KElement]
+export function create<TOptions extends {}>(component: Component<TOptions>, ...arguments_: {} extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent
+export function create<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProperties<TComponent>>): TComponent
+export function create<KElement extends keyof HTMLElementTagNameMap>(element: KElement, properties: NoInfer<HtmlElementProperties<HTMLElementTagNameMap[KElement]>>): HTMLElementTagNameMap[KElement]
 export function create<KElement extends keyof HTMLElementTagNameMap>(
-	element: KElement
-): NoRequiredProps<HtmlElementProps<HTMLElementTagNameMap[KElement]>> extends true
+	element: KElement,
+): NoRequiredProperties<HtmlElementProperties<HTMLElementTagNameMap[KElement]>> extends true
 	? HTMLElementTagNameMap[KElement]
 	: never
 export function create(
 	component: Component<any> | string | RootedElementClass<RootedElement>, properties?: unknown): unknown {
-
 	if (isComponent(component)) {
 		const element = document.createElement(GenericComponent.tagName) as GenericComponent
 		componentStore.set(element, component, properties)

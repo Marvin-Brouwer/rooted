@@ -7,10 +7,12 @@ import { component, definedAt, isComponent, scopeId } from '../src/component.mts
 
 describe('isComponent', () => {
 	test('returns false for null', () => {
+		// eslint-disable-next-line unicorn/no-null
 		expect(isComponent(null)).toBe(false)
 	})
 
 	test('returns false for undefined', () => {
+		// eslint-disable-next-line unicorn/no-useless-undefined
 		expect(isComponent(undefined)).toBe(false)
 	})
 
