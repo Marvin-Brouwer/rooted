@@ -1,0 +1,83 @@
+name: Pack
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to build from
+        required: true
+        default: main
+      publish:
+        description: Publish to npm under a preview dist-tag (requires npm Trusted Publisher)
+        type: boolean
+        default: false
+      dist_tag:
+        description: npm dist-tag to publish under (only used when publish=true)
+        required: false
+        default: preview
+
+concurrency:
+  group: pack-${{ github.event.inputs.branch }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write   # required for npm provenance / OIDC
+
+jobs:
+  pack:
+    name: Pack (${{ github.event.inputs.branch }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build:all
+
+      # Stamp a prerelease version so the preview never collides with a real release.
+      # Version format: <current>-preview.<short-sha>  e.g. 0.1.0-preview.a1b2c3d
+      - name: Stamp prerelease version
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          pnpm -r exec -- node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            if (pkg.private) process.exit(0);
+            const base = pkg.version.replace(/-.*/, '');
+            pkg.version = base + '-preview.' + '$SHA';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
+            console.log(pkg.name + '@' + pkg.version);
+          "
+
+      - name: Pack
+        run: pnpm -r --filter '!@rooted/monorepo' exec pnpm pack --pack-destination "$GITHUB_WORKSPACE/dist"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-packages-${{ github.event.inputs.branch }}
+          path: dist/*.tgz
+          if-no-files-found: error
+
+      - name: Publish to npm
+        if: ${{ github.event.inputs.publish == 'true' }}
+        run: pnpm -r --filter '!@rooted/monorepo' publish --tag "${{ github.event.inputs.dist_tag }}" --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
