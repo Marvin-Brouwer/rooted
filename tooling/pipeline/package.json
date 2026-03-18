@@ -1,0 +1,26 @@
+{
+	"name": "@rooted/pipeline",
+	"private": true,
+	"version": "0.1.0",
+	"description": "rooted — CI/CD pipeline scripts",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "tooling/pipeline"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bin": {
+		"rooted-pipeline": "./bin/bin.cjs"
+	},
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"devDependencies": {
+		"@microsoft/api-extractor": "^7.50.0",
+		"@types/node": "^22.0.0",
+		"tsx": "^4.19.0",
+		"typescript": "^5.5.0"
+	}
+}

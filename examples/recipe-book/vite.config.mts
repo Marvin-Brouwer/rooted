@@ -95,11 +95,14 @@ export default defineConfig({
 		cssLoader({
 			minify: process.argv.includes('--minify')
 		}),
-		analyzer({
-			analyzerMode: process.argv.includes('--analyze') ? 'server' : 'static',
-			openAnalyzer: process.argv.includes('--analyze')
-		}),
+		analyzer(process.argv.includes('--analyze') ? {
+			analyzerMode: 'server',
+			openAnalyzer: true
+		} : {
+			analyzerMode: 'static'
+		}) as unknown as Plugin,
 		VitePWA({
+			disable: process.argv.includes('--no-pwa'),
 			registerType: 'autoUpdate',
 			filename: `worker.js`,
 			minify: process.argv.includes('--minify'),

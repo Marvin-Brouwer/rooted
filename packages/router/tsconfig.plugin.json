@@ -27,6 +27,7 @@
 		"rootDir": "./src"
 	},
 	"include": [
+		"src/_module/manifest.mts",
 		"src/plugin/manifest.mts"
 	]
 }

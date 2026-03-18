@@ -6,13 +6,15 @@
 	"scripts": {
 		"dev": "vite",
 		"analyze": "vite build -- --minify --no-mangle --analyze",
-		"analyze:dev": "vite build --debug -- --no-mangle --analyze",
-		"build": "vite build -- --minify",
+		"analyze:dev": "vite build --mode development -- --no-mangle --analyze",
+		"build": "pnpm build:ci",
+		"build:dev": "vite build  --mode development -- --no-mangle --no-pwa",
+		"build:ci": "vite build -- --minify",
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"@rooted/components": "workspace:*",
-		"@rooted/router": "workspace:*"
+		"@rooted/components": "workspace:^",
+		"@rooted/router": "workspace:^"
 	},
 	"devDependencies": {
 		"gray-matter": "^4.0.3",

@@ -2,10 +2,8 @@ import type { PathParameterDictionary, Route, RouteParameterDictionary } from '.
 const { buildPathForRoute } = await import('./href.route.mts')
 
 class HrefBase {
-
-
 	constructor(
-		protected url: URL
+		protected url: URL,
 	) {}
 
 	public get query() { return this.url.searchParams }
@@ -24,15 +22,16 @@ class HrefBase {
  * the current browser path.
  */
 export class Path extends HrefBase {
-
 	private static baseUrl = 'https://rooted-is.awesome'
 
 	static fromUrl(href: URL) {
 		return new Path(href)
 	}
+
 	static fromLocation(href: Location) {
 		return new Path(new URL(href.href))
 	}
+
 	static fromString(href: string) {
 		return new Path(new URL(href, Path.baseUrl))
 	}
@@ -51,13 +50,14 @@ export class Path extends HrefBase {
  * Use {@link href.url} to construct one from a string.
  */
 export class Url extends HrefBase {
-
 	static fromUrl(href: URL) {
 		return new Url(href)
 	}
+
 	static fromLocation(href: Location) {
 		return new Url(new URL(href.href))
 	}
+
 	static fromString(href: string) {
 		return new Url(new URL(href))
 	}
@@ -98,12 +98,13 @@ const multiSlashPattern = /\/{2,}/g
 export function join(url: Url, ...paths: Path[]): Url
 export function join(...paths: Path[]): Path
 export function join(urlOrPath: HrefBase, ...paths: Path[]): Url | Path {
-
-	let start = new URL(urlOrPath.href)
+	const start = urlOrPath instanceof Path
+		? new URL(urlOrPath.pathOnly, 'https://rooted-is.awesome')
+		: new URL(urlOrPath.href)
 
 	for (const path of paths) {
 		start.pathname += path.pathOnly
-		start.search = start.search + (start.search.length ? '&' : '') + path.queryString
+		start.search = start.search + (start.search.length > 0 ? '&' : '') + path.queryString
 		start.hash = path.hash
 	}
 
@@ -137,13 +138,12 @@ export function forAny(href: Path): Path
  * @see {@link RouteParameterDictionary}
  */
 export function forAny<TRoute extends Route<any>>(
-	...args: keyof RouteParameterDictionary<TRoute> extends never
+	...arguments_: keyof RouteParameterDictionary<TRoute> extends never
 		? [route: TRoute, parameters?: RouteParameterDictionary<TRoute>]
 		: [route: TRoute, parameters: RouteParameterDictionary<TRoute>]
 ): Path
 /** @__PURE__ */
 export function forAny(target: Route<any> | URL | Location | Url | Path, dictionary?: NoInfer<PathParameterDictionary<any>>): HrefBase {
-
 	if (target instanceof URL) return Url.fromUrl(target)
 	if (target instanceof Url) return target
 	if (target instanceof Path) return target

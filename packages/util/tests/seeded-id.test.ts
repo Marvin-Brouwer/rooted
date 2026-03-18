@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+
 import { seededId } from '../src/seeded-id.mts'
 
 describe('seededId', () => {
@@ -37,7 +38,7 @@ describe('seededId', () => {
 	})
 
 	test('produces unique ids across many calls', () => {
-		const ids = Array.from({ length: 50 }, (_, i) => seededId(`component-${i}`))
+		const ids = Array.from({ length: 50 }, (_, index) => seededId(`component-${index}`))
 		const unique = new Set(ids)
 		expect(unique.size).toBe(ids.length)
 	})

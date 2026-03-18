@@ -1,5 +1,6 @@
 import { isDevelopment } from '@rooted/util/dev'
-import { isRoute } from './route.metadata.mjs'
+
+import { isRoute } from './route.metadata.mts'
 
 function logRouteErrors(errors: Error[]) {
 	for (const error of errors) {
@@ -17,7 +18,7 @@ function validateDuplicateRoutes(config: Record<string, unknown>) {
 	}
 }
 
-export const dev = {
-	logRouteErrors: isDevelopment() ? logRouteErrors.bind(undefined) : void 0,
-	validateDuplicateRoutes: isDevelopment() ? validateDuplicateRoutes.bind(undefined) : void 0,
+export const devHelper = {
+	logRouteErrors: isDevelopment() ? logRouteErrors.bind(void 0) : void 0,
+	validateDuplicateRoutes: isDevelopment() ? validateDuplicateRoutes.bind(void 0) : void 0,
 }

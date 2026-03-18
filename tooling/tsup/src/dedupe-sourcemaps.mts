@@ -21,7 +21,7 @@ export function dedupeSourcemapsPlugin(): Plugin {
 	return {
 		name: 'tsup:dedupe-sourcemaps',
 		renderChunk(code) {
-			const fixed = code.replace(
+			const fixed = code.replaceAll(
 				/(\/\/# sourceMappingURL=[^\n]*\n)(\/\/# sourceMappingURL=[^\n]*)/g,
 				'$2',
 			)

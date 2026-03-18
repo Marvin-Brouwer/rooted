@@ -1,0 +1,17 @@
+name: Help request
+description: Ask for help
+labels: [question]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: What do you need help with?
+      description: Describe what you're trying to do and where you're stuck.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context, code snippets, or screenshots that may help.

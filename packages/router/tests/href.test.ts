@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeAll, afterAll } from 'vitest'
 
-vi.mock('../src/dev-helper.v2.mts', () => ({ dev: {} }))
+vi.mock('../src/dev-helper.mts', () => ({ devHelper: {} }))
 
 beforeAll(() => {
 	vi.stubGlobal('location', {
@@ -14,8 +14,8 @@ afterAll(() => {
 	vi.unstubAllGlobals()
 })
 
-import { path, url, join, current, forAny, Path, Url } from '../src/href.mts'
 import { href } from '../src/href.export.mts'
+import { path, url, join, current, forAny, Path, Url } from '../src/href.mts'
 import { route } from '../src/route.mts'
 import { token } from '../src/route.tokens.mts'
 
@@ -77,7 +77,7 @@ describe('forAny()', () => {
 	})
 
 	test('generates a path from a route and parameters', () => {
-		const TestRoute = route`/articles/${token('id', Number)}/`({ resolve: async () => undefined })
+		const TestRoute = route`/articles/${token('id', Number)}/`({ resolve: () => Promise.resolve(void 0) })
 		const result = forAny(TestRoute, { id: 42 })
 		expect(result).toBeInstanceOf(Path)
 		expect(result.pathOnly).toBe('/articles/42/')

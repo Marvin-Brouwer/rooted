@@ -1,22 +1,25 @@
-import type { create } from '@rooted/components/elements'
-import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter, token, wildcard } from './route.tokens.mts'
+import { devHelper } from './dev-helper.mts'
 import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.mts'
-import { dev } from './dev-helper.mts'
 import { routeMetaData, type RouteMetadata, isRoute } from './route.metadata.mts'
+import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter } from './route.tokens.mts'
+
+import type { create } from '@rooted/components/elements'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 type ConvertPathParameters<T extends readonly Parameter[]> = {
 	[P in T[number]as P['key']]: ParameterToValueType<P['type']>
 }
 
-export type FilterOutParent<T extends readonly RouteParameter[]> =
-	T extends readonly [infer H, ...infer R extends readonly Parameter[]]
+export type FilterOutParent<T extends readonly RouteParameter[]>
+	= T extends readonly [infer H, ...infer R extends readonly Parameter[]]
 	? H extends Parameter
 	? [H, ...FilterOutParent<R>]
 	: FilterOutParent<R>
 	: []
 
-export type ExtractParent<T extends readonly RouteParameter[]> =
-	T extends readonly [infer H, ...infer R extends readonly RouteParameter[]]
+export type ExtractParent<T extends readonly RouteParameter[]>
+	= T extends readonly [infer H, ...infer R extends readonly RouteParameter[]]
 	? H extends Route<any>
 	? H
 	: ExtractParent<R>
@@ -41,14 +44,14 @@ export type PathParameterDictionary<T extends readonly RouteParameter[]> = Conve
  */
 // Type hack to prevent infinite recursion
 type RecursionCounter = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10> =
-    D extends 0
-		? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
-		: [TRoute[typeof routeMetaData]['parentType']] extends [never]
-			? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
-			: TRoute[typeof routeMetaData]['parentType'] extends Route<any>
-				? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetaData]['parentType'], RecursionCounter[D]>
-				: Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
+export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10>
+	= D extends 0
+	? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
+	: [TRoute[typeof routeMetaData]['parentType']] extends [never]
+	? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
+	: TRoute[typeof routeMetaData]['parentType'] extends Route<any>
+	? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetaData]['parentType'], RecursionCounter[D]>
+	: Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
 
 /**
  * A function that resolves the element to render for a matched route.
@@ -68,8 +71,8 @@ export type RouteParameterDictionary<TRoute extends Route<any>, D extends number
  *
  * @see {@link route}
  */
-export type RouteResolver<T extends readonly RouteParameter[]> =
-	(context: { create: typeof create, tokens: PathParameterDictionary<T> }) =>
+export type RouteResolver<T extends readonly RouteParameter[]>
+	= (context: { create: typeof create, tokens: PathParameterDictionary<T> }) =>
 		Element | undefined | Promise<Element | undefined>
 
 /**
@@ -81,15 +84,16 @@ export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: R
 	// It serves as a debug view as well as type information
 	ExtractParent<T> extends never
 	? Route<{
-		parameters: FilterOutParent<T>,
+		parameters: FilterOutParent<T>
 	}>
 	: Route<{
-		parameters: FilterOutParent<T>,
+		parameters: FilterOutParent<T>
 		parent: ExtractParent<T>
 	}>
 
 export type RouteParameters<T extends Parameter[]> = {
-	parameters: FilterOutParent<T>,
+	parameters: FilterOutParent<T>
+	// eslint-disable-next-line  @typescript-eslint/no-redundant-type-constituents
 	parent?: ExtractParent<T> | any
 }
 
@@ -117,18 +121,19 @@ export type Route<T extends RouteParameters<Parameter[]>> = {
 	 * @see {@link MatchRouteOptions}
 	 * @see {@link RouteMatch}
 	 */
-	match(options?: MatchRouteOptions): Promise<RouteMatch<T['parameters']>>
+	match(options?: MatchRouteOptions): Promise<RouteMatch<Route<T>>>
 }
 
 function reconstructPattern(strings: TemplateStringsArray, values: readonly RouteParameter[]): string {
-	return Array.from(strings).reduce((acc, str, i) => {
-		if (i === 0) return str
-		const v = values[i - 1]!
+	// eslint-disable-next-line unicorn/no-array-reduce
+	return [...strings].reduce((accumulator, string_, index) => {
+		if (index === 0) return string_
+		const v = values[index - 1]
 		let label: string
 		if (isRoute(v)) label = '${Route}'
 		else if (isParameterToken(v) && isWildcardParameter(v as Parameter)) label = `\${wildcard('${(v as Parameter).key}')}`
 		else label = `\${${(v as Parameter).key}}`
-		return acc + label + str
+		return accumulator + label + string_
 	}, '')
 }
 
@@ -136,16 +141,16 @@ function validatePattern(strings: TemplateStringsArray, values: readonly RoutePa
 	const errors: Error[] = []
 	const pattern = reconstructPattern(strings, values)
 
-	if (!strings[0]!.startsWith('/'))
+	if (!strings[0].startsWith('/'))
 		errors.push(new Error(`route pattern must start with a slash: "${pattern}"`))
 
-	if (!strings[strings.length - 1]!.endsWith('/'))
+	if (!strings.at(-1)!.endsWith('/'))
 		errors.push(new Error(`route pattern must end with a slash: "${pattern}"`))
 
-	for (let i = 0; i < values.length; i++) {
-		const v = values[i]!
+	for (let index = 0; index < values.length; index++) {
+		const v = values[index]
 		if (isRoute(v)) {
-			if (i !== 0)
+			if (index !== 0)
 				errors.push(new Error(`Route interpolation must be at the start of the pattern: "${pattern}"`))
 			if (strings[0] !== '/')
 				errors.push(new Error(`Route interpolation must be surrounded by slashes — use route\`/\${ParentRoute}/...\`: "${pattern}"`))
@@ -153,9 +158,9 @@ function validatePattern(strings: TemplateStringsArray, values: readonly RoutePa
 				errors.push(new Error(`Route interpolation must be followed by a slash: "${pattern}"`))
 		}
 		if (isParameterToken(v) && isWildcardParameter(v as Parameter)) {
-			if (i !== values.length - 1)
+			if (index !== values.length - 1)
 				errors.push(new Error(`Wildcard interpolation must be at the end of the pattern: "${pattern}"`))
-			if (!strings[i]!.endsWith('/'))
+			if (!strings[index].endsWith('/'))
 				errors.push(new Error(`Wildcard interpolation must be preceded by a slash: "${pattern}"`))
 		}
 	}
@@ -166,22 +171,21 @@ function validatePattern(strings: TemplateStringsArray, values: readonly RoutePa
 function zipTemplateParts<T extends RouteParameter>(strings: TemplateStringsArray, values: T[]) {
 	const parts: Array<string | T> = []
 
-	for (let i = 0; i < values.length; i++) {
-		let str = strings[i]!
+	for (let index = 0; index < values.length; index++) {
+		let string_ = strings[index]
 		// The '/' immediately before a parent route is part of the route's own
 		// leading slash — strip it so the parent route can consume it itself.
-		if (isRoute(values[i])) str = str.endsWith('/') ? str.slice(0, -1) : str
+		if (isRoute(values[index])) string_ = string_.endsWith('/') ? string_.slice(0, -1) : string_
 		// The '/' immediately after a parent route is part of the route's own
 		// trailing slash — strip it so the parent route's trailing slash is used.
-		if (i > 0 && isRoute(values[i - 1])) str = str.startsWith('/') ? str.slice(1) : str
-		parts.push(str)
-		parts.push(values[i]!)
+		if (index > 0 && isRoute(values[index - 1])) string_ = string_.startsWith('/') ? string_.slice(1) : string_
+		parts.push(string_, values[index])
 	}
 
-	let lastStr = strings[strings.length - 1]!
-	if (values.length > 0 && isRoute(values[values.length - 1]))
-		lastStr = lastStr.startsWith('/') ? lastStr.slice(1) : lastStr
-	parts.push(lastStr)
+	let lastString = strings.at(-1)!
+	if (values.length > 0 && isRoute(values.at(-1)))
+		lastString = lastString.startsWith('/') ? lastString.slice(1) : lastString
+	parts.push(lastString)
 
 	return parts
 }
@@ -251,16 +255,14 @@ function zipTemplateParts<T extends RouteParameter>(strings: TemplateStringsArra
 export function route<const T extends RouteParameter[]>(
 	strings: TemplateStringsArray, ...values: T
 ): RouteBuilder<T> {
-
 	const errors = validatePattern(strings, values)
-	dev.logRouteErrors?.(errors)
+	devHelper.logRouteErrors?.(errors)
 	if (errors.length > 0) return errorRoute<T>()
 
 	const parent = values.length > 0 && isRoute(values[0]) ? values[0] : undefined
 	const routeParts = zipTemplateParts(strings, values)
 
 	return (({ resolve }) => {
-
 		const lastValue = values.at(-1)
 		const hasWildcard = !!lastValue && isWildcardParameter(lastValue as Parameter)
 		const match = routeMatcher<T>(routeParts)
@@ -274,12 +276,12 @@ export function route<const T extends RouteParameter[]>(
 				routeParts,
 			} satisfies RouteMetadata<any>,
 			resolve,
-			match
+			match,
 		}
 	}) as RouteBuilder<T>
 }
 
-const errorRoute_ = (({ resolve }: { resolve: RouteResolver<any>} ) => ({
+const errorRoute_ = (({ resolve }: { resolve: RouteResolver<any> }) => ({
 	[routeMetaData]: {
 		tokenTypes: [] as unknown as FilterOutParent<any>,
 		parentType: undefined as never,
@@ -289,7 +291,7 @@ const errorRoute_ = (({ resolve }: { resolve: RouteResolver<any>} ) => ({
 		routeParts: [],
 	} satisfies RouteMetadata<any>,
 	resolve,
-	match: async () => ({ success: false }),
+	match: () => ({ success: false }),
 })) as unknown as RouteBuilder<any>
 
 function errorRoute<const T extends RouteParameter[]>(): RouteBuilder<T> {
