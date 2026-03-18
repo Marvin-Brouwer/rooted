@@ -1,7 +1,7 @@
 {
 	"name": "@rooted/util",
 	"version": "0.1.0",
-	"description": "rooted — internal utilities (seeded IDs, dev helpers)",
+	"description": "rooted — utilities (seeded IDs, dev helpers)",
 	"keywords": [
 		"web-components",
 		"utilities",
@@ -15,6 +15,7 @@
 		"directory": "packages/util"
 	},
 	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
 	"sideEffects": false,
 	"publishConfig": {
 		"access": "public",

@@ -17,6 +17,7 @@
 		"directory": "packages/router"
 	},
 	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
 	"sideEffects": false,
 	"publishConfig": {
 		"access": "public",
