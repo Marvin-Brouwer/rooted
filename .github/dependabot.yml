@@ -26,10 +26,6 @@ updates:
           - "@commitlint/*"
           - multi-semantic-release
           - "@semantic-release/*"
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - version-update:semver-major
 
   - package-ecosystem: github-actions
     directory: /
