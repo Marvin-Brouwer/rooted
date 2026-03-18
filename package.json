@@ -24,8 +24,8 @@
 		"@stylistic/eslint-plugin": "^5.5.0",
 		"@types/micromatch": "^4.0.10",
 		"@types/unist": "^3.0.3",
-		"@typescript-eslint/eslint-plugin": "^8.46.3",
-		"@typescript-eslint/parser": "^8.44.1",
+		"@typescript-eslint/eslint-plugin": "^8.57.1",
+		"@typescript-eslint/parser": "^8.57.1",
 		"eslint": "^9.36.0",
 		"eslint-import-resolver-typescript": "^4.4.4",
 		"eslint-plugin-import": "^2.32.0",
@@ -37,7 +37,7 @@
 		"multi-semantic-release": "^3.0.2",
 		"tsup": "^8.0.0",
 		"typescript": "^5.5.0",
-		"typescript-eslint": "^8.44.1",
+		"typescript-eslint": "^8.57.1",
 		"vitest": "^2.0.0"
 	},
 	"engines": {
