@@ -41,4 +41,4 @@ jobs:
         run: pnpm build:ci
 
       - name: API diff
-        run: rooted-pipeline api-diff
+        run: pnpm exec rooted-pipeline api-diff

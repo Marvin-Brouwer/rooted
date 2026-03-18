@@ -34,10 +34,7 @@ function bumpLevel(commits: string[]): 'major' | 'minor' | 'patch' | 'none' {
 		if (/^feat(\(.+\))?:/.test(message)) {
 			level = 'minor'
 		}
-		else if (/^fix(\(.+\))?:/.test(message) && level === 'none') {
-			level = 'patch'
-		}
-		else if (/^(docs|chore|test)(\(.+\))?:/.test(message) && level === 'none') {
+		else if (/^(fix|perf|docs)(\(.+\))?:/.test(message) && level === 'none') {
 			level = 'patch'
 		}
 	}

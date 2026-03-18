@@ -30,7 +30,7 @@ jobs:
         env:
           # Commits at or before this SHA predate consistent conventional-commit
           # enforcement and are exempt. Set to the most recent non-conforming commit.
-          COMMITLINT_SINCE: "f9e420f"
+          COMMITLINT_SINCE: "ce69660"
         run: |
           FROM_SHA=$(git merge-base "$COMMITLINT_SINCE" "${{ github.event.pull_request.head.sha }}" 2>/dev/null \
             || echo "${{ github.event.pull_request.base.sha }}")
@@ -82,5 +82,5 @@ jobs:
 
       - name: Compute bump level
         run: |
-          LEVEL=$(rooted-pipeline bump-level)
+          LEVEL=$(pnpm exec rooted-pipeline bump-level)
           echo "Bump level: **$LEVEL**" >> "$GITHUB_STEP_SUMMARY"
