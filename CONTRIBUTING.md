@@ -212,9 +212,8 @@ Common types:
 | `perf` | Performance improvement |
 | `revert` | Reverting a previous commit |
 
-> **Note:** `refactor` is not used in this project. If a code change has no
-> observable behaviour change use `chore`; if it does have one, use `fix` or
-> `feat` as appropriate.
+> **Note:** `refactor` is not used in this project. If a code change has no observable behaviour change use `chore`;
+> if it does have one, use one of the other appropriate option.
 
 Examples:
 
