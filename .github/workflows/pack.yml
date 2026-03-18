@@ -1,6 +1,8 @@
 name: Pack
 
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       branch:
@@ -17,7 +19,7 @@ on:
         default: preview
 
 concurrency:
-  group: pack-${{ github.event.inputs.branch }}
+  group: pack-${{ github.event.pull_request.number || github.event.inputs.branch }}
   cancel-in-progress: true
 
 permissions:
@@ -26,12 +28,12 @@ permissions:
 
 jobs:
   pack:
-    name: Pack (${{ github.event.inputs.branch }})
+    name: Pack (${{ github.event.pull_request.number && format('PR #{0}', github.event.pull_request.number) || github.event.inputs.branch }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ github.event.pull_request.head.sha || github.event.inputs.branch }}
           fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
@@ -51,16 +53,19 @@ jobs:
         run: pnpm build:all
 
       # Stamp a prerelease version so the preview never collides with a real release.
-      # Version format: <current>-preview.<short-sha>  e.g. 0.1.0-preview.a1b2c3d
+      # PR format:       <ver>-pr<number>.<short-sha>  e.g. 0.1.0-pr7.a1b2c3d
+      # Dispatch format: <ver>-preview.<short-sha>      e.g. 0.1.0-preview.a1b2c3d
       - name: Stamp prerelease version
         run: |
           SHA=$(git rev-parse --short HEAD)
+          PR="${{ github.event.pull_request.number }}"
+          LABEL=$([ -n "$PR" ] && echo "pr${PR}" || echo "preview")
           pnpm -r exec -- node -e "
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             if (pkg.private) process.exit(0);
             const base = pkg.version.replace(/-.*/, '');
-            pkg.version = base + '-preview.' + '$SHA';
+            pkg.version = base + '-$LABEL.' + '$SHA';
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
             console.log(pkg.name + '@' + pkg.version);
           "
@@ -71,12 +76,12 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: npm-packages-${{ github.event.inputs.branch }}
+          name: npm-packages-${{ github.event.pull_request.number && format('pr{0}', github.event.pull_request.number) || github.event.inputs.branch }}
           path: dist/*.tgz
           if-no-files-found: error
 
       - name: Publish to npm
-        if: ${{ github.event.inputs.publish == 'true' }}
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true'
         run: pnpm -r --filter '!@rooted/monorepo' publish --tag "${{ github.event.inputs.dist_tag }}" --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
