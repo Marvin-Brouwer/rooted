@@ -10,21 +10,12 @@ import { GenericComponent } from '@rooted/components';
 import * as _rooted_components from '@rooted/components';
 import { TupleResult } from '@rooted/util';
 
-// Warning: (ae-forgotten-export) The symbol "Route" needs to be exported by the entry point router.d.mts
-// Warning: (ae-internal-missing-underscore) The name "AnyRoute" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal (undocumented)
 export type AnyRoute = Route<any>;
 
-// Warning: (ae-incompatible-release-tags) The symbol "gate" is marked as @public, but its signature references "AnyRoute" which is marked as @internal
-//
 // @public
 export function gate<TRoute extends AnyRoute>(route: TRoute, render: GateRenderFunction<TRoute>): GenericComponent;
 
-// Warning: (ae-forgotten-export) The symbol "AsyncGateRenderFunction" needs to be exported by the entry point router.d.mts
-// Warning: (ae-forgotten-export) The symbol "SyncGateRenderFunction" needs to be exported by the entry point router.d.mts
-// Warning: (ae-incompatible-release-tags) The symbol "GateRenderFunction" is marked as @public, but its signature references "AnyRoute" which is marked as @internal
-//
 // @public
 export type GateRenderFunction<TRoute extends AnyRoute> = AsyncGateRenderFunction<TRoute> | SyncGateRenderFunction<TRoute>;
 
@@ -53,8 +44,6 @@ export function navigate<T extends {}>(state: T): void;
 // @public (undocumented)
 export function navigate(href: string): void;
 
-// Warning: (ae-forgotten-export) The symbol "HrefBase" needs to be exported by the entry point router.d.mts
-//
 // @public
 export class Path extends HrefBase {
     // (undocumented)
@@ -94,14 +83,6 @@ export class Url extends HrefBase {
     // (undocumented)
     get user(): string | undefined;
 }
-
-// Warnings were encountered during analysis:
-//
-// dist/router.d.mts:99:5 - (ae-forgotten-export) The symbol "url" needs to be exported by the entry point router.d.mts
-// dist/router.d.mts:100:5 - (ae-forgotten-export) The symbol "path" needs to be exported by the entry point router.d.mts
-// dist/router.d.mts:101:5 - (ae-forgotten-export) The symbol "join" needs to be exported by the entry point router.d.mts
-// dist/router.d.mts:102:5 - (ae-forgotten-export) The symbol "current" needs to be exported by the entry point router.d.mts
-// dist/router.d.mts:103:5 - (ae-forgotten-export) The symbol "forAny" needs to be exported by the entry point router.d.mts
 
 // (No @packageDocumentation comment for this package)
 

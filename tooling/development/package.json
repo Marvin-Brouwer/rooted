@@ -19,9 +19,11 @@
 		".": "./src/_module.mts"
 	},
 	"scripts": {
-		"dev-runner": "node --import tsx/esm src/development-runner.mts"
+		"dev-runner": "node --import tsx/esm src/development-runner.mts",
+		"extract-api": "node --import tsx/esm src/extract-api.mts"
 	},
 	"devDependencies": {
+		"@microsoft/api-extractor": "^7.0.0",
 		"@types/node": "^22.0.0",
 		"tree-kill": "^1.2.2",
 		"tsx": "^4.19.0"

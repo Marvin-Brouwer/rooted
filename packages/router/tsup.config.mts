@@ -1,5 +1,10 @@
+import fs from 'node:fs/promises'
+
 import { dedupeSourcemapsPlugin } from '@rooted/tsup'
 import { defineConfig } from 'tsup'
+
+// clear:true removes .d.ts with multiple entries
+await fs.rm('./dist', { recursive: true, force: true })
 
 export default defineConfig([
 	{
@@ -8,7 +13,6 @@ export default defineConfig([
 		platform: 'browser',
 		treeshake: { moduleSideEffects: 'no-external' },
 		dts: true,
-		clean: true,
 		sourcemap: 'inline',
 		plugins: [dedupeSourcemapsPlugin()],
 	},
@@ -16,6 +20,7 @@ export default defineConfig([
 		entry: ['src/_module/manifest.mts'],
 		format: ['esm'],
 		platform: 'node',
+		treeshake: { moduleSideEffects: 'no-external' },
 		tsconfig: 'tsconfig.plugin.json',
 		dts: true,
 		sourcemap: 'inline',

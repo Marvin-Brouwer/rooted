@@ -1,7 +1,7 @@
 import { devHelper } from './dev-helper.mts'
 import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.mts'
 import { routeMetaData, type RouteMetadata, isRoute } from './route.metadata.mts'
-import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter, token, wildcard } from './route.tokens.mts'
+import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter } from './route.tokens.mts'
 
 import type { create } from '@rooted/components/elements'
 
@@ -121,7 +121,7 @@ export type Route<T extends RouteParameters<Parameter[]>> = {
 	 * @see {@link MatchRouteOptions}
 	 * @see {@link RouteMatch}
 	 */
-	match(options?: MatchRouteOptions): Promise<RouteMatch<T['parameters']>>
+	match(options?: MatchRouteOptions): Promise<RouteMatch<Route<T>>>
 }
 
 function reconstructPattern(strings: TemplateStringsArray, values: readonly RouteParameter[]): string {
@@ -291,7 +291,7 @@ const errorRoute_ = (({ resolve }: { resolve: RouteResolver<any> }) => ({
 		routeParts: [],
 	} satisfies RouteMetadata<any>,
 	resolve,
-	match: async () => ({ success: false }),
+	match: () => ({ success: false }),
 })) as unknown as RouteBuilder<any>
 
 function errorRoute<const T extends RouteParameter[]>(): RouteBuilder<T> {

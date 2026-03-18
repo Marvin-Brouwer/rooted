@@ -41,10 +41,14 @@
 	},
 	"scripts": {
 		"build": "pnpm build:ci",
-		"build:dev": "pnpm build:ci && pnpm api-extractor run --local",
+		"build:dev": "pnpm build:ci && node --import tsx/esm scripts/extract-api.mts",
 		"build:ci": "tsup",
-		"watch": "tsup --watch --no-clean & pnpm api-extractor run --local",
+		"watch": "tsup --watch --no-clean & node --import tsx/esm scripts/extract-api.mts",
 		"clean": "rm -rf dist",
-		"extract-api": "pnpm api-extractor run --local"
+		"extract-api": "node --import tsx/esm scripts/extract-api.mts"
+	},
+	"devDependencies": {
+		"@rooted/development": "workspace:^",
+		"tsx": "^4.19.0"
 	}
 }

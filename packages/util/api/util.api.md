@@ -26,15 +26,6 @@ export const tupleResult: {
     unTuple: typeof unTuple;
 };
 
-// Warnings were encountered during analysis:
-//
-// dist/util.d.mts:49:5 - (ae-forgotten-export) The symbol "success" needs to be exported by the entry point util.d.mts
-// dist/util.d.mts:50:5 - (ae-forgotten-export) The symbol "isSuccess" needs to be exported by the entry point util.d.mts
-// dist/util.d.mts:51:5 - (ae-forgotten-export) The symbol "error" needs to be exported by the entry point util.d.mts
-// dist/util.d.mts:52:5 - (ae-forgotten-export) The symbol "isError" needs to be exported by the entry point util.d.mts
-// dist/util.d.mts:53:5 - (ae-forgotten-export) The symbol "value" needs to be exported by the entry point util.d.mts
-// dist/util.d.mts:54:5 - (ae-forgotten-export) The symbol "unTuple" needs to be exported by the entry point util.d.mts
-
 // (No @packageDocumentation comment for this package)
 
 ```

@@ -15,19 +15,12 @@ export function c(component: Component): GenericComponent;
 // @public (undocumented)
 export function c<TOptions extends {}>(component: Component<TOptions>, ...arguments_: {} extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent;
 
-// Warning: (ae-forgotten-export) The symbol "RootedElementClass" needs to be exported by the entry point components.d.mts
-// Warning: (ae-forgotten-export) The symbol "RootedElementProperties" needs to be exported by the entry point components.d.mts
-//
 // @public (undocumented)
 export function c<TComponent extends R>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProperties<TComponent>>): TComponent;
 
-// Warning: (ae-forgotten-export) The symbol "HtmlElementProperties" needs to be exported by the entry point components.d.mts
-//
 // @public (undocumented)
 export function c<KElement extends keyof HTMLElementTagNameMap>(element: KElement, properties: NoInfer<HtmlElementProperties<HTMLElementTagNameMap[KElement]>>): HTMLElementTagNameMap[KElement];
 
-// Warning: (ae-forgotten-export) The symbol "NoRequiredProperties" needs to be exported by the entry point components.d.mts
-//
 // @public (undocumented)
 export function c<KElement extends keyof HTMLElementTagNameMap>(element: KElement): NoRequiredProperties<HtmlElementProperties<HTMLElementTagNameMap[KElement]>> extends true ? HTMLElementTagNameMap[KElement] : never;
 
@@ -50,8 +43,6 @@ export type ComponentConstructor<TOptions extends {} = never> = {
     [definedAt]?: string;
 };
 
-// Warning: (ae-forgotten-export) The symbol "BaseComponentContext" needs to be exported by the entry point components.d.mts
-//
 // @public
 export type ComponentContext<TOptions extends {} = never> = [TOptions] extends [never] ? BaseComponentContext : BaseComponentContext & {
     options: Readonly<TOptions>;
