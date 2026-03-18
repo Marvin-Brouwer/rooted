@@ -13,8 +13,8 @@ export function formatStackFrame(frame: string | undefined): string | undefined 
 	const queryLocation = trimmedFrame.indexOf('?')
 	if (queryLocation === -1) return trimmedFrame
 
-	return trimmedFrame.slice(0, queryLocation) +
-		trimmedFrame.slice(trimmedFrame.indexOf(':', queryLocation))
+	return trimmedFrame.slice(0, queryLocation)
+		+ trimmedFrame.slice(trimmedFrame.indexOf(':', queryLocation))
 }
 
 /**
@@ -34,6 +34,6 @@ export function appendSourceLocation() {
 	// Stack: Error -> appendSourceLocation -> component() -> call site
 	const frames = new Error().stack?.split('\n') ?? []
 	const selfIndex = frames.findIndex(f => f.includes('appendSourceLocation'))
-	const definitionStackFrame = selfIndex !== -1 ? frames[selfIndex + 2] : undefined
+	const definitionStackFrame = selfIndex === -1 ? undefined : frames[selfIndex + 2]
 	return formatStackFrame(definitionStackFrame)
 }

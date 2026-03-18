@@ -1,10 +1,12 @@
-import type { Plugin, ResolvedConfig } from 'vite'
-import { glob } from 'tinyglobby'
+import { createHash } from 'node:crypto'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, relative, dirname } from 'node:path'
-import { createHash } from 'node:crypto'
+
+import { glob } from 'tinyglobby'
 
 import packageJson from '../../package.json' with { type: 'json' }
+
+import type { Plugin, ResolvedConfig } from 'vite'
 
 const pluginName = 'vite-plugin:generate-rooted-route-manifest'
 
@@ -25,7 +27,7 @@ type Options = {
 	 *
 	 * @example `'./src/_routes.g.mts'`
 	 */
-	root: string,
+	root: string
 	/**
 	 * Export name for the generated manifest
 	 *
@@ -136,7 +138,7 @@ export function generateRouteManifest(options: Options): Plugin {
 			' * @__PURE__',
 			` */`,
 			`export const ${options.routeExport ?? 'appRoutes'}: RouteModules = Object.freeze(/** @__PURE__ */ Object.assign({},`,
-			...files.map((file) => `\t/** @__PURE__ */ rename(gate_${getFileId(file)}, '${getFileId(file)}'),`),
+			...files.map(file => `\t/** @__PURE__ */ rename(gate_${getFileId(file)}, '${getFileId(file)}'),`),
 			`))`,
 			'',
 		]
@@ -166,8 +168,8 @@ export function generateRouteManifest(options: Options): Plugin {
 				if (!matched.includes(rel) && !filePath.endsWith('/_gate.mts')) return
 				await generate()
 				const rootPath = resolve(config.root, options.root)
-				const mod = server.moduleGraph.getModuleById(rootPath)
-				if (mod) server.moduleGraph.invalidateModule(mod)
+				const module_ = server.moduleGraph.getModuleById(rootPath)
+				if (module_) server.moduleGraph.invalidateModule(module_)
 				server.hot.send({ type: 'full-reload' })
 			}
 			server.watcher.on('add', onAddOrUnlink)
@@ -176,16 +178,15 @@ export function generateRouteManifest(options: Options): Plugin {
 	}
 }
 
-
 export function hash(files: string[], version: string): string {
-	const hash = createHash("sha256")
+	const hash = createHash('sha256')
 
 	hash.update(version)
 	for (const file of files) {
 		hash.update(file)
 	}
 
-	return hash.digest("hex")
+	return hash.digest('hex')
 }
 
 const getFileId = (path: string) => createHash('md5').update(path).digest('hex').slice(0, 8)
@@ -195,6 +196,6 @@ async function readExistingManifest(rootPath: string) {
 		return await readFile(rootPath, 'utf-8')
 	}
 	catch {
-		return undefined
+		return
 	}
 }

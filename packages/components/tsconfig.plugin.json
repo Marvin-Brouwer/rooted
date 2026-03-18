@@ -23,9 +23,10 @@
 		"types": [
 			"node"
 		],
-		"outDir": "./dist"
+		"outDir": "./dist",
+		"rootDir": "./plugin"
 	},
 	"include": [
-		"plugin/css-loader.mts"
+		"plugin"
 	]
 }

@@ -9,8 +9,7 @@ type RootSelector = {
 	element: Element
 }
 
-export type ApplicationOptions =
-	& RootSelector
+export type ApplicationOptions = RootSelector
 
 /**
  * ## Initialize a new `application`

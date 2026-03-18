@@ -1,4 +1,5 @@
-import type { RouteParameter } from './route.tokens.mts'
+import type { Route, RouteParameters } from './route.mts'
+import type { Parameter, RouteParameter } from './route.tokens.mts'
 
 /** Symbol key for the {@link RouteMetadata} bag attached to every {@link Route}. */
 export const routeMetaData: unique symbol = Symbol.for('@rooted/route-metadata')
@@ -9,7 +10,8 @@ export const routeMetaData: unique symbol = Symbol.for('@rooted/route-metadata')
  * Do not access directly from application code — use {@link isRoute} to test whether a value is a
  * route, and access `route[routeMetaData]` only within router internals.
  */
-export type RouteMetadata<T extends { parameters: any; parent?: any }> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type RouteMetadata<T extends { parameters: any, parent?: any }> = {
 	/** The typed path token descriptors declared with {@link token}. */
 	readonly tokenTypes: T['parameters']
 	/** The parent route, if this route is nested. */
@@ -25,9 +27,12 @@ export type RouteMetadata<T extends { parameters: any; parent?: any }> = {
 }
 
 /** Returns `true` if `instance` is a {@link Route}. */
-export function isRoute<T extends import('./route.tokens.mts').Parameter[]>(
-	instance: unknown
-): instance is import('./route.mts').Route<import('./route.mts').RouteParameters<T>>
-export function isRoute(instance: unknown): instance is import('./route.mts').Route<any> {
+export function isRoute<T extends RouteParameters<Parameter[]>>(instance: Route<T>): instance is Route<T>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isRoute<T>(instance: T): instance is Extract<T, Route<any>>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isRoute<T extends Route<any>>(instance: T): instance is T
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isRoute(instance: unknown): instance is Route<any> {
 	return typeof instance === 'object' && instance !== null && routeMetaData in instance
 }

@@ -1,20 +1,21 @@
 /// <reference path="../node_modules/vite/types/import-meta.d.ts" />
 
 import { appendSourceLocation, isDevelopment } from '@rooted/util/dev'
+
 import { ComponentConstructor, definedAt } from '../../components/src/component.mts'
 
 function validateComponentName(name: string): void {
 	try {
-		document.createElement('div').setAttribute("component-name", name)
-	} catch (innerError) {
+		document.createElement('div').setAttribute('component-name', name)
+	}
+	catch (innerError) {
 		throw new Error(`Invalid component name '${name}'.`, {
-			cause: innerError
+			cause: innerError,
 		})
 	}
 }
 
 function componentNameChecker() {
-
 	const names = new Map<string, string[]>()
 	// Clear names on vite reload, this is to prevent the reload causing duplicate component name warnings.
 	if (import.meta.hot) {
@@ -24,11 +25,10 @@ function componentNameChecker() {
 	}
 
 	return function checkName(component: ComponentConstructor) {
-
 		validateComponentName(component.name)
 
 		const registeredForName = names.get(component.name) ?? []
-		if (registeredForName.length) {
+		if (registeredForName.length > 0) {
 			console.warn(`[@rooted/components] Duplicate component name detected: "${component.name}"`)
 			console.debug('  ', Object.defineProperty({}, 'listAll', {
 				get() {
@@ -39,7 +39,7 @@ function componentNameChecker() {
 			}))
 		}
 		names.set(component.name,
-			[...registeredForName, component[definedAt]!]
+			[...registeredForName, component[definedAt]!],
 		)
 	}
 }
@@ -50,7 +50,7 @@ function appendComponentMetadata(element: HTMLElement, component: ComponentConst
 			value: Object.freeze({
 				name: Object.freeze(component.name),
 				options: Object.freeze(options),
-				definedAt: Object.freeze(component[definedAt])
+				definedAt: Object.freeze(component[definedAt]),
 			}),
 			configurable: false,
 			enumerable: false,
@@ -58,10 +58,10 @@ function appendComponentMetadata(element: HTMLElement, component: ComponentConst
 	}
 }
 
-export const dev = {
+export const devHelper = {
 	componentNameCheck: isDevelopment() ? componentNameChecker() : void 0,
-	appendSourceLocation: isDevelopment() ? appendSourceLocation.bind(undefined) : void 0,
-	appendComponentMetaData: isDevelopment() ? appendComponentMetadata.bind(undefined) : void 0
+	appendSourceLocation: isDevelopment() ? appendSourceLocation.bind() : void 0,
+	appendComponentMetaData: isDevelopment() ? appendComponentMetadata.bind() : void 0,
 }
 
 if (isDevelopment()) {
@@ -82,7 +82,8 @@ if (isDevelopment()) {
 		'font-size:13px;font-weight:bold;color:#d97706;',
 		'font-size:12px;color:#888;',
 	)
-} else {
+}
+else {
 	console.warn(
 		[
 			'%cStop!',

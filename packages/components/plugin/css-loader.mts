@@ -1,7 +1,9 @@
-import type { Plugin, ResolvedConfig } from 'vite'
-import { basename, dirname, isAbsolute, relative, resolve } from 'node:path'
 import { readFileSync } from 'node:fs'
+import path from 'node:path'
+
 import { seededId } from '@rooted/util'
+
+import type { Plugin, ResolvedConfig } from 'vite'
 
 const VIRTUAL_MODULE_ID = 'virtual:@rooted/css-module'
 const RESOLVED_VIRTUAL_MODULE_ID = '\0' + VIRTUAL_MODULE_ID
@@ -9,8 +11,8 @@ const ROOTED_CSS_PREFIX = '\0rooted-css:'
 const ROOTED_CSS_SUFFIX = '.module'
 const DEV_PREFIX = '/@rooted-css/'
 
-function toCamelCase(str: string): string {
-	return str.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())
+function toCamelCase(inputString: string): string {
+	return inputString.replaceAll(/-([a-z])/g, (_, c: string) => c.toUpperCase())
 }
 
 function extractClassNames(css: string): Record<string, string> {
@@ -30,14 +32,14 @@ function extractClassNames(css: string): Record<string, string> {
  * the raw content and one closing brace line after, so the VLQ mappings are
  * trivial: skip 1 line, then shift each source line by +1.
  */
-function buildInlineSourceMap(rawCode: string, relPath: string): string {
+function buildInlineSourceMap(rawCode: string, relativePath: string): string {
 	const lineCount = rawCode.split('\n').length
 	// ';' = empty line (wrapper), then AAAA for first source line,
 	// AACA for each subsequent line (sourceLine delta = +1), then trailing ';' for closing brace
-	const contentMappings = ['AAAA', ...Array(lineCount - 1).fill('AACA')].join(';')
+	const contentMappings = ['AAAA', ...Array.from({ length: lineCount - 1 }).fill('AACA')].join(';')
 	const map = JSON.stringify({
 		version: 3,
-		sources: [`/${relPath}`],
+		sources: [`/${relativePath}`],
 		sourcesContent: [rawCode],
 		mappings: `;${contentMappings};`,
 	})
@@ -53,7 +55,7 @@ function buildModule(
 	const classes = extractClassNames(rawCode)
 	const classesJson = JSON.stringify(
 		// Sort for deterministic output
-		Object.fromEntries(Object.entries(classes).sort(([a], [b]) => a.localeCompare(b)))
+		Object.fromEntries(Object.entries(classes).toSorted(([a], [b]) => a.localeCompare(b))),
 	)
 	return [
 		`const _c = ${classesJson}`,
@@ -82,7 +84,6 @@ export type CssLoaderOptions = {
 	minify?: boolean
 }
 
-
 /**
  * Vite plugin that transforms plain `.css` imports into `CssModule` objects.
  *
@@ -108,11 +109,11 @@ export type CssLoaderOptions = {
  */
 export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 	let config: ResolvedConfig
-	const devArtifacts = new Map<string, string>()
+	const developmentArtifacts = new Map<string, string>()
 	/** CSS content and tokens for files awaiting asset emission. */
 	const pending = new Map<string, PendingAsset>()
 	/** Cached Rollup asset refs once emitFile has been called, to avoid duplicate emission. */
-	const emittedRefs = new Map<string, { scopedRef: string; taggedRef: string }>()
+	const emittedReferences = new Map<string, { scopedRef: string, taggedRef: string }>()
 
 	/**
 	 * Pre-plugin: runs before Vite's built-in CSS pipeline so that bare .css
@@ -136,15 +137,15 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 		 * so they behave as ordinary CSS files that can be linked to.
 		 */
 		configureServer(server) {
-			server.middlewares.use((req, res, next) => {
+			server.middlewares.use((request, response, next) => {
 				// Strip query string (e.g. ?t=timestamp added by HMR cache-busting)
-				const url = (req.url ?? '').split('?')[0]
+				const url = (request.url ?? '').split('?')[0]
 				if (!url.startsWith(DEV_PREFIX)) return next()
-				const css = devArtifacts.get(url)
-				if (css == null) return next()
-				res.setHeader('Content-Type', 'text/css; charset=utf-8')
-				res.setHeader('Cache-Control', 'no-cache')
-				res.end(css)
+				const css = developmentArtifacts.get(url)
+				if (css == undefined) return next()
+				response.setHeader('Content-Type', 'text/css; charset=utf-8')
+				response.setHeader('Cache-Control', 'no-cache')
+				response.end(css)
 			})
 		},
 
@@ -155,16 +156,16 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 		 */
 		handleHotUpdate({ file, server }) {
 			if (!file.endsWith('.css')) return
-			const stem = basename(file, '.css')
+			const stem = path.basename(file, '.css')
 			const scopedKey = `${DEV_PREFIX}${stem}.scoped.css`
-			if (!devArtifacts.has(scopedKey)) return
+			if (!developmentArtifacts.has(scopedKey)) return
 
-			const rawCode = readFileSync(file, 'utf-8')
-			const relPath = relative(config.root, file).replace(/\\/g, '/')
-			const scopeId = seededId(relPath)
-			const sourceMap = buildInlineSourceMap(rawCode, relPath)
-			devArtifacts.set(scopedKey, `@scope ([r="${scopeId}"]) {\n${rawCode}\n}\n/*# sourceMappingURL=${sourceMap} */`)
-			devArtifacts.set(`${DEV_PREFIX}${stem}.tagged.css`, `[r="${scopeId}"] {\n${rawCode}\n}\n/*# sourceMappingURL=${sourceMap} */`)
+			const rawCode = readFileSync(file, 'utf8')
+			const relativePath = path.relative(config.root, file).replaceAll('\\', '/')
+			const scopeId = seededId(relativePath)
+			const sourceMap = buildInlineSourceMap(rawCode, relativePath)
+			developmentArtifacts.set(scopedKey, `@scope ([r="${scopeId}"]) {\n${rawCode}\n}\n/*# sourceMappingURL=${sourceMap} */`)
+			developmentArtifacts.set(`${DEV_PREFIX}${stem}.tagged.css`, `[r="${scopeId}"] {\n${rawCode}\n}\n/*# sourceMappingURL=${sourceMap} */`)
 
 			server.hot.send({
 				type: 'custom',
@@ -183,21 +184,21 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 		resolveId(source, importer) {
 			if (source === VIRTUAL_MODULE_ID) return RESOLVED_VIRTUAL_MODULE_ID
 
-			if (source.includes('?')) return null
-			if (!source.endsWith('.css')) return null
-			if (!importer) return null
+			if (source.includes('?')) return
+			if (!source.endsWith('.css')) return
+			if (!importer) return
 
 			// Only intercept CSS imported from JS/TS source files, not from HTML
 			// <link> elements or other non-JS contexts.
 			const importerBase = importer.split('?')[0]
-			if (!/\.[cm]?[jt]sx?$/.test(importerBase)) return null
+			if (!/\.[cm]?[jt]sx?$/.test(importerBase)) return
 
 			const importerPath = importerBase.includes('\0')
 				? importerBase.replace(/\0[^:]*:/, '')
 				: importerBase
-			const absolutePath = isAbsolute(source)
+			const absolutePath = path.isAbsolute(source)
 				? source
-				: resolve(dirname(importerPath), source)
+				: path.resolve(path.dirname(importerPath), source)
 
 			return ROOTED_CSS_PREFIX + absolutePath + ROOTED_CSS_SUFFIX
 		},
@@ -207,14 +208,14 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 				return `export { cssArtifacts } from '@rooted/components'`
 			}
 
-			if (!id.startsWith(ROOTED_CSS_PREFIX)) return null
+			if (!id.startsWith(ROOTED_CSS_PREFIX)) return
 
 			const absolutePath = id.slice(ROOTED_CSS_PREFIX.length, -ROOTED_CSS_SUFFIX.length)
-			const rawCode = readFileSync(absolutePath, 'utf-8')
-			const stem = basename(absolutePath, '.css')
-			const relPath = relative(config.root, absolutePath).replace(/\\/g, '/')
-			const scopeId = seededId(relPath)
-			const sourceMap = buildInlineSourceMap(rawCode, relPath)
+			const rawCode = readFileSync(absolutePath, 'utf8')
+			const stem = path.basename(absolutePath, '.css')
+			const relativePath = path.relative(config.root, absolutePath).replaceAll('\\', '/')
+			const scopeId = seededId(relativePath)
+			const sourceMap = buildInlineSourceMap(rawCode, relativePath)
 			const scopedCss = `@scope ([r="${scopeId}"]) {\n${rawCode}\n}\n/*# sourceMappingURL=${sourceMap} */`
 			const taggedCss = `[r="${scopeId}"] {\n${rawCode}\n}\n/*# sourceMappingURL=${sourceMap} */`
 
@@ -224,14 +225,15 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 			if (config.command === 'serve') {
 				scopedUrl = `${DEV_PREFIX}${stem}.scoped.css`
 				taggedUrl = `${DEV_PREFIX}${stem}.tagged.css`
-				devArtifacts.set(scopedUrl, scopedCss)
-				devArtifacts.set(taggedUrl, taggedCss)
+				developmentArtifacts.set(scopedUrl, scopedCss)
+				developmentArtifacts.set(taggedUrl, taggedCss)
 				// Watch the source CSS file so HMR fires when it changes
 				this.addWatchFile(absolutePath)
-			} else {
+			}
+			else {
 				// Store CSS content and placeholder tokens.
 				// The output plugin emits the assets and replaces tokens in renderChunk.
-				const key = absolutePath.replace(/\\/g, '/')
+				const key = absolutePath.replaceAll('\\', '/')
 				const scopedToken = `__ROOTED_SCOPED_${key}__`
 				const taggedToken = `__ROOTED_TAGGED_${key}__`
 				pending.set(absolutePath, { stem, scopedCss, taggedCss, scopedToken, taggedToken })
@@ -239,7 +241,7 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 				taggedUrl = taggedToken
 			}
 
-			return { code: buildModule(rawCode, scopedUrl, taggedUrl, scopeId), map: null }
+			return { code: buildModule(rawCode, scopedUrl, taggedUrl, scopeId), map: undefined }
 		},
 	}
 
@@ -255,17 +257,18 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 		name: 'vite-plugin:rooted-css-loader-output',
 
 		async renderChunk(code) {
-			if (pending.size === 0) return null
-			const { transform } = options.minify ? await import('esbuild') : { transform: null }
+			if (pending.size === 0) return
+			const { transform } = options.minify ? await import('esbuild') : { transform: undefined }
 			const minify = async (css: string) => transform
+				// eslint-disable-next-line unicorn/no-await-expression-member
 				? (await transform(css, { loader: 'css', minify: true })).code
 				: css
 			// Emit CSS assets on first chunk (Rollup deduplicates by content+name).
 			for (const [path, { stem, scopedCss, taggedCss }] of pending) {
-				if (!emittedRefs.has(path)) {
+				if (!emittedReferences.has(path)) {
 					const scoped = await minify(scopedCss)
 					const tagged = await minify(taggedCss)
-					emittedRefs.set(path, {
+					emittedReferences.set(path, {
 						scopedRef: this.emitFile({ type: 'asset', name: `${stem}.scoped.css`, source: scoped }),
 						taggedRef: this.emitFile({ type: 'asset', name: `${stem}.tagged.css`, source: tagged }),
 					})
@@ -273,12 +276,12 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 			}
 			let result = code
 			for (const [path, { scopedToken, taggedToken }] of pending) {
-				const { scopedRef, taggedRef } = emittedRefs.get(path)!
+				const { scopedRef, taggedRef } = emittedReferences.get(path)!
 				result = result
 					.replaceAll(scopedToken, '/' + this.getFileName(scopedRef))
 					.replaceAll(taggedToken, '/' + this.getFileName(taggedRef))
 			}
-			return result !== code ? { code: result, map: null } : null
+			return result === code ? undefined : { code: result, map: undefined }
 		},
 	}
 

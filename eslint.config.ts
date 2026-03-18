@@ -8,11 +8,11 @@ import { lintJs, lintTs } from './eslint.preset.lang.js'
 import { projectConfig } from './eslint.preset.project'
 
 export default defineConfig([
-	globalIgnores(['**/node_modules', '**/dist', 'examples']),
+	globalIgnores(['**/node_modules', '**/dist', 'docs', 'temp', 'examples/**', '**/bin/**']),
 	configureFiles([
-		'remarkrc.mjs',
 		'eslint.*.ts',
-		'src/**/*.mts',
+		'**/*.mts',
+		'**/*.mjs',
 	]),
 	lintJs,
 	lintTs,
@@ -20,6 +20,16 @@ export default defineConfig([
 	unicorn.configs.recommended,
 	lintImports,
 	projectConfig,
+	{
+		files: ['packages/*/tests/**/*.ts'],
+		rules: {
+			'unicorn/no-null': 'off',
+			'unicorn/no-useless-undefined': 'off',
+			'@typescript-eslint/no-explicit-any': 'off',
+			'unicorn/consistent-function-scoping': 'off',
+			'unicorn/no-await-expression-member': 'off',
+		},
+	},
 ])
 
 function configureFiles(files: Config['files']): Config {
@@ -27,6 +37,7 @@ function configureFiles(files: Config['files']): Config {
 		files,
 		languageOptions: {
 			globals: globals.es2015,
+			sourceType: 'module',
 		},
 	}
 }

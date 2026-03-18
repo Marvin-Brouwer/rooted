@@ -1,6 +1,8 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
+
 import ts from 'typescript'
+
 import type { Plugin } from './tsup-plugin.mts'
 
 // Matches either:
@@ -24,7 +26,7 @@ function getState(tsconfigPath: string): State {
 
 	const configFile = ts.readConfigFile(key, ts.sys.readFile)
 	if (configFile.error) throw new Error(
-		ts.flattenDiagnosticMessageText(configFile.error.messageText, '\n')
+		ts.flattenDiagnosticMessageText(configFile.error.messageText, '\n'),
 	)
 
 	const parsed = ts.parseJsonConfigFileContent(
@@ -33,9 +35,9 @@ function getState(tsconfigPath: string): State {
 		dirname(key),
 	)
 
-	const opts: ts.CompilerOptions = { ...parsed.options, noEmit: true, skipLibCheck: true }
-	const host = ts.createCompilerHost(opts)
-	const program = ts.createProgram(parsed.fileNames, opts, host)
+	const options: ts.CompilerOptions = { ...parsed.options, noEmit: true, skipLibCheck: true }
+	const host = ts.createCompilerHost(options)
+	const program = ts.createProgram(parsed.fileNames, options, host)
 
 	const state: State = { checker: program.getTypeChecker(), program }
 	stateCache.set(key, state)
@@ -45,18 +47,18 @@ function getState(tsconfigPath: string): State {
 // ── Type lookup ─────────────────────────────────────────────────────────────
 
 // Keyed as `${resolvedTsconfig}:${className}['${memberName}']`
-const jsDocCache = new Map<string, string | null>()
+const jsDocumentCache = new Map<string, string | null>()
 
-function resolveJsDoc(tsconfigPath: string, className: string, memberName: string): string | null {
+function resolveJsDocument(tsconfigPath: string, className: string, memberName: string): string | null {
 	const key = `${resolve(tsconfigPath)}:${className}['${memberName}']`
-	if (jsDocCache.has(key)) return jsDocCache.get(key)!
+	if (jsDocumentCache.has(key)) return jsDocumentCache.get(key)!
 
-	const result = _resolveJsDoc(tsconfigPath, className, memberName)
-	jsDocCache.set(key, result)
+	const result = _resolveJsDocument(tsconfigPath, className, memberName)
+	jsDocumentCache.set(key, result)
 	return result
 }
 
-function _resolveJsDoc(tsconfigPath: string, className: string, memberName: string): string | null {
+function _resolveJsDocument(tsconfigPath: string, className: string, memberName: string): string | null {
 	const { checker, program } = getState(tsconfigPath)
 
 	// Find the named interface/class declaration across all source files in the program
@@ -78,20 +80,20 @@ function _resolveJsDoc(tsconfigPath: string, className: string, memberName: stri
 
 	// getProperty follows the full type hierarchy (inheritance + mixins)
 	const type = checker.getDeclaredTypeOfSymbol(classSym)
-	const prop = type.getProperty(memberName)
-	if (!prop) return null
+	const property = type.getProperty(memberName)
+	if (!property) return null
 
-	for (const decl of prop.getDeclarations() ?? []) {
-		const doc = extractJsDoc(decl)
-		if (doc) return doc
+	for (const decl of property.getDeclarations() ?? []) {
+		const document = extractJsDocument(decl)
+		if (document) return document
 	}
 
 	return null
 }
 
-function resolveTopLevelJsDoc(tsconfigPath: string, name: string): string | null {
+function resolveTopLevelJsDocument(tsconfigPath: string, name: string): string | null {
 	const key = `${resolve(tsconfigPath)}:typeof ${name}`
-	if (jsDocCache.has(key)) return jsDocCache.get(key)!
+	if (jsDocumentCache.has(key)) return jsDocumentCache.get(key)!
 
 	const { program } = getState(tsconfigPath)
 	let result: string | null = null
@@ -100,53 +102,54 @@ function resolveTopLevelJsDoc(tsconfigPath: string, name: string): string | null
 		for (const stmt of sf.statements) {
 			if (ts.isFunctionDeclaration(stmt) && stmt.name?.text === name) {
 				// Try each overload — JSDoc is usually on the first, but check all
-				const doc = extractJsDoc(stmt)
-				if (doc) { result = doc; break outer }
+				const document = extractJsDocument(stmt)
+				if (document) { result = document; break outer }
 				// No `break` — continue scanning for the next overload
-			} else if (ts.isVariableStatement(stmt)) {
+			}
+			else if (ts.isVariableStatement(stmt)) {
 				for (const decl of stmt.declarationList.declarations) {
 					if (ts.isIdentifier(decl.name) && decl.name.text === name) {
-						const doc = extractJsDoc(stmt)
-						if (doc) { result = doc; break outer }
+						const document = extractJsDocument(stmt)
+						if (document) { result = document; break outer }
 					}
 				}
 			}
 		}
 	}
 
-	jsDocCache.set(key, result)
+	jsDocumentCache.set(key, result)
 	return result
 }
 
-function extractJsDoc(node: ts.Node): string | null {
+function extractJsDocument(node: ts.Node): string | null {
 	const sf = node.getSourceFile()
 	const text = sf.getFullText()
 	// getStart(sf, true) includes JSDoc; getStart(sf, false) excludes it
-	const withDoc = node.getStart(sf, true)
-	const withoutDoc = node.getStart(sf, false)
-	const leading = text.slice(withDoc, withoutDoc).trim()
+	const withDocument = node.getStart(sf, true)
+	const withoutDocument = node.getStart(sf, false)
+	const leading = text.slice(withDocument, withoutDocument).trim()
 	if (!leading.startsWith('/**')) return null
 	return leading
 }
 
 // ── d.ts post-processing ────────────────────────────────────────────────────
 
-function applyIndent(jsDoc: string, indent: string): string {
-	return jsDoc
+function applyIndent(jsDocument: string, indent: string): string {
+	return jsDocument
 		.split('\n')
-		.map((line, i) => {
+		.map((line, index) => {
 			const trimmed = line.trimStart()
 			// First line is `/**`; subsequent `*` lines get one extra space to align
-			return i === 0 ? indent + trimmed : indent + ' ' + trimmed
+			return index === 0 ? indent + trimmed : indent + ' ' + trimmed
 		})
 		.join('\n')
 }
 
-function jsDocInner(raw: string): string {
+function jsDocumentInner(raw: string): string {
 	return raw
 		.replace(/^\/\*\*\s*\n?/, '')
 		.replace(/\s*\*\/$/, '')
-		.replace(/^\s*\*\s?/gm, '')
+		.replaceAll(/^\s*\*\s?/gm, '')
 		.trim()
 }
 
@@ -154,29 +157,29 @@ async function processFile(tsconfigPath: string, filePath: string): Promise<void
 	let content = await readFile(filePath, 'utf-8')
 	let changed = false
 
-	content = content.replace(/( *)\/\*\*([\s\S]*?)\*\//g, (block, indent: string, inner: string) => {
+	content = content.replaceAll(/( *)\/\*\*([\s\S]*?)\*\//g, (block, indent: string, inner: string) => {
 		const m = inner.match(INHERITDOC_RE)
 		if (!m) return block
 
 		const [tag, cls, member, identifier] = m
 		const resolved = identifier
-			? resolveTopLevelJsDoc(tsconfigPath, identifier)
-			: resolveJsDoc(tsconfigPath, cls, member)
+			? resolveTopLevelJsDocument(tsconfigPath, identifier)
+			: resolveJsDocument(tsconfigPath, cls, member)
 		if (!resolved) {
-			const ref = identifier ? `typeof ${identifier}` : `${cls}['${member}']`
-			process.stderr.write(`[tsup:inheritdoc] warn: could not resolve {@inheritdoc ${ref}}\n`)
+			const reference = identifier ? `typeof ${identifier}` : `${cls}['${member}']`
+			process.stderr.write(`[tsup:inheritdoc] warn: could not resolve {@inheritdoc ${reference}}\n`)
 			return block
 		}
 
 		changed = true
 
 		// If the comment only contains the inheritdoc tag, replace the whole block
-		if (!inner.replace(tag, '').replace(/[\s*]/g, '')) {
+		if (!inner.replace(tag, '').replaceAll(/[\s*]/g, '')) {
 			return applyIndent(resolved, indent)
 		}
 
 		// Otherwise inline just the JSDoc content text in place of the tag
-		return block.replace(tag, jsDocInner(resolved))
+		return block.replace(tag, jsDocumentInner(resolved))
 	})
 
 	if (changed) {
@@ -212,7 +215,7 @@ const TEMP_RE = /^_tsup-/
 
 async function findDtsFiles(outDir: string): Promise<string[]> {
 	const entries = await readdir(outDir, { recursive: true }).catch(() => [] as string[])
-	return (entries as string[])
+	return (entries)
 		.filter(f => DTS_RE.test(f) && !TEMP_RE.test(basename(f)))
 		.map(f => join(outDir, f))
 }

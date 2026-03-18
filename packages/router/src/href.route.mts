@@ -1,16 +1,18 @@
 import { tupleResult } from '@rooted/util'
-import type { TokenMatchResult } from './route.tokens.mts'
-import * as tokens from './route.tokens.mts'
-import type { Route, RouteParameterDictionary } from './route.mts'
+
 import { isRoute, routeMetaData } from './route.metadata.mts'
+import * as tokens from './route.tokens.mts'
+
+import type { Route, RouteParameterDictionary } from './route.mts'
+import type { TokenMatchResult } from './route.tokens.mts'
 
 /**
  * @internal Builds a path string from a route and its parameter dictionary.
  * Each token value is fed back through its own matcher for validation.
  * Throws if any token value is invalid or an unrecognized part is encountered.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, parameters: RouteParameterDictionary<TRoute>) {
-
 	function buildUrl() {
 		let url = ''
 

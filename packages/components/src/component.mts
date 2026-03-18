@@ -1,7 +1,7 @@
-import { dev } from './dev-helper.mts'
-import { create } from './element-factory.mts'
 import { GenericComponent } from './component/generic-component.mts'
 import { injectStyles } from './component/styles.mts'
+import { devHelper } from './dev-helper.mts'
+import { create } from './element-factory.mts'
 
 /**
  * ## `ComponentContext`
@@ -15,33 +15,41 @@ export type ComponentContext<TOptions extends {} = never> = [TOptions] extends [
 type BaseComponentContext = & {
 
 	/** {@inheritdoc typeof create} */
-	create: typeof create,
+	create: typeof create
 
 	/** {@inheritdoc HTMLElement['append']} */
-	append<T extends Node | string | GenericComponent>(node: T): T,
-	append<T extends Node | string | GenericComponent>(...node: T[]): T[],
-	append(...nodes: (Node | string | GenericComponent)[]): Node[],
+	append: {
+		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
+		(...nodes: (Node | string | GenericComponent)[]): Node[]
+	}
 
 	/** {@inheritdoc HTMLElement['prepend']} */
-	prepend<T extends Node | string | GenericComponent>(node: T): T,
-	prepend<T extends Node | string | GenericComponent>(...node: T[]): T[],
-	prepend(...nodes: (Node | string | GenericComponent)[]): Node[],
+	prepend: {
+		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
+		(...nodes: (Node | string | GenericComponent)[]): Node[]
+	}
 
 	/** {@inheritdoc HTMLElement['insertBefore']} */
-	insertBefore<T extends Node>(node: T, child: Node | null | undefined): T,
+	insertBefore: <T extends Node>(node: T, child: Node | null | undefined) => T
 
 	/** {@inheritdoc HTMLElement['replaceChild']} */
-	swap<T extends Node>(node: Node, child: T): T,
+	swap: <T extends Node>(node: Node, child: T) => T
 
 	/** {@inheritdoc HTMLElement['replaceChildren']} */
-	replace<T extends Node | string | GenericComponent>(node: T): T,
-	replace<T extends Node | string | GenericComponent>(...node: T[]): T[],
-	replace(...nodes: (Node | string | GenericComponent)[]): Node[],
+	replace: {
+		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
+		(...nodes: (Node | string | GenericComponent)[]): Node[]
+	}
 
 	/** {@inheritdoc HTMLElement['removeChild']} */
-	remove<T extends Node | string | GenericComponent>(node: T): T,
-	remove<T extends Node | string | GenericComponent>(...node: T[]): T[],
-	remove(...nodes: (Node | string | GenericComponent)[]): Node[],
+	remove: {
+		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
+		(...nodes: (Node | string | GenericComponent)[]): Node[]
+	}
 
 	/**
 	 * Lifetime signal for the component, aborts when unmounted \
@@ -50,7 +58,6 @@ type BaseComponentContext = & {
 
 	signal: AbortSignal
 }
-
 
 const componentBrand: unique symbol = Symbol('@rooted/component')
 export const definedAt: unique symbol = Symbol('@rooted/definedAt')
@@ -80,7 +87,6 @@ export function isComponent(value: unknown): value is Component<any> {
 export type Component<TOptions extends {} = never> = ComponentConstructor<TOptions> & {
 	readonly [componentBrand]: TOptions
 }
-
 
 /**
  * ## `ComponentConstructor`
@@ -119,12 +125,12 @@ export type ComponentConstructor<TOptions extends {} = never> = {
 	 * - Unique across the application. \
 	 *   Duplicate names will result in duplicate style injection.
 	 */
-	name: string,
+	name: string
 	/**
 	 * CSS for this component, provided as a {@link CssModule}
 	 * imported from a `.css` file via the rooted CSS loader Vite plugin.
 	 */
-	styles?: import('./component/css-artifacts.mts').CssModule,
+	styles?: import('./component/css-artifacts.mts').CssModule
 	/** Custom component constructor */
 	onMount(context: ComponentContext<TOptions>): void | Promise<void>
 	[definedAt]?: string
@@ -154,9 +160,8 @@ export type ComponentConstructor<TOptions extends {} = never> = {
 export function component(constructor: ComponentConstructor): Component
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>): Component<TOptions>
 export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>) {
-
-	constructor[definedAt] = dev.appendSourceLocation?.()
-	dev.componentNameCheck?.(constructor)
+	constructor[definedAt] = devHelper.appendSourceLocation?.()
+	devHelper.componentNameCheck?.(constructor)
 	if (constructor.styles) injectStyles(constructor.styles)
 
 	return Object.assign(constructor, { [componentBrand]: true }) as unknown as Component<TOptions>

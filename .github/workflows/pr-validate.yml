@@ -1,0 +1,86 @@
+name: PR Validate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  commit-lint:
+    name: Commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint commit messages
+        env:
+          # Commits at or before this SHA predate consistent conventional-commit
+          # enforcement and are exempt. Set to the most recent non-conforming commit.
+          COMMITLINT_SINCE: "ce69660"
+        run: |
+          FROM_SHA=$(git merge-base "$COMMITLINT_SINCE" "${{ github.event.pull_request.head.sha }}" 2>/dev/null \
+            || echo "${{ github.event.pull_request.base.sha }}")
+          pnpm exec commitlint \
+            --from "$FROM_SHA" \
+            --to ${{ github.event.pull_request.head.sha }} \
+            --verbose
+
+  title-lint:
+    name: PR title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint PR title
+        run: echo "${{ github.event.pull_request.title }}" | pnpm exec commitlint --verbose
+
+  bump-level:
+    name: Bump level
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Compute bump level
+        run: |
+          LEVEL=$(pnpm exec rooted-pipeline bump-level)
+          echo "Bump level: **$LEVEL**" >> "$GITHUB_STEP_SUMMARY"

@@ -1,7 +1,9 @@
 import { tupleResult } from '@rooted/util'
+
+import { isParameterToken, type RouteParameter, type TokenMatchResult } from './route.tokens.mts'
+
 import type { Path, Url } from './href.mts'
-import { isParameterToken, type Parameter, type RouteParameter, type TokenMatchResult } from './route.tokens.mts'
-import type { FilterOutParent, PathParameterDictionary } from './route.mts'
+import type { PathParameterDictionary, Route, RouteParameterDictionary } from './route.mts'
 
 /**
  * Result of {@link Route.match}.
@@ -10,9 +12,10 @@ import type { FilterOutParent, PathParameterDictionary } from './route.mts'
  * `length` is the number of characters consumed from the path (used by the
  * router to select the best match). On failure, only `success: false` is present.
  */
-export type RouteMatch<T extends Parameter[]> = {
-	success: true,
-	tokens: PathParameterDictionary<T>,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type RouteMatch<T extends Route<any>> = {
+	success: true
+	tokens: RouteParameterDictionary<T>
 	length: number
 } | {
 	success: false
@@ -28,7 +31,7 @@ export type MatchRouteOptions = {
 	 * Defaults to `location` (the current browser URL).
 	 */
 	target?: string | Path | Url | URL | Location
-	offset?: number,
+	offset?: number
 	/**
 	 * When `true` (the default), the match fails if any path characters remain
 	 * unconsumed after all route parts have matched. Set to `false` to allow
@@ -41,17 +44,16 @@ export type MatchRouteOptions = {
 
 /** @internal */
 export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<string | RouteParameter>) {
-
 	// This import caused circular references
 	let href: typeof import('./href.mts')
 
 	async function matchUrlPath(path: Path, checkInclusive: boolean) {
-
 		href ??= await import('./href.mts')
 
 		let offset = 0
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let parentParameters: Partial<PathParameterDictionary<any>> = {}
-		let parameters: Partial<PathParameterDictionary<T>> = {}
+		const parameters: Partial<PathParameterDictionary<T>> = {}
 
 		for (const part of routeParts) {
 			if (typeof part === 'string') {
@@ -72,15 +74,21 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 			const nextPart = path.pathOnly.slice(offset)
 			const segment = nextPart.slice(0, nextPart.indexOf('/'))
 			if (segment === '') return tupleResult.error('Empty path segment')
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const matchResult = part.match(segment) as TokenMatchResult<any>
 			if (tupleResult.isError(matchResult)) return matchResult
 
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			parameters[part.key as keyof typeof parameters] = tupleResult.value(matchResult)
 			offset += segment.length
 		}
 
 		if (checkInclusive && path.pathOnly.slice(offset) !== '') return tupleResult.error('Route was longer than path')
-		return tupleResult.success<[tokens: PathParameterDictionary<T>, offset: number]>([Object.freeze({ ...parentParameters, ...parameters }) as any, offset])
+
+		const routeParameterDictionary = Object.freeze({
+			...parentParameters, ...parameters,
+		}) as unknown as PathParameterDictionary<T>
+		return tupleResult.success<[tokens: PathParameterDictionary<T>, offset: number]>([routeParameterDictionary, offset])
 	}
 
 	function getPath(target?: MatchRouteOptions['target']) {
@@ -93,22 +101,22 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 		return href.current()
 	}
 
-	async function match(options?: MatchRouteOptions): Promise<RouteMatch<FilterOutParent<T>>> {
-
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	async function match(options?: MatchRouteOptions): Promise<RouteMatch<Route<any>>> {
 		href ??= await import('./href.mts')
 		const path = getPath(options?.target)
 		const checkInclusive = options?.checkInclusive ?? true
 
 		const pathMatch = await matchUrlPath(path, checkInclusive)
 		if (tupleResult.isError(pathMatch)) return {
-			success: false
+			success: false,
 		}
 		const [tokens, offset] = tupleResult.value(pathMatch)
 
 		return {
 			success: true,
 			tokens,
-			length: offset
+			length: offset,
 		}
 	}
 

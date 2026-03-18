@@ -8,7 +8,7 @@ export type { Url, Path } from './href.mts'
  *
  * | Member | Description |
  * |--------|-------------|
- * | `href.for(route, params)` | Build a {@link Path} from a {@link Route} and its parameter values |
+ * | `href.for(route, params)` | Build a {@link Path} from a `Route` and its parameter values |
  * | `href.path(string)` | Construct a {@link Path} from a pathname string |
  * | `href.url(string)` | Construct a {@link Url} from a full URL string |
  * | `href.join(base, ...paths)` | Join path segments onto a base, normalising slashes |
@@ -21,5 +21,5 @@ export const href = {
 	get path() { return href_.path },
 	get join() { return href_.join },
 	get current() { return href_.current },
-	get for() { return href_.forAny }
+	get for() { return href_.forAny },
 } as const

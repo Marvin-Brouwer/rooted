@@ -1,12 +1,13 @@
 import { component, GenericComponent } from '@rooted/components'
-import { Route, RouteParameterDictionary } from './route.mts'
 import { create } from '@rooted/components/elements'
+
+import { Route, RouteParameterDictionary } from './route.mts'
 
 /**
  * Creates a self-managing gate component that mounts and unmounts its content
  * based on whether a route's URL pattern matches the current path.
  *
- * Unlike the {@link router}, a gate activates solely on its own URL match —
+ * Unlike {@link import('./router.mts').router | router}, a gate activates solely on its own URL match —
  * it is unaffected by which route the router considers the best match. This
  * makes gates the composition mechanism for shell components: a shell that
  * covers multiple child URLs can use gates to show the correct sub-content at
@@ -18,7 +19,7 @@ import { create } from '@rooted/components/elements'
  * route (e.g. navigating from one article to another), the content is replaced
  * with freshly rendered elements.
  *
- * @param route - The route whose URL pattern drives this gate's visibility.
+ * @param route - The {@link import('./route.mts').route | route} whose URL pattern drives this gate's visibility.
  * @param render - A {@link GateRenderFunction} called with the matched token
  *   values. May return a single `Element` or an array of `Element`s. May be
  *   async to enable lazy loading.
@@ -39,28 +40,27 @@ import { create } from '@rooted/components/elements'
  * append(ArticleGate)  // renders ArticleContent while at /articles/:id/
  * ```
  *
- * @see {@link route}
- * @see {@link router}
+ * @see {@link import('./route.mts').route}
+ * @see {@link import('./router.mts').router}
  * @see {@link GateRenderFunction}
  */
 export function gate<TRoute extends AnyRoute>(
 	route: TRoute,
-	render: GateRenderFunction<TRoute>
+	render: GateRenderFunction<TRoute>,
 ): GenericComponent {
-
 	const renderGate = render as GateRenderFunction<AnyRoute>
 	return create(Gate, { routeReference: route, renderGate })
 }
 
 type GateOptions<TRoute extends AnyRoute> = {
-	routeReference: AnyRoute,
+	routeReference: AnyRoute
 	renderGate: GateRenderFunction<TRoute>
 }
 const Gate = component<GateOptions<AnyRoute>>({
 	name: 'sling:gate',
-	onMount({ options, replace, remove, signal }) {
+	async onMount({ options, replace, remove, signal }) {
 		const { routeReference, renderGate } = options
-		let innerNodes: Element[] | undefined = undefined
+		let innerNodes: Element[] | undefined
 
 		async function checkGate() {
 			const match = await routeReference.match()
@@ -68,15 +68,15 @@ const Gate = component<GateOptions<AnyRoute>>({
 			if (match.success) {
 				const newComponents = await renderGate(match.tokens)
 				innerNodes = Array.isArray(newComponents) ? newComponents : [newComponents]
-				replace(...innerNodes!)
+				replace(...innerNodes)
 			}
 			else {
 				innerNodes = void remove(...innerNodes ?? [])
 			}
 		}
 
-		window.addEventListener('popstate', checkGate, { signal })
-		checkGate()
+		globalThis.addEventListener('popstate', () => void checkGate(), { signal })
+		await checkGate()
 	},
 })
 

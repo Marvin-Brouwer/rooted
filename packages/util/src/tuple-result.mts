@@ -35,8 +35,7 @@ function isError<T>(value: TupleResult<T>): value is ErrorTuple {
 function value<T>(tupleResult: ErrorTuple): Error
 function value<T>(tupleResult: SuccessTuple<T>): T
 function value<T>([success, value, error]: TupleResult<T>): T | Error {
-
-	if(!success) return error
+	if (!success) return error
 	return value
 }
 /**
@@ -46,11 +45,9 @@ function unTuple(tupleResult: ErrorTuple): void
 function unTuple<T>(tupleResult: SuccessTuple<T>): T
 function unTuple<T>(tupleResult: TupleResult<T>): T
 function unTuple<T>([success, value, error]: TupleResult<T>): T {
-
-	if(!success) throw error
+	if (!success) throw error
 	return value
 }
-
 
 export const tupleResult = {
 	success,
@@ -58,5 +55,5 @@ export const tupleResult = {
 	error,
 	isError,
 	value,
-	unTuple
+	unTuple,
 }
