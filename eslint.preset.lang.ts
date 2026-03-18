@@ -19,6 +19,7 @@ export const lintTs = defineConfig([
 			parserOptions: {
 				project: [
 					'./packages/*/tsconfig.json',
+					'./tooling/*/tsconfig.json',
 					'./tsconfig.test.json',
 					'./tsconfig.config.json',
 				],

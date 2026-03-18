@@ -11,8 +11,14 @@
 
 - [ ] Meets acceptance criteria of story / Fixed bug
 - [ ] Added new tests
+- [ ] All tests pass (`pnpm test`)
 - [ ] Checked regression
-  - Chunking still works as expected  
-  - Tests still pass  
+  - Build passes
+  - Tests still pass
   - Linting still passes
+  - Chunking still works as expected, \
+    _all async components in `**/_routes.mts` should only load when the corresponding route is visited._
+  - The example app still functions
 - [ ] Updated documentation
+  - TSDoc added/updated for any changed public APIs
+  - Docs updated if behavior changed (files under `docs/`)

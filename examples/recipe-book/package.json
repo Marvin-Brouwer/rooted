@@ -6,8 +6,9 @@
 	"scripts": {
 		"dev": "vite",
 		"analyze": "vite build -- --minify --no-mangle --analyze",
-		"analyze:dev": "vite build --debug -- --no-mangle --analyze",
+		"analyze:dev": "vite build --mode development -- --no-mangle --analyze",
 		"build": "pnpm build:ci",
+		"build:dev": "vite build  --mode development -- --no-mangle --no-pwa",
 		"build:ci": "vite build -- --minify",
 		"preview": "vite preview"
 	},

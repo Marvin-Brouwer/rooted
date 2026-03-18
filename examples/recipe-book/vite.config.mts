@@ -100,6 +100,7 @@ export default defineConfig({
 			openAnalyzer: process.argv.includes('--analyze')
 		}),
 		VitePWA({
+			disable: process.argv.includes('--no-pwa'),
 			registerType: 'autoUpdate',
 			filename: `worker.js`,
 			minify: process.argv.includes('--minify'),

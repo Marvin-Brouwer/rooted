@@ -33,6 +33,6 @@ export function isRoute<T>(instance: T): instance is Extract<T, Route<any>>
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isRoute<T extends Route<any>>(instance: T): instance is T
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isRoute(instance: unknown): instance is import('./route.mts').Route<any> {
+export function isRoute(instance: unknown): instance is Route<any> {
 	return typeof instance === 'object' && instance !== null && routeMetaData in instance
 }

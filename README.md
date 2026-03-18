@@ -178,11 +178,8 @@ git clone https://github.com/Marvin-Brouwer/rooted.git
 cd rooted
 pnpm install
 
-# Run all packages in watch mode
-pnpm dev:all
-
-# Run the example app
-cd example && pnpm dev
+# Run all packages in watch mode + start main example app
+pnpm dev
 
 # Run tests
 pnpm test
@@ -194,7 +191,7 @@ pnpm test:watch
 pnpm lint
 
 # Build all packages
-pnpm build:all
+pnpm build
 ```
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for full contribution guidelines.

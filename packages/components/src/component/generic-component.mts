@@ -169,7 +169,8 @@ export class GenericComponent extends RootedElement {
 			create,
 			append,
 			prepend,
-			insertBefore: base.insertBefore.bind(base),
+			// eslint-disable-next-line unicorn/no-null
+			insertBefore: (node, child) => base.insertBefore(node, child ?? null),
 			swap: base.replaceChild.bind(base),
 			replace,
 			remove,

@@ -25,7 +25,7 @@ function run(label: string, command: string): void {
 
 run('Lint', 'pnpm lint:nofix')
 run('Test', 'pnpm test')
-run('Build', 'pnpm build:all')
+run('Build', 'pnpm build:ci')
 run('API diff', 'pnpm --filter @rooted/pipeline api-diff')
 
 console.log('\n✓ All checks passed')

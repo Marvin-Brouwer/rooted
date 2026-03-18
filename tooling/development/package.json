@@ -1,0 +1,29 @@
+{
+	"name": "@rooted/development",
+	"private": true,
+	"version": "0.1.0",
+	"description": "rooted — dev runner for the monorepo",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "tooling/development"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"sideEffects": false,
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"exports": {
+		".": "./src/_module.mts"
+	},
+	"scripts": {
+		"dev-runner": "node --import tsx/esm src/development-runner.mts"
+	},
+	"devDependencies": {
+		"@types/node": "^22.0.0",
+		"tree-kill": "^1.2.2",
+		"tsx": "^4.19.0"
+	}
+}

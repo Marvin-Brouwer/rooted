@@ -49,7 +49,7 @@ Verify everything works:
 
 ```sh
 pnpm test        # run the test suite
-pnpm build:all   # build all packages
+pnpm build       # build all packages
 ```
 
 ---
@@ -77,16 +77,9 @@ Each package under `packages/` is a standalone npm package with its own
 
 ### Watch mode
 
-Start all packages in watch mode (rebuilds on change):
+Start all packages in watch mode (rebuilds on change), and start vite in the main example app:
 
 ```sh
-pnpm dev:all
-```
-
-Then open a second terminal and start the example app:
-
-```sh
-cd example
 pnpm dev
 ```
 
@@ -94,13 +87,13 @@ pnpm dev
 
 ```sh
 cd packages/components
-pnpm dev
+pnpm watch
 ```
 
 ### Building
 
 ```sh
-pnpm build:all   # build everything
+pnpm build   # build everything
 ```
 
 Or build a single package:
@@ -249,9 +242,9 @@ Keep the summary under 72 characters. Use the body to explain **why**, not
 3. **Run the full check suite** before pushing:
 
    ```sh
-   pnpm lint:nofix
+   pnpm lint
    pnpm test
-   pnpm build:all
+   pnpm build
    ```
 
 4. **Push** and open a pull request against `main`.
@@ -266,12 +259,25 @@ Keep the summary under 72 characters. Use the body to explain **why**, not
 
 ### PR checklist
 
-- [ ] Tests pass (`pnpm test`)
-- [ ] Lint passes (`pnpm lint:nofix`)
-- [ ] Build succeeds (`pnpm build:all`)
-- [ ] TSDoc added/updated for any changed public APIs
-- [ ] Docs updated if behaviour changed (files under `docs/`)
-- [ ] Commit messages follow [Conventional Commits](#commit-messages)
+You can check them if not applicable.
+
+- [ ] Meets acceptance criteria of story / Fixed bug
+- [ ] Added new tests
+- [ ] All tests pass (`pnpm test`)
+- [ ] Checked regression
+  - Build passes
+  - Tests still pass
+  - Linting still passes
+  - Chunking still works as expected, \
+    _all async components in `**/_routes.mts` should only load when the corresponding route is visited._
+  - The example app still functions
+- [ ] Updated documentation
+  - TSDoc added/updated for any changed public APIs
+  - Docs updated if behavior changed (files under `docs/`)
+
+> [!NOTE] Other requirements
+>
+> - Commit messages follow [Conventional Commits](#commit-messages)
 
 ---
 

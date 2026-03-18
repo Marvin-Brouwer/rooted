@@ -18,30 +18,38 @@ type BaseComponentContext = & {
 	create: typeof create
 
 	/** {@inheritdoc HTMLElement['append']} */
-	append<T extends Node | string | GenericComponent>(this: void, node: T): T
-	append<T extends Node | string | GenericComponent>(this: void, ...node: T[]): T[]
-	append(this: void, ...nodes: (Node | string | GenericComponent)[]): Node[]
+	append: {
+		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
+		(...nodes: (Node | string | GenericComponent)[]): Node[]
+	}
 
 	/** {@inheritdoc HTMLElement['prepend']} */
-	prepend<T extends Node | string | GenericComponent>(this: void, node: T): T
-	prepend<T extends Node | string | GenericComponent>(this: void, ...node: T[]): T[]
-	prepend(this: void, ...nodes: (Node | string | GenericComponent)[]): Node[]
+	prepend: {
+		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
+		(...nodes: (Node | string | GenericComponent)[]): Node[]
+	}
 
 	/** {@inheritdoc HTMLElement['insertBefore']} */
-	insertBefore<T extends Node>(this: void, node: T, child: Node | null | undefined): T
+	insertBefore: <T extends Node>(node: T, child: Node | null | undefined) => T
 
 	/** {@inheritdoc HTMLElement['replaceChild']} */
-	swap<T extends Node>(this: void, node: Node, child: T): T
+	swap: <T extends Node>(node: Node, child: T) => T
 
 	/** {@inheritdoc HTMLElement['replaceChildren']} */
-	replace<T extends Node | string | GenericComponent>(this: void, node: T): T
-	replace<T extends Node | string | GenericComponent>(this: void, ...node: T[]): T[]
-	replace(this: void, ...nodes: (Node | string | GenericComponent)[]): Node[]
+	replace: {
+		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
+		(...nodes: (Node | string | GenericComponent)[]): Node[]
+	}
 
 	/** {@inheritdoc HTMLElement['removeChild']} */
-	remove<T extends Node | string | GenericComponent>(this: void, node: T): T
-	remove<T extends Node | string | GenericComponent>(this: void, ...node: T[]): T[]
-	remove(this: void, ...nodes: (Node | string | GenericComponent)[]): Node[]
+	remove: {
+		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
+		(...nodes: (Node | string | GenericComponent)[]): Node[]
+	}
 
 	/**
 	 * Lifetime signal for the component, aborts when unmounted \

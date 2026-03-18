@@ -14,7 +14,7 @@ export type LinkOptions = {
 	classes?: CssClasses
 	/**
 	 * Content rendered inside the anchor.
-	 * Pass a plain string, a single DOM `Node`, or an array of nodes.
+	 * Pass a plain string, a single DOM {@link Node}, or an array of nodes.
 	 */
 	children?: string | Node | Node[]
 }
@@ -53,7 +53,7 @@ export type LinkOptions = {
  * })
  * ```
  *
- * @see `navigate` for programmatic navigation without a link element
+ * @see {@link navigate} for programmatic navigation without a link element
  * @see {@link LinkOptions}
  */
 export const Link = component<LinkOptions>({

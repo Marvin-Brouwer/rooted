@@ -25,7 +25,7 @@ export function seededId(name: string): string {
 
 	for (let index = 0; index < name.length; index++) {
 		// FNV-1a: XOR then multiply
-		lo = (lo ^ name.charCodeAt(index)) >>> 0
+		lo = (lo ^ (name.codePointAt(index) ?? 0)) >>> 0
 
 		// Multiply (hi:lo) by FNV-1a 64-bit prime 0x00000100_000001b3
 		//   prime_hi = 0x100 (256),  prime_lo = 0x1b3 (435)

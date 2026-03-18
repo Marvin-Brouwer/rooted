@@ -3,9 +3,10 @@
 	"private": true,
 	"description": "rooted — web components rooted very close to the original",
 	"scripts": {
-		"prepare": "husky && pnpm -r run extract-api",
-		"dev": "pnpm build && pnpm -r --parallel --stream run dev",
-		"build": "pnpm -r run build",
+		"prepare": "husky && pnpm -r --parallel --stream run extract-api",
+		"dev": "pnpm --filter @rooted/development dev-runner examples/recipe-book",
+		"build": "pnpm -r --stream run build",
+		"build:dev": "pnpm -r --stream run build:dev",
 		"build:ci": "pnpm -r run build:ci",
 		"test": "vitest run",
 		"test:watch": "vitest",
