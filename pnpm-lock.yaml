@@ -75,10 +75,10 @@ importers:
   examples/recipe-book:
     dependencies:
       '@rooted/components':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../../packages/components
       '@rooted/router':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../../packages/router
     devDependencies:
       gray-matter:
@@ -107,7 +107,7 @@ importers:
         version: link:../util
     devDependencies:
       '@rooted/tsup':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../../tooling/tsup
       '@types/node':
         specifier: ^22.19.15
@@ -122,17 +122,17 @@ importers:
   packages/router:
     dependencies:
       '@rooted/components':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../components
       '@rooted/util':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../util
       tinyglobby:
         specifier: ^0.2.0
         version: 0.2.15
     devDependencies:
       '@rooted/tsup':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../../tooling/tsup
       '@types/node':
         specifier: ^22.0.0

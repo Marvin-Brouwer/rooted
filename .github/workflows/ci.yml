@@ -38,7 +38,7 @@ jobs:
         run: pnpm test
 
       - name: Build
-        run: pnpm build:all
+        run: pnpm build:ci
 
       - name: API diff
         run: pnpm --filter @rooted/pipeline api-diff

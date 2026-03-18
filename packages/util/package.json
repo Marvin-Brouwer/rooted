@@ -40,8 +40,10 @@
 		}
 	},
 	"scripts": {
-		"build": "tsup",
-		"dev": "tsup --watch",
-		"clean": "rm -rf dist"
+		"build": "pnpm build:ci && pnpm api-extractor run --local",
+		"build:ci": "tsup",
+		"dev": "tsup --watch & pnpm api-extractor run --local",
+		"clean": "rm -rf dist",
+		"extract-api": "pnpm api-extractor run --local"
 	}
 }

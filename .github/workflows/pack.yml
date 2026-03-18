@@ -24,7 +24,7 @@ concurrency:
 
 permissions:
   contents: read
-  id-token: write   # required for npm provenance / OIDC
+  id-token: write # required for npm provenance / OIDC
 
 jobs:
   pack:
@@ -62,7 +62,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: pnpm build:all
+        run: pnpm build:ci
 
       # Stamp a prerelease version so the preview never collides with a real release.
       # PR format:       <ver>-pr<number>.<short-sha>  e.g. 0.1.0-pr7.a1b2c3d

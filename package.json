@@ -3,9 +3,10 @@
 	"private": true,
 	"description": "rooted — web components rooted very close to the original",
 	"scripts": {
-		"prepare": "husky",
-		"dev:all": "pnpm -r run dev",
-		"build:all": "pnpm -r run build",
+		"prepare": "husky && pnpm -r run extract-api",
+		"dev": "pnpm -r run dev",
+		"build": "pnpm -r run build",
+		"build:ci": "pnpm -r run build:ci",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"lint:nofix": "eslint --cache --stats -c \"./eslint.config.ts\" .",

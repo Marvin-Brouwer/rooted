@@ -50,20 +50,22 @@
 		}
 	},
 	"scripts": {
-		"build": "tsup",
-		"dev": "tsup --watch",
-		"clean": "rm -rf dist"
+		"build": "pnpm build:ci && pnpm api-extractor run --local",
+		"build:ci": "tsup",
+		"dev": "tsup --watch & pnpm api-extractor run --local",
+		"clean": "rm -rf dist",
+		"extract-api": "pnpm api-extractor run --local"
 	},
 	"dependencies": {
-		"@rooted/util": "workspace:*",
-		"@rooted/components": "workspace:*",
+		"@rooted/util": "workspace:^",
+		"@rooted/components": "workspace:^",
 		"tinyglobby": "^0.2.0"
 	},
 	"peerDependencies": {
 		"vite": ">=6.0.0"
 	},
 	"devDependencies": {
-		"@rooted/tsup": "workspace:*",
+		"@rooted/tsup": "workspace:^",
 		"@types/node": "^22.0.0",
 		"vite": "^6.0.0"
 	}
