@@ -2,7 +2,7 @@ import { describe, test, expect, vi } from 'vitest'
 
 // Mock component system to avoid DOM dependency
 vi.mock('@rooted/components', () => ({
-	component: vi.fn((def: Record<string, unknown>) => ({ ...def, __isComponent: true })),
+	component: vi.fn((definition: Record<string, unknown>) => ({ ...definition, __isComponent: true })),
 	GenericComponent: class MockGenericComponent {},
 }))
 

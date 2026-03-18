@@ -11,10 +11,13 @@ export const lintJs = defineConfig([
 	js.configs.recommended,
 ])
 
+const tsFiles = ['**/*.{ts,mts,cts,tsx}']
+
 export const lintTs = defineConfig([
 	// eslint-disable-next-line import/no-named-as-default-member
-	tseslint.configs.recommendedTypeChecked,
+	...tseslint.configs.recommendedTypeChecked.map(config => ({ ...config, files: tsFiles })),
 	{
+		files: tsFiles,
 		languageOptions: {
 			parserOptions: {
 				project: [

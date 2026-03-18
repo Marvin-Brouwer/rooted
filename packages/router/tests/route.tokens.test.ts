@@ -102,7 +102,6 @@ describe('wildcard()', () => {
 })
 
 describe('isParameterToken()', () => {
-	// eslint-disable-next-line unicorn/no-null
 	test('returns false for null', () => expect(isParameterToken(null)).toBe(false))
 	test('returns false for undefined', () => expect(isParameterToken(void 0)).toBe(false))
 	test('returns false for plain object', () => expect(isParameterToken({})).toBe(false))

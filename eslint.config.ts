@@ -23,8 +23,11 @@ export default defineConfig([
 	{
 		files: ['packages/*/tests/**/*.ts'],
 		rules: {
+			'unicorn/no-null': 'off',
+			'unicorn/no-useless-undefined': 'off',
 			'@typescript-eslint/no-explicit-any': 'off',
 			'unicorn/consistent-function-scoping': 'off',
+			'unicorn/no-await-expression-member': 'off',
 		},
 	},
 ])
