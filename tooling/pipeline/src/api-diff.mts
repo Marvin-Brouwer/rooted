@@ -19,7 +19,7 @@ for (const packageName of packages) {
 
 	console.log(`\nChecking API surface: ${packageName}`)
 	try {
-		execSync(`pnpm exec api-extractor run --local --config ${configPath}`, {
+		execSync(`pnpm extract-api`, {
 			stdio: 'inherit',
 			cwd: path.join(packagesDirectory, packageName),
 		})
@@ -32,7 +32,7 @@ for (const packageName of packages) {
 
 if (failed) {
 	console.error('\nOne or more packages have unaccepted API surface changes.')
-	console.error('Run `pnpm api-extractor run --local` inside each package and commit the updated baseline.')
+	console.error('Run `pnpm build:dev` or `pnpm extract-api` inside each package and commit the updated baseline.')
 	// eslint-disable-next-line unicorn/no-process-exit
 	process.exit(1)
 }
