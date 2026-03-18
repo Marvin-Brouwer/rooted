@@ -7,7 +7,7 @@ import { Route, RouteParameterDictionary } from './route.mts'
  * Creates a self-managing gate component that mounts and unmounts its content
  * based on whether a route's URL pattern matches the current path.
  *
- * Unlike `router`, a gate activates solely on its own URL match —
+ * Unlike {@link import('./router.mts').router | router}, a gate activates solely on its own URL match —
  * it is unaffected by which route the router considers the best match. This
  * makes gates the composition mechanism for shell components: a shell that
  * covers multiple child URLs can use gates to show the correct sub-content at
@@ -19,7 +19,7 @@ import { Route, RouteParameterDictionary } from './route.mts'
  * route (e.g. navigating from one article to another), the content is replaced
  * with freshly rendered elements.
  *
- * @param route - The route whose URL pattern drives this gate's visibility.
+ * @param route - The {@link import('./route.mts').route | route} whose URL pattern drives this gate's visibility.
  * @param render - A {@link GateRenderFunction} called with the matched token
  *   values. May return a single `Element` or an array of `Element`s. May be
  *   async to enable lazy loading.
@@ -40,8 +40,8 @@ import { Route, RouteParameterDictionary } from './route.mts'
  * append(ArticleGate)  // renders ArticleContent while at /articles/:id/
  * ```
  *
- * @see `route`
- * @see `router`
+ * @see {@link import('./route.mts').route}
+ * @see {@link import('./router.mts').router}
  * @see {@link GateRenderFunction}
  */
 export function gate<TRoute extends AnyRoute>(
@@ -58,7 +58,7 @@ type GateOptions<TRoute extends AnyRoute> = {
 }
 const Gate = component<GateOptions<AnyRoute>>({
 	name: 'sling:gate',
-	onMount({ options, replace, remove, signal }) {
+	async onMount({ options, replace, remove, signal }) {
 		const { routeReference, renderGate } = options
 		let innerNodes: Element[] | undefined
 
@@ -75,8 +75,8 @@ const Gate = component<GateOptions<AnyRoute>>({
 			}
 		}
 
-		globalThis.addEventListener('popstate', checkGate, { signal })
-		checkGate()
+		globalThis.addEventListener('popstate', () => void checkGate(), { signal })
+		await checkGate()
 	},
 })
 
