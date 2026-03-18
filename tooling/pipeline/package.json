@@ -17,11 +17,6 @@
 		"node": ">=22.0.0",
 		"pnpm": ">=10.0.0"
 	},
-	"scripts": {
-		"bump-level": "node --import tsx/esm src/bump-level.mts",
-		"api-diff": "node --import tsx/esm src/api-diff.mts",
-		"pr-validate": "node --import tsx/esm src/pr-validate.mts"
-	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.50.0",
 		"@types/node": "^22.0.0",
