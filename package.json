@@ -4,7 +4,7 @@
 	"description": "rooted — web components rooted very close to the original",
 	"scripts": {
 		"prepare": "husky",
-		"dev": "pnpm --filter @rooted/development dev-runner examples/recipe-book",
+		"dev": "rooted-development development-runner examples/recipe-book",
 		"build": "pnpm -r --stream run build",
 		"build:dev": "pnpm -r --stream run build:dev",
 		"build:ci": "pnpm -r run build:ci",
@@ -18,7 +18,9 @@
 	"devDependencies": {
 		"@commitlint/cli": "^19.0.0",
 		"@commitlint/config-conventional": "^19.0.0",
-		"@eslint/js": "^9.36.0",
+		"@eslint/js": "^9.39.4",
+		"@rooted/development": "workspace:*",
+		"@rooted/pipeline": "workspace:*",
 		"@stylistic/eslint-plugin": "^5.5.0",
 		"@types/micromatch": "^4.0.10",
 		"@types/unist": "^3.0.3",

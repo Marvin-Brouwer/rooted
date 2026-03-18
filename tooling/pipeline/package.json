@@ -10,6 +10,9 @@
 		"directory": "tooling/pipeline"
 	},
 	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bin": {
+		"rooted-pipeline": "./bin/bin.cjs"
+	},
 	"engines": {
 		"node": ">=22.0.0",
 		"pnpm": ">=10.0.0"

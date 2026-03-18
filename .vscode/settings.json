@@ -55,6 +55,8 @@
 	"editor.defaultFormatter": "dbaeumer.vscode-eslint",
 	"workbench.colorCustomizations": {
 		"activityBar.background": "#356A207e",
+		"activityBar.foreground": "#FCFCFE",
+		"activityBarBadge.background": "#356A20",
 		"titleBar.activeBackground": "#356A207e",
 		"titleBar.activeForeground": "#FCFCFE",
 		"titleBar.inactiveBackground": "#356A207e",
@@ -64,6 +66,9 @@
 		"statusBar.debuggingBackground": "#356A207e",
 		"statusBar.debuggingForeground": "#356A20",
 		"statusBar.noFolderBackground": "#356A207e",
-		"statusBar.noFolderForeground": "#FCFCFE"
+		"statusBar.noFolderForeground": "#FCFCFE",
+	},
+	"terminal.integrated.autoReplies": {
+		"Terminate batch job (Y/N)": "Y\r"
 	}
 }

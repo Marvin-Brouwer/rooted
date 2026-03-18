@@ -41,14 +41,14 @@
 	},
 	"scripts": {
 		"build": "pnpm build:ci",
-		"build:dev": "pnpm build:ci && node --import tsx/esm scripts/extract-api.mts",
+		"build:dev": "pnpm build:ci && rooted-development extract-api",
 		"build:ci": "tsup",
-		"watch": "tsup --watch --no-clean & node --import tsx/esm scripts/extract-api.mts",
+		"watch": "tsup --watch --no-clean & rooted-development extract-api",
 		"clean": "rm -rf dist",
-		"extract-api": "node --import tsx/esm scripts/extract-api.mts"
+		"extract-api": "rooted-development extract-api"
 	},
 	"devDependencies": {
-		"@rooted/development": "workspace:^",
+		"@rooted/development": "workspace:*",
 		"tsx": "^4.19.0"
 	}
 }

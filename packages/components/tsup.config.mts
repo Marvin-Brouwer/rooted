@@ -3,8 +3,10 @@ import fs from 'node:fs/promises'
 import { inheritdocPlugin } from '@rooted/tsup'
 import { defineConfig } from 'tsup'
 
-// clear:true removes .d.ts with multiple entries
-await fs.rm('./dist', { recursive: true, force: true })
+if (!process.argv.includes('--watch')) {
+	// clear:true removes .d.ts with multiple entries
+	await fs.rm('./dist', { recursive: true, force: true })
+}
 
 export default defineConfig([
 	{

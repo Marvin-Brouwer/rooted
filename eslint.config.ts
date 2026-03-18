@@ -8,11 +8,11 @@ import { lintJs, lintTs } from './eslint.preset.lang.js'
 import { projectConfig } from './eslint.preset.project'
 
 export default defineConfig([
-	globalIgnores(['**/node_modules', '**/dist', 'examples']),
+	globalIgnores(['**/node_modules', '**/dist', 'docs', 'temp', 'examples/**', '**/bin/**']),
 	configureFiles([
-		'remarkrc.mjs',
 		'eslint.*.ts',
-		'src/**/*.mts',
+		'**/*.mts',
+		'**/*.mjs',
 	]),
 	lintJs,
 	lintTs,
@@ -37,6 +37,7 @@ function configureFiles(files: Config['files']): Config {
 		files,
 		languageOptions: {
 			globals: globals.es2015,
+			sourceType: 'module',
 		},
 	}
 }

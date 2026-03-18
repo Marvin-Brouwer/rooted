@@ -3,14 +3,10 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"allowImportingTsExtensions": true,
-		"useDefineForClassFields": true,
-		"emitDeclarationOnly": true,
+		"noEmit": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"isolatedModules": true,
-		"allowJs": true,
-		"declaration": true,
-		"declarationMap": true,
 		"strict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
@@ -22,11 +18,9 @@
 		],
 		"types": [
 			"node"
-		],
-		"outDir": "./dist",
-		"rootDir": "./plugin"
+		]
 	},
 	"include": [
-		"plugin"
+		"src/**/*.mts"
 	]
 }

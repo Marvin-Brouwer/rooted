@@ -6,24 +6,25 @@
 
 import { execSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import path from 'node:path'
 
-const packagesDir = resolve(import.meta.dirname, '../../../packages')
-const packages = readdirSync(packagesDir)
+const packagesDirectory = path.resolve(import.meta.dirname, '../../../packages')
+const packages = readdirSync(packagesDirectory)
 
 let failed = false
 
 for (const packageName of packages) {
-	const configPath = join(packagesDir, packageName, 'api-extractor.json')
+	const configPath = path.join(packagesDirectory, packageName, 'api-extractor.json')
 	if (!existsSync(configPath)) continue
 
 	console.log(`\nChecking API surface: ${packageName}`)
 	try {
 		execSync(`pnpm exec api-extractor run --local --config ${configPath}`, {
 			stdio: 'inherit',
-			cwd: join(packagesDir, packageName),
+			cwd: path.join(packagesDirectory, packageName),
 		})
-	} catch {
+	}
+	catch {
 		console.error(`  ✗ API changes detected in ${packageName}`)
 		failed = true
 	}
@@ -32,6 +33,7 @@ for (const packageName of packages) {
 if (failed) {
 	console.error('\nOne or more packages have unaccepted API surface changes.')
 	console.error('Run `pnpm api-extractor run --local` inside each package and commit the updated baseline.')
+	// eslint-disable-next-line unicorn/no-process-exit
 	process.exit(1)
 }
 

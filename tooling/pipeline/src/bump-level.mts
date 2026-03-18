@@ -14,7 +14,8 @@ function getCommitsSinceLastTag(): string[] {
 			.split('\n')
 			.map(line => line.trim())
 			.filter(Boolean)
-	} catch {
+	}
+	catch {
 		// No tags yet — treat all commits as candidates
 		return execSync('git log --format=%s', { encoding: 'utf8' })
 			.split('\n')
@@ -32,9 +33,11 @@ function bumpLevel(commits: string[]): 'major' | 'minor' | 'patch' | 'none' {
 		}
 		if (/^feat(\(.+\))?:/.test(message)) {
 			level = 'minor'
-		} else if (/^fix(\(.+\))?:/.test(message) && level === 'none') {
+		}
+		else if (/^fix(\(.+\))?:/.test(message) && level === 'none') {
 			level = 'patch'
-		} else if (/^(docs|chore|test)(\(.+\))?:/.test(message) && level === 'none') {
+		}
+		else if (/^(docs|chore|test)(\(.+\))?:/.test(message) && level === 'none') {
 			level = 'patch'
 		}
 	}

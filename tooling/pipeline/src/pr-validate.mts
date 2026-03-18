@@ -9,16 +9,18 @@
  */
 
 import { execSync } from 'node:child_process'
-import { resolve } from 'node:path'
+import path from 'node:path'
 
-const root = resolve(import.meta.dirname, '../../..')
+const root = path.resolve(import.meta.dirname, '../../..')
 
 function run(label: string, command: string): void {
 	console.log(`\n── ${label} ─────────────────────────────`)
 	try {
 		execSync(command, { stdio: 'inherit', cwd: root })
-	} catch {
+	}
+	catch {
 		console.error(`\n✗ ${label} failed`)
+		// eslint-disable-next-line unicorn/no-process-exit
 		process.exit(1)
 	}
 }

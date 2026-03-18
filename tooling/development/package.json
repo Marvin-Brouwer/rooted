@@ -10,17 +10,12 @@
 		"directory": "tooling/development"
 	},
 	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
-	"sideEffects": false,
 	"engines": {
 		"node": ">=22.0.0",
 		"pnpm": ">=10.0.0"
 	},
-	"exports": {
-		".": "./src/_module.mts"
-	},
-	"scripts": {
-		"dev-runner": "node --import tsx/esm src/development-runner.mts",
-		"extract-api": "node --import tsx/esm src/extract-api.mts"
+	"bin": {
+		"rooted-development": "./bin/bin.cjs"
 	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.0.0",

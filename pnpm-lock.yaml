@@ -15,8 +15,14 @@ importers:
         specifier: ^19.0.0
         version: 19.8.1
       '@eslint/js':
-        specifier: ^9.36.0
+        specifier: ^9.39.4
         version: 9.39.4
+      '@rooted/development':
+        specifier: workspace:*
+        version: link:tooling/development
+      '@rooted/pipeline':
+        specifier: workspace:*
+        version: link:tooling/pipeline
       '@stylistic/eslint-plugin':
         specifier: ^5.5.0
         version: 5.10.0(eslint@9.39.4(jiti@2.6.1))
@@ -107,7 +113,7 @@ importers:
         version: link:../util
     devDependencies:
       '@rooted/development':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../tooling/development
       '@rooted/tsup':
         specifier: workspace:^
@@ -138,7 +144,7 @@ importers:
         version: 0.2.15
     devDependencies:
       '@rooted/development':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../tooling/development
       '@rooted/tsup':
         specifier: workspace:^
@@ -156,7 +162,7 @@ importers:
   packages/util:
     devDependencies:
       '@rooted/development':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../tooling/development
       tsx:
         specifier: ^4.19.0

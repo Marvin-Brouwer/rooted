@@ -8,7 +8,7 @@ import { navigate } from './navigation.mts'
  * Options for {@link Link}.
  */
 export type LinkOptions = {
-	/** The destination URL passed to `navigate` on click. */
+	/** The destination URL passed to {@link navigate} on click. */
 	href: string | Url | Path
 	/** CSS class name applied to the rendered `<a>` element. */
 	classes?: CssClasses

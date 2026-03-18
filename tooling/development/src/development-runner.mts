@@ -46,6 +46,8 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 
 	// Wait for tsup to settle
 	await new Promise(resolve => setTimeout(resolve, elapsedBuildTime))
+	// Tiny bit of buffer for DTS
+	await new Promise(resolve => setTimeout(resolve, 200))
 
 	const targetPath = path.resolve(projectPath, exampleFilter)
 
@@ -102,7 +104,7 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const exampleFilter = process.argv[2]
 	if (!exampleFilter) throw new Error('Usage: dev-runner <example-filter-path>')
-	const projectPath = path.resolve(process.cwd(), '../../')
+	const projectPath = process.cwd()
 
 	const elapsedTime = await buildDevelopment(projectPath)
 	await runParallelDevelopment(projectPath, exampleFilter, elapsedTime)
