@@ -35,27 +35,21 @@ packages/<name>/
 
 ---
 
-## 2. Wire it into the monorepo
-
-Add the package to the root `pnpm-workspace.yaml` (if not already using a
-glob that covers it) and add it as a dependency wherever needed using the
-`workspace:^` protocol.
-
----
-
-## 3. First publish via GitHub Actions
+## 2. First publish via GitHub Actions
 
 Because OIDC trusted publishing must be configured *after* the package exists
-on npm, the very first publish uses a classic npm automation token.
+on npm, the very first publish uses a granular access token scoped to this
+repository.
 
-### 3.1 Generate an npm automation token
+### 2.1 Generate a granular access token
 
 1. Log in to [npmjs.com](https://www.npmjs.com) and go to **Access Tokens**.
-2. Click **Generate New Token → Classic Token**.
-3. Select type **Automation** (bypasses 2FA for CI).
+2. Click **Generate New Token → Granular Access Token**.
+3. Under **Packages and scopes**, select **Read and write** and scope it to
+   `@rooted`.
 4. Copy the token — you will not see it again.
 
-### 3.2 Run the `First Publish` workflow
+### 2.2 Run the `First Publish` workflow
 
 Go to **Actions → First Publish → Run workflow** and fill in the inputs:
 
@@ -63,7 +57,7 @@ Go to **Actions → First Publish → Run workflow** and fill in the inputs:
 |---|---|
 | **Branch** | `main` |
 | **Workspace-relative path to the package** | e.g. `packages/<name>` |
-| **npm automation token** | the token from step 3.1 |
+| **npm automation token** | the token from step 2.1 |
 | **Environment** | *(leave blank)* |
 
 The workflow publishes the package once under the `alpha` dist-tag, which
@@ -71,7 +65,7 @@ ensures it never accidentally claims `latest` before a proper release.
 
 ---
 
-## 4. Configure OIDC trusted publishing on npmjs.com
+## 3. Configure OIDC trusted publishing on npmjs.com
 
 Once the package exists on npm, switch from token-based auth to OIDC so no
 long-lived secret is needed for subsequent releases.
@@ -101,7 +95,7 @@ long-lived secret is needed for subsequent releases.
 
 ---
 
-## 5. Verify
+## 4. Verify
 
 After the first publish and OIDC setup:
 
