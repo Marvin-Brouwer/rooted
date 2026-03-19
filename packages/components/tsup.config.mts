@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 
-import { inheritdocPlugin } from '@rooted/tsup'
+import { dedupeSourcemapsPlugin, inheritdocPlugin } from '@rooted/tsup'
 import { defineConfig } from 'tsup'
 
 if (!process.argv.includes('--watch')) {
@@ -16,7 +16,7 @@ export default defineConfig([
 		treeshake: { moduleSideEffects: 'no-external' },
 		dts: true,
 		sourcemap: 'inline',
-		plugins: [inheritdocPlugin()],
+		plugins: [inheritdocPlugin(), dedupeSourcemapsPlugin()],
 	},
 	{
 		entry: ['plugin/css-loader.mts'],
@@ -27,5 +27,6 @@ export default defineConfig([
 		external: ['esbuild'],
 		dts: true,
 		sourcemap: 'inline',
+		plugins: [dedupeSourcemapsPlugin()],
 	},
 ])
