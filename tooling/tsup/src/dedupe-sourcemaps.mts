@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+
 import type { Plugin } from './tsup-plugin.mts'
 
 /**
@@ -6,7 +8,11 @@ import type { Plugin } from './tsup-plugin.mts'
  *
  * tsup has a bug where having more than one entry point causes each chunk to
  * receive multiple source-map URL comments. This plugin strips all but the last
- * one via `renderChunk`, so no file I/O is needed after the build.
+ * one in `buildEnd` (after all file I/O is done), so the fix runs after both
+ * esbuild and tsup have appended their own sourcemap comments.
+ *
+ * We assume we can remove all `//# sourceMappingURL=` which are not data urls. \
+ * Since we default to inline mapping.
  *
  * @example `tsup.config.mts`
  * ```ts
@@ -20,13 +26,16 @@ import type { Plugin } from './tsup-plugin.mts'
 export function dedupeSourcemapsPlugin(): Plugin {
 	return {
 		name: 'tsup:dedupe-sourcemaps',
-		renderChunk(code) {
-			const fixed = code.replaceAll(
-				/(\/\/# sourceMappingURL=[^\n]*\n)(\/\/# sourceMappingURL=[^\n]*)/g,
-				'$2',
+		async buildEnd({ writtenFiles }) {
+			await Promise.all(
+				writtenFiles
+					.filter(f => /\.[cm]?js$/.test(f.name))
+					.map(async (f) => {
+						const code = await fs.readFile(f.name, 'utf8')
+						const fixed = code.replaceAll(/(\/\/# sourceMappingURL=[^\n]*\n)(?=[\s\S]*\/\/# sourceMappingURL=)/g, '')
+						if (fixed !== code) await fs.writeFile(f.name, fixed, 'utf8')
+					}),
 			)
-			if (fixed === code) return
-			return { code: fixed }
 		},
 	}
 }
