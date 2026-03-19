@@ -1,6 +1,6 @@
 {
 	"name": "@rooted/util",
-	"version": "1.0.0-alpha.1",
+	"version": "1.0.0-alpha.0",
 	"description": "rooted — utilities (seeded IDs, dev helpers)",
 	"keywords": [
 		"web-components",
