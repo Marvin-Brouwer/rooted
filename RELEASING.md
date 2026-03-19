@@ -1,17 +1,15 @@
 # Releasing
 
-## Current state: alpha pre-releases
+## Current setup (alpha)
 
-All merges to `main` currently publish pre-release versions (e.g. `1.0.0-alpha.1`)
-to the `alpha` dist-tag on npm. This will continue until the steps below are followed
-to promote to stable releases.
+| Workflow | Publishes to |
+|---|---|
+| First Publish | `alpha` dist-tag |
+| Release | `alpha` dist-tag |
 
-## How to promote to stable (v1.0.0)
+## When ready to release v1.0.0
 
-### 1. Delete the accidental release tags from the remote
-
-Before switching to stable, make sure the old accidental `1.0.0` / `1.0.1` git tags
-have been removed from the remote, otherwise semantic-release will start from `1.0.2`:
+### 1. Delete the old accidental release tags
 
 ```bash
 git push origin --delete \
@@ -26,34 +24,28 @@ git push origin --delete \
 
 ### 2. Update `.releaserc.json`
 
-Change the `branches` array from:
-
+Change:
 ```json
 "branches": [
     { "name": "main", "prerelease": "alpha", "channel": "alpha" }
 ]
 ```
 
-to:
-
+To:
 ```json
 "branches": ["main"]
 ```
 
 ### 3. Merge a qualifying commit to `main`
 
-Semantic-release only publishes when there is at least one qualifying commit since the
-last release tag. After switching to stable, merge a `feat:`, `fix:`, `perf:`, or
-`docs:` commit to trigger the `1.0.0` stable release.
-
-> A `chore:`, `test:`, or `ci:` commit alone will not trigger a release.
+A `feat:`, `fix:`, `perf:`, or `docs:` commit is required to trigger a release.
+`chore:`, `test:`, and `ci:` commits do not trigger one.
 
 ---
 
-## First-publish workflow
+After these steps:
 
-The [First Publish](.github/workflows/first-publish.yml) workflow is used to register
-a brand-new package on npm for the first time (before OIDC trusted publishing is set up
-for it). It always publishes with `--tag alpha` so that `latest` is never set
-prematurely — semantic-release will promote the package to `latest` on its first
-stable release.
+| Workflow | Publishes to |
+|---|---|
+| First Publish | `alpha` dist-tag |
+| Release | `latest` dist-tag |
