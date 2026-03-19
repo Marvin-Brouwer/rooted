@@ -10,9 +10,9 @@ export const SearchPage = component({
 	async onMount({ append, create, signal }) {
 		// Wrap all rendered content so we can replace it on re-search without remounting
 		const root = append(create('div'))
-		const { recipes } = await import('../_shared/data/data.mts')
+		const { recipeData } = await import('../_shared/data/data.mts')
 
-		function render() {
+		async function render() {
 			root.replaceChildren()
 
 			// Always read from the live URL so re-searches while on this page reflect the new query
@@ -26,6 +26,8 @@ export const SearchPage = component({
 					create('span', { classes: styles.searchQuery, textContent: `"${displayQuery}"` }),
 				],
 			}))
+
+			const recipes = await recipeData.listRecipes()
 
 			const matches = recipes.filter(r =>
 				r.title.toLowerCase().includes(query) ||
@@ -60,8 +62,8 @@ export const SearchPage = component({
 			root.append(list)
 		}
 
-		render()
+		await render()
 		// Re-render when the user searches again while already on this page (same gate, new query)
-		window.addEventListener('popstate', render, { signal })
+		window.addEventListener('popstate', () => void render(), { signal })
 	},
 })
