@@ -1,0 +1,51 @@
+name: First Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_path:
+        description: Workspace-relative path to the package (e.g. packages/components)
+        required: true
+      npm_token:
+        description: npm automation token — only needed for the first publish, before OIDC trusted publishing is configured
+        required: true
+
+concurrency:
+  group: first-publish-${{ github.event.inputs.package_path }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write # required for npm provenance
+
+jobs:
+  first-publish:
+    name: First publish — ${{ github.event.inputs.package_path }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build:ci
+
+      - name: Publish
+        run: pnpm publish --no-git-checks --tag alpha
+        working-directory: ${{ github.event.inputs.package_path }}
+        env:
+          NODE_AUTH_TOKEN: ${{ github.event.inputs.npm_token }}
+          NPM_CONFIG_PROVENANCE: true
