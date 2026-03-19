@@ -1,6 +1,6 @@
 {
 	"name": "@rooted/router",
-	"version": "0.1.0",
+	"version": "1.0.0-alpha.1",
 	"description": "rooted — client-side router with typed URL parameters and Vite integration",
 	"keywords": [
 		"router",
