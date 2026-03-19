@@ -1,5 +1,6 @@
 {
 	"branches": [
+		"latest",
 		{ "name": "main", "prerelease": "alpha", "channel": "alpha" }
 	],
 	"plugins": [
