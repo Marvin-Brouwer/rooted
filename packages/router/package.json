@@ -68,7 +68,7 @@
 	"devDependencies": {
 		"@rooted/development": "workspace:*",
 		"@rooted/tsup": "workspace:^",
-		"@types/node": "^22.0.0",
+		"@types/node": "^25.5.0",
 		"tsx": "^4.19.0",
 		"vite": "^6.0.0"
 	}
