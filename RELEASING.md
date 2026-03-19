@@ -25,8 +25,8 @@ To:
 
 ### 2. Merge a qualifying commit to `main`
 
-A `feat:`, `fix:`, `perf:`, or `docs:` commit is required to trigger a release.
-`chore:`, `test:`, and `ci:` commits do not trigger one.
+A `feat:`, `fix:`, or `perf:` commit is required to trigger a release.
+`docs:`, `chore:`, `test:`, and `ci:` commits do not trigger one.
 
 ---
 

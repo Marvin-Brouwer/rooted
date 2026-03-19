@@ -13,7 +13,7 @@
 		"lint:nofix": "eslint --cache --stats -c \"./eslint.config.ts\" .",
 		"lint": "DEBUG=eslint:cli-engine eslint --cache --fix --stats --debug -c \"./eslint.config.ts\" .",
 		"clean": "pnpm -r run clean",
-		"release": "multi-semantic-release"
+		"release": "multi-semantic-release --ignore-private-packages"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^20.5.0",
