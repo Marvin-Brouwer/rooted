@@ -85,7 +85,7 @@ jobs:
         run: pnpm -r --filter '!@rooted/monorepo' exec pnpm pack --pack-destination "$GITHUB_WORKSPACE/dist"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.label.outputs.artifact }}
           path: dist/*.tgz
