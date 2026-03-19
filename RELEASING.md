@@ -14,6 +14,7 @@
 Change:
 ```json
 "branches": [
+    "latest",
     { "name": "main", "prerelease": "alpha", "channel": "alpha" }
 ]
 ```
@@ -23,7 +24,15 @@ To:
 "branches": ["main"]
 ```
 
-### 2. Merge a qualifying commit to `main`
+### 2. Delete the `latest` branch
+
+The `latest` branch was only needed as a fake base branch to satisfy semantic-release's branch validation during the alpha phase. It can be deleted:
+
+```sh
+git push origin --delete latest
+```
+
+### 3. Merge a qualifying commit to `main`
 
 A `feat:`, `fix:`, or `perf:` commit is required to trigger a release.
 `docs:`, `chore:`, `test:`, and `ci:` commits do not trigger one.
