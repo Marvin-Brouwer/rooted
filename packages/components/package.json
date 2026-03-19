@@ -1,6 +1,6 @@
 {
 	"name": "@rooted/components",
-	"version": "0.1.0",
+	"version": "1.0.0-alpha.0",
 	"description": "rooted — web components rooted very close to the original",
 	"keywords": [
 		"web-components",
