@@ -91,8 +91,8 @@ importers:
         specifier: ^4.0.3
         version: 4.0.3
       marked:
-        specifier: ^15.0.0
-        version: 15.0.12
+        specifier: ^17.0.4
+        version: 17.0.4
       typescript:
         specifier: ^5.5.0
         version: 5.9.3
@@ -3510,6 +3510,11 @@ packages:
   marked@15.0.12:
     resolution: {integrity: sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==}
     engines: {node: '>= 18'}
+    hasBin: true
+
+  marked@17.0.4:
+    resolution: {integrity: sha512-NOmVMM+KAokHMvjWmC5N/ZOvgmSWuqJB8FoYI019j4ogb/PeRMKoKIjReZ2w3376kkA8dSJIP8uD993Kxc0iRQ==}
+    engines: {node: '>= 20'}
     hasBin: true
 
   math-intrinsics@1.1.0:
@@ -8402,6 +8407,8 @@ snapshots:
       supports-hyperlinks: 3.2.0
 
   marked@15.0.12: {}
+
+  marked@17.0.4: {}
 
   math-intrinsics@1.1.0: {}
 
