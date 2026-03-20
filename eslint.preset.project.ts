@@ -16,6 +16,7 @@ export const projectConfig = defineConfig([
 				allowList: {
 					dotEnv: true,
 					devHelper: true,
+					'dev-helper': true,
 				},
 			}],
 		},
