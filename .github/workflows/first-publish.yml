@@ -44,7 +44,7 @@ jobs:
         run: pnpm build:ci
 
       - name: Setup npm auth
-        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" >> ~/.npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" >> "${NPM_CONFIG_USERCONFIG}"
         env:
           NODE_AUTH_TOKEN: ${{ github.event.inputs.npm_token }}
 
