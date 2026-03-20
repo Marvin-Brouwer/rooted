@@ -1,0 +1,51 @@
+{
+	"name": "@rooted/project",
+	"version": "1.0.0-alpha.0",
+	"description": "rooted — project configuration and adapters",
+	"keywords": [
+		"web-components",
+		"typescript",
+		"rooted"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "packages/project"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
+	"sideEffects": false,
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
+	"files": [
+		"dist",
+		"src/_module/tsconfig.project.json",
+		"readme.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"exports": {
+		".": {
+			"import": "./dist/project.mjs",
+			"types": "./dist/project.d.mjs"
+		},
+		"./tsconfig": "./src/_module/tsconfig.project.json"
+	},
+	"scripts": {
+		"build": "pnpm build:ci",
+		"build:dev": "pnpm build:ci && rooted-development extract-api",
+		"build:ci": "tsup",
+		"watch": "tsup --watch --no-clean & rooted-development extract-api",
+		"clean": "rm -rf dist",
+		"extract-api": "rooted-development extract-api"
+	},
+	"devDependencies": {
+		"@rooted/development": "workspace:*",
+		"tsx": "^4.19.0"
+	}
+}

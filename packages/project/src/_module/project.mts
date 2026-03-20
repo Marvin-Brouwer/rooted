@@ -1,0 +1,4 @@
+/**
+ * Rooted project configuration
+ * @module
+ */

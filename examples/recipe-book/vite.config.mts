@@ -67,7 +67,7 @@ export default defineConfig({
 	},
 	build: {
 		rollupOptions: {
-			treeshake: 'smallest',
+			treeshake: true,
 			output: {
 				manualChunks,
 				...(mangle && {
