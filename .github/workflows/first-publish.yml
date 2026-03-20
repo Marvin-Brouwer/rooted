@@ -43,6 +43,11 @@ jobs:
       - name: Build
         run: pnpm build:ci
 
+      - name: Setup npm auth
+        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" >> ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ github.event.inputs.npm_token }}
+
       - name: Publish
         run: pnpm publish --no-git-checks --tag alpha
         working-directory: ${{ github.event.inputs.package_path }}
