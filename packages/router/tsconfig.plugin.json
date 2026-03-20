@@ -24,10 +24,9 @@
 			"node"
 		],
 		"outDir": "./dist",
-		"rootDir": "./src"
+		"rootDir": "./plugins"
 	},
 	"include": [
-		"src/_module/manifest.mts",
-		"src/plugin/manifest.mts"
+		"plugins",
 	]
 }

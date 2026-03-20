@@ -3,4 +3,4 @@
  * @module
  */
 
-export * from '../plugin/manifest.mts'
+export * from '../manifest.mts'

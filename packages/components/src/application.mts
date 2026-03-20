@@ -1,3 +1,4 @@
+import { isDevelopment } from '@rooted/util/dev'
 import { Component } from './component.mts'
 import { create } from './element-factory.mts'
 
@@ -30,4 +31,13 @@ export function application<T extends Component>(component: T, options?: Applica
 	appRoot.replaceWith(appComponent)
 
 	return appComponent
+}
+
+if (isDevelopment()) {
+	globalThis.addEventListener('error', (errorEvent) => {
+		console.error(errorEvent)
+	})
+	globalThis.addEventListener('unhandledrejection', (rejectionEvent) => {
+		console.error(rejectionEvent)
+	})
 }

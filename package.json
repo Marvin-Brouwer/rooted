@@ -28,7 +28,7 @@
 		"@typescript-eslint/parser": "^8.57.1",
 		"eslint": "^10.0.3",
 		"eslint-import-resolver-typescript": "^4.4.4",
-		"eslint-plugin-import": "^2.32.0",
+		"eslint-plugin-import-x": "^4.16.2",
 		"eslint-plugin-unicorn": "^63.0.0",
 		"eslint-plugin-unused-imports": "^4.3.0",
 		"globals": "^17.3.0",
@@ -48,7 +48,6 @@
 	"pnpm": {
 		"peerDependencyRules": {
 			"allowedVersions": {
-				"eslint-plugin-import>eslint": "10",
 				"vite-plugin-pwa>vite": "8"
 			}
 		}

@@ -4,7 +4,7 @@ import { resolve, relative, dirname } from 'node:path'
 
 import { glob } from 'tinyglobby'
 
-import packageJson from '../../package.json' with { type: 'json' }
+import packageJson from '../package.json' with { type: 'json' }
 
 import type { Plugin, ResolvedConfig } from 'vite'
 

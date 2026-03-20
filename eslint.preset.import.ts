@@ -1,6 +1,6 @@
 import { defineConfig } from 'eslint/config'
 import type { Rule } from 'eslint'
-import importPlugin from 'eslint-plugin-import'
+import importPlugin from 'eslint-plugin-import-x'
 import unusedImports from 'eslint-plugin-unused-imports'
 
 type NodeWithSource = { source?: (Rule.Node & { raw?: string }) | null }

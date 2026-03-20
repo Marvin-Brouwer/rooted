@@ -24,9 +24,9 @@
 			"node"
 		],
 		"outDir": "./dist",
-		"rootDir": "./plugin"
+		"rootDir": "./plugins"
 	},
 	"include": [
-		"plugin"
+		"src/plugins"
 	]
 }

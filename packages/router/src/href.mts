@@ -1,5 +1,5 @@
 import type { PathParameterDictionary, Route, RouteParameterDictionary } from './route.mts'
-const { buildPathForRoute } = await import('./href.route.mts')
+import { buildPathForRoute } from './href.route.mts'
 
 class HrefBase {
 	constructor(
