@@ -3,6 +3,7 @@
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
+	"homepage": "https://marvin-brouwer.github.io/rooted/",
 	"scripts": {
 		"dev": "vite",
 		"analyze": "vite build -- --minify --no-mangle --analyze",

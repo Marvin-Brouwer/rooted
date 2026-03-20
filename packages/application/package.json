@@ -34,6 +34,10 @@
 			"import": "./dist/application.mjs",
 			"types": "./dist/application.d.mjs"
 		},
+		"./adapters": {
+			"import": "./dist/adapters.mjs",
+			"types": "./dist/adapters.d.mjs"
+		},
 		"./tsconfig": "./src/_module/tsconfig.project.json"
 	},
 	"peerDependencies": {
@@ -65,6 +69,8 @@
 	"devDependencies": {
 		"@rooted/development": "workspace:*",
 		"@rooted/router": "workspace:^",
+		"@rooted/tsup": "workspace:^",
+		"@types/node": "^25.5.0",
 		"tsx": "^4.19.0",
 		"typescript": "^5.5.0"
 	}

@@ -149,10 +149,18 @@ export function forAny(target: Route<any> | URL | Location | Url | Path, diction
 	if (target instanceof Path) return target
 	if (typeof Location !== 'undefined' && target instanceof Location) return Url.fromLocation(target)
 
-	return Path.fromString(buildPathForRoute(target as Route<any>, dictionary!))
+	const routePath = buildPathForRoute(target as Route<any>, dictionary!)
+	return Path.fromString(appBase.length > 1 ? appBase.slice(0, -1) + routePath : routePath)
 }
 
-/** Returns a {@link Path} representing the current `location.pathname`. @__PURE__ */
+/** The app base URL set by Vite (e.g. `/my-repo/`). Always ends with `/`. */
+const appBase: string = (import.meta as Record<string, any>).env?.BASE_URL ?? '/'
+
+/** Returns a {@link Path} representing the current `location.pathname`, with the app base stripped. @__PURE__ */
 export function current() {
-	return Path.fromLocation(location)
+	const raw = Path.fromLocation(location)
+	if (appBase.length > 1 && raw.pathOnly.startsWith(appBase.slice(0, -1))) {
+		return Path.fromString('/' + raw.pathOnly.slice(appBase.length))
+	}
+	return raw
 }

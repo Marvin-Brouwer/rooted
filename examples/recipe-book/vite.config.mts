@@ -1,9 +1,12 @@
 import { normalizePath } from 'vite'
-import { CodeSplittingGroups, githubPages, rootedManifest } from '@rooted/application'
+import { CodeSplittingGroups, rootedManifest } from '@rooted/application'
+import { githubPagesAdapter } from '@rooted/application/adapters'
 import { generateRouteManifest } from '@rooted/router/manifest'
 import { markdownPlugin } from './plugins/markdown.mjs'
 import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+import packageJson from './package.json' with { type: 'json' }
 
 const rootedDir = normalizePath(path.join(dirname(fileURLToPath(import.meta.resolve('@rooted/router'))), '../../'))
 
@@ -34,6 +37,7 @@ const codeSplittingGroups: CodeSplittingGroups = [
 export default rootedManifest({
 	webManifest: {
 		id: 'rooted-recipe-book',
+		url: packageJson.homepage,
 		name: 'Rooted Recipe Book',
 		short_name: 'Recipe Book',
 		description: 'A vertical-slice example app for @rooted/components',
@@ -46,10 +50,10 @@ export default rootedManifest({
 		markdownPlugin(),
 		generateRouteManifest({
 			glob: './src/**/_routes.mts',
-			root: './src/_routes.g.mts',
+			routeManifestPath: './src/_routes.g.mts',
 		}),
+		githubPagesAdapter(),
 	],
-	adapter: githubPages(),
 	codeSplitting: {
 		groups: codeSplittingGroups
 	},

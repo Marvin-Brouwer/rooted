@@ -6,8 +6,6 @@
 
 import { BuildEnvironmentOptions } from 'vite';
 import { ManifestOptions } from 'vite-plugin-pwa';
-import { Plugin as Plugin_2 } from 'vite';
-import { PluginOption } from 'vite';
 import { UserConfig } from 'vite';
 import * as vite from 'vite';
 
@@ -22,9 +20,6 @@ export type DetectorOptions = {
     importCycle?: ImportCycleOptions;
 };
 
-// @public
-export function githubPages(): Plugin_2;
-
 // @public (undocumented)
 export type RootedApplicationManifest = {
     resolve?: UserConfig['resolve'];
@@ -34,8 +29,8 @@ export type RootedApplicationManifest = {
     treeshaking?: TreeshakeOptions;
     webManifest: Partial<ManifestOptions> & {
         id: ManifestOptions['id'];
+        url?: string;
     };
-    adapter?: PluginOption;
 };
 
 // @public (undocumented)

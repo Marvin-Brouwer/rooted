@@ -17,6 +17,7 @@ export function hash(files: string[], version: string): string;
 // @public
 export type RouteManifestApi = {
     routes: Route<any>[];
+    routeManifestPath: string;
 };
 
 // (No @packageDocumentation comment for this package)

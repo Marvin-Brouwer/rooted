@@ -186,7 +186,9 @@ async function matchRoute(target: href.Path, routes: Route<any>[]) {
 function normalizeHref(target: () => href.Path) {
 	const targetPath = target()
 	if (!targetPath.pathOnly.endsWith('/')) {
-		history.replaceState(history.state, '', targetPath.pathOnly + '/' + targetPath.queryString + targetPath.hash)
+		// Use location.pathname (which includes the app base) so replaceState
+		// doesn't strip the base from the browser URL.
+		history.replaceState(history.state, '', location.pathname + '/' + targetPath.queryString + targetPath.hash)
 		return target()
 	}
 

@@ -1,14 +1,16 @@
-import { defineConfig } from 'vite'
-import type { BuildEnvironmentOptions, ConfigEnv, PluginOption, UserConfig } from 'vite'
-import { ManifestOptions, VitePWA } from 'vite-plugin-pwa'
 import { cssLoader } from '@rooted/components/css-loader'
+import { defineConfig } from 'vite'
 import { analyzer } from 'vite-bundle-analyzer'
+import { ManifestOptions, VitePWA } from 'vite-plugin-pwa'
+
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
+
+import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
 
 function codeSplittingGroups(applicationGroups: CodeSplittingGroups): CodeSplittingGroups {
 	return [
 		// Group all @rooted/* packages into a single vendor chunk
-		{ name: 'vendor/@rooted', test: (id) => id.startsWith('@rooted') },
+		{ name: 'vendor/@rooted', test: id => id.startsWith('@rooted') },
 		// Custom groups should be hit before the _shared in case they're grouped and in the folder
 		...applicationGroups,
 		// Chunk shared if not imported correctly
@@ -16,12 +18,12 @@ function codeSplittingGroups(applicationGroups: CodeSplittingGroups): CodeSplitt
 			priority: Number.NEGATIVE_INFINITY,
 			entriesAware: true,
 			name: (id) => {
-				const idx = id.indexOf('_shared/')
-				if (idx === -1) return
-				const folder = id.slice(idx + '_shared/'.length).split('/')[0]
+				const index = id.indexOf('_shared/')
+				if (index === -1) return
+				const folder = id.slice(index + '_shared/'.length).split('/')[0]
 				return `shared/${folder}`
 			},
-			test: (id) => id.includes('_shared/'),
+			test: id => id.includes('_shared/'),
 		},
 	]
 }
@@ -38,43 +40,41 @@ export type DetectorOptions = {
 }
 
 export type RootedApplicationManifest = {
-	resolve?: UserConfig['resolve'],
-	plugins?: UserConfig['plugins'],
-	codeSplitting?: CodeSplittingOptions,
-	detectors?: DetectorOptions,
-	treeshaking?: TreeshakeOptions,
+	resolve?: UserConfig['resolve']
+	plugins?: UserConfig['plugins']
+	codeSplitting?: CodeSplittingOptions
+	detectors?: DetectorOptions
+	treeshaking?: TreeshakeOptions
 	webManifest: Partial<ManifestOptions> & {
 		id: ManifestOptions['id']
+		/** Deployment URL (e.g. `homepage` from `package.json`). The pathname is used as Vite's `base`. */
+		url?: string
 	}
-	/**
-	 * Optional deployment adapter plugin.
-	 * The adapter is appended to the plugin list and is responsible for making
-	 * the site work on the target hosting platform.
-	 *
-	 * @example GitHub Pages
-	 * ```ts
-	 * import { githubPages } from '@rooted/application'
-	 * adapter: githubPages()
-	 * ```
-	 */
-	adapter?: PluginOption
+}
+
+function resolveBase(url: string | undefined): string | undefined {
+	if (!url) return undefined
+	const pathname = new URL(url).pathname
+	if (!pathname.endsWith('/')) {
+		throw new Error(`manifest.webManifest.url pathname must end with a slash, got: "${pathname}"`)
+	}
+	return pathname
 }
 
 export function rootedManifest(manifest: RootedApplicationManifest) {
-
-	function buildConfig(env: ConfigEnv): UserConfig {
-
-		const minify = env.command === 'build' && process.argv.includes('--minify')
+	function buildConfig(environment: ConfigEnv): UserConfig {
+		const minify = environment.command === 'build' && process.argv.includes('--minify')
 		const mangle = !process.argv.includes('--no-mangle')
-		const analyzerMode = env.command === 'build' && process.argv.includes('--analyze')
+		const analyzerMode = environment.command === 'build' && process.argv.includes('--analyze')
 
 		const skipPwaGenerator = analyzerMode || process.argv.includes('--no-pwa')
 
 		return {
 			appType: 'spa',
+			base: resolveBase(manifest.webManifest.url),
 			resolve: manifest.resolve,
 			dev: {
-				sourcemap: true
+				sourcemap: true,
 			},
 			build: {
 				rolldownOptions: {
@@ -93,8 +93,8 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 							entryFileNames: '[hash].js',
 							chunkFileNames: '[hash].js',
 							assetFileNames: '[hash][extname]',
-						})
-					}
+						}),
+					},
 				},
 				target: 'esnext',
 				cssMinify: 'esbuild',
@@ -108,23 +108,25 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 			plugins: [
 				importCycleDetector(manifest.detectors?.importCycle),
 				...manifest.plugins ?? [],
-				manifest.adapter,
 				cssLoader({
-					minify
+					minify,
 				}),
 				// We still use the analyzer in static when disabled
 				// We noticed completely disabling the analyzer resulted in bigger bundles somehow
-				analyzer(analyzerMode ? {
-					analyzerMode: 'server',
-					openAnalyzer: true,
-					exclude: [
+				analyzer(analyzerMode
+					? {
+						analyzerMode: 'server',
+						openAnalyzer: true,
+						exclude: [
 						// Only take one flavor of css, this distracts from the bundle size
-						/\.tagged\.css$/is,
-						/\.tagged\-[A-Za-z0-9_-]+\.css$/i,
-					]
-				} : {
-					analyzerMode: 'static'
-				}),
+							/\.tagged\.css$/is,
+							/\.tagged-[A-Za-z0-9_-]+\.css$/i,
+						],
+					}
+					: {
+						analyzerMode: 'static',
+					},
+				),
 				VitePWA({
 					// Utility for speeding up build times
 					disable: skipPwaGenerator,
@@ -156,7 +158,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 								type: 'image/png',
 							},
 						],
-						...manifest.webManifest
+						...manifest.webManifest,
 					},
 				}),
 			],

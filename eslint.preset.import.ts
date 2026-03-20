@@ -60,10 +60,10 @@ export const lintImports = defineConfig([
 	},
 	{
 		settings: {
-			'import/parsers': {
+			'import-x/parsers': {
 				'@typescript-eslint/parser': ['.ts', '.tsx', '.mts', '.cts', '.d.ts'],
 			},
-			'import/resolver': {
+			'import-x/resolver': {
 				typescript: {
 					alwaysTryTypes: true,
 				},
@@ -72,14 +72,14 @@ export const lintImports = defineConfig([
 					moduleDirectory: ['node_modules', 'src/', 'tests/'],
 				},
 			},
-			'import/extensions': ['.js', '.jsx', '.ts', '.tsx', '.mts', '.cts'],
+			'import-x/extensions': ['.js', '.jsx', '.ts', '.tsx', '.mts', '.cts'],
 
 		},
 		rules: {
-			'import/extensions': ['error', 'ignorePackages', {
+			'import-x/extensions': ['error', 'ignorePackages', {
 				mts: 'always',
 			}],
-			'import/order': [
+			'import-x/order': [
 				'error',
 				{
 					'groups': [

@@ -1,11 +1,31 @@
+import fs from 'node:fs/promises'
+
+import { dedupeSourcemapsPlugin } from '@rooted/tsup'
 import { defineConfig } from 'tsup'
 
-export default defineConfig({
-	entry: ['src/_module/*.mts'],
-	format: ['esm'],
-	platform: 'browser',
-	treeshake: { moduleSideEffects: 'no-external' },
-	dts: true,
-	clean: true,
-	sourcemap: 'inline',
-})
+if (!process.argv.includes('--watch')) {
+	// clear:true removes .d.ts with multiple entries
+	await fs.rm('./dist', { recursive: true, force: true })
+}
+
+export default defineConfig([
+	{
+		entry: ['src/_module/*.mts'],
+		format: ['esm'],
+		platform: 'browser',
+		treeshake: { moduleSideEffects: 'no-external' },
+		dts: true,
+		sourcemap: 'inline',
+		plugins: [dedupeSourcemapsPlugin()],
+	},
+	{
+		entry: ['plugins/_module/*.mts'],
+		format: ['esm'],
+		platform: 'node',
+		treeshake: { moduleSideEffects: 'no-external' },
+		tsconfig: 'tsconfig.plugin.json',
+		dts: true,
+		sourcemap: 'inline',
+		plugins: [dedupeSourcemapsPlugin()],
+	},
+])

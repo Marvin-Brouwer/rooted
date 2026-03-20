@@ -131,6 +131,12 @@ importers:
       '@rooted/router':
         specifier: workspace:^
         version: link:../router
+      '@rooted/tsup':
+        specifier: workspace:^
+        version: link:../../tooling/tsup
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
       tsx:
         specifier: ^4.19.0
         version: 4.21.0

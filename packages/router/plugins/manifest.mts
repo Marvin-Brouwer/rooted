@@ -15,7 +15,8 @@ import type { Plugin, ResolvedConfig } from 'vite'
  * Other plugins (e.g. adapters) can read `routes` after `buildStart` completes.
  */
 export type RouteManifestApi = {
-	routes: Route<any>[]
+	routes: Route<any>[],
+	routeManifestPath: string
 }
 
 const pluginName = 'vite-plugin:generate-rooted-route-manifest'
@@ -37,7 +38,7 @@ type Options = {
 	 *
 	 * @example `'./src/_routes.g.mts'`
 	 */
-	root: string
+	routeManifestPath: string
 	/**
 	 * Export name for the generated manifest
 	 *
@@ -86,12 +87,14 @@ type Options = {
  */
 export function generateRouteManifest(options: Options): Plugin<RouteManifestApi> {
 	let config: ResolvedConfig
-	const api: RouteManifestApi = { routes: [] }
+	const api: RouteManifestApi = { routes: [], routeManifestPath: options.routeManifestPath }
 
 	async function generate() {
 		const files = (await glob(options.glob, { cwd: config.root, absolute: false })).toSorted()
-		const rootPath = resolve(config.root, options.root)
+		const rootPath = resolve(config.root, options.routeManifestPath)
 		const rootDir = dirname(rootPath)
+
+		api.routeManifestPath = rootPath
 
 		const globForComment = options.glob.replaceAll('*', '∗')
 
@@ -187,7 +190,7 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 				const matched = await glob(options.glob, { cwd: config.root })
 				if (!matched.includes(rel) && !filePath.endsWith('/_gate.mts')) return
 				await generate()
-				const rootPath = resolve(config.root, options.root)
+				const rootPath = resolve(config.root, options.routeManifestPath)
 				const module_ = server.moduleGraph.getModuleById(rootPath)
 				if (module_) server.moduleGraph.invalidateModule(module_)
 				server.hot.send({ type: 'full-reload' })
