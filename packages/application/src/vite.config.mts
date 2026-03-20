@@ -3,7 +3,7 @@ import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
 import { ManifestOptions, VitePWA } from 'vite-plugin-pwa'
 import { cssLoader } from '@rooted/components/css-loader'
 import { analyzer } from 'vite-bundle-analyzer'
-import { importCycleDetector, type ImportCycleOptions } from './vite-plugins/import-cycle-detector.mts'
+import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
 
 function codeSplittingGroups(applicationGroups: CodeSplittingGroups): CodeSplittingGroups {
 	return [
