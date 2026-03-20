@@ -46,6 +46,18 @@ export type RootedApplicationManifest = {
 	webManifest: Partial<ManifestOptions> & {
 		id: ManifestOptions['id']
 	}
+	// TODO adapter?:
+	// This will be an appendage to plugins [..., adapter(manifest.adapter)]
+	// The adapter is responsible for making the site work on the hosted platform
+	// Eg:
+	// githubPages({ packageJson })
+	//  writes `route/index.html` for any route that is static
+	//  uses a 404 rewrite hack
+	//  maybe makes the devserver act like github (otherwise separate example project to test)
+	//  Generates a sitemap.xml
+	// azureBlobHtml()
+	//  appends a json file so the website is runnable in a blob container in web server mode
+	//  generates a sitemap.xml
 }
 
 export function rootedManifest(manifest: RootedApplicationManifest) {
