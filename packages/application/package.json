@@ -46,12 +46,6 @@
 		"vite-bundle-analyzer": ">=  1.3.6",
 		"vite-plugin-pwa": ">= 1.2.0"
 	},
-	"bundleDependencies": [
-		"@rooted/components",
-		"vite",
-		"vite-bundle-analyzer",
-		"vite-plugin-pwa"
-	],
 	"dependencies": {
 		"@rooted/components": "workspace:^",
 		"vite": "^8.0.1",
