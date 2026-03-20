@@ -23,7 +23,7 @@ export default defineConfig([
 		format: ['esm'],
 		platform: 'node',
 		treeshake: { moduleSideEffects: 'no-external' },
-		tsconfig: 'tsconfig.plugin.json',
+		tsconfig: 'tsconfig.json',
 		dts: true,
 		sourcemap: 'inline',
 		plugins: [dedupeSourcemapsPlugin()],

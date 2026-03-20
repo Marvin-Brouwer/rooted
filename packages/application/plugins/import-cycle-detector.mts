@@ -60,7 +60,7 @@ export function importCycleDetector(options?: ImportCycleOptions): Plugin {
 			for (const [fileName, chunk] of Object.entries(bundle)) {
 				if (chunk.type !== 'chunk') continue
 				if (chunk.dynamicImports.length === 0) continue
-				if (!chunk.code.includes('await')) continue
+				if (!hasTopLevelAwait(chunk.code)) continue
 
 				for (const target of chunk.dynamicImports) {
 					if (canReachViaStaticImports(target, fileName, staticImports)) {
@@ -75,6 +75,56 @@ export function importCycleDetector(options?: ImportCycleOptions): Plugin {
 			}
 		},
 	}
+}
+
+/**
+ * Returns `true` only if `code` contains an `await` expression at module
+ * scope — outside all function, object, and class bodies.
+ * Skips string literals and comments to avoid false matches.
+ */
+function hasTopLevelAwait(code: string): boolean {
+	let depth = 0
+	let i = 0
+
+	while (i < code.length) {
+		const c = code[i]
+
+		// Skip line comments
+		if (c === '/' && code[i + 1] === '/') {
+			while (i < code.length && code[i] !== '\n') i++
+			continue
+		}
+
+		// Skip block comments
+		if (c === '/' && code[i + 1] === '*') {
+			i += 2
+			while (i < code.length && !(code[i] === '*' && code[i + 1] === '/')) i++
+			i += 2
+			continue
+		}
+
+		// Skip string / template literals
+		if (c === '"' || c === "'" || c === '`') {
+			const q = c
+			i++
+			while (i < code.length && code[i] !== q) {
+				if (code[i] === '\\') i++
+				i++
+			}
+			i++ // closing quote
+			continue
+		}
+
+		if (c === '{') { depth++; i++; continue }
+		if (c === '}') { depth--; i++; continue }
+
+		// `await import(` at module scope — the only form that can trigger a dynamic import deadlock
+		if (depth === 0 && code.startsWith('await import(', i)) return true
+
+		i++
+	}
+
+	return false
 }
 
 function canReachViaStaticImports(

@@ -3,10 +3,20 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, relative, dirname } from 'node:path'
 
 import { glob } from 'tinyglobby'
+import { createJiti } from 'jiti'
 
 import packageJson from '../package.json' with { type: 'json' }
 
+import type { Route } from '../src/route.mts'
 import type { Plugin, ResolvedConfig } from 'vite'
+
+/**
+ * Public API exposed on the plugin object for inter-plugin communication.
+ * Other plugins (e.g. adapters) can read `routes` after `buildStart` completes.
+ */
+export type RouteManifestApi = {
+	routes: Route<any>[]
+}
 
 const pluginName = 'vite-plugin:generate-rooted-route-manifest'
 
@@ -74,8 +84,9 @@ type Options = {
  * @see {@link router}
  * @see {@link route}
  */
-export function generateRouteManifest(options: Options): Plugin {
+export function generateRouteManifest(options: Options): Plugin<RouteManifestApi> {
 	let config: ResolvedConfig
+	const api: RouteManifestApi = { routes: [] }
 
 	async function generate() {
 		const files = (await glob(options.glob, { cwd: config.root, absolute: false })).toSorted()
@@ -147,15 +158,24 @@ export function generateRouteManifest(options: Options): Plugin {
 		await mkdir(rootDir, { recursive: true })
 
 		const originalManifest = await readExistingManifest(rootPath)
-		if (originalManifest === generatedManifest) {
+		if (originalManifest !== generatedManifest) {
+			await writeFile(rootPath, generatedManifest, 'utf-8')
+		} else {
 			console.debug('Code change did not require manifest update.')
-			return
 		}
-		await writeFile(rootPath, generatedManifest, 'utf-8')
+
+		// Load the written manifest via JITI to populate the shared route registry
+		const jiti = createJiti(config.root)
+		const mod = await jiti.import(rootPath) as Record<string, unknown>
+		const exported = mod[options.routeExport ?? 'appRoutes']
+		if (exported && typeof exported === 'object') {
+			api.routes = Object.values(exported as object) as Route<any>[]
+		}
 	}
 
 	return {
 		name: pluginName,
+		api,
 
 		configResolved(resolved) { config = resolved },
 

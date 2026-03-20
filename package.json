@@ -48,8 +48,16 @@
 	"pnpm": {
 		"peerDependencyRules": {
 			"allowedVersions": {
-				"vite-plugin-pwa>vite": "8"
+				"vite-plugin-pwa>vite": "8",
+				"eslint-plugin-import>eslint": "10"
 			}
+		},
+		"overrides": {
+			"source-map@0.8.0-beta.0": "0.7.4",
+			"sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.4.15"
+		},
+		"allowedDeprecatedVersions": {
+			"glob": "11"
 		}
 	}
 }

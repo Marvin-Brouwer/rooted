@@ -1,9 +1,11 @@
 const controller = new AbortController()
-window.addEventListener('pagehide', (event) => {
-	if (!event.persisted) {
-		controller.abort('page unloaded')
-	}
-})
+if (typeof window !== 'undefined') {
+	window.addEventListener('pagehide', (event) => {
+		if (!event.persisted) {
+			controller.abort('page unloaded')
+		}
+	})
+}
 
 /**
  * Page-level `AbortSignal` that fires when the page is permanently unloaded.

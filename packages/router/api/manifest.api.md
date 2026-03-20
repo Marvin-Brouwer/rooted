@@ -4,13 +4,20 @@
 
 ```ts
 
+import { create } from '@rooted/components/elements';
 import { Plugin as Plugin_2 } from 'vite';
+import { TupleResult } from '@rooted/util';
 
 // @public
-export function generateRouteManifest(options: Options): Plugin_2;
+export function generateRouteManifest(options: Options): Plugin_2<RouteManifestApi>;
 
 // @public (undocumented)
 export function hash(files: string[], version: string): string;
+
+// @public
+export type RouteManifestApi = {
+    routes: Route<any>[];
+};
 
 // (No @packageDocumentation comment for this package)
 

@@ -2,10 +2,10 @@ import type { Route, RouteParameters } from './route.mts'
 import type { Parameter, RouteParameter } from './route.tokens.mts'
 
 /** Symbol key for the {@link RouteMetadata} bag attached to every {@link Route}. */
-export const routeMetaData: unique symbol = Symbol.for('@rooted/route-metadata')
+export const routeMetadata: unique symbol = Symbol.for('@rooted/route-metadata')
 
 /**
- * Internal metadata bag stored on every {@link Route} under the {@link routeMetaData} symbol key.
+ * Internal metadata bag stored on every {@link Route} under the {@link routeMetadata} symbol key.
  *
  * Do not access directly from application code — use {@link isRoute} to test whether a value is a
  * route, and access `route[routeMetaData]` only within router internals.
@@ -24,6 +24,8 @@ export type RouteMetadata<T extends { parameters: any, parent?: any }> = {
 	readonly hasErrors?: true
 	/** The split-up parts of the route pattern. */
 	readonly routeParts: Array<string | RouteParameter>
+	/** Resolved static path string if this route has no dynamic segments, `false` otherwise. */
+	readonly staticRoute: false | string
 }
 
 /** Returns `true` if `instance` is a {@link Route}. */
@@ -34,5 +36,5 @@ export function isRoute<T>(instance: T): instance is Extract<T, Route<any>>
 export function isRoute<T extends Route<any>>(instance: T): instance is T
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isRoute(instance: unknown): instance is Route<any> {
-	return typeof instance === 'object' && instance !== null && routeMetaData in instance
+	return typeof instance === 'object' && instance !== null && routeMetadata in instance
 }

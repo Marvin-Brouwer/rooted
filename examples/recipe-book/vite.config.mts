@@ -1,5 +1,5 @@
 import { normalizePath } from 'vite'
-import { CodeSplittingGroups, rootedManifest } from '@rooted/application'
+import { CodeSplittingGroups, githubPages, rootedManifest } from '@rooted/application'
 import { generateRouteManifest } from '@rooted/router/manifest'
 import { markdownPlugin } from './plugins/markdown.mjs'
 import path, { dirname } from 'node:path'
@@ -49,6 +49,7 @@ export default rootedManifest({
 			root: './src/_routes.g.mts',
 		}),
 	],
+	adapter: githubPages(),
 	codeSplitting: {
 		groups: codeSplittingGroups
 	},
