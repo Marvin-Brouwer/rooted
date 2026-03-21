@@ -1,7 +1,8 @@
 import { defineConfig } from 'eslint/config'
-import type { Rule } from 'eslint'
 import importPlugin from 'eslint-plugin-import-x'
 import unusedImports from 'eslint-plugin-unused-imports'
+
+import type { Rule } from 'eslint'
 
 type NodeWithSource = { source?: (Rule.Node & { raw?: string }) | null }
 
@@ -50,7 +51,7 @@ export const lintImports = defineConfig([
 		},
 	},
 	{
-		files: ['**/*.{ts,mts,cts,tsx}'],
+		files: ['**/*.{mts,cts}'],
 		plugins: {
 			['local']: { rules: { 'mjs-to-mts': mjsToMts } },
 		},

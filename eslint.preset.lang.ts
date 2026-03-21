@@ -36,6 +36,7 @@ export const lintTs = defineConfig([
 					'./packages/*/tsconfig.json',
 					'./packages/*/tsconfig.plugin.json',
 					'./tooling/*/tsconfig.json',
+					'./examples/*/tsconfig.json',
 					'./tsconfig.test.json',
 					'./tsconfig.config.json',
 				],

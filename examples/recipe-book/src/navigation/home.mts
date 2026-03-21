@@ -1,10 +1,11 @@
-import styles from './home.css'
-
 import { component, ComponentContext } from '@rooted/components'
 import { href, Link } from '@rooted/router'
+
 import { type RecipeData, recipeData } from '../_shared/data/data.mts'
 import { RecipeRoute } from '../recipes/_routes.mts'
+
 import { Hero } from './hero.mts'
+import styles from './home.css'
 
 export const HomePage = component({
 	name: 'home-page',
@@ -15,7 +16,7 @@ export const HomePage = component({
 			create('div', {
 				classes: styles.recipeGrid,
 				children: await grid(create),
-			})
+			}),
 		)
 	},
 })
@@ -23,7 +24,7 @@ export const HomePage = component({
 async function grid(create: ComponentContext<typeof HomePage>['create']) {
 	const recipes = await recipeData.listRecipes()
 
-	return recipes.filter(r => r.featured).map(recipe => {
+	return recipes.filter(r => r.featured).map((recipe) => {
 		return create(Link, {
 			href: href.for(RecipeRoute, recipe),
 			classes: styles.recipeCard,
@@ -43,6 +44,6 @@ function card(create: ComponentContext<typeof HomePage>['create'], recipe: Recip
 				create('span', { textContent: `${recipe.prepTime + recipe.cookTime} min` }),
 				create('span', { textContent: recipe.difficulty }),
 			],
-		})
+		}),
 	]
 }
