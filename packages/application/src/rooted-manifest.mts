@@ -4,6 +4,7 @@ import { analyzer } from 'vite-bundle-analyzer'
 import { ManifestOptions, VitePWA } from 'vite-plugin-pwa'
 
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
+import { seoPlugin } from '../plugins/seo.mts'
 
 import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
 
@@ -161,6 +162,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						...manifest.webManifest,
 					},
 				}),
+				seoPlugin(manifest.webManifest.url),
 			],
 		}
 	}
