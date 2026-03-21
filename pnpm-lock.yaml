@@ -115,6 +115,9 @@ importers:
       '@rooted/components':
         specifier: workspace:^
         version: link:../components
+      tinyglobby:
+        specifier: ^0.2.0
+        version: 0.2.15
       vite:
         specifier: ^8.0.1
         version: 8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0)

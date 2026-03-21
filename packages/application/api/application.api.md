@@ -31,6 +31,7 @@ export type RootedApplicationManifest = {
         id: ManifestOptions['id'];
         url?: string;
     };
+    seo?: SeoOptions;
 };
 
 // @public (undocumented)

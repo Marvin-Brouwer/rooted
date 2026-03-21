@@ -4,7 +4,7 @@ import { analyzer } from 'vite-bundle-analyzer'
 import { ManifestOptions, VitePWA } from 'vite-plugin-pwa'
 
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
-import { seoPlugin } from '../plugins/seo.mts'
+import { SeoOptions, seoPlugin } from '../plugins/seo.mts'
 
 import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
 
@@ -51,6 +51,7 @@ export type RootedApplicationManifest = {
 		/** Deployment URL (e.g. `homepage` from `package.json`). The pathname is used as Vite's `base`. */
 		url?: string
 	}
+	seo?: SeoOptions
 }
 
 function resolveBase(url: string | undefined): string | undefined {
@@ -162,7 +163,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						...manifest.webManifest,
 					},
 				}),
-				seoPlugin(manifest.webManifest.url),
+				seoPlugin(manifest.webManifest.url, manifest.seo),
 			],
 		}
 	}

@@ -1,22 +1,49 @@
-import { writeFile } from 'node:fs/promises'
+import { execFile } from 'node:child_process'
+import { stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
+import { promisify } from 'node:util'
+
+import { glob } from 'tinyglobby'
 
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Plugin, ResolvedConfig } from 'vite'
 
+const execFileAsync = promisify(execFile)
+
 const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
+
+const DEFAULT_HOME_ROUTE_FILES = [
+	'./src/navigation/application.mts',
+	'./src/navigation/*.mts',
+	'!./src/navigation/not-found.mts',
+]
+
+export type SeoOptions = {
+	/**
+	 * Glob patterns (relative to the Vite project root) used to discover
+	 * home/navigation files. The newest `git log` date among all matched files
+	 * is used as the `lastmod` for the root sitemap entry.
+	 * Supports negation patterns (prefix with `!`).
+	 * @default ['./src/navigation/application.mts', './src/navigation/*.mts', '!./src/navigation/not-found.mts']
+	 */
+	homeRouteFiles?: string[]
+}
 
 /**
  * SEO plugin — generates a `sitemap.xml` from all static routes discovered by
- * {@link generateRouteManifest}.
+ * {@link generateRouteManifest}, plus a root entry whose `lastmod` is the
+ * newest git commit date across the configured home route files.
  *
- * Runs only during production builds. If the route manifest plugin is absent,
- * or no static routes are found, nothing is written.
+ * Runs only during production builds. If no static routes are found at all,
+ * nothing is written.
  *
- * @internal Automatically included by {@link rootedManifest}. Pass the
- * deployment URL via `webManifest.url` to get absolute `<loc>` entries.
+ * Uses `git log` to determine per-file `lastmod`, falling back to `stat` mtime
+ * when the file is not tracked.
+ *
+ * @internal Automatically included by {@link rootedManifest}. Configure via
+ * `seo` in the manifest options.
  */
-export function seoPlugin(deploymentUrl: string | undefined): Plugin {
+export function seoPlugin(deploymentUrl: string | undefined, options: SeoOptions | undefined): Plugin {
 	let config: ResolvedConfig
 	let manifestApi: RouteManifestApi | undefined
 
@@ -31,36 +58,74 @@ export function seoPlugin(deploymentUrl: string | undefined): Plugin {
 		},
 
 		async closeBundle() {
-			if (!manifestApi) return
-
-			const staticRoutes: string[] = [
-				'/',
-			]
-
-			for (const route of manifestApi.routes) {
-				if (!Object.hasOwn(route, 'getMetadata')) continue
-				const staticPath = route.getMetadata().staticRoute
-				if (staticPath === false) continue
-				staticRoutes.push(staticPath)
+			function toLocation(staticPath: string): string {
+				return deploymentUrl
+					? new URL(staticPath.slice(1), deploymentUrl).href
+					: config.base + staticPath.slice(1)
 			}
 
-			if (staticRoutes.length === 0) return
+			// Pass 1: find the newest git date among home/navigation files
+			const homeGlobs = options?.homeRouteFiles ?? DEFAULT_HOME_ROUTE_FILES
+			const homeFiles = await glob(homeGlobs, { cwd: config.root, absolute: true })
+			const homeDates = await Promise.all(homeFiles.map((f: string) => gitLastModified(f, config.root)))
+			const homeLastModified = homeDates.toSorted().at(-1)
 
-			const locations = staticRoutes.map((staticPath) => {
-				if (deploymentUrl) {
-					return new URL(staticPath.slice(1), deploymentUrl).href
+			// Pass 2: build the full list of { loc, lastmod } entries
+			type SitemapEntry = { loc: string, lastmod: string }
+			const entries = new Map<string, SitemapEntry>()
+
+			if (homeLastModified !== undefined) {
+				const loc = toLocation('/')
+				entries.set(loc, { loc, lastmod: homeLastModified })
+			}
+
+			if (manifestApi) {
+				for (const route of manifestApi.routes) {
+					if (!Object.hasOwn(route, 'getMetadata')) continue
+					const staticPath = route.getMetadata().staticRoute
+					if (staticPath === false) continue
+
+					const loc = toLocation(staticPath)
+					if (entries.has(loc)) continue
+
+					const sourceFile = manifestApi.routeSourceFiles.get(route)
+					const lastmod = await gitLastModified(sourceFile, config.root)
+					entries.set(loc, { loc, lastmod })
 				}
-				return config.base + staticPath.slice(1)
-			})
+			}
 
+			if (entries.size === 0) return
+
+			// Pass 3: construct the sitemap XML and write the asset
 			const xml = [
 				`<?xml version="1.0" encoding="UTF-8"?>`,
 				`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-				...locations.map(loc => `\t<url>\n\t\t<loc>${loc}</loc>\n\t</url>`),
+				...[...entries.values()].map(({ loc, lastmod }) =>
+					`\t<url>\n\t\t<loc>${loc}</loc>\n\t\t<lastmod>${lastmod}</lastmod>\n\t</url>`,
+				),
 				`</urlset>`,
 			].join('\n')
 
 			await writeFile(path.join(config.build.outDir, 'sitemap.xml'), xml, 'utf8')
 		},
 	}
+}
+
+async function gitLastModified(filePath: string | undefined, cwd: string): Promise<string> {
+	if (filePath) {
+		try {
+			const { stdout } = await execFileAsync(
+				'git', ['log', '-1', '--format=%aI', '--', filePath],
+				{ cwd },
+			)
+			const iso = stdout.trim()
+			if (iso) return new Date(iso).toISOString().slice(0, 10)
+		}
+		catch {
+			// not a git repo or file untracked — fall through to stat
+		}
+	}
+
+	const fileStat = filePath ? await stat(filePath) : undefined
+	return (fileStat?.mtime ?? new Date()).toISOString().slice(0, 10)
 }

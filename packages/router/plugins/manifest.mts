@@ -16,7 +16,9 @@ import type { Plugin, ResolvedConfig } from 'vite'
  */
 export type RouteManifestApi = {
 	routes: Route<any>[],
-	routeManifestPath: string
+	routeManifestPath: string,
+	/** Maps each route object to the absolute path of the `_routes.mts` file it was defined in. */
+	routeSourceFiles: Map<Route<any>, string>,
 }
 
 const pluginName = 'vite-plugin:generate-rooted-route-manifest'
@@ -87,7 +89,7 @@ type Options = {
  */
 export function generateRouteManifest(options: Options): Plugin<RouteManifestApi> {
 	let config: ResolvedConfig
-	const api: RouteManifestApi = { routes: [], routeManifestPath: options.routeManifestPath }
+	const api: RouteManifestApi = { routes: [], routeManifestPath: options.routeManifestPath, routeSourceFiles: new Map() }
 
 	async function generate() {
 		const files = (await glob(options.glob, { cwd: config.root, absolute: false })).toSorted()
@@ -173,6 +175,13 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 		const exported = mod[options.routeExport ?? 'appRoutes']
 		if (exported && typeof exported === 'object') {
 			api.routes = Object.values(exported as object) as Route<any>[]
+			api.routeSourceFiles = new Map()
+			for (const [key, route] of Object.entries(exported as object)) {
+				// Key format: R{8-char-fileId}_{exportName} — extract the fileId to find the source file
+				const fileId = key.slice(1, 9)
+				const sourceFile = files.find(f => getFileId(f) === fileId)
+				if (sourceFile) api.routeSourceFiles.set(route as Route<any>, resolve(config.root, sourceFile))
+			}
 		}
 	}
 
