@@ -15,7 +15,7 @@ export const NavigationMenu = component({
 		nav.append(
 			create(Link, { href: href.path(import.meta.env.BASE_URL), classes: styles.navBrand, children: 'Recipe Book' }),
 			create(Link, { href: href.for(CategoriesRoute), classes: styles.navLink, children: 'Browse' }),
-			create(SearchBar)
+			create('div', { classes: styles.searchWrapper, children: [create(SearchBar)] }),
 		)
 	},
 })

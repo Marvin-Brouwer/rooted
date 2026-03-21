@@ -4,16 +4,14 @@ import { component, ComponentContext } from '@rooted/components'
 import { href, Link } from '@rooted/router'
 import { type RecipeData, recipeData } from '../_shared/data/data.mts'
 import { RecipeRoute } from '../recipes/_routes.mts'
+import { Hero } from './hero.mts'
 
 export const HomePage = component({
 	name: 'home-page',
 	styles,
 	async onMount({ append, create }) {
 		append(
-			create('h1', { textContent: 'Recipe Book' }),
-			create('p', { classes: styles.subtitle, textContent: 'A collection of recipes, built with Rooted.' }),
-			create('h2', { textContent: 'Featured Recipes' }),
-
+			create(Hero),
 			create('div', {
 				classes: styles.recipeGrid,
 				children: await grid(create),

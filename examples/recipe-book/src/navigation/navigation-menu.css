@@ -21,3 +21,4 @@ nav {
 	font-size: 0.95rem;
 }
 .nav-link:hover { color: var(--color-primary); }
+.search-wrapper { width: 220px; }
