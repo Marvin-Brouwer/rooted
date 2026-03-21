@@ -3,4 +3,4 @@
  * @module
  */
 
-export * from '../vite.config.mts'
+export * from '../rooted-manifest.mts'
