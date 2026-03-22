@@ -127,11 +127,11 @@ export type Route<T extends RouteParameters<Parameter[]>> = {
 
 function computeStaticRoute(strings: TemplateStringsArray, values: readonly RouteParameter[]): false | string {
 	if (values.length === 0) {
-		return strings[0]  // no gaps — strings[0] is the entire path
+		return strings[0] // no gaps — strings[0] is the entire path
 	}
 
 	// Fail fast: if parent route is dynamic, this route can't be static either
-	const parent = isRoute(values[0]) ? values[0] as Route<any> : undefined
+	const parent = isRoute(values[0]) ? values[0] : undefined
 	const parentStatic = parent?.[routeMetadata].staticRoute
 	if (parent && parentStatic === false) return false
 

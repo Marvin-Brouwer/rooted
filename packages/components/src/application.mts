@@ -1,4 +1,5 @@
 import { isDevelopment } from '@rooted/util/dev'
+
 import { Component } from './component.mts'
 import { create } from './element-factory.mts'
 

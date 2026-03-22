@@ -1,5 +1,6 @@
 const controller = new AbortController()
-if (typeof window !== 'undefined') {
+// eslint-disable-next-line unicorn/prefer-global-this
+if (window !== undefined) {
 	window.addEventListener('pagehide', (event) => {
 		if (!event.persisted) {
 			controller.abort('page unloaded')

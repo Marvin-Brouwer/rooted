@@ -1,9 +1,10 @@
-import styles from './recipe.css'
-
 import { component, ComponentContext } from '@rooted/components'
 import { href, Link } from '@rooted/router'
+
 import { type RecipeData as DataRecipe, recipeData } from '../_shared/data/data.mts'
 import { CategoriesRoute, CategoryRoute } from '../categories/_routes.mts'
+
+import styles from './recipe.css'
 
 export type RecipeOptions = {
 	id: number
@@ -19,9 +20,9 @@ export const Recipe = component<RecipeOptions>({
 			create(Link, { href: href.for(CategoriesRoute), classes: styles.backLink, children: '← Browse' }),
 			create('div', {
 				classes: styles.recipeHeader,
-				children: create('h1', { textContent: 'No recipe' })
+				children: create('h1', { textContent: 'No recipe' }),
 			}),
-			create('p', { classes: styles.notFound, textContent: 'Recipe not found.' })
+			create('p', { classes: styles.notFound, textContent: 'Recipe not found.' }),
 		)
 
 		append(
@@ -36,26 +37,25 @@ export const Recipe = component<RecipeOptions>({
 					create('h1', { textContent: recipe.title }),
 					create('ul', {
 						classes: styles.recipeMeta,
-						children: meta(create, recipe)
-					})
-				]
+						children: meta(create, recipe),
+					}),
+				],
 			}),
 
 			create('div', {
 				classes: styles.recipeBody,
 				// Render the markdown-converted HTML body.
 				// Safe: content originates from version-controlled markdown files.
-				innerHTML: recipe.html
-			})
+				innerHTML: recipe.html,
+			}),
 		)
 	},
 })
 
-
 function meta(create: ComponentContext<typeof Recipe>['create'], recipe: DataRecipe) {
 	return [
 		create('li', { classes: 'meta-badge', textContent: recipe.category }),
-		create('li', { classes: 'meta-badge', textContent: `${recipe.servings} serving${recipe.servings !== 1 ? 's' : ''}` }),
+		create('li', { classes: 'meta-badge', textContent: `${recipe.servings} serving${recipe.servings === 1 ? '' : 's'}` }),
 		create('li', { classes: 'meta-badge', textContent: `Prep ${recipe.prepTime} min` }),
 		create('li', { classes: 'meta-badge', textContent: `Cook ${recipe.cookTime} min` }),
 		create('li', { classes: 'meta-badge', textContent: recipe.difficulty }),

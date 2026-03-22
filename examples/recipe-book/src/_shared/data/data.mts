@@ -1,11 +1,11 @@
-import pastaData from '../content/pasta-carbonara.md'
+import tacosData from '../content/beef-tacos.md'
+import caesarData from '../content/caesar-salad.md'
+import enchiladasData from '../content/chicken-enchiladas.md'
 import tikkaData from '../content/chicken-tikka-masala.md'
 import lavaData from '../content/chocolate-lava-cake.md'
-import caesarData from '../content/caesar-salad.md'
-import tacosData from '../content/beef-tacos.md'
-import risottoData from '../content/risotto-milanese.md'
-import enchiladasData from '../content/chicken-enchiladas.md'
 import cremeBruleeData from '../content/creme-brulee.md'
+import pastaData from '../content/pasta-carbonara.md'
+import risottoData from '../content/risotto-milanese.md'
 import stickyToffeeData from '../content/sticky-toffee-pudding.md'
 
 export type RecipeData = {
@@ -56,5 +56,5 @@ export const recipeData = {
 	getRecipeById(id: number) { return Promise.resolve(recipes.find(recipe => recipe.id === id)) },
 	listRecipes() { return Promise.resolve(recipes) },
 	findCategoryBySlug(slug: string) { return Promise.resolve(categories.find(category => category.slug === slug)) },
-	listCategories() { return Promise.resolve(categories) }
+	listCategories() { return Promise.resolve(categories) },
 }

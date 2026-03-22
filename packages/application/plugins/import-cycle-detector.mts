@@ -84,44 +84,44 @@ export function importCycleDetector(options?: ImportCycleOptions): Plugin {
  */
 function hasTopLevelAwait(code: string): boolean {
 	let depth = 0
-	let i = 0
+	let index = 0
 
-	while (i < code.length) {
-		const c = code[i]
+	while (index < code.length) {
+		const c = code[index]
 
 		// Skip line comments
-		if (c === '/' && code[i + 1] === '/') {
-			while (i < code.length && code[i] !== '\n') i++
+		if (c === '/' && code[index + 1] === '/') {
+			while (index < code.length && code[index] !== '\n') index++
 			continue
 		}
 
 		// Skip block comments
-		if (c === '/' && code[i + 1] === '*') {
-			i += 2
-			while (i < code.length && !(code[i] === '*' && code[i + 1] === '/')) i++
-			i += 2
+		if (c === '/' && code[index + 1] === '*') {
+			index += 2
+			while (index < code.length && !(code[index] === '*' && code[index + 1] === '/')) index++
+			index += 2
 			continue
 		}
 
 		// Skip string / template literals
-		if (c === '"' || c === "'" || c === '`') {
+		if (c === '"' || c === '\'' || c === '`') {
 			const q = c
-			i++
-			while (i < code.length && code[i] !== q) {
-				if (code[i] === '\\') i++
-				i++
+			index++
+			while (index < code.length && code[index] !== q) {
+				if (code[index] === '\\') index++
+				index++
 			}
-			i++ // closing quote
+			index++ // closing quote
 			continue
 		}
 
-		if (c === '{') { depth++; i++; continue }
-		if (c === '}') { depth--; i++; continue }
+		if (c === '{') { depth++; index++; continue }
+		if (c === '}') { depth--; index++; continue }
 
 		// `await import(` at module scope — the only form that can trigger a dynamic import deadlock
-		if (depth === 0 && code.startsWith('await import(', i)) return true
+		if (depth === 0 && code.startsWith('await import(', index)) return true
 
-		i++
+		index++
 	}
 
 	return false

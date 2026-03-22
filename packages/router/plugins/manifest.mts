@@ -2,8 +2,8 @@ import { createHash } from 'node:crypto'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, relative, dirname } from 'node:path'
 
-import { glob } from 'tinyglobby'
 import { createJiti } from 'jiti'
+import { glob } from 'tinyglobby'
 
 import packageJson from '../package.json' with { type: 'json' }
 
@@ -15,10 +15,10 @@ import type { Plugin, ResolvedConfig } from 'vite'
  * Other plugins (e.g. adapters) can read `routes` after `buildStart` completes.
  */
 export type RouteManifestApi = {
-	routes: Route<any>[],
-	routeManifestPath: string,
+	routes: Route<any>[]
+	routeManifestPath: string
 	/** Maps each route object to the absolute path of the `_routes.mts` file it was defined in. */
-	routeSourceFiles: Map<Route<any>, string>,
+	routeSourceFiles: Map<Route<any>, string>
 }
 
 const pluginName = 'vite-plugin:generate-rooted-route-manifest'
@@ -163,20 +163,21 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 		await mkdir(rootDir, { recursive: true })
 
 		const originalManifest = await readExistingManifest(rootPath)
-		if (originalManifest !== generatedManifest) {
-			await writeFile(rootPath, generatedManifest, 'utf-8')
-		} else {
+		if (originalManifest === generatedManifest) {
 			console.debug('Code change did not require manifest update.')
+		}
+		else {
+			await writeFile(rootPath, generatedManifest, 'utf-8')
 		}
 
 		// Load the written manifest via JITI to populate the shared route registry
 		const jiti = createJiti(config.root)
-		const mod = await jiti.import(rootPath) as Record<string, unknown>
-		const exported = mod[options.routeExport ?? 'appRoutes']
+		const module_ = await jiti.import(rootPath)
+		const exported = module_[options.routeExport ?? 'appRoutes']
 		if (exported && typeof exported === 'object') {
-			api.routes = Object.values(exported as object) as Route<any>[]
+			api.routes = Object.values(exported)
 			api.routeSourceFiles = new Map()
-			for (const [key, route] of Object.entries(exported as object)) {
+			for (const [key, route] of Object.entries(exported)) {
 				// Key format: R{8-char-fileId}_{exportName} — extract the fileId to find the source file
 				const fileId = key.slice(1, 9)
 				const sourceFile = files.find(f => getFileId(f) === fileId)
