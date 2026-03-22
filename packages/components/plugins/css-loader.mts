@@ -278,8 +278,8 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 			for (const [path, { scopedToken, taggedToken }] of pending) {
 				const { scopedRef, taggedRef } = emittedReferences.get(path)!
 				result = result
-					.replaceAll(scopedToken, '/' + this.getFileName(scopedRef))
-					.replaceAll(taggedToken, '/' + this.getFileName(taggedRef))
+					.replaceAll(scopedToken, config.base + this.getFileName(scopedRef))
+					.replaceAll(taggedToken, config.base + this.getFileName(taggedRef))
 			}
 			return result === code ? undefined : { code: result, map: undefined }
 		},

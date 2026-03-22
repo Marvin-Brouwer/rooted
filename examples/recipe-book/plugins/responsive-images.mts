@@ -11,6 +11,26 @@ const MIDDLEWARE_PATH = '/__ri__/'
 
 const DEFAULT_WIDTHS = [400, 800, 1200, 1920]
 
+const UNSPLASH_LICENSE = `\
+# Unsplash License
+
+Photos downloaded via this plugin are sourced from [Unsplash](https://unsplash.com)
+and are subject to the [Unsplash License](https://unsplash.com/license).
+
+## Summary
+
+- All photos can be downloaded and used for **free**
+- For **commercial and non-commercial** purposes
+- **No permission needed** (though attribution is appreciated)
+
+## Restrictions
+
+- Photos may not be sold without significant modification
+- Compiling photos from Unsplash to replicate a similar or competing service is not permitted
+
+For full terms, see https://unsplash.com/license
+`
+
 /** 1×1 transparent pixel GIF, used as a placeholder when images can't be loaded. */
 const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 
@@ -29,6 +49,7 @@ export function responsiveImages({ accessKey }: ResponsiveImagesOptions): Plugin
 	let cacheDirectory: string
 	let isDevelopment = false
 	let logger: Logger
+	let licenseWritten = false
 
 	return {
 		name: 'recipe-book:responsive-images',
@@ -81,6 +102,12 @@ export function responsiveImages({ accessKey }: ResponsiveImagesOptions): Plugin
 
 		async load(id) {
 			if (!id.startsWith(VIRTUAL_PREFIX)) return
+
+			if (!licenseWritten) {
+				licenseWritten = true
+				await mkdir(cacheDirectory, { recursive: true })
+				await writeFile(path.join(cacheDirectory, 'LICENSE.md'), UNSPLASH_LICENSE, 'utf8')
+			}
 
 			const rawId = id.slice(VIRTUAL_PREFIX.length)
 			const [urlPart, queryPart] = rawId.split('?')
@@ -201,10 +228,17 @@ async function downloadImages(rawUrl: string, photoCacheDirectory: string, width
 }
 
 function buildModule(images: ImageEntry[], sourceUrl: string, author: string): string {
-	const sourceSet = images.map(img => `${img.url} ${img.width}w`).join(', ')
+	// URLs may be `import.meta.ROLLUP_FILE_URL_*` tokens that Rollup resolves
+	// only when they appear as real JS expressions — not inside string literals.
+	// Emit them as raw expressions so Rollup can replace them correctly.
+	const urlExpr = (url: string) => url.startsWith('import.meta.') ? url : JSON.stringify(url)
+	const imagesLiteral = '[\n' + images.map(img =>
+		`  { "url": ${urlExpr(img.url)}, "width": ${img.width} }`,
+	).join(',\n') + '\n]'
+	const sourceSetLiteral = '`' + images.map(img => `\${${urlExpr(img.url)}} ${img.width}w`).join(', ') + '`'
 	return [
-		`export const images = ${JSON.stringify(images, undefined, 2)}`,
-		`export const sourceSet = ${JSON.stringify(sourceSet)}`,
+		`export const images = ${imagesLiteral}`,
+		`export const sourceSet = ${sourceSetLiteral}`,
 		`export const source = ${JSON.stringify(sourceUrl)}`,
 		`export const author = ${JSON.stringify(author)}`,
 	].join('\n')
