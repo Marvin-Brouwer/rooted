@@ -1,7 +1,18 @@
-import type { Plugin } from 'vite'
 import matter from 'gray-matter'
-import { marked } from 'marked'
-import { minify } from 'html-minifier-terser'
+import { minify, Options as MinifyOptions } from 'html-minifier-terser'
+import { marked, MarkedOptions } from 'marked'
+
+import type { Plugin } from 'vite'
+
+const markedOptions: MarkedOptions = {
+	async: true,
+}
+const minifyOptions: MinifyOptions = {
+	collapseWhitespace: true,
+	removeComments: true,
+	removeOptionalTags: true,
+	decodeEntities: true,
+}
 
 /**
  * Transforms `.md` files into plain JS modules at build time (Node.js context).
@@ -9,22 +20,25 @@ import { minify } from 'html-minifier-terser'
  * No Node-specific APIs (Buffer, fs, …) reach the browser bundle.
  */
 export function markdownPlugin(): Plugin {
+	let isDevelopment = false
+
 	return {
 		name: 'vite-plugin:markdown',
+		configResolved(config) {
+			isDevelopment = config.command === 'serve'
+		},
 		async transform(code, id) {
-			if (!id.endsWith('.md')) return null
+			if (!id.endsWith('.md')) return
 
 			const { data, content } = matter(code)
-			const html = await minify(await marked(content, { async: true }), {
-				collapseWhitespace: true,
-				removeComments: true,
-				removeOptionalTags: true,
-				decodeEntities: true,
-			})
+			const markedResult = await marked(content, markedOptions)
+			const html = isDevelopment
+				? markedResult
+				: await minify(markedResult, minifyOptions)
 
 			return {
 				code: `export default ${JSON.stringify({ ...data, html })}`,
-				map: null,
+				map: undefined,
 			}
 		},
 	}

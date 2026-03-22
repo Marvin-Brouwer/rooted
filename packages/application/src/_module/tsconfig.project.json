@@ -7,7 +7,7 @@
 		"target": "ES2020",
 		"module": "ESNext",
 		"lib": [
-			"ES2020",
+			"ES2024",
 			// We use the dom
 			"DOM",
 			"DOM.Iterable"

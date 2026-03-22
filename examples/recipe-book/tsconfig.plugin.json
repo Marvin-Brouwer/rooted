@@ -2,7 +2,7 @@
 	"extends": "@rooted/application/tsconfig",
 	"compilerOptions": {
 		"lib": [
-			"ES2020"
+			"ES2024"
 		]
 	},
 	"include": [

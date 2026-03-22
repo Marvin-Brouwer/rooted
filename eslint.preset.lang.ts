@@ -22,11 +22,11 @@ export const lintJs = defineConfig([
 const tsFiles = ['**/*.{ts,mts,cts,tsx}']
 
 export const lintTs = defineConfig([
-	// eslint-disable-next-line import/no-named-as-default-member
+	// eslint-disable-next-line import-x/no-named-as-default-member
 	...tseslint.configs.recommendedTypeChecked.map(config => ({ ...config, files: tsFiles })),
 	{
 		plugins: {
-			// eslint-disable-next-line import/no-named-as-default-member
+			// eslint-disable-next-line import-x/no-named-as-default-member
 			'@typescript-eslint': tseslint.plugin,
 		},
 		files: tsFiles,
@@ -37,6 +37,7 @@ export const lintTs = defineConfig([
 					'./packages/*/tsconfig.plugin.json',
 					'./tooling/*/tsconfig.json',
 					'./examples/*/tsconfig.json',
+					'./examples/*/tsconfig.plugin.json',
 					'./tsconfig.test.json',
 					'./tsconfig.config.json',
 				],

@@ -3,6 +3,9 @@ import { CodeSplittingGroups, rootedManifest } from '@rooted/application'
 import { githubPagesAdapter } from '@rooted/application/adapters'
 import { generateRouteManifest } from '@rooted/router/manifest'
 import { markdownPlugin } from './plugins/markdown.mjs'
+import { responsiveImages } from './plugins/responsive-images.mjs'
+import { varlockVitePlugin } from '@varlock/vite-integration'
+import { ENV } from 'varlock/env'
 import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -47,6 +50,8 @@ export default rootedManifest({
 	},
 
 	plugins: [
+		varlockVitePlugin(),
+		responsiveImages({ accessKey: ENV.UNSPLASH_ACCESS_KEY }),
 		markdownPlugin(),
 		generateRouteManifest({
 			glob: './src/**/_routes.mts',

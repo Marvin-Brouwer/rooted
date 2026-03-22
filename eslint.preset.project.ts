@@ -9,14 +9,23 @@ export const projectConfig = defineConfig([
 	}),
 	{
 		rules: {
+			// eslint-import-resolver-typescript can't resolve https:// URL import specifiers
+			// (e.g. Vite virtual modules declared via `declare module 'https://...'`).
+			'import-x/no-unresolved': ['error', { ignore: ['^https://'] }],
+		},
+	},
+	{
+		rules: {
 			'@stylistic/indent-binary-ops': ['off'],
 			'@stylistic/indent': ['error', 'tab', { ignoredNodes: ['TSConditionalType', 'TSConditionalType > *'] }],
 			'unicorn/prefer-node-protocol': ['error'],
 			'unicorn/prevent-abbreviations': ['error', {
 				allowList: {
-					dotEnv: true,
-					devHelper: true,
+					'dotEnv': true,
+					'devHelper': true,
 					'dev-helper': true,
+					'vite-env': true,
+					'vite-env.d': true,
 				},
 			}],
 		},
