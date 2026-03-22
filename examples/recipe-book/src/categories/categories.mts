@@ -29,18 +29,22 @@ async function routeSelected(category: CategoryData): Promise<boolean> {
 async function mapCategories(create: ComponentContext['create']) {
 	const categories = await recipeData.listCategories()
 
-	return Promise.all(categories.map(async category => create(Link, {
+	return Promise.all(categories.map(async category => {
+		const selected = await routeSelected(category)
+		return create(Link, {
 		classes: [
 			cssClass(styles.categoryCard),
-			cssClass(styles.selected, await routeSelected(category))
+			cssClass(styles.selected, selected)
 		],
+		ariaCurrent: selected ? 'page' : undefined,
 		href: href.for(CategoryRoute, category),
 		children: [
-			create('div', { classes: styles.categoryName, textContent: category.label }),
+			create('div', { role: 'heading', ariaLevel: '2', classes: styles.categoryName, textContent: category.label }),
 			create('p', {
 				classes: styles.categoryCount,
 				textContent: `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`,
 			}),
 		],
-	})))
+	})
+	}))
 }

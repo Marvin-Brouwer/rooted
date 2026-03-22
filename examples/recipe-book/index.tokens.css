@@ -5,6 +5,7 @@
   --color-primary-inverted:    #2e0808;
   --color-text:       #2c1810;
   --color-text-muted: #7a6359;
+  --color-text-muted-inverted: #ded8d6; /* --color-surface at 75% opacity over --color-text-muted */
   --color-border:     #e8ddd5;
 
   --font-family-base: system-ui, -apple-system, sans-serif;

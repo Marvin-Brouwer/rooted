@@ -19,7 +19,7 @@ export const Recipe = component<RecipeOptions>({
 			create(Link, { href: href.for(CategoriesRoute), classes: styles.backLink, children: '← Browse' }),
 			create('div', {
 				classes: styles.recipeHeader,
-				children: create('h2', { textContent: 'No recipe' })
+				children: create('h1', { textContent: 'No recipe' })
 			}),
 			create('p', { classes: styles.notFound, textContent: 'Recipe not found.' })
 		)
@@ -33,7 +33,7 @@ export const Recipe = component<RecipeOptions>({
 			create('div', {
 				classes: 'recipe-header',
 				children: [
-					create('h2', { textContent: recipe.title }),
+					create('h1', { textContent: recipe.title }),
 					create('ul', {
 						classes: styles.recipeMeta,
 						children: meta(create, recipe)

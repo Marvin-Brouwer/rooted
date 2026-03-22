@@ -9,7 +9,7 @@ export const Hero = component({
 	name: 'page-hero',
 	styles,
 	onMount({ append, create }) {
-		const section = append(create('section', { classes: styles.hero }))
+		const section = append(create('section', { classes: styles.hero, ariaLabel: 'Hero' }))
 
 		section.append(
 			create('img', {

@@ -19,8 +19,7 @@
 }
 
 .tagline-link {
-	color: var(--color-surface);
-	opacity: 0.75;
+	color: var(--color-text-muted-inverted);
 	text-decoration: underline;
 	text-underline-offset: 2px;
 }
@@ -76,8 +75,7 @@
 
 .link,
 .external-link {
-	color: var(--color-surface);
-	opacity: 0.75;
+	color: var(--color-text-muted-inverted);
 	display: block;
 	margin-bottom: 0.5rem;
 	font-size: 0.875rem;
@@ -87,8 +85,15 @@
 
 .link:hover,
 .external-link:hover {
-	opacity: 1;
+	color: var(--color-surface);
 	text-decoration: underline;
+}
+.link:focus-visible,
+.external-link:focus-visible {
+	outline: 2px solid var(--color-surface);
+	outline-offset: 2px;
+	border-radius: 2px;
+	color: var(--color-surface);
 }
 
 /* app-left + app-right collapse into a single column; framework stays on the right */

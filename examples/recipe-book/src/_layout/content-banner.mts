@@ -10,7 +10,7 @@ export const ContentBanner = component({
 	styles,
 	onMount({ append, create }) {
 		const label = create('section', {
-			role: 'alert',
+			role: 'note',
 			classes: styles.screenReaderNotice,
 			children: [
 				create('p', {

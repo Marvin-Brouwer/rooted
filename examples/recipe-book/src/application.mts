@@ -32,6 +32,7 @@ export const Application = component({
 					],
 				}),
 				create('main', {
+					id: 'main-content',
 					children: Router,
 				}),
 				create('footer', {

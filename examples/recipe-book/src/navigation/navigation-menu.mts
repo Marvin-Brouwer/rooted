@@ -10,7 +10,9 @@ export const NavigationMenu = component({
 	name: 'navigation-menu',
 	styles,
 	onMount({ append, create }) {
-		const nav = append(create('nav'))
+		append(create('a', { classes: styles.skipLink, href: '#main-content', textContent: 'Skip to main content' }))
+
+		const nav = append(create('nav', { ariaLabel: 'Main navigation menu' }))
 
 		nav.append(
 			create(Link, { href: href.path('/'), classes: styles.navBrand, children: 'Recipe Book' }),

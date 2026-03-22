@@ -33,6 +33,10 @@ button {
 button:hover {
 	opacity: 0.85;
 }
+button:focus-visible {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
+}
 button[disabled], button[disabled]:hover {
 	background: var(--color-text-muted);
 	border: 1px solid var(--color-text-muted);

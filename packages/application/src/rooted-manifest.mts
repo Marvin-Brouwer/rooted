@@ -138,6 +138,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 					manifestFilename: `${manifest.webManifest.id}.webmanifest`,
 					workbox: {
 						sourcemap: !minify,
+						navigateFallbackDenylist: [/\.\w+$/],
 					},
 					manifest: {
 						name: 'Rooted Template',

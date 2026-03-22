@@ -25,6 +25,7 @@ export const Doormat = component({
 									rel: 'noopener noreferrer',
 									classes: styles.taglineLink,
 									textContent: 'Rooted framework',
+									ariaLabel: 'Rooted framework (opens in new tab)',
 								}),
 								' \u2014 a minimal TypeScript library for native web components.',
 							],
@@ -33,14 +34,14 @@ export const Doormat = component({
 						create('div', {
 							classes: styles.columns,
 							children: [
-								create('p', {
+								create('h4', {
 									classes: [
 										styles.label,
 										styles.applicationLabel,
 									],
 									textContent: 'Application',
 								}),
-								create('p', {
+								create('h4', {
 									classes: [
 										styles.label,
 										styles.frameworkLabel,
@@ -55,6 +56,7 @@ export const Doormat = component({
 											rel: 'noopener noreferrer',
 											classes: styles.externalLink,
 											textContent: 'How it\u2019s made \u2197',
+											ariaLabel: 'How it’s made (opens in new tab)',
 										}),
 										create(Link, {
 											href: href.path('/stats.html'),
@@ -62,6 +64,7 @@ export const Doormat = component({
 											rel: 'noopener noreferrer',
 											classes: styles.externalLink,
 											children: 'Peek at the bundle \u2197',
+											ariaLabel: 'Peek at the bundle (opens in new tab)',
 										}),
 										create(Link, {
 											href: href.for(ContentNoticeRoute),
@@ -98,6 +101,7 @@ export const Doormat = component({
 											rel: 'noopener noreferrer',
 											classes: styles.externalLink,
 											textContent: 'View on GitHub \u2197',
+											ariaLabel: 'View on GitHub (opens in new tab)',
 										}),
 										create('a', {
 											href: 'https://github.com/Marvin-Brouwer/rooted/releases',
@@ -105,6 +109,7 @@ export const Doormat = component({
 											rel: 'noopener noreferrer',
 											classes: styles.externalLink,
 											textContent: 'Releases \u2197',
+											ariaLabel: 'Releases (opens in new tab)',
 										}),
 										create('a', {
 											href: 'https://github.com/Marvin-Brouwer/rooted/issues/new',
@@ -112,6 +117,7 @@ export const Doormat = component({
 											rel: 'noopener noreferrer',
 											classes: styles.externalLink,
 											textContent: 'Report an issue \u2197',
+											ariaLabel: 'Report an issue (opens in new tab)',
 										}),
 									],
 								}),

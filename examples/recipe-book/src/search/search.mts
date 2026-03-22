@@ -9,7 +9,7 @@ export const SearchPage = component({
 	styles,
 	async onMount({ append, create, signal }) {
 		// Wrap all rendered content so we can replace it on re-search without remounting
-		const root = append(create('div'))
+		const root = append(create('div', { ariaLive: 'polite', ariaAtomic: 'true' }))
 		const { recipeData } = await import('../_shared/data/data.mts')
 
 		async function render() {
