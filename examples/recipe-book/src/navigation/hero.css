@@ -63,8 +63,6 @@ form {
 form input {
 	font-size: 1rem;
 	padding: 0.65rem 1rem;
-	border-radius: 6px 0 0 6px;
-	border-right: none;
 	background: var(--color-surface);
 	color: var(--color-text);
 	border-color: transparent;
@@ -73,7 +71,6 @@ form input {
 form button {
 	font-size: 1rem;
 	padding: 0.65rem 1.25rem;
-	border-radius: 0 6px 6px 0;
 }
 
 .photo-credit {
