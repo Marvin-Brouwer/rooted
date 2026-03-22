@@ -5,7 +5,6 @@ nav {
 	padding: 0.875rem 2rem;
 	background: var(--color-surface);
 	border-bottom: 1px solid var(--color-border);
-	margin-bottom: 2rem;
 }
 .nav-brand {
 	font-weight: 700;
