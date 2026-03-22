@@ -36,6 +36,8 @@ export type LinkOptions = {
     href: string | Url | Path;
     classes?: CssClasses;
     children?: string | Node | Node[];
+    target?: string;
+    rel?: string;
 };
 
 // @public

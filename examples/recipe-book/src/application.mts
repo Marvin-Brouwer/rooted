@@ -3,6 +3,7 @@ import { application } from '@rooted/components/application'
 import { router } from '@rooted/router/application'
 
 import { ContentBanner } from './_layout/content-banner.mts'
+import { Doormat } from './_layout/doormat.mts'
 import { appRoutes } from './_routes.g.mts'
 import styles from './application.css'
 import { HomePage } from './navigation/home.mts'
@@ -32,6 +33,9 @@ export const Application = component({
 				}),
 				create('main', {
 					children: Router,
+				}),
+				create('footer', {
+					children: [create(Doormat)],
 				}),
 			],
 		}))

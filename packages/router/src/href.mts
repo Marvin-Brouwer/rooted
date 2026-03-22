@@ -1,5 +1,6 @@
-import type { PathParameterDictionary, Route, RouteParameterDictionary } from './route.mts'
 import { buildPathForRoute } from './href.route.mts'
+
+import type { PathParameterDictionary, Route, RouteParameterDictionary } from './route.mts'
 
 class HrefBase {
 	constructor(
@@ -77,14 +78,20 @@ export class Url extends HrefBase {
 	public get password() { return this.url.password.length === 0 ? undefined : this.url.password }
 }
 
+/** The app base URL set by Vite (e.g. `/my-repo/`). Always ends with `/`. */
+const appBase: string = import.meta.env?.BASE_URL ?? '/'
+const basePath = Path.fromString(appBase)
+
 /** Constructs a {@link Url} from a string. @__PURE__ */
 export function url(href: string) {
 	return Url.fromString(href)
 }
 
 /** Constructs a {@link Path} from a pathname string. @__PURE__ */
-export function path(href: string) {
-	return Path.fromString(href)
+export function path(href: string, includeBasePath = true) {
+	if (!includeBasePath) return Path.fromString(href)
+
+	return join(basePath, Path.fromString(href))
 }
 
 const multiSlashPattern = /\/{2,}/g
@@ -152,9 +159,6 @@ export function forAny(target: Route<any> | URL | Location | Url | Path, diction
 	const routePath = buildPathForRoute(target as Route<any>, dictionary!)
 	return Path.fromString(appBase.length > 1 ? appBase.slice(0, -1) + routePath : routePath)
 }
-
-/** The app base URL set by Vite (e.g. `/my-repo/`). Always ends with `/`. */
-const appBase: string = (import.meta as Record<string, any>).env?.BASE_URL ?? '/'
 
 /** Returns a {@link Path} representing the current `location.pathname`, with the app base stripped. @__PURE__ */
 export function current() {

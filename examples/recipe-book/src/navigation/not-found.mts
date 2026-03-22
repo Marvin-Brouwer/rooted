@@ -22,7 +22,7 @@ export const NotFoundPage = component({
 						],
 					}),
 					create(Link, {
-						href: href.path(import.meta.env.BASE_URL),
+						href: href.path('/'),
 						classes: styles.homeLink,
 						children: '← Back to Home',
 					}),
