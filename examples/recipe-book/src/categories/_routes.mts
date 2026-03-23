@@ -24,7 +24,7 @@ export const CategoryRoute = route`/${CategoriesRoute}/${token('slug', String)}/
 		const { Categories } = await import('./categories.mts')
 
 		const found = await filterCategory(tokens.slug)
-		if (!found) return undefined
+		if (!found) return
 
 		return create(Categories)
 	},

@@ -1,6 +1,6 @@
 import { devHelper } from './dev-helper.mts'
 import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.mts'
-import { routeMetaData, type RouteMetadata, isRoute } from './route.metadata.mts'
+import { routeMetadata, type RouteMetadata, isRoute } from './route.metadata.mts'
 import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter } from './route.tokens.mts'
 
 import type { create } from '@rooted/components/elements'
@@ -46,12 +46,12 @@ export type PathParameterDictionary<T extends readonly RouteParameter[]> = Conve
 type RecursionCounter = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10>
 	= D extends 0
-	? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
-	: [TRoute[typeof routeMetaData]['parentType']] extends [never]
-	? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
-	: TRoute[typeof routeMetaData]['parentType'] extends Route<any>
-	? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetaData]['parentType'], RecursionCounter[D]>
-	: Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>
+	? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>>
+	: [TRoute[typeof routeMetadata]['parentType']] extends [never]
+	? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>>
+	: TRoute[typeof routeMetadata]['parentType'] extends Route<any>
+	? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetadata]['parentType'], RecursionCounter[D]>
+	: Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>>
 
 /**
  * A function that resolves the element to render for a matched route.
@@ -99,7 +99,8 @@ export type RouteParameters<T extends Parameter[]> = {
 
 export type Route<T extends RouteParameters<Parameter[]>> = {
 	/** @internal Internal metadata bag — use {@link isRoute} to identify routes; do not access directly. */
-	readonly [routeMetaData]: RouteMetadata<T>
+	readonly [routeMetadata]: RouteMetadata<T>
+	getMetadata(): Readonly<RouteMetadata<T>>
 	/**
 	 * Resolves the element to render when this route is the best match.
 	 *
@@ -122,6 +123,27 @@ export type Route<T extends RouteParameters<Parameter[]>> = {
 	 * @see {@link RouteMatch}
 	 */
 	match(options?: MatchRouteOptions): Promise<RouteMatch<Route<T>>>
+}
+
+function computeStaticRoute(strings: TemplateStringsArray, values: readonly RouteParameter[]): false | string {
+	if (values.length === 0) {
+		return strings[0] // no gaps — strings[0] is the entire path
+	}
+
+	// Fail fast: if parent route is dynamic, this route can't be static either
+	const parent = isRoute(values[0]) ? values[0] : undefined
+	const parentStatic = parent?.[routeMetadata].staticRoute
+	if (parent && parentStatic === false) return false
+
+	// Any parameter tokens → dynamic
+	if (values.some(v => isParameterToken(v))) return false
+
+	if (!parent) return strings[0]
+
+	// Replicate the slash-stripping zipTemplateParts does around a parent route
+	const prefix = strings[0].endsWith('/') ? strings[0].slice(0, -1) : strings[0]
+	const suffix = strings[1]?.startsWith('/') ? strings[1].slice(1) : (strings[1] ?? '')
+	return prefix + (parentStatic as string) + suffix
 }
 
 function reconstructPattern(strings: TemplateStringsArray, values: readonly RouteParameter[]): string {
@@ -268,13 +290,15 @@ export function route<const T extends RouteParameter[]>(
 		const match = routeMatcher<T>(routeParts)
 
 		return {
-			[routeMetaData]: {
+			[routeMetadata]: {
 				tokenTypes: values.filter(value => !isParameterToken(value)) as FilterOutParent<T>,
 				parentType: parent as T extends { parent: infer P extends Route<any> } ? P : never,
 				hasParameterTokens: values.length > 0,
 				hasWildcard,
 				routeParts,
+				get staticRoute() { return computeStaticRoute(strings, values) },
 			} satisfies RouteMetadata<any>,
+			getMetadata() { return this[routeMetadata] },
 			resolve,
 			match,
 		}
@@ -282,14 +306,16 @@ export function route<const T extends RouteParameter[]>(
 }
 
 const errorRoute_ = (({ resolve }: { resolve: RouteResolver<any> }) => ({
-	[routeMetaData]: {
+	[routeMetadata]: {
 		tokenTypes: [] as unknown as FilterOutParent<any>,
 		parentType: undefined as never,
 		hasParameterTokens: false,
 		hasWildcard: false,
 		hasErrors: true,
 		routeParts: [],
+		staticRoute: false,
 	} satisfies RouteMetadata<any>,
+	getMetadata() { return this[routeMetadata] },
 	resolve,
 	match: () => ({ success: false }),
 })) as unknown as RouteBuilder<any>

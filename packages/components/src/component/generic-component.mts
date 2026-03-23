@@ -76,6 +76,7 @@ export class GenericComponent extends RootedElement {
 		const { component, options } = data
 
 		if (isDevelopment()) this.setAttribute('r-component', component.name)
+		this.setAttribute('role', 'none')
 
 		applyContentStyleFallback(this)
 		applyScope(this, component.styles)

@@ -48,7 +48,7 @@
 			"types": "./dist/css-loader.d.mts"
 		},
 		"./css-loader/styles": {
-			"types": "./plugin/styles.d.ts"
+			"types": "./plugins/styles.d.ts"
 		}
 	},
 	"scripts": {

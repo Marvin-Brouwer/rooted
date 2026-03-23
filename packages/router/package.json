@@ -33,18 +33,22 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/router.mts",
 			"import": "./dist/router.mjs",
 			"types": "./dist/router.d.mts"
 		},
 		"./application": {
+			"source": "./src/_module/application.mts",
 			"import": "./dist/application.mjs",
 			"types": "./dist/application.d.mts"
 		},
 		"./routes": {
-			"import": "./dist/application.mjs",
-			"types": "./dist/application.d.mts"
+			"source": "./src/_module/routes.mts",
+			"import": "./dist/routes.mjs",
+			"types": "./dist/routes.d.mts"
 		},
 		"./manifest": {
+			"source": "./plugins/_module/manifest.mts",
 			"import": "./dist/manifest.mjs",
 			"types": "./dist/manifest.d.mts"
 		}
@@ -60,6 +64,7 @@
 	"dependencies": {
 		"@rooted/util": "workspace:^",
 		"@rooted/components": "workspace:^",
+		"jiti": "^2.0.0",
 		"tinyglobby": "^0.2.0"
 	},
 	"peerDependencies": {

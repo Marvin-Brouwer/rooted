@@ -17,6 +17,13 @@ export type LinkOptions = {
 	 * Pass a plain string, a single DOM {@link Node}, or an array of nodes.
 	 */
 	children?: string | Node | Node[]
+	/**
+	 * Maps to the `<a>` element's `target` attribute.
+	 * When set, SPA navigation is skipped and the browser handles the link natively.
+	 */
+	target?: string
+	/** Maps to the `<a>` element's `rel` attribute. */
+	rel?: string
 }
 
 /**
@@ -68,15 +75,19 @@ export const Link = component<LinkOptions>({
 			navigate(stringHref)
 		}
 
-		append(
+		const anchor = append(
 			create('a', {
 				href: stringHref,
 				children: typeof options.children === 'string'
 					? document.createTextNode(options.children)
 					: options.children,
 				classes: options.classes,
+				target: options.target,
+				rel: options.rel,
 			}),
 		)
-			.addEventListener('click', navigateToHref, { signal })
+
+		if (!options.target)
+			anchor.addEventListener('click', navigateToHref, { signal })
 	},
 })

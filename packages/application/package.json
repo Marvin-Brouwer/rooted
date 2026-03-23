@@ -1,0 +1,73 @@
+{
+	"name": "@rooted/application",
+	"version": "1.0.0-alpha.0",
+	"description": "rooted — application configuration and adapters",
+	"keywords": [
+		"web-components",
+		"typescript",
+		"rooted"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "packages/application"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
+	"sideEffects": false,
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
+	"files": [
+		"dist",
+		"src/_module/tsconfig.project.json",
+		"readme.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"exports": {
+		".": {
+			"import": "./dist/application.mjs",
+			"types": "./dist/application.d.mjs"
+		},
+		"./adapters": {
+			"import": "./dist/adapters.mjs",
+			"types": "./dist/adapters.d.mjs"
+		},
+		"./tsconfig": "./src/_module/tsconfig.project.json"
+	},
+	"peerDependencies": {
+		"@rooted/components": "workspace:^",
+		"vite": ">= 8.0.1",
+		"vite-bundle-analyzer": ">=  1.3.6",
+		"vite-plugin-pwa": ">= 1.2.0"
+	},
+	"dependencies": {
+		"@rooted/components": "workspace:^",
+		"@vite-pwa/assets-generator": "^1.0.0",
+		"tinyglobby": "^0.2.0",
+		"vite": "^8.0.1",
+		"vite-bundle-analyzer": "^1.3.6",
+		"vite-plugin-pwa": "^1.2.0"
+	},
+	"scripts": {
+		"build": "pnpm build:ci",
+		"build:dev": "pnpm build:ci && rooted-development extract-api",
+		"build:ci": "tsup",
+		"watch": "tsup --watch --no-clean & rooted-development extract-api",
+		"clean": "rm -rf dist",
+		"extract-api": "rooted-development extract-api"
+	},
+	"devDependencies": {
+		"@rooted/development": "workspace:*",
+		"@rooted/router": "workspace:^",
+		"@rooted/tsup": "workspace:^",
+		"@types/node": "^25.5.0",
+		"tsx": "^4.19.0",
+		"typescript": "^5.5.0"
+	}
+}

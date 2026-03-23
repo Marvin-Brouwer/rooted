@@ -2,9 +2,11 @@
 	"extends": "../../tsconfig.lib.json",
 	"compilerOptions": {
 		"outDir": "./dist",
-		"rootDir": "./src"
+		"rootDir": ".",
+		"types": ["vite/client"]
 	},
 	"include": [
-		"src"
+		"src",
+		"plugins"
 	]
 }

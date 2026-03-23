@@ -1,6 +1,6 @@
 import { tupleResult } from '@rooted/util'
 
-import { isRoute, routeMetaData } from './route.metadata.mts'
+import { isRoute, routeMetadata } from './route.metadata.mts'
 import * as tokens from './route.tokens.mts'
 
 import type { Route, RouteParameterDictionary } from './route.mts'
@@ -16,7 +16,7 @@ export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, para
 	function buildUrl() {
 		let url = ''
 
-		for (const part of route[routeMetaData].routeParts) {
+		for (const part of route[routeMetadata].routeParts) {
 			if (isRoute(part)) {
 				url += buildPathForRoute(part, parameters as RouteParameterDictionary<typeof part>)
 				continue

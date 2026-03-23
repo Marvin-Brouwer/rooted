@@ -22,23 +22,17 @@ export const lintJs = defineConfig([
 const tsFiles = ['**/*.{ts,mts,cts,tsx}']
 
 export const lintTs = defineConfig([
-	// eslint-disable-next-line import/no-named-as-default-member
+	// eslint-disable-next-line import-x/no-named-as-default-member
 	...tseslint.configs.recommendedTypeChecked.map(config => ({ ...config, files: tsFiles })),
 	{
 		plugins: {
-			// eslint-disable-next-line import/no-named-as-default-member
+			// eslint-disable-next-line import-x/no-named-as-default-member
 			'@typescript-eslint': tseslint.plugin,
 		},
 		files: tsFiles,
 		languageOptions: {
 			parserOptions: {
-				project: [
-					'./packages/*/tsconfig.json',
-					'./packages/*/tsconfig.plugin.json',
-					'./tooling/*/tsconfig.json',
-					'./tsconfig.test.json',
-					'./tsconfig.config.json',
-				],
+				projectService: true,
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},

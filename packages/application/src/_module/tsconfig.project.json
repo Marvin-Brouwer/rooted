@@ -1,0 +1,29 @@
+/**
+ * Simple TSCONFIG for a basic @rooted/project driven application.
+ */
+{
+	"compilerOptions": {
+		// High es version
+		"target": "ES2020",
+		"module": "ESNext",
+		"lib": [
+			"ES2024",
+			// We use the dom
+			"DOM",
+			"DOM.Iterable"
+		],
+		// Setup for bundler (vite)
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"outDir": "dist",
+		// Stylistic choices
+		"alwaysStrict": true,
+		"useDefineForClassFields": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"allowImportingTsExtensions": true
+	}
+}

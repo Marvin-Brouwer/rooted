@@ -1,23 +1,22 @@
-import styles from './search-bar.css'
-
-import { navigate } from '@rooted/router'
 import { component } from '@rooted/components'
+import { navigate } from '@rooted/router'
+
+import styles from './search-bar.css'
 
 export const SearchBar = component({
 	name: 'search-bar',
 	styles,
 	onMount({ append, create, signal }) {
-
 		const input = create('input', {
 			type: 'search',
 			name: 'query',
 			placeholder: 'Search recipes…',
-			ariaLabel: 'Search recipes'
+			ariaLabel: 'Search recipes',
 		})
 
 		const submit = create('button', {
 			type: 'submit',
-			textContent: 'Search'
+			textContent: 'Search',
 		})
 
 		function validateInput() {
@@ -25,20 +24,19 @@ export const SearchBar = component({
 		}
 		input.addEventListener('input', validateInput, { signal })
 
-
 		append(
-			create('form', { children: [input, submit] })
+			create('form', { children: [input, submit] }),
 		)
 			.addEventListener('submit', submitQuery, { signal })
 
 		// Keep the search bar in sync with the URL: show the active query on the search page,
 		// clear it everywhere else
 		const syncInput = () => {
-			const match = window.location.pathname.match(/^\/search\/(.+)\/$/)
+			const match = globalThis.location.pathname.match(/^\/search\/(.+)\/$/)
 			input.value = match ? decodeURIComponent(match[1]) : ''
 			validateInput()
 		}
-		window.addEventListener('popstate', syncInput, { signal })
+		globalThis.addEventListener('popstate', syncInput, { signal })
 		syncInput()
 	},
 })

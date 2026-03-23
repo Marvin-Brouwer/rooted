@@ -23,5 +23,9 @@ h1 { margin: 0 0 0.25rem; font-size: 1.75rem; }
 	box-shadow: 0 4px 16px rgba(0,0,0,0.1);
 	transform: translateY(-2px);
 }
+.category-card:focus-visible {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
+}
 .category-name { font-size: 1.2rem; font-weight: 600; margin: 0 0 0.3rem; }
 .category-count { color: var(--color-text-muted); font-size: 0.9rem; margin: 0; }

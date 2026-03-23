@@ -2,11 +2,24 @@ import { createHash } from 'node:crypto'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, relative, dirname } from 'node:path'
 
+import { createJiti } from 'jiti'
 import { glob } from 'tinyglobby'
 
-import packageJson from '../../package.json' with { type: 'json' }
+import packageJson from '../package.json' with { type: 'json' }
 
+import type { Route } from '../src/route.mts'
 import type { Plugin, ResolvedConfig } from 'vite'
+
+/**
+ * Public API exposed on the plugin object for inter-plugin communication.
+ * Other plugins (e.g. adapters) can read `routes` after `buildStart` completes.
+ */
+export type RouteManifestApi = {
+	routes: Route<any>[]
+	routeManifestPath: string
+	/** Maps each route object to the absolute path of the `_routes.mts` file it was defined in. */
+	routeSourceFiles: Map<Route<any>, string>
+}
 
 const pluginName = 'vite-plugin:generate-rooted-route-manifest'
 
@@ -27,7 +40,7 @@ type Options = {
 	 *
 	 * @example `'./src/_routes.g.mts'`
 	 */
-	root: string
+	routeManifestPath: string
 	/**
 	 * Export name for the generated manifest
 	 *
@@ -74,13 +87,16 @@ type Options = {
  * @see {@link router}
  * @see {@link route}
  */
-export function generateRouteManifest(options: Options): Plugin {
+export function generateRouteManifest(options: Options): Plugin<RouteManifestApi> {
 	let config: ResolvedConfig
+	const api: RouteManifestApi = { routes: [], routeManifestPath: options.routeManifestPath, routeSourceFiles: new Map() }
 
 	async function generate() {
 		const files = (await glob(options.glob, { cwd: config.root, absolute: false })).toSorted()
-		const rootPath = resolve(config.root, options.root)
+		const rootPath = resolve(config.root, options.routeManifestPath)
 		const rootDir = dirname(rootPath)
+
+		api.routeManifestPath = rootPath
 
 		const globForComment = options.glob.replaceAll('*', '∗')
 
@@ -149,13 +165,30 @@ export function generateRouteManifest(options: Options): Plugin {
 		const originalManifest = await readExistingManifest(rootPath)
 		if (originalManifest === generatedManifest) {
 			console.debug('Code change did not require manifest update.')
-			return
 		}
-		await writeFile(rootPath, generatedManifest, 'utf-8')
+		else {
+			await writeFile(rootPath, generatedManifest, 'utf-8')
+		}
+
+		// Load the written manifest via JITI to populate the shared route registry
+		const jiti = createJiti(config.root)
+		const module_ = await jiti.import(rootPath) as any
+		const exported = module_[options.routeExport ?? 'appRoutes']
+		if (exported && typeof exported === 'object') {
+			api.routes = Object.values(exported)
+			api.routeSourceFiles = new Map()
+			for (const [key, route] of Object.entries(exported)) {
+				// Key format: R{8-char-fileId}_{exportName} — extract the fileId to find the source file
+				const fileId = key.slice(1, 9)
+				const sourceFile = files.find(f => getFileId(f) === fileId)
+				if (sourceFile) api.routeSourceFiles.set(route as Route<any>, resolve(config.root, sourceFile))
+			}
+		}
 	}
 
 	return {
 		name: pluginName,
+		api,
 
 		configResolved(resolved) { config = resolved },
 
@@ -167,7 +200,7 @@ export function generateRouteManifest(options: Options): Plugin {
 				const matched = await glob(options.glob, { cwd: config.root })
 				if (!matched.includes(rel) && !filePath.endsWith('/_gate.mts')) return
 				await generate()
-				const rootPath = resolve(config.root, options.root)
+				const rootPath = resolve(config.root, options.routeManifestPath)
 				const module_ = server.moduleGraph.getModuleById(rootPath)
 				if (module_) server.moduleGraph.invalidateModule(module_)
 				server.hot.send({ type: 'full-reload' })

@@ -1,13 +1,14 @@
-import styles from './application.css'
-
-import { application } from '@rooted/components/application'
 import { component } from '@rooted/components'
+import { application } from '@rooted/components/application'
 import { router } from '@rooted/router/application'
 
+import { ContentBanner } from './_layout/content-banner.mts'
+import { Doormat } from './_layout/doormat.mts'
 import { appRoutes } from './_routes.g.mts'
+import styles from './application.css'
 import { HomePage } from './navigation/home.mts'
-import { NotFoundPage } from './navigation/not-found.mts'
 import { NavigationMenu } from './navigation/navigation-menu.mts'
+import { NotFoundPage } from './navigation/not-found.mts'
 
 const Router = router({
 	home: HomePage,
@@ -23,9 +24,19 @@ export const Application = component({
 		append(create('div', {
 			id: 'app',
 			children: [
-				create(NavigationMenu),
+				create('header', {
+					classes: styles.stickyHeader,
+					children: [
+						create(NavigationMenu),
+						create(ContentBanner),
+					],
+				}),
 				create('main', {
+					id: 'main-content',
 					children: Router,
+				}),
+				create('footer', {
+					children: [create(Doormat)],
 				}),
 			],
 		}))

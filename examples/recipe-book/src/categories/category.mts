@@ -1,9 +1,10 @@
-import styles from './category.css'
-
 import { component } from '@rooted/components'
 import { Link, href } from '@rooted/router'
-import { RecipeRoute } from '../recipes/_routes.mts'
+
 import { recipeData } from '../_shared/data/data.mts'
+import { RecipeRoute } from '../recipes/_routes.mts'
+
+import styles from './category.css'
 
 export type CategoryOptions = {
 	slug: string
@@ -25,11 +26,11 @@ export const Category = component<CategoryOptions>({
 					create('h1', { textContent: categoryname }),
 					create('p', {
 						textContent: category
-							? `${category.recipes.length} recipe${category.recipes.length !== 1 ? 's' : ''}`
+							? `${category.recipes.length} recipe${category.recipes.length === 1 ? '' : 's'}`
 							: `Category '${categoryname}' not found`,
-					})
-				]
-			})
+					}),
+				],
+			}),
 		)
 
 		if (category) {
@@ -52,7 +53,6 @@ export const Category = component<CategoryOptions>({
 		append(create('hr', { classes: 'divider' }))
 	},
 })
-
 
 export async function filterCategory(slug: string) {
 	const category = await recipeData.findCategoryBySlug(slug)

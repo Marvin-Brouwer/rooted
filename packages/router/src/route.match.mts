@@ -92,7 +92,7 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 	}
 
 	function getPath(target?: MatchRouteOptions['target']) {
-		if (typeof target === 'string') return href.path(target)
+		if (typeof target === 'string') return href.path(target, false)
 		if (target instanceof href.Path) return target
 		if (target instanceof href.Url) return target.path
 		if (target instanceof URL) return href.forAny(target).path
