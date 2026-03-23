@@ -14,6 +14,7 @@ const DEFAULT_ICON_PATH = 'public/icon.svg'
  * which produces:
  * - `pwa-64x64.png`, `pwa-192x192.png`, `pwa-512x512.png` (transparent)
  * - `maskable-icon-512x512.png` (maskable)
+ * - `apple-touch-icon-180x180.png` (Apple)
  *
  * Assets are written to `public/` and are skipped when they already exist on
  * disk (`overrideAssets: false`).
@@ -54,7 +55,6 @@ export function pwaAssetsPlugin(skip: boolean): Plugin {
 					...minimal2023Preset.transparent,
 					favicons: [],
 				},
-				apple: { sizes: [] },
 			}
 
 			const inst = await instructions({
