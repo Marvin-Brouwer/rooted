@@ -11,8 +11,8 @@ type WritableKeys<T> = { [P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -reado
 
 type RootedElementProperties<TComponent extends RootedElement> = Pick<TComponent, WritableKeys<TComponent> & Exclude<keyof TComponent, 'children' | 'className' | 'classList' | keyof RootedElement>>
 
-type HtmlElementProperties<TElement extends HTMLElement> = Partial<Pick<TElement, WritableKeys<TElement> & Exclude<keyof TElement, 'children' | 'className' | 'classList'>>> & {
-	children?: Array<Node> | Node
+type HtmlElementProperties<TElement extends HTMLElement> = Partial<Pick<TElement, WritableKeys<TElement> & Exclude<keyof TElement, 'children' | 'className' | 'classList'>>> & Partial<ARIAMixin> & {
+	children?: Array<Node | string> | Node | string
 	classes?: CssClasses
 }
 

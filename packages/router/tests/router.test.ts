@@ -13,7 +13,7 @@ vi.mock('@rooted/components/elements', () => ({
 vi.mock('../src/dev-helper.mts', () => ({ devHelper: {} }))
 
 import { path } from '../src/href.mts'
-import { routeMetaData, isRoute } from '../src/route.metadata.mts'
+import { routeMetadata, isRoute } from '../src/route.metadata.mts'
 import { route } from '../src/route.mts'
 import { token, wildcard } from '../src/route.tokens.mts'
 
@@ -54,8 +54,8 @@ async function selectRoute(routes: Route<any>[], targetPath: string) {
 		}
 		if (
 			r.match.length === best.match.length
-			&& !r.route[routeMetaData].hasWildcard
-			&& best.route[routeMetaData].hasWildcard
+			&& !r.route[routeMetadata].hasWildcard
+			&& best.route[routeMetadata].hasWildcard
 		) {
 			best = r as typeof best
 		}
@@ -115,17 +115,17 @@ describe('RouterCompatibleRoute type', () => {
 
 	test('routes have the routeMetaData symbol', () => {
 		const r = route`/test/${token('id', Number)}/`({ resolve: () => Promise.resolve(void 0) })
-		expect(r[routeMetaData]).toBeDefined()
-		expect(r[routeMetaData].hasParameterTokens).toBe(true)
+		expect(r[routeMetadata]).toBeDefined()
+		expect(r[routeMetadata].hasParameterTokens).toBe(true)
 	})
 
 	test('wildcard route is flagged correctly', () => {
 		const r = route`/search/${wildcard()}/`({ resolve: () => Promise.resolve(void 0) })
-		expect(r[routeMetaData].hasWildcard).toBe(true)
+		expect(r[routeMetadata].hasWildcard).toBe(true)
 	})
 
 	test('non-wildcard route is flagged correctly', () => {
 		const r = route`/articles/`({ resolve: () => Promise.resolve(void 0) })
-		expect(r[routeMetaData].hasWildcard).toBe(false)
+		expect(r[routeMetadata].hasWildcard).toBe(false)
 	})
 })

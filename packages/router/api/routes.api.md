@@ -30,7 +30,8 @@ export type ParameterType = NumberConstructor | StringConstructor | BooleanConst
 
 // @public (undocumented)
 export type Route<T extends RouteParameters<Parameter[]>> = {
-    readonly [routeMetaData]: RouteMetadata<T>;
+    readonly [routeMetadata]: RouteMetadata<T>;
+    getMetadata(): Readonly<RouteMetadata<T>>;
     readonly resolve: RouteResolver<T['parameters']>;
     match(options?: MatchRouteOptions): Promise<RouteMatch<Route<T>>>;
 };
@@ -57,11 +58,27 @@ export type RouteMatch<T extends Route<any>> = {
     success: false;
 };
 
+// @public
+export type RouteMetadata<T extends {
+    parameters: any;
+    parent?: any;
+}> = {
+    readonly tokenTypes: T['parameters'];
+    readonly parentType: T extends {
+        parent: infer P;
+    } ? P : never;
+    readonly hasParameterTokens: boolean;
+    readonly hasWildcard: boolean;
+    readonly hasErrors?: true;
+    readonly routeParts: Array<string | RouteParameter>;
+    readonly staticRoute: false | string;
+};
+
 // @public (undocumented)
 export type RouteParameter = Parameter | Route<any>;
 
 // @public (undocumented)
-export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10> = D extends 0 ? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>> : [TRoute[typeof routeMetaData]['parentType']] extends [never] ? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>> : TRoute[typeof routeMetaData]['parentType'] extends Route<any> ? Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetaData]['parentType'], RecursionCounter[D]> : Required<ConvertPathParameters<TRoute[typeof routeMetaData]['tokenTypes']>>;
+export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10> = D extends 0 ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> : [TRoute[typeof routeMetadata]['parentType']] extends [never] ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> : TRoute[typeof routeMetadata]['parentType'] extends Route<any> ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetadata]['parentType'], RecursionCounter[D]> : Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>>;
 
 // @public
 export function token<K extends string = string, T extends ParameterType = ParameterType>(name: K, type: T): Parameter<K, ParameterToTokenType<T>>;

@@ -19,7 +19,7 @@ export default defineConfig([
 		plugins: [inheritdocPlugin(), dedupeSourcemapsPlugin()],
 	},
 	{
-		entry: ['plugin/css-loader.mts'],
+		entry: ['plugins/_module/*.mts'],
 		format: ['esm'],
 		platform: 'node',
 		treeshake: { moduleSideEffects: 'no-external' },

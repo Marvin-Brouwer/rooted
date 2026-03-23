@@ -1,13 +1,15 @@
-import { defineConfig, normalizePath } from 'vite'
-import { VitePWA } from 'vite-plugin-pwa'
+import { normalizePath } from 'vite'
+import { CodeSplittingGroups, rootedManifest } from '@rooted/application'
+import { githubPagesAdapter } from '@rooted/application/adapters'
 import { generateRouteManifest } from '@rooted/router/manifest'
-import { cssLoader } from '@rooted/components/css-loader'
-import matter from 'gray-matter'
-import { marked } from 'marked'
-import type { Plugin } from 'vite'
-import { analyzer } from 'vite-bundle-analyzer'
+import { markdownPlugin } from './plugins/markdown.mjs'
+import { responsiveImages } from './plugins/responsive-images.mjs'
+import { varlockVitePlugin } from '@varlock/vite-integration'
+import { ENV } from 'varlock/env'
 import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+import packageJson from './package.json' with { type: 'json' }
 
 const rootedDir = normalizePath(path.join(dirname(fileURLToPath(import.meta.resolve('@rooted/router'))), '../../'))
 
@@ -22,117 +24,47 @@ const rootedAliases = [
 	{ find: /^@rooted\/([^/]+)$/, replacement: `${rootedDir}/$1/dist/$1.mjs` },
 ]
 
-const mangle = !process.argv.includes('--no-mangle')
-const manualChunks = (id: string) => {
-	// Just make all markdown a separate chunk
-	if (id.endsWith('.md')) return 'content/' + path.basename(id)
-
-	// Chunk shared if not imported correctly
-	if (id.includes('_shared/')) return 'shared/' + path.basename(id)
-
-	// TODO We will create some tooling later where this will be placed
-	if (id.startsWith('@rooted')) return 'vendor/@rooted'
-
-	// In monorepo, forward aliases rewrite @rooted/* to rootedDir source paths
-	if (id.startsWith(rootedDir)) return 'vendor/@rooted'
-}
-/**
- * Transforms `.md` files into plain JS modules at build time (Node.js context).
- * Frontmatter becomes enumerable properties; the markdown body becomes `html`.
- * No Node-specific APIs (Buffer, fs, …) reach the browser bundle.
- */
-function markdownPlugin(): Plugin {
-	return {
-		name: 'vite-plugin:markdown',
-		transform(code, id) {
-			if (!id.endsWith('.md')) return null
-			const { data, content } = matter(code)
-			const html = marked(content) as string
-			return {
-				code: `export default ${JSON.stringify({ ...data, html })}`,
-				map: null,
-			}
-		},
-	}
-}
-
-const appId = 'rooted-recipe-book'
-export default defineConfig({
-	appType: 'spa',
-	resolve: {
-		alias: rootedAliases,
+const codeSplittingGroups: CodeSplittingGroups = [
+	// Just make all markdown a separate chunk,
+	// This is to illustrate it's not a part of the application bundle
+	{
+		name: 'content',
+		entriesAware: false,
+		test: (id) => id.endsWith('.md')
 	},
-	dev: {
-		sourcemap: true
+
+	// In MONOREPO, chunk rootedDir source paths as if they were @rooted/*
+	{ name: 'vendor/@rooted', test: (id) => id.startsWith(rootedDir) },
+]
+
+export default rootedManifest({
+	webManifest: {
+		id: 'rooted-recipe-book',
+		url: packageJson.homepage,
+		name: 'Rooted Recipe Book',
+		short_name: 'Recipe Book',
+		description: 'A vertical-slice example app for @rooted/components',
+		theme_color: '#ffffff',
+		background_color: '#faf7f2',
+		display: 'standalone',
 	},
-	build: {
-		rollupOptions: {
-			treeshake: 'smallest',
-			output: {
-				manualChunks,
-				...(mangle && {
-					entryFileNames: '[hash].js',
-					chunkFileNames: '[hash].js',
-					assetFileNames: '[hash][extname]',
-				})
-			}
-		},
-		target: 'esnext',
-		cssMinify: 'esbuild',
-		minify: 'terser',
-	},
-	esbuild: {
-		sourcemap: 'external',
-		minifyWhitespace: process.argv.includes('--minify'),
-		treeShaking: true,
-	},
+
 	plugins: [
+		varlockVitePlugin(),
+		responsiveImages({ accessKey: ENV.UNSPLASH_ACCESS_KEY }),
 		markdownPlugin(),
 		generateRouteManifest({
 			glob: './src/**/_routes.mts',
-			root: './src/_routes.g.mts',
+			routeManifestPath: './src/_routes.g.mts',
 		}),
-		cssLoader({
-			minify: process.argv.includes('--minify')
-		}),
-		analyzer(process.argv.includes('--analyze') ? {
-			analyzerMode: 'server',
-			openAnalyzer: true
-		} : {
-			analyzerMode: 'static'
-		}) as unknown as Plugin,
-		VitePWA({
-			disable: process.argv.includes('--no-pwa'),
-			registerType: 'autoUpdate',
-			filename: `worker.js`,
-			minify: process.argv.includes('--minify'),
-			manifestFilename: `${appId}.webmanifest`,
-			workbox: {
-				sourcemap: !process.argv.includes('--minify'),
-			},
-			manifest: {
-				id: appId,
-				name: 'Rooted Recipe Book',
-				short_name: 'Recipe Book',
-				description: 'A vertical-slice example app for @rooted/components',
-				theme_color: '#ffffff',
-				background_color: '#faf7f2',
-				display: 'standalone',
-				// TODO generate based on svg using svgo
-				icons: [
-					{
-						src: 'pwa-192x192.png',
-						sizes: '192x192',
-						type: 'image/png',
-					},
-					{
-						src: 'pwa-512x512.png',
-						sizes: '512x512',
-						type: 'image/png',
-					},
-				],
-			},
-		}),
+		githubPagesAdapter(),
 	],
-})
+	codeSplitting: {
+		groups: codeSplittingGroups
+	},
 
+	// In MONOREPO, forward aliases @rooted/* to rootedDir source paths
+	resolve: {
+		alias: rootedAliases,
+	},
+})

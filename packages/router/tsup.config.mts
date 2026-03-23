@@ -10,7 +10,7 @@ if (!process.argv.includes('--watch')) {
 
 export default defineConfig([
 	{
-		entry: ['src/_module/*.mts', '!src/_module/manifest.mts'],
+		entry: ['src/_module/*.mts'],
 		format: ['esm'],
 		platform: 'browser',
 		treeshake: { moduleSideEffects: 'no-external' },
@@ -19,11 +19,11 @@ export default defineConfig([
 		plugins: [dedupeSourcemapsPlugin()],
 	},
 	{
-		entry: ['src/_module/manifest.mts'],
+		entry: ['plugins/_module/*.mts'],
 		format: ['esm'],
 		platform: 'node',
 		treeshake: { moduleSideEffects: 'no-external' },
-		tsconfig: 'tsconfig.plugin.json',
+		tsconfig: 'tsconfig.json',
 		dts: true,
 		sourcemap: 'inline',
 		plugins: [dedupeSourcemapsPlugin()],

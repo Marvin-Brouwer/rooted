@@ -1,0 +1,42 @@
+name: Demo app — copyright concern
+description: Report content in the Recipe Book demo app that you believe reproduces copyrighted material
+labels: [demo-content, copyright]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > **Before opening this issue, please contact [Anthropic support](https://support.anthropic.com) first.**
+        > Reporting to Anthropic allows the underlying model behaviour to be reviewed and corrected at its source.
+        > You will need your Anthropic support ticket number to complete this form.
+
+  - type: input
+    id: recipe
+    attributes:
+      label: Recipe or page
+      description: Name and/or URL of the recipe or page where the content appears.
+      placeholder: e.g. Pasta Carbonara — /recipes/pasta-carbonara
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the claimed copyrighted content
+      description: Describe the content you believe is copyrighted and, if possible, provide a reference to the original source.
+    validations:
+      required: true
+
+  - type: input
+    id: anthropic-ticket
+    attributes:
+      label: Anthropic support ticket
+      description: Your Anthropic support ticket number or a link to your support request. This field is required — please contact Anthropic support before opening this issue.
+      placeholder: e.g. #123456 or https://support.anthropic.com/...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any other information that may be relevant to this report.

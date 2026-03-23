@@ -1,0 +1,128 @@
+.doormat {
+	background: var(--color-text-muted);
+	border-top: 1px solid #3d2820;
+	padding: 3rem 0 2rem;
+	margin-top: 4rem;
+}
+
+.inner {
+	max-width: 900px;
+	margin: 0 auto;
+	padding: 0 2rem;
+}
+
+.tagline {
+	color: var(--color-surface);
+	font-size: 0.9rem;
+	line-height: 1.7;
+	margin: 0 0 1.5rem;
+}
+
+.tagline-link {
+	color: var(--color-text-muted-inverted);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.rule {
+	border: none;
+	border-top: 1px solid color-mix(in srgb, var(--color-surface) 55%, transparent);
+	margin: 0 0 2rem;
+}
+
+.columns {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-areas:
+		"application-label  application-label  framework-label"
+		"app-left           app-right          framework-links";
+	column-gap: 2rem;
+	row-gap: 0.75rem;
+}
+
+.label {
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	color: var(--color-primary-inverted);
+	font-weight: 700;
+	margin: 0;
+}
+
+.application-label {
+	grid-area: application-label;
+}
+
+.framework-label {
+	grid-area: framework-label;
+	border-left: 1px solid color-mix(in srgb, var(--color-surface) 55%, transparent);
+	padding-left: 2rem;
+}
+
+.columns > div:nth-child(3) {
+	grid-area: app-left;
+}
+
+.columns > div:nth-child(4) {
+	grid-area: app-right;
+}
+
+.framework-links {
+	grid-area: framework-links;
+	border-left: 1px solid color-mix(in srgb, var(--color-surface) 55%, transparent);
+	padding-left: 2rem;
+}
+
+.link,
+.external-link {
+	color: var(--color-text-muted-inverted);
+	display: block;
+	margin-bottom: 0.5rem;
+	font-size: 0.875rem;
+	text-decoration: none;
+	text-underline-offset: 2px;
+}
+
+.link:hover,
+.external-link:hover {
+	color: var(--color-surface);
+	text-decoration: underline;
+}
+.link:focus-visible,
+.external-link:focus-visible {
+	outline: 2px solid var(--color-surface);
+	outline-offset: 2px;
+	border-radius: 2px;
+	color: var(--color-surface);
+}
+
+/* app-left + app-right collapse into a single column; framework stays on the right */
+@media (max-width: 640px) {
+	.columns {
+		grid-template-columns: 1fr 1fr;
+		grid-template-areas:
+			"application-label  framework-label"
+			"app-left           framework-links"
+			"app-right          framework-links";
+	}
+}
+
+/* framework section collapses below the application section */
+@media (max-width: 420px) {
+	.columns {
+		grid-template-columns: 1fr;
+		grid-template-areas:
+			"application-label"
+			"app-left"
+			"app-right"
+			"framework-label"
+			"framework-links";
+	}
+
+	.framework-label,
+	.framework-links {
+		border: none;
+		padding-left: 0;
+		margin-top: 0.25rem;
+	}
+}

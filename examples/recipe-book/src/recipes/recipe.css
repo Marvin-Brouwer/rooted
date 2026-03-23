@@ -9,7 +9,7 @@
 }
 .back-link:hover { text-decoration: underline; }
 .recipe-header { margin-bottom: 1.5rem; }
-.recipe-header h2 { margin: 0 0 0.75rem; font-size: 1.75rem; }
+.recipe-header h1 { margin: 0 0 0.75rem; font-size: 1.75rem; }
 .recipe-meta {
 	display: flex;
 	flex-wrap: wrap;

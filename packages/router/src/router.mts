@@ -4,7 +4,7 @@ import { create } from '@rooted/components/elements'
 import { devHelper } from './dev-helper.mts'
 import * as href from './href.mts'
 import { RouteMatch } from './route.match.mts'
-import { isRoute, routeMetaData } from './route.metadata.mts'
+import { isRoute, routeMetadata } from './route.metadata.mts'
 import { Route, route } from './route.mts'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -82,7 +82,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 		...Object.values(userRoutes as Record<string, Route<any>>)
 			.filter(r => isRoute(r))
-			.filter(r => !r[routeMetaData].hasErrors),
+			.filter(r => !r[routeMetadata].hasErrors),
 	]
 
 	devHelper.validateDuplicateRoutes?.(config)
@@ -173,7 +173,7 @@ async function matchRoute(target: href.Path, routes: Route<any>[]) {
 			continue
 		}
 		// Equal length: non-wildcard beats wildcard (more specific wins)
-		if (result.match.length === best.match.length && !route[routeMetaData].hasWildcard && best.route[routeMetaData].hasWildcard) {
+		if (result.match.length === best.match.length && !route[routeMetadata].hasWildcard && best.route[routeMetadata].hasWildcard) {
 			best = { route, match: result.match, element: result.element }
 		}
 	}
@@ -186,7 +186,9 @@ async function matchRoute(target: href.Path, routes: Route<any>[]) {
 function normalizeHref(target: () => href.Path) {
 	const targetPath = target()
 	if (!targetPath.pathOnly.endsWith('/')) {
-		history.replaceState(history.state, '', targetPath.pathOnly + '/' + targetPath.queryString + targetPath.hash)
+		// Use location.pathname (which includes the app base) so replaceState
+		// doesn't strip the base from the browser URL.
+		history.replaceState(history.state, '', location.pathname + '/' + targetPath.queryString + targetPath.hash)
 		return target()
 	}
 

@@ -28,7 +28,7 @@
 		"@typescript-eslint/parser": "^8.57.1",
 		"eslint": "^10.1.0",
 		"eslint-import-resolver-typescript": "^4.4.4",
-		"eslint-plugin-import": "^2.32.0",
+		"eslint-plugin-import-x": "^4.16.2",
 		"eslint-plugin-unicorn": "^63.0.0",
 		"eslint-plugin-unused-imports": "^4.3.0",
 		"globals": "^17.3.0",
@@ -44,5 +44,20 @@
 		"node": ">=22.0.0",
 		"pnpm": ">=10.0.0"
 	},
-	"packageManager": "pnpm@10.31.0+sha512.e3927388bfaa8078ceb79b748ffc1e8274e84d75163e67bc22e06c0d3aed43dd153151cbf11d7f8301ff4acb98c68bdc5cadf6989532801ffafe3b3e4a63c268"
+	"packageManager": "pnpm@10.31.0+sha512.e3927388bfaa8078ceb79b748ffc1e8274e84d75163e67bc22e06c0d3aed43dd153151cbf11d7f8301ff4acb98c68bdc5cadf6989532801ffafe3b3e4a63c268",
+	"pnpm": {
+		"peerDependencyRules": {
+			"allowedVersions": {
+				"vite-plugin-pwa>vite": "8",
+				"eslint-plugin-import>eslint": "10"
+			}
+		},
+		"overrides": {
+			"source-map@0.8.0-beta.0": "0.7.4",
+			"sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.4.15"
+		},
+		"allowedDeprecatedVersions": {
+			"glob": "11"
+		}
+	}
 }

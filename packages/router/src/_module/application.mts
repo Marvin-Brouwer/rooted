@@ -5,8 +5,8 @@
  * @module
  */
 
-export * from '../router.mjs'
-export { token, wildcard, type Parameter, type RouteParameter, type ParameterType, type ParameterTokenType } from '../route.tokens.mjs'
-export type { RouteMatch, MatchRouteOptions } from '../route.match.mjs'
+export * from '../router.mts'
+export { token, wildcard, type Parameter, type RouteParameter, type ParameterType, type ParameterTokenType } from '../route.tokens.mts'
+export type { RouteMatch, MatchRouteOptions } from '../route.match.mts'
 
-export { route, type Route, type RouteBuilder, type RouteParameterDictionary } from '../route.mjs'
+export { route, type Route, type RouteBuilder, type RouteParameterDictionary } from '../route.mts'

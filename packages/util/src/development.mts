@@ -1,5 +1,5 @@
 export function isDevelopment() {
-	return import.meta.env.DEV
+	return import.meta.env?.DEV ?? false
 }
 
 export function formatStackFrame(frame: string | undefined): string | undefined {
