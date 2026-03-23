@@ -51,6 +51,12 @@ export type RootedApplicationManifest = {
 		/** Deployment URL (e.g. `homepage` from `package.json`). The pathname is used as Vite's `base`. */
 		url?: string
 	}
+	/**
+	 * Path (relative to Vite root) to the source SVG used to generate PWA icons.
+	 * Example: `'public/icon.svg'`
+	 * When omitted, icons fall back to `favicon.ico` from the public folder.
+	 */
+	icon?: string
 	seo?: SeoOptions
 }
 
@@ -140,6 +146,13 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						sourcemap: !minify,
 						navigateFallbackDenylist: [/\.\w+$/],
 					},
+					...(manifest.icon && {
+						pwaAssets: {
+							preset: 'minimal-2023',
+							image: manifest.icon,
+							overrideManifestIcons: true,
+						},
+					}),
 					manifest: {
 						name: 'Rooted Template',
 						short_name: 'template',
@@ -147,20 +160,9 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						theme_color: '#ffffff',
 						background_color: '#f8faf2',
 						display: 'standalone',
-						// TODO generate based on svg using svgo
-						// TODO default to favicon.ico from public folder
-						icons: [
-							{
-								src: 'pwa-192x192.png',
-								sizes: '192x192',
-								type: 'image/png',
-							},
-							{
-								src: 'pwa-512x512.png',
-								sizes: '512x512',
-								type: 'image/png',
-							},
-						],
+						...(!manifest.icon && {
+							icons: manifest.webManifest.icons ?? [{ src: 'icon.svg', sizes: 'any' }],
+						}),
 						...manifest.webManifest,
 					},
 				}),

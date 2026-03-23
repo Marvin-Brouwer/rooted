@@ -172,7 +172,7 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 
 		// Load the written manifest via JITI to populate the shared route registry
 		const jiti = createJiti(config.root)
-		const module_ = await jiti.import(rootPath)
+		const module_ = await jiti.import(rootPath) as any
 		const exported = module_[options.routeExport ?? 'appRoutes']
 		if (exported && typeof exported === 'object') {
 			api.routes = Object.values(exported)
