@@ -7,7 +7,7 @@ import { navigate } from './navigation.mts'
 /**
  * Options for {@link Link}.
  */
-export type LinkOptions = {
+export type LinkOptions = Partial<ARIAMixin> & {
 	/** The destination URL passed to {@link navigate} on click. */
 	href: string | Url | Path
 	/** CSS class name applied to the rendered `<a>` element. */
@@ -66,9 +66,8 @@ export type LinkOptions = {
 export const Link = component<LinkOptions>({
 	name: '@rooted/navigation-link',
 	onMount({ options, append, create, signal }) {
-		const stringHref = typeof options.href === 'string'
-			? options.href
-			: options.href.href
+		const { href, classes, children, target, rel, ...aria } = options
+		const stringHref = typeof href === 'string' ? href : href.href
 
 		function navigateToHref(event: PointerEvent) {
 			event.preventDefault()
@@ -77,17 +76,18 @@ export const Link = component<LinkOptions>({
 
 		const anchor = append(
 			create('a', {
+				...aria,
 				href: stringHref,
-				children: typeof options.children === 'string'
-					? document.createTextNode(options.children)
-					: options.children,
-				classes: options.classes,
-				target: options.target,
-				rel: options.rel,
+				children: typeof children === 'string'
+					? document.createTextNode(children)
+					: children,
+				classes,
+				target,
+				rel,
 			}),
 		)
 
-		if (!options.target)
+		if (!target)
 			anchor.addEventListener('click', navigateToHref, { signal })
 	},
 })

@@ -33,7 +33,15 @@ function createComponent<TComponent extends RootedElement>(component: RootedElem
 }
 function createElement<TElement extends HTMLElement>(element: string, properties: HtmlElementProperties<TElement>) {
 	const { children, classes, ...assignableProperties } = properties ?? {}
-	const newElement = Object.assign(document.createElement(element) as TElement, assignableProperties, buildClassList(classes))
+	const definedProperties = Object.fromEntries(Object
+		.entries(assignableProperties)
+		.filter(([, v]) => v !== undefined && v !== null),
+	)
+	const newElement = Object.assign(
+		document.createElement(element) as TElement,
+		definedProperties,
+		buildClassList(classes),
+	)
 
 	if (Array.isArray(children)) {
 		for (const child of children) {

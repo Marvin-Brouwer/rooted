@@ -22,7 +22,7 @@ export const Categories = component({
 })
 
 async function routeSelected(category: CategoryData): Promise<boolean> {
-	const match = await CategoryRoute.match({ target: location.href })
+	const match = await CategoryRoute.match()
 	if (!match.success) return false
 	return match.tokens.slug === category.slug
 }
