@@ -1,8 +1,8 @@
-import { existsSync } from 'node:fs'
+import fs from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import { basename, dirname, resolve } from 'node:path'
+import path from 'node:path'
 
-import type { Plugin, ResolvedConfig } from 'vite'
+import type { PluginOption, ResolvedConfig } from 'vite'
 
 const DEFAULT_ICON_PATH = 'public/icon.svg'
 
@@ -22,7 +22,7 @@ const DEFAULT_ICON_PATH = 'public/icon.svg'
  * @internal Automatically included by {@link rootedManifest}. Only runs during
  * production builds when no `icon` is set in the manifest options.
  */
-export function pwaAssetsPlugin(skip: boolean): Plugin {
+export function pwaAssetsPlugin(skip: boolean): PluginOption {
 	let viteConfig: ResolvedConfig
 
 	return {
@@ -36,8 +36,8 @@ export function pwaAssetsPlugin(skip: boolean): Plugin {
 		async buildStart() {
 			if (skip) return
 
-			const svgPath = resolve(viteConfig.root, DEFAULT_ICON_PATH)
-			if (!existsSync(svgPath)) return
+			const svgPath = path.resolve(viteConfig.root, DEFAULT_ICON_PATH)
+			if (!fs.existsSync(svgPath)) return
 
 			const [
 				{ instructions },
@@ -60,14 +60,14 @@ export function pwaAssetsPlugin(skip: boolean): Plugin {
 			const inst = await instructions({
 				imageResolver: () => readFile(svgPath),
 				imageName: svgPath,
-				originalName: basename(svgPath),
+				originalName: path.basename(svgPath),
 				preset,
 				htmlLinks: { xhtml: false, includeId: false },
 				basePath: viteConfig.base,
-				resolveSvgName: (name) => basename(name),
+				resolveSvgName(name) { return path.basename(name) },
 			})
 
-			await generateAssets(inst, false, dirname(svgPath), (message, ignored) => {
+			await generateAssets(inst, false, path.dirname(svgPath), (message, ignored) => {
 				if (!ignored) viteConfig.logger.info(message)
 			})
 		},

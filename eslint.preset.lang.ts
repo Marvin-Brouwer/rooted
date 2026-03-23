@@ -32,15 +32,7 @@ export const lintTs = defineConfig([
 		files: tsFiles,
 		languageOptions: {
 			parserOptions: {
-				project: [
-					'./packages/*/tsconfig.json',
-					'./packages/*/tsconfig.plugin.json',
-					'./tooling/*/tsconfig.json',
-					'./examples/*/tsconfig.json',
-					'./examples/*/tsconfig.plugin.json',
-					'./tsconfig.test.json',
-					'./tsconfig.config.json',
-				],
+				projectService: true,
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},

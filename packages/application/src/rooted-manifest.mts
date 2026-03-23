@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
+import path from 'node:path'
 
 import { cssLoader } from '@rooted/components/css-loader'
 import { defineConfig } from 'vite'
@@ -81,7 +81,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 		const analyzerMode = environment.command === 'build' && process.argv.includes('--analyze')
 
 		const skipPwaGenerator = analyzerMode || process.argv.includes('--no-pwa')
-		const autoIcon = !manifest.icon && existsSync(resolve(process.cwd(), 'public/icon.svg'))
+		const autoIcon = !manifest.icon && existsSync(path.resolve(process.cwd(), 'public/icon.svg'))
 
 		return {
 			appType: 'spa',
@@ -132,7 +132,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						analyzerMode: 'server',
 						openAnalyzer: true,
 						exclude: [
-						// Only take one flavor of css, this distracts from the bundle size
+							// Only take one flavor of css, this distracts from the bundle size
 							/\.tagged\.css$/is,
 							/\.tagged-[A-Za-z0-9_-]+\.css$/i,
 						],
@@ -179,7 +179,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						...manifest.webManifest,
 					},
 				}),
-				...(!manifest.icon ? [pwaAssetsPlugin(skipPwaGenerator)] : []),
+				pwaAssetsPlugin(!!manifest.icon || skipPwaGenerator),
 				seoPlugin(manifest.webManifest.url, manifest.seo),
 			],
 		}
