@@ -1,9 +1,13 @@
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { cssLoader } from '@rooted/components/css-loader'
 import { defineConfig } from 'vite'
 import { analyzer } from 'vite-bundle-analyzer'
 import { ManifestOptions, VitePWA } from 'vite-plugin-pwa'
 
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
+import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
 import { SeoOptions, seoPlugin } from '../plugins/seo.mts'
 
 import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
@@ -54,7 +58,8 @@ export type RootedApplicationManifest = {
 	/**
 	 * Path (relative to Vite root) to the source SVG used to generate PWA icons.
 	 * Example: `'public/icon.svg'`
-	 * When omitted, icons fall back to `favicon.ico` from the public folder.
+	 * When omitted, `public/icon.svg` is used automatically if the file exists.
+	 * If neither is available, icons fall back to `[{ src: 'icon.svg', sizes: 'any' }]`.
 	 */
 	icon?: string
 	seo?: SeoOptions
@@ -76,6 +81,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 		const analyzerMode = environment.command === 'build' && process.argv.includes('--analyze')
 
 		const skipPwaGenerator = analyzerMode || process.argv.includes('--no-pwa')
+		const autoIcon = !manifest.icon && existsSync(resolve(process.cwd(), 'public/icon.svg'))
 
 		return {
 			appType: 'spa',
@@ -161,11 +167,19 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						background_color: '#f8faf2',
 						display: 'standalone',
 						...(!manifest.icon && {
-							icons: manifest.webManifest.icons ?? [{ src: 'icon.svg', sizes: 'any' }],
+							icons: manifest.webManifest.icons ?? (autoIcon
+								? [
+									{ src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
+									{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+									{ src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+									{ src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+								]
+								: [{ src: 'icon.svg', sizes: 'any' }]),
 						}),
 						...manifest.webManifest,
 					},
 				}),
+				...(!manifest.icon ? [pwaAssetsPlugin(skipPwaGenerator)] : []),
 				seoPlugin(manifest.webManifest.url, manifest.seo),
 			],
 		}
