@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import { basename, resolve } from 'node:path'
+import { basename, dirname, resolve } from 'node:path'
 
 import type { Plugin, ResolvedConfig } from 'vite'
 
@@ -16,8 +16,8 @@ const DEFAULT_ICON_PATH = 'public/icon.svg'
  * - `maskable-icon-512x512.png` (maskable)
  * - `apple-touch-icon-180x180.png` (Apple)
  *
- * Assets are written to the build output directory (`dist/`) after bundling and
- * are skipped when they already exist on disk (`overrideAssets: false`).
+ * Assets are written to `public/` and are skipped when they already exist on
+ * disk (`overrideAssets: false`).
  *
  * @internal Automatically included by {@link rootedManifest}. Only runs during
  * production builds when no `icon` is set in the manifest options.
@@ -33,7 +33,7 @@ export function pwaAssetsPlugin(skip: boolean): Plugin {
 			viteConfig = config
 		},
 
-		async closeBundle() {
+		async buildStart() {
 			if (skip) return
 
 			const svgPath = resolve(viteConfig.root, DEFAULT_ICON_PATH)
@@ -67,8 +67,7 @@ export function pwaAssetsPlugin(skip: boolean): Plugin {
 				resolveSvgName: (name) => basename(name),
 			})
 
-			const outDir = resolve(viteConfig.root, viteConfig.build.outDir)
-			await generateAssets(inst, false, outDir, (message, ignored) => {
+			await generateAssets(inst, false, dirname(svgPath), (message, ignored) => {
 				if (!ignored) viteConfig.logger.info(message)
 			})
 		},
