@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
+import { access, readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 
 import type { RouteManifestApi } from '@rooted/router/manifest'
@@ -56,12 +56,8 @@ export function githubPagesAdapter(): Plugin {
 			const indexHtmlPath = path.join(outputDirectory, 'index.html')
 
 			// Skip environments that don't produce index.html (e.g. the SW environment from VitePWA)
-			let indexHtml: string
-			try {
-				indexHtml = await readFile(indexHtmlPath, 'utf8')
-			} catch {
-				return
-			}
+			if (!await checkFileExists(indexHtmlPath)) return
+			const indexHtml = await readFile(indexHtmlPath, 'utf8')
 
 			await writeFile(path.join(outputDirectory, '.nojekyll'), 'disable jekyll in this github pages directory', 'utf8')
 			await writeFile(path.join(outputDirectory, '404.html'), indexHtml, 'utf8')
@@ -81,4 +77,10 @@ export function githubPagesAdapter(): Plugin {
 			}
 		},
 	}
+}
+
+function checkFileExists(file) {
+	return access(file, fs.constants.F_OK)
+		.then(() => true)
+		.catch(() => false)
 }
