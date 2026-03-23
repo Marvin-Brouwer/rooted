@@ -1,4 +1,4 @@
-import { access, readFile, writeFile, mkdir } from 'node:fs/promises'
+import { access, constants, readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 
 import type { RouteManifestApi } from '@rooted/router/manifest'
@@ -79,8 +79,8 @@ export function githubPagesAdapter(): Plugin {
 	}
 }
 
-function checkFileExists(file) {
-	return access(file, fs.constants.F_OK)
+async function checkFileExists(filePath: string) {
+	return await access(filePath, constants.F_OK)
 		.then(() => true)
 		.catch(() => false)
 }
