@@ -129,20 +129,30 @@ export function responsiveImages({ accessKey }: ResponsiveImagesOptions): Plugin
 				?.filter(n => n > 0)
 				?? DEFAULT_WIDTHS
 
-			if (!accessKey) {
-				return buildFallbackModule(widths, urlPart)
-			}
-
 			const photoCacheDirectory = path.join(cacheDirectory, photoId)
 
 			let metadata: Metadata
-			try {
-				metadata = await getOrFetchMetadata(photoId, photoCacheDirectory, accessKey)
-				await downloadImages(metadata.rawUrl, photoCacheDirectory, widths)
+			if (accessKey) {
+				try {
+					metadata = await getOrFetchMetadata(photoId, photoCacheDirectory, accessKey)
+					await downloadImages(metadata.rawUrl, photoCacheDirectory, widths)
+				}
+				catch (error) {
+					logger.warn(`[responsive-images] Failed to load photo ${photoId}: ${String(error)} — using placeholder`)
+					return buildFallbackModule(widths, urlPart)
+				}
 			}
-			catch (error) {
-				logger.warn(`[responsive-images] Failed to load photo ${photoId}: ${String(error)} — using placeholder`)
-				return buildFallbackModule(widths, urlPart)
+			else {
+				// No API key — try to serve from cache, fall back to placeholder
+				const metadataPath = path.join(photoCacheDirectory, 'metadata.json')
+				try {
+					const raw = await readFile(metadataPath, 'utf8')
+					metadata = JSON.parse(raw) as Metadata
+					logger.info(`[responsive-images] No UNSPLASH_ACCESS_KEY — serving photo ${photoId} from cache`)
+				}
+				catch {
+					return buildFallbackModule(widths, urlPart)
+				}
 			}
 
 			if (isDevelopment) {
