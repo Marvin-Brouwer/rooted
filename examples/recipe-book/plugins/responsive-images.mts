@@ -247,9 +247,11 @@ function buildModule(images: ImageEntry[], sourceUrl: string, author: string): s
 function buildFallbackModule(widths: number[], sourceUrl: string): string {
 	const images: ImageEntry[] = widths.map(width => ({ url: TRANSPARENT_PIXEL, width }))
 	const imagesJson = JSON.stringify(images, undefined, 2)
+	const sourceSet = images.map(img => `${img.url} ${img.width}w`).join(', ')
 	return [
 		`if (import.meta.env.DEV) { console.warn('[responsive-images] No UNSPLASH_ACCESS_KEY — using placeholder images for ${sourceUrl}') }`,
 		`export const images = ${imagesJson}`,
+		`export const sourceSet = ${JSON.stringify(sourceSet)}`,
 		`export const source = ${JSON.stringify(sourceUrl)}`,
 		`export const author = "Unknown / Unsplash"`,
 	].join('\n')
