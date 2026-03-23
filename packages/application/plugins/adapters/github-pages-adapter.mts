@@ -53,7 +53,15 @@ export function githubPagesAdapter(): Plugin {
 
 		async closeBundle() {
 			const outputDirectory = config.build.outDir
-			const indexHtml = await readFile(path.join(outputDirectory, 'index.html'), 'utf8')
+			const indexHtmlPath = path.join(outputDirectory, 'index.html')
+
+			// Skip environments that don't produce index.html (e.g. the SW environment from VitePWA)
+			let indexHtml: string
+			try {
+				indexHtml = await readFile(indexHtmlPath, 'utf8')
+			} catch {
+				return
+			}
 
 			await writeFile(path.join(outputDirectory, '.nojekyll'), 'disable jekyll in this github pages directory', 'utf8')
 			await writeFile(path.join(outputDirectory, '404.html'), indexHtml, 'utf8')
