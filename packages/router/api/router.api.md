@@ -32,7 +32,7 @@ export const href: {
 export const Link: _rooted_components.Component<LinkOptions>;
 
 // @public
-export type LinkOptions = {
+export type LinkOptions = Partial<ARIAMixin> & {
     href: string | Url | Path;
     classes?: CssClasses;
     children?: string | Node | Node[];
