@@ -4,10 +4,11 @@ import path from 'node:path'
 import { cssLoader } from '@rooted/components/css-loader'
 import { defineConfig } from 'vite'
 import { analyzer } from 'vite-bundle-analyzer'
-import { ManifestOptions, VitePWA } from 'vite-plugin-pwa'
+import { ManifestOptions } from 'vite-plugin-pwa'
 
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
 import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
+import { pwaPreset } from '../plugins/pwa-preset.mts'
 import { SeoOptions, seoPlugin } from '../plugins/seo.mts'
 
 import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
@@ -141,44 +142,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						analyzerMode: 'static',
 					},
 				),
-				VitePWA({
-					// Utility for speeding up build times
-					disable: skipPwaGenerator,
-					registerType: 'autoUpdate',
-					filename: `worker.js`,
-					minify,
-					manifestFilename: `${manifest.webManifest.id}.webmanifest`,
-					workbox: {
-						sourcemap: !minify,
-						navigateFallbackDenylist: [/\.\w+$/],
-					},
-					...(manifest.icon && {
-						pwaAssets: {
-							preset: 'minimal-2023',
-							image: manifest.icon,
-							overrideManifestIcons: true,
-						},
-					}),
-					manifest: {
-						name: 'Rooted Template',
-						short_name: 'template',
-						description: 'Template @rooted/* application.',
-						theme_color: '#ffffff',
-						background_color: '#f8faf2',
-						display: 'standalone',
-						...(!manifest.icon && {
-							icons: manifest.webManifest.icons ?? (autoIcon
-								? [
-									{ src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
-									{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-									{ src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
-									{ src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-								]
-								: [{ src: 'icon.svg', sizes: 'any' }]),
-						}),
-						...manifest.webManifest,
-					},
-				}),
+				pwaPreset(manifest, { skipPwaGenerator, minify, autoIcon }),
 				pwaAssetsPlugin(!!manifest.icon || skipPwaGenerator),
 				seoPlugin(manifest.webManifest.url, manifest.seo),
 			],
