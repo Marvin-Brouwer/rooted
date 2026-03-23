@@ -142,7 +142,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						analyzerMode: 'static',
 					},
 				),
-				pwaPreset(manifest, { skipPwaGenerator, minify, autoIcon }),
+				pwaPreset({ manifest, skipPwaGenerator, minify, autoIcon }),
 				pwaAssetsPlugin(!!manifest.icon || skipPwaGenerator),
 				seoPlugin(manifest.webManifest.url, manifest.seo),
 			],

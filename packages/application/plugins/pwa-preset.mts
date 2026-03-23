@@ -1,10 +1,15 @@
-import { ManifestOptions, VitePWA } from 'vite-plugin-pwa'
+import { VitePWA } from 'vite-plugin-pwa'
 
 import type { RootedApplicationManifest } from '../src/rooted-manifest.mts'
 
+export type PwaOptions = {
+	manifest: RootedApplicationManifest
+	skipPwaGenerator: boolean
+	minify: boolean
+	autoIcon: boolean
+}
 export function pwaPreset(
-	manifest: RootedApplicationManifest,
-	{ skipPwaGenerator, minify, autoIcon }: { skipPwaGenerator: boolean; minify: boolean; autoIcon: boolean },
+	{ manifest, skipPwaGenerator, minify, autoIcon }: PwaOptions,
 ) {
 	return VitePWA({
 		// Utility for speeding up build times
