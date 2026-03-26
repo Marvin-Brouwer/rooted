@@ -1,5 +1,5 @@
 import { ElementFactory } from '@rooted/elements'
-import { EventBuilder } from '@rooted/events'
+import { EventBuilder, EventHelper } from '@rooted/events'
 
 import { GenericComponent } from './component/generic-component.mts'
 import { injectStyles } from './component/styles.mts'
@@ -90,6 +90,9 @@ type BaseComponentContext = & {
 	 * ```
 	 */
 	on: EventBuilder
+
+	/** {@inheritdoc EventHelper} */
+	events: EventHelper
 }
 
 const componentBrand: unique symbol = Symbol('@rooted/component')

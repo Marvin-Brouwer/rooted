@@ -1,5 +1,6 @@
 import { component } from '@rooted/components'
 import { navigate } from '@rooted/router'
+import { TargetedEvent } from '@rooted/events'
 
 import styles from './search-bar.css'
 
@@ -47,10 +48,9 @@ export const SearchBar = component({
 	},
 })
 
-// TODO typed event
-function submitQuery(error: SubmitEvent & { currentTarget: HTMLFormElement }) {
-	error.preventDefault()
-	const formData = new FormData(error.currentTarget)
+function submitQuery(e: TargetedEvent<SubmitEvent, HTMLFormElement>) {
+	e.preventDefault()
+	const formData = new FormData(e.currentTarget)
 	const query = (formData.get('query') as string)?.trim()
 	if (query) navigate(`/search/${encodeURIComponent(query)}/`)
 }

@@ -1,5 +1,5 @@
 import { createElementFactory, ElementCreator } from '@rooted/elements'
-import { createEventBuilder } from '@rooted/events'
+import { createEventBuilder, createEventHelper } from '@rooted/events'
 import { isDevelopment } from '@rooted/util/dev'
 
 import { create } from '../component-factory.mts'
@@ -172,11 +172,13 @@ export class GenericComponent extends RootedElement {
 			base,
 			this.abortController.signal,
 		)
+		const events = createEventHelper(base, this.abortController.signal)
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const context: ComponentContext<any> = {
 			signal: this.abortController.signal,
 			on,
+			events,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			options,
 			create,

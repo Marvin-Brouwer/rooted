@@ -1,4 +1,4 @@
-import { ElementEventMap, ElementKeys, ElementMap } from './event.mts'
+import { ElementKeys, TagSpecificEventMap } from './event.mts'
 
 /**
  * @example
@@ -9,7 +9,7 @@ import { ElementEventMap, ElementKeys, ElementMap } from './event.mts'
  */
 export function forwardEvent<
 	KElement extends ElementKeys,
-	TEvent extends keyof ElementEventMap<ElementMap<KElement>>,
+	TEvent extends keyof TagSpecificEventMap<KElement>,
 >(
 	tag: KElement, eventName: TEvent,
 ): ForwardedEvent<KElement, TEvent> {
@@ -22,25 +22,19 @@ export function forwardEvent<
 /**
  * Describes a native DOM event that a component forwards to its parent.
  *
- * Created via {@link event.forward}. Spread the result of
+ * Created via {@link forwardEvent}. Spread the result of
  * `events.forward(def)` into a child element's `events` array.
  *
- * @typeParam TElement - The element type that originates the event.
- * @typeParam K - The event name key on that element.
+ * @typeParam KElement - The tag name of the element that originates the event.
+ * @typeParam EventKey - The event name key, constrained to events semantically
+ *   applicable to that element type (see {@link TagSpecificEventMap}).
  */
 export class ForwardedEvent<
 	KElement extends ElementKeys,
-	EventKey extends keyof ElementEventMap<ElementMap<KElement>>,
+	EventKey extends keyof TagSpecificEventMap<KElement>,
 > {
 	constructor(
 		readonly tag: KElement,
 		readonly key: EventKey,
 	) {}
 }
-
-// @clause the type maps are incomplete, I want it to work like this
-// // Should be okay
-// const test = forwardEvent('button', 'click')
-// const test2 = forwardEvent('input', 'change')
-// // should be invalid, button does not have an onchange event
-// const test3 = forwardEvent('button', 'change')

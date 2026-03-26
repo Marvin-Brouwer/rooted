@@ -1,10 +1,10 @@
 import { CustomEvent } from './custom-event.mts'
-import { ElementEventMap, ElementKeys, ElementMap, EventDefinition, EventDescriptor } from './event.mts'
+import { DeferredEventDescriptor, ElementEventMap, ElementKeys, ElementMap, EventDefinition, EventDescriptor, TagSpecificEventMap } from './event.mts'
 import { ForwardedEvent } from './forwarded-event.mts'
 
-import type { ArrayElement } from '@rooted/util'
-
 // TODO explain usage
+
+type ArrayElement<T> = T extends readonly (infer U)[] ? U : T
 
 export type EventHelper = ReturnType<typeof createEventHelper>
 export function createEventHelper(eventTarget: EventTarget, abortSignal: AbortSignal) {
@@ -23,6 +23,9 @@ export function createEventHelper(eventTarget: EventTarget, abortSignal: AbortSi
 	return events
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyDescriptor = EventDescriptor<any> | DeferredEventDescriptor<any, any>
+
 export class EventsHelper<T extends EventDefinition> {
 	constructor(
 		private readonly events: Array<T>,
@@ -40,12 +43,13 @@ export class EventsHelper<T extends EventDefinition> {
 	 * ...options.events.forward(clickEvent)
 	 * ```
 	 */
-	forward<KElement extends ElementKeys, EventKey extends keyof ElementEventMap<ElementMap<KElement>>>(
-		forwardedEvent: ForwardedEvent<KElement, EventKey>): EventDescriptor<ElementMap<KElement>>[] {
-		return this.events
-			.filter(d => d instanceof EventDescriptor)
-			.filter(d => d.tag === forwardedEvent.tag)
-			.filter(d => d.key === forwardedEvent.key)
+	forward<KElement extends ElementKeys, EventKey extends keyof TagSpecificEventMap<KElement>>(
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		forwardedEvent: ForwardedEvent<KElement, EventKey>): (EventDescriptor<ElementMap<KElement>> | DeferredEventDescriptor<any, any>)[] {
+		return (this.events as AnyDescriptor[])
+			.filter((d): d is AnyDescriptor => d instanceof EventDescriptor || d instanceof DeferredEventDescriptor)
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			.filter(d => d.key === forwardedEvent.key) as any
 	}
 
 	/**
@@ -56,15 +60,25 @@ export class EventsHelper<T extends EventDefinition> {
 	 */
 	for<KElement extends ElementKeys, EventKey extends keyof ElementEventMap<ElementMap<KElement>>>(
 		definition: CustomEvent,
-		descriptor: EventDescriptor<ElementMap<KElement>, EventKey>,
-	): EventDescriptor<ElementMap<KElement>, EventKey> | undefined {
-		const containsListener = this.events
-			.filter(d => d instanceof CustomEvent)
-			.some(d => d.type === definition.type)
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		descriptor: EventDescriptor<ElementMap<KElement>, EventKey> | DeferredEventDescriptor<any, any>,
+	): typeof descriptor | undefined {
+		const matchingListeners = (this.events as AnyDescriptor[])
+			.filter((d): d is AnyDescriptor => d instanceof EventDescriptor || d instanceof DeferredEventDescriptor)
+			.filter(d => d.key === definition.type)
 
-		if (!containsListener) return undefined
+		if (matchingListeners.length === 0) return undefined
 
-		// @claude I'd like this to use this.eventTarget.addEventListener somehow
+		// Wire parent handlers on the component element so emit()'s dispatchEvent
+		// reaches them without polluting the inner element's events array.
+		for (const listener of matchingListeners) {
+			this.eventTarget.addEventListener(
+				definition.type,
+				listener.handler as unknown as EventListener,
+				{ signal: this.abortSignal },
+			)
+		}
+
 		return descriptor
 	}
 
@@ -81,14 +95,13 @@ export class EventsHelper<T extends EventDefinition> {
 	): void {
 		if (this.abortSignal.aborted) return
 
-		const eventToEmit = new CustomEvent(definition.type, {
-			bubbles: definition.bubbles,
-			cancelable: definition.cancelable,
-			composed: definition.composed,
-			detail: detail,
-		})
-
-		// @claude I'd like this to use this.eventTarget.emitEvent
-		throw new Error('not implemented ' + JSON.stringify([this.eventTarget, eventToEmit]))
+		this.eventTarget.dispatchEvent(
+			new globalThis.CustomEvent(definition.type, {
+				bubbles: definition.bubbles,
+				cancelable: definition.cancelable,
+				composed: definition.composed,
+				detail: detail,
+			}),
+		)
 	}
 }
