@@ -8,7 +8,7 @@ import styles from './search.css'
 export const SearchPage = component({
 	name: 'search-page',
 	styles,
-	async onMount({ append, create, signal }) {
+	async onMount({ append, create, on }) {
 		// Wrap all rendered content so we can replace it on re-search without remounting
 		const root = append(create('div', { ariaLive: 'polite', ariaAtomic: 'true' }))
 		const { recipeData } = await import('../_shared/data/data.mts')
@@ -65,6 +65,6 @@ export const SearchPage = component({
 
 		await render()
 		// Re-render when the user searches again while already on this page (same gate, new query)
-		globalThis.addEventListener('popstate', () => void render(), { signal })
+		on(window, 'popstate', () => void render())
 	},
 })

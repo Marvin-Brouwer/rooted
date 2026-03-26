@@ -6,12 +6,13 @@ import styles from './search-bar.css'
 export const SearchBar = component({
 	name: 'search-bar',
 	styles,
-	onMount({ append, create, signal }) {
+	onMount({ append, create, on }) {
 		const input = create('input', {
 			type: 'search',
 			name: 'query',
 			placeholder: 'Search recipes…',
 			ariaLabel: 'Search recipes',
+			events: [on('input', validateInput)],
 		})
 
 		const submit = create('button', {
@@ -22,12 +23,13 @@ export const SearchBar = component({
 		function validateInput() {
 			submit.disabled = input.value.length === 0
 		}
-		input.addEventListener('input', validateInput, { signal })
 
 		append(
-			create('form', { children: [input, submit] }),
+			create('form', {
+				children: [input, submit],
+				events: [on('submit', submitQuery)],
+			}),
 		)
-			.addEventListener('submit', submitQuery, { signal })
 
 		// Keep the search bar in sync with the URL: show the active query on the search page,
 		// clear it everywhere else
@@ -36,15 +38,14 @@ export const SearchBar = component({
 			input.value = match ? decodeURIComponent(match[1]) : ''
 			validateInput()
 		}
-		globalThis.addEventListener('popstate', syncInput, { signal })
+		on(window, 'popstate', syncInput)
 		syncInput()
 	},
 })
 
-function submitQuery(e: SubmitEvent) {
+function submitQuery(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
 	e.preventDefault()
-	const form = e.target as HTMLFormElement
-	const formData = new FormData(form)
+	const formData = new FormData(e.currentTarget)
 	const query = formData.get('query')?.toString()?.trim()
 	if (query) navigate(`/search/${encodeURIComponent(query)}/`)
 }
