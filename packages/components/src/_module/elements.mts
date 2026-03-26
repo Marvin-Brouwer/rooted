@@ -6,3 +6,4 @@
 export * from '../element-factory.mts'
 export * from '../rooted-element.mts'
 export * from '../component/classes.mts'
+export { createEventBuilder } from '../component/events.mts'

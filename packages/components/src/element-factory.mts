@@ -1,4 +1,5 @@
 import { CssClasses } from './component/classes.mts'
+import type { ElementEvents } from './component/events.mts'
 import { componentStore, GenericComponent } from './component/generic-component.mts'
 import { isComponent } from './component.mts'
 import { RootedElement, RootedElementConstructor } from './rooted-element.mts'
@@ -14,12 +15,21 @@ type RootedElementProperties<TComponent extends RootedElement> = Pick<TComponent
 type HtmlElementProperties<TElement extends HTMLElement> = Partial<Pick<TElement, WritableKeys<TElement> & Exclude<keyof TElement, 'children' | 'className' | 'classList'>>> & Partial<ARIAMixin> & {
 	children?: Array<Node | string> | Node | string
 	classes?: CssClasses
+	events?: ElementEvents<TElement>
 }
 
 type RequiredKeys<T> = {
 	[K in keyof T]-?: {} extends Pick<T, K> ? never : K
 }[keyof T]
 type NoRequiredProperties<T> = RequiredKeys<T> extends never ? true : false
+
+function buildEventListeners<TElement extends HTMLElement>(events: ElementEvents<TElement> | undefined, element: TElement) {
+	if (!events) return
+	const descriptors = Array.isArray(events) ? events : [events]
+	for (const descriptor of descriptors) {
+		element.addEventListener(descriptor.type as string, descriptor.handler as EventListener, { signal: descriptor.signal })
+	}
+}
 
 function buildClassList(classes: CssClasses | undefined) {
 	if (classes === null || classes === undefined) return {}
@@ -32,7 +42,7 @@ function createComponent<TComponent extends RootedElement>(component: RootedElem
 	return createElement<TComponent>(component.tagName, properties as HtmlElementProperties<TComponent>)
 }
 function createElement<TElement extends HTMLElement>(element: string, properties: HtmlElementProperties<TElement>) {
-	const { children, classes, ...assignableProperties } = properties ?? {}
+	const { children, classes, events, ...assignableProperties } = properties ?? {}
 	const definedProperties = Object.fromEntries(Object
 		.entries(assignableProperties)
 		.filter(([, v]) => v !== undefined && v !== null),
@@ -51,6 +61,8 @@ function createElement<TElement extends HTMLElement>(element: string, properties
 	else if (children) {
 		newElement.append(children)
 	}
+
+	buildEventListeners(events, newElement)
 
 	return newElement
 }
@@ -80,9 +92,17 @@ function createElement<TElement extends HTMLElement>(element: string, properties
  * **Children** — pass a single `Node` or an array of `Node`s via the
  * `children` property; they are appended in order.
  *
- * **Event listeners** — attach them with `addEventListener` after creation, or
- * use the `signal` from {@link ComponentContext} for automatic cleanup on
- * unmount.
+ * **Event listeners** — use the `events` prop with descriptors created by the
+ * `on` helper from {@link ComponentContext}. Listeners are automatically
+ * removed when the component unmounts:
+ * ```ts
+ * create('button', {
+ *   events: [on('click', e => { e.currentTarget.disabled = true })]
+ * })
+ * ```
+ * You can also pass a single descriptor without an array. To pre-define
+ * events outside of `onMount`, use {@link createEventBuilder} from
+ * `@rooted/components/elements` with your own `AbortSignal`.
  *
  * @example Creating a component
  * ```ts

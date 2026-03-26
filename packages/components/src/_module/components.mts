@@ -7,3 +7,4 @@ export { component, type Component, type ComponentConstructor, type ComponentCon
 export type { GenericComponent } from '../component/generic-component.mts'
 export * from '../component/classes.mts'
 export * from '../component/css-artifacts.mts'
+export type { EventBuilder, EventDescriptor, ElementEvents, ElementEventMap, TargetedEvent } from '../component/events.mts'
