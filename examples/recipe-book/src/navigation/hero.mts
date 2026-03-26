@@ -8,28 +8,28 @@ import styles from './hero.css'
 export const Hero = component({
 	name: 'page-hero',
 	styles,
-	onMount({ append, create }) {
-		const section = append(create('section', { classes: styles.hero, ariaLabel: 'Hero' }))
+	onMount({ append, element, create }) {
+		const section = append(element('section', { classes: styles.hero, aria: { label: 'Hero' } }))
 
 		section.append(
-			create('img', {
+			element('img', {
 				classes: styles.heroBg,
 				srcset: sourceSet,
 				sizes: '100vw',
 				alt: 'Banner picture of ratatouille.',
 			}),
-			create('div', {
+			element('div', {
 				classes: styles.content,
 				children: [
-					create('h1', { textContent: 'Recipe Book' }),
-					create('p', {
+					element('h1', { textContent: 'Recipe Book' }),
+					element('p', {
 						classes: styles.subtitle,
 						textContent: 'Discover, cook, and share your favourite recipes.',
 					}),
 					create(SearchBar),
 				],
 			}),
-			create('a', {
+			element('a', {
 				classes: styles.photoCredit,
 				href: source,
 				textContent: `Photo: ${author}`,

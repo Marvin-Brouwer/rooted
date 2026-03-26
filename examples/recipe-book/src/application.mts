@@ -19,27 +19,29 @@ const Router = router({
 export const Application = component({
 	name: 'recipe-application',
 	styles,
-	onMount({ append, create }) {
+	onMount({ append, element, create }) {
 		document.title = 'Recipe Book'
-		append(create('div', {
-			id: 'app',
-			children: [
-				create('header', {
-					classes: styles.stickyHeader,
-					children: [
-						create(NavigationMenu),
-						create(ContentBanner),
-					],
-				}),
-				create('main', {
-					id: 'main-content',
-					children: Router,
-				}),
-				create('footer', {
-					children: [create(Doormat)],
-				}),
-			],
-		}))
+		append(
+			element('div', {
+				id: 'app',
+				children: [
+					element('header', {
+						classes: styles.stickyHeader,
+						children: [
+							create(NavigationMenu),
+							create(ContentBanner),
+						],
+					}),
+					element('main', {
+						id: 'main-content',
+						children: Router,
+					}),
+					element('footer', {
+						children: [create(Doormat)],
+					}),
+				],
+			}),
+		)
 	},
 })
 

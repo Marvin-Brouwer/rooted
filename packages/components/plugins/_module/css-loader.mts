@@ -3,4 +3,4 @@
  * @module
  */
 
-export * from '../css-loader.mjs'
+export * from '../css-loader.mts'

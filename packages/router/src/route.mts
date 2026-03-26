@@ -3,7 +3,7 @@ import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.m
 import { routeMetadata, type RouteMetadata, isRoute } from './route.metadata.mts'
 import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter } from './route.tokens.mts'
 
-import type { create } from '@rooted/components/elements'
+import type { createComponent } from '@rooted/components/elements'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -72,7 +72,7 @@ export type RouteParameterDictionary<TRoute extends Route<any>, D extends number
  * @see {@link route}
  */
 export type RouteResolver<T extends readonly RouteParameter[]>
-	= (context: { create: typeof create, tokens: PathParameterDictionary<T> }) =>
+	= (context: { create: typeof createComponent, tokens: PathParameterDictionary<T> }) =>
 		Element | undefined | Promise<Element | undefined>
 
 /**

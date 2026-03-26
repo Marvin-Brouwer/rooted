@@ -25,5 +25,8 @@
 		],
 		"outDir": "./dist",
 		"rootDir": "./plugins"
-	}
+	},
+	"include": [
+		"plugins"
+	]
 }

@@ -13,18 +13,18 @@ export type CategoryOptions = {
 export const Category = component<CategoryOptions>({
 	name: 'category-page',
 	styles,
-	async onMount({ append, create, options }) {
+	async onMount({ append, element, create, options }) {
 		const { slug } = options
 
 		const category = await recipeData.findCategoryBySlug(slug)
 		const categoryname = category ? category.label : String(slug)
 
 		append(
-			create('div', {
+			element('div', {
 				classes: 'category-header',
 				children: [
-					create('h1', { textContent: categoryname }),
-					create('p', {
+					element('h1', { textContent: categoryname }),
+					element('p', {
 						textContent: category
 							? `${category.recipes.length} recipe${category.recipes.length === 1 ? '' : 's'}`
 							: `Category '${categoryname}' not found`,
@@ -34,13 +34,13 @@ export const Category = component<CategoryOptions>({
 		)
 
 		if (category) {
-			const list = create('ul', { classes: 'recipe-list' })
+			const list = element('ul', { classes: 'recipe-list' })
 			for (const recipe of category.recipes) {
-				list.append(create('li', {
+				list.append(element('li', {
 					classes: styles.recipeItem,
 					children: [
 						create(Link, { href: href.for(RecipeRoute, recipe), children: recipe.title }),
-						create('span', {
+						element('span', {
 							classes: styles.recipeItemMeta,
 							textContent: `${recipe.prepTime + recipe.cookTime} min · ${recipe.difficulty}`,
 						}),
@@ -50,7 +50,7 @@ export const Category = component<CategoryOptions>({
 			append(list)
 		}
 
-		append(create('hr', { classes: 'divider' }))
+		append(element('hr', { classes: 'divider' }))
 	},
 })
 

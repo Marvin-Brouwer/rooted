@@ -60,8 +60,14 @@
 		"extract-api": "rooted-development extract-api"
 	},
 	"dependencies": {
-		"@rooted/util": "workspace:^"
+		"@rooted/util": "workspace:^",
+		"@rooted/events": "workspace:^",
+		"@rooted/elements": "workspace:^"
 	},
+	"bundleDependencies": [
+		"@rooted/events",
+		"@rooted/elements"
+	],
 	"peerDependencies": {
 		"vite": ">=8.0.1"
 	},

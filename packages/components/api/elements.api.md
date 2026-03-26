@@ -4,48 +4,20 @@
 
 ```ts
 
+import { ElementFactory } from '@rooted/elements';
+import { EventBuilder } from '@rooted/events';
+
 // @public
-export function create(component: Component): GenericComponent;
+export function createComponent(component: Component): GenericComponent;
 
 // @public (undocumented)
-export function create<TOptions extends {}>(component: Component<TOptions>, ...arguments_: {} extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent;
+export function createComponent<TOptions extends object>(component: Component<TOptions>, ...arguments_: object extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent;
 
 // @public (undocumented)
-export function create<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProperties<TComponent>>): TComponent;
+export function createComponent<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProperties<TComponent>>): TComponent;
 
-// @public (undocumented)
-export function create<KElement extends keyof HTMLElementTagNameMap>(element: KElement, properties: NoInfer<HtmlElementProperties<HTMLElementTagNameMap[KElement]>>): HTMLElementTagNameMap[KElement];
 
-// @public (undocumented)
-export function create<KElement extends keyof HTMLElementTagNameMap>(element: KElement): NoRequiredProperties<HtmlElementProperties<HTMLElementTagNameMap[KElement]>> extends true ? HTMLElementTagNameMap[KElement] : never;
-
-// @public
-export type CssClass = string | undefined | null;
-
-// @public
-export function cssClass(className: string | CssClass, visible?: boolean | null | undefined): CssClass;
-
-// @public
-export type CssClasses = Array<CssClass> | CssClass;
-
-// @public
-export abstract class RootedElement extends HTMLElement {
-    // (undocumented)
-    connectedCallback(): void;
-    // (undocumented)
-    disconnectedCallback(): void;
-    protected abstract onMount(): void;
-    protected onUnmount(): void;
-    static register<TElement extends RootedElementConstructor>(element: TElement): void;
-    // (undocumented)
-    static rootedElement: boolean;
-    static validateTagName(name: string): void;
-}
-
-// @public
-export type RootedElementConstructor = CustomElementConstructor & {
-    tagName: string;
-};
+export * from "@rooted/elements";
 
 // (No @packageDocumentation comment for this package)
 

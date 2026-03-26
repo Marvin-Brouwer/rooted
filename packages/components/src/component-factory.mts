@@ -1,5 +1,3 @@
-import { CssClasses } from './component/classes.mts'
-import type { ElementEvents } from './component/events.mts'
 import { componentStore, GenericComponent } from './component/generic-component.mts'
 import { isComponent } from './component.mts'
 import { RootedElement, RootedElementConstructor } from './rooted-element.mts'
@@ -12,37 +10,15 @@ type WritableKeys<T> = { [P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -reado
 
 type RootedElementProperties<TComponent extends RootedElement> = Pick<TComponent, WritableKeys<TComponent> & Exclude<keyof TComponent, 'children' | 'className' | 'classList' | keyof RootedElement>>
 
-type HtmlElementProperties<TElement extends HTMLElement> = Partial<Pick<TElement, WritableKeys<TElement> & Exclude<keyof TElement, 'children' | 'className' | 'classList'>>> & Partial<ARIAMixin> & {
+type HtmlComponentProperties<TElement extends HTMLElement> = Partial<Pick<TElement, WritableKeys<TElement> & Exclude<keyof TElement, 'children' | 'className' | 'classList'>>> & Partial<ARIAMixin> & {
 	children?: Array<Node | string> | Node | string
-	classes?: CssClasses
-	events?: ElementEvents<TElement>
-}
-
-type RequiredKeys<T> = {
-	[K in keyof T]-?: {} extends Pick<T, K> ? never : K
-}[keyof T]
-type NoRequiredProperties<T> = RequiredKeys<T> extends never ? true : false
-
-function buildEventListeners<TElement extends HTMLElement>(events: ElementEvents<TElement> | undefined, element: TElement) {
-	if (!events) return
-	const descriptors = Array.isArray(events) ? events : [events]
-	for (const descriptor of descriptors) {
-		element.addEventListener(descriptor.type as string, descriptor.handler as unknown as EventListener, { signal: descriptor.signal })
-	}
-}
-
-function buildClassList(classes: CssClasses | undefined) {
-	if (classes === null || classes === undefined) return {}
-	if (Array.isArray(classes)) return { className: classes.filter(Boolean).join(' ') }
-
-	return { className: String(classes) }
 }
 
 function createComponent<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: RootedElementProperties<TComponent>) {
-	return createElement<TComponent>(component.tagName, properties as HtmlElementProperties<TComponent>)
+	return createElement<TComponent>(component.tagName, properties as HtmlComponentProperties<TComponent>)
 }
-function createElement<TElement extends HTMLElement>(element: string, properties: HtmlElementProperties<TElement>) {
-	const { children, classes, events, ...assignableProperties } = properties ?? {}
+function createElement<TElement extends HTMLElement>(element: string, properties: HtmlComponentProperties<TElement>) {
+	const { children, ...assignableProperties } = properties ?? {}
 	const definedProperties = Object.fromEntries(Object
 		.entries(assignableProperties)
 		.filter(([, v]) => v !== undefined && v !== null),
@@ -50,7 +26,6 @@ function createElement<TElement extends HTMLElement>(element: string, properties
 	const newElement = Object.assign(
 		document.createElement(element) as TElement,
 		definedProperties,
-		buildClassList(classes),
 	)
 
 	if (Array.isArray(children)) {
@@ -61,8 +36,6 @@ function createElement<TElement extends HTMLElement>(element: string, properties
 	else if (children) {
 		newElement.append(children)
 	}
-
-	buildEventListeners(events, newElement)
 
 	return newElement
 }
@@ -122,24 +95,16 @@ function createElement<TElement extends HTMLElement>(element: string, properties
  * ```
  */
 export function create(component: Component): GenericComponent
-export function create<TOptions extends {}>(component: Component<TOptions>, ...arguments_: {} extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent
+export function create<TOptions extends object>(component: Component<TOptions>, ...arguments_: object extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent
 export function create<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProperties<TComponent>>): TComponent
-export function create<KElement extends keyof HTMLElementTagNameMap>(element: KElement, properties: NoInfer<HtmlElementProperties<HTMLElementTagNameMap[KElement]>>): HTMLElementTagNameMap[KElement]
-export function create<KElement extends keyof HTMLElementTagNameMap>(
-	element: KElement,
-): NoRequiredProperties<HtmlElementProperties<HTMLElementTagNameMap[KElement]>> extends true
-	? HTMLElementTagNameMap[KElement]
-	: never
 export function create(
-	component: Component<any> | string | RootedElementClass<RootedElement>, properties?: unknown): unknown {
+	component: Component<object> | RootedElementClass<RootedElement>, properties?: unknown): unknown {
 	if (isComponent(component)) {
 		const element = document.createElement(GenericComponent.tagName) as GenericComponent
 		componentStore.set(element, component, properties)
 		return element
 	}
 
-	if (typeof component === 'string')
-		return createElement(component, properties as any)
-
-	return createComponent(component, properties as any)
+	// TODO rebuild factory or move create into components itself
+	return createComponent(component, {})
 }

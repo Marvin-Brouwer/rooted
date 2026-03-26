@@ -19,10 +19,10 @@ const mjsToMts: Rule.RuleModule = {
 			const raw = node.source?.raw
 			if (!raw?.endsWith('.mjs\'') && !raw?.endsWith('.mjs"')) return
 			context.report({
-				node: node.source!,
+				node: node.source,
 				messageId: 'rewrite',
 				fix: (fixer: Rule.RuleFixer) =>
-					fixer.replaceText(node.source!, raw.replace(/\.mjs(['"])$/, '.mts$1')),
+					fixer.replaceText(node.source, raw.replace(/\.mjs(['"])$/, '.mts$1')),
 			})
 		}
 		return {
