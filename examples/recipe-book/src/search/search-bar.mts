@@ -6,16 +6,18 @@ import styles from './search-bar.css'
 export const SearchBar = component({
 	name: 'search-bar',
 	styles,
-	onMount({ append, create, on }) {
-		const input = create('input', {
+	onMount({ append, element, on }) {
+		const input = element('input', {
 			type: 'search',
 			name: 'query',
 			placeholder: 'Search recipes…',
 			ariaLabel: 'Search recipes',
-			events: [on('input', validateInput)],
+			events: [
+				on('input', validateInput),
+			],
 		})
 
-		const submit = create('button', {
+		const submit = element('button', {
 			type: 'submit',
 			textContent: 'Search',
 		})
@@ -25,9 +27,11 @@ export const SearchBar = component({
 		}
 
 		append(
-			create('form', {
+			element('form', {
 				children: [input, submit],
-				events: [on('submit', submitQuery)],
+				events: [
+					on('submit', submitQuery),
+				],
 			}),
 		)
 
@@ -38,14 +42,15 @@ export const SearchBar = component({
 			input.value = match ? decodeURIComponent(match[1]) : ''
 			validateInput()
 		}
-		on(window, 'popstate', syncInput)
+		on('window', 'popstate', syncInput)
 		syncInput()
 	},
 })
 
-function submitQuery(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
-	e.preventDefault()
-	const formData = new FormData(e.currentTarget)
-	const query = formData.get('query')?.toString()?.trim()
+// TODO typed event
+function submitQuery(error: SubmitEvent & { currentTarget: HTMLFormElement }) {
+	error.preventDefault()
+	const formData = new FormData(error.currentTarget)
+	const query = (formData.get('query') as string)?.trim()
 	if (query) navigate(`/search/${encodeURIComponent(query)}/`)
 }

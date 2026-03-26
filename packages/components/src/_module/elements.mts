@@ -3,7 +3,5 @@
  * @module
  */
 
-export * from '../element-factory.mts'
-export * from '../rooted-element.mts'
-export * from '../component/classes.mts'
-export { createEventBuilder } from '../component/events.mts'
+export * from '@rooted/elements'
+export { create as createComponent } from '../component-factory.mts'

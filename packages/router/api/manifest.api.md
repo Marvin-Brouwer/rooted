@@ -4,7 +4,7 @@
 
 ```ts
 
-import { create } from '@rooted/components/elements';
+import { createComponent } from '@rooted/components/elements';
 import { Plugin as Plugin_2 } from 'vite';
 import { TupleResult } from '@rooted/util';
 

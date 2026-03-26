@@ -1,15 +1,16 @@
-import { normalizePath } from 'vite'
-import { CodeSplittingGroups, rootedManifest } from '@rooted/application'
-import { githubPagesAdapter } from '@rooted/application/adapters'
-import { generateRouteManifest } from '@rooted/router/manifest'
-import { markdownPlugin } from './plugins/markdown.mjs'
-import { responsiveImages } from './plugins/responsive-images.mjs'
-import { varlockVitePlugin } from '@varlock/vite-integration'
-import { ENV } from 'varlock/env'
 import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { CodeSplittingGroups, rootedManifest } from '@rooted/application'
+import { githubPagesAdapter } from '@rooted/application/adapters'
+import { generateRouteManifest } from '@rooted/router/manifest'
+import { varlockVitePlugin } from '@varlock/vite-integration'
+import { ENV } from 'varlock/env'
+import { normalizePath } from 'vite'
+
 import packageJson from './package.json' with { type: 'json' }
+import { markdownPlugin } from './plugins/markdown.mts'
+import { responsiveImages } from './plugins/responsive-images.mts'
 
 const rootedDir = normalizePath(path.join(dirname(fileURLToPath(import.meta.resolve('@rooted/router'))), '../../'))
 
@@ -30,11 +31,11 @@ const codeSplittingGroups: CodeSplittingGroups = [
 	{
 		name: 'content',
 		entriesAware: false,
-		test: (id) => id.endsWith('.md')
+		test: id => id.endsWith('.md'),
 	},
 
 	// In MONOREPO, chunk rootedDir source paths as if they were @rooted/*
-	{ name: 'vendor/@rooted', test: (id) => id.startsWith(rootedDir) },
+	{ name: 'vendor/@rooted', test: id => id.startsWith(rootedDir) },
 ]
 
 export default rootedManifest({
@@ -60,7 +61,7 @@ export default rootedManifest({
 		githubPagesAdapter(),
 	],
 	codeSplitting: {
-		groups: codeSplittingGroups
+		groups: codeSplittingGroups,
 	},
 
 	// In MONOREPO, forward aliases @rooted/* to rootedDir source paths

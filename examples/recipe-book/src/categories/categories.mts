@@ -10,11 +10,11 @@ import { Category } from './category.mts'
 export const Categories = component({
 	name: 'categories-page',
 	styles,
-	async onMount({ append, create }) {
+	async onMount({ append, element, create }) {
 		append(
-			create('h1', { textContent: 'Categories' }),
-			create('p', { classes: styles.subtitle, textContent: 'Browse recipes by category.' }),
-			create('div', { classes: styles.categoryGrid, children: await mapCategories(create) }),
+			element('h1', { textContent: 'Categories' }),
+			element('p', { classes: styles.subtitle, textContent: 'Browse recipes by category.' }),
+			element('div', { classes: styles.categoryGrid, children: await mapCategories(element, create) }),
 
 			gate(CategoryRoute, tokens => create(Category, { slug: tokens.slug })),
 		)
@@ -27,7 +27,7 @@ async function routeSelected(category: CategoryData): Promise<boolean> {
 	return match.tokens.slug === category.slug
 }
 
-async function mapCategories(create: ComponentContext['create']) {
+async function mapCategories(element: ComponentContext['element'], create: ComponentContext['create']) {
 	const categories = await recipeData.listCategories()
 
 	return Promise.all(categories.map(async (category) => {
@@ -37,11 +37,20 @@ async function mapCategories(create: ComponentContext['create']) {
 				cssClass(styles.categoryCard),
 				cssClass(styles.selected, selected),
 			],
-			ariaCurrent: selected ? 'page' : undefined,
+			aria: {
+				current: selected ? 'page' : undefined,
+			},
 			href: href.for(CategoryRoute, category),
 			children: [
-				create('div', { role: 'heading', ariaLevel: '2', classes: styles.categoryName, textContent: category.label }),
-				create('p', {
+				element('div', {
+					role: 'heading',
+					aria: {
+						level: '2',
+					},
+					classes: styles.categoryName,
+					textContent: category.label,
+				}),
+				element('p', {
 					classes: styles.categoryCount,
 					textContent: `${category.recipes.length} recipe${category.recipes.length === 1 ? '' : 's'}`,
 				}),

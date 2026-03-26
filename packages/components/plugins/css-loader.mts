@@ -276,7 +276,9 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 			}
 			let result = code
 			for (const [path, { scopedToken, taggedToken }] of pending) {
-				const { scopedRef, taggedRef } = emittedReferences.get(path)!
+				const emitted = emittedReferences.get(path)
+				if (!emitted) continue
+				const { scopedRef, taggedRef } = emitted
 				result = result
 					.replaceAll(scopedToken, config.base + this.getFileName(scopedRef))
 					.replaceAll(taggedToken, config.base + this.getFileName(taggedRef))

@@ -4,28 +4,20 @@
 
 ```ts
 
-// @public
-export type a = CustomElementConstructor & {
-    tagName: string;
-};
+import { ElementFactory } from '@rooted/elements';
+import { EventBuilder } from '@rooted/events';
 
 // @public
 export function c(component: Component): GenericComponent;
 
 // @public (undocumented)
-export function c<TOptions extends {}>(component: Component<TOptions>, ...arguments_: {} extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent;
+export function c<TOptions extends object>(component: Component<TOptions>, ...arguments_: object extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent;
 
 // @public (undocumented)
-export function c<TComponent extends R>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProperties<TComponent>>): TComponent;
-
-// @public (undocumented)
-export function c<KElement extends keyof HTMLElementTagNameMap>(element: KElement, properties: NoInfer<HtmlElementProperties<HTMLElementTagNameMap[KElement]>>): HTMLElementTagNameMap[KElement];
-
-// @public (undocumented)
-export function c<KElement extends keyof HTMLElementTagNameMap>(element: KElement): NoRequiredProperties<HtmlElementProperties<HTMLElementTagNameMap[KElement]>> extends true ? HTMLElementTagNameMap[KElement] : never;
+export function c<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProperties<TComponent>>): TComponent;
 
 // @public
-export type Component<TOptions extends {} = never> = ComponentConstructor<TOptions> & {
+export type Component<TOptions extends object = never> = ComponentConstructor<TOptions> & {
     readonly [componentBrand]: TOptions;
 };
 
@@ -33,10 +25,10 @@ export type Component<TOptions extends {} = never> = ComponentConstructor<TOptio
 export function component(constructor: ComponentConstructor): Component;
 
 // @public (undocumented)
-export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>): Component<TOptions>;
+export function component<TOptions extends object>(constructor: ComponentConstructor<TOptions>): Component<TOptions>;
 
 // @public
-export type ComponentConstructor<TOptions extends {} = never> = {
+export type ComponentConstructor<TOptions extends object = never> = {
     name: string;
     styles?: CssModule;
     onMount(context: ComponentContext<TOptions>): void | Promise<void>;
@@ -44,7 +36,7 @@ export type ComponentConstructor<TOptions extends {} = never> = {
 };
 
 // @public
-export type ComponentContext<TOptions extends {} = never> = [TOptions] extends [never] ? BaseComponentContext : BaseComponentContext & {
+export type ComponentContext<TOptions extends object = never> = [TOptions] extends [never] ? BaseComponentContext : BaseComponentContext & {
     options: Readonly<TOptions>;
 };
 
@@ -73,27 +65,13 @@ export type CssModule = Record<string, CssClass> & {
 };
 
 // @public
-export class GenericComponent extends R {
+export class GenericComponent extends RootedElement {
     // (undocumented)
     protected onMount(): void;
     // (undocumented)
     protected onUnmount(): void;
     // (undocumented)
     static tagName: string;
-}
-
-// @public
-export abstract class R extends HTMLElement {
-    // (undocumented)
-    connectedCallback(): void;
-    // (undocumented)
-    disconnectedCallback(): void;
-    protected abstract onMount(): void;
-    protected onUnmount(): void;
-    static register<TElement extends a>(element: TElement): void;
-    // (undocumented)
-    static rootedElement: boolean;
-    static validateTagName(name: string): void;
 }
 
 // (No @packageDocumentation comment for this package)

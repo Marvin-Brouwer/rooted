@@ -1,5 +1,5 @@
 import { component, GenericComponent } from '@rooted/components'
-import { create } from '@rooted/components/elements'
+import { createComponent } from '@rooted/components/elements'
 
 import { Route, RouteParameterDictionary } from './route.mts'
 
@@ -49,7 +49,7 @@ export function gate<TRoute extends AnyRoute>(
 	render: GateRenderFunction<TRoute>,
 ): GenericComponent {
 	const renderGate = render as GateRenderFunction<AnyRoute>
-	return create(Gate, { routeReference: route, renderGate })
+	return createComponent(Gate, { routeReference: route, renderGate })
 }
 
 type GateOptions<TRoute extends AnyRoute> = {

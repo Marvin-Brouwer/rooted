@@ -10,39 +10,39 @@ import styles from './home.css'
 export const HomePage = component({
 	name: 'home-page',
 	styles,
-	async onMount({ append, create }) {
+	async onMount({ append, element, create }) {
 		append(
 			create(Hero),
-			create('div', {
+			element('div', {
 				classes: styles.recipeGrid,
-				children: await grid(create),
+				children: await grid(element, create),
 			}),
 		)
 	},
 })
 
-async function grid(create: ComponentContext<typeof HomePage>['create']) {
+async function grid(element: ComponentContext['element'], create: ComponentContext['create']) {
 	const recipes = await recipeData.listRecipes()
 
 	return recipes.filter(r => r.featured).map((recipe) => {
 		return create(Link, {
 			href: href.for(RecipeRoute, recipe),
 			classes: styles.recipeCard,
-			children: card(create, recipe),
+			children: card(element, recipe),
 		})
 	})
 }
 
-function card(create: ComponentContext<typeof HomePage>['create'], recipe: RecipeData): Node[] {
+function card(element: ComponentContext['element'], recipe: RecipeData): Node[] {
 	return [
-		create('div', { role: 'heading', ariaLevel: '2', classes: styles.cardTitle, textContent: recipe.title }),
-		create('p', { classes: styles.cardDescription, textContent: recipe.description }),
-		create('div', {
+		element('div', { role: 'heading', aria: { level: '2' }, classes: styles.cardTitle, textContent: recipe.title }),
+		element('p', { classes: styles.cardDescription, textContent: recipe.description }),
+		element('div', {
 			classes: styles.cardMeta,
 			children: [
-				create('span', { classes: styles.badge, textContent: recipe.category }),
-				create('span', { textContent: `${recipe.prepTime + recipe.cookTime} min` }),
-				create('span', { textContent: recipe.difficulty }),
+				element('span', { classes: styles.badge, textContent: recipe.category }),
+				element('span', { textContent: `${recipe.prepTime + recipe.cookTime} min` }),
+				element('span', { textContent: recipe.difficulty }),
 			],
 		}),
 	]

@@ -1,7 +1,7 @@
 import { isDevelopment } from '@rooted/util/dev'
 
+import { create } from './component-factory.mts'
 import { Component } from './component.mts'
-import { create } from './element-factory.mts'
 
 type RootSelector = {
 	/** CSS selector for the application root element. Defaults to `#app`. */
