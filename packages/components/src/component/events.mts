@@ -25,7 +25,7 @@ export type ElementEventMap<T extends Element> =
  * })
  * ```
  */
-export type TargetedEvent<TEvent extends Event, TTarget extends EventTarget> =
+export type TargetedEvent<TEvent, TTarget extends EventTarget> =
 	TEvent & { readonly currentTarget: TTarget }
 
 const eventDescriptorBrand: unique symbol = Symbol('@rooted/eventDescriptor')
