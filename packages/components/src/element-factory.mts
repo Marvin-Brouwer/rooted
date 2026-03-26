@@ -27,7 +27,7 @@ function buildEventListeners<TElement extends HTMLElement>(events: ElementEvents
 	if (!events) return
 	const descriptors = Array.isArray(events) ? events : [events]
 	for (const descriptor of descriptors) {
-		element.addEventListener(descriptor.type as string, descriptor.handler as EventListener, { signal: descriptor.signal })
+		element.addEventListener(descriptor.type as string, descriptor.handler as unknown as EventListener, { signal: descriptor.signal })
 	}
 }
 
