@@ -17,6 +17,33 @@ export type ElementMap<K extends ElementKeys>
 	? SVGElementTagNameMap[K]
 	: Element
 
+// Events defined in GlobalEventHandlersEventMap that are only meaningful
+// on specific element types (input, select, textarea, form) and should
+// not appear as valid forwardEvent targets on generic elements.
+type ElementSpecificEvents = 'change' | 'input' | 'invalid' | 'select'
+// Tags that have specific-event interfaces defined in TypeScript's DOM lib
+type FormControlTags = 'input' | 'select' | 'textarea' | 'form'
+
+/**
+ * Maps an element tag name to the event map that is semantically applicable
+ * to that element. Elements with their own DOM event map interface use it;
+ * all other HTML elements use {@link HTMLElementEventMap} minus events that
+ * are exclusive to form-control element types.
+ *
+ * TypeScript 5.9's DOM lib provides {@link HTMLMediaElementEventMap} and
+ * {@link HTMLVideoElementEventMap}; form-control events are restricted by
+ * tag-name literal rather than by a dedicated event-map interface.
+ */
+export type TagSpecificEventMap<K extends ElementKeys>
+	= K extends keyof HTMLElementTagNameMap
+		? K extends FormControlTags
+			? HTMLElementEventMap
+			: HTMLElementTagNameMap[K] extends HTMLVideoElement ? HTMLVideoElementEventMap
+			: HTMLElementTagNameMap[K] extends HTMLMediaElement ? HTMLMediaElementEventMap
+			: Omit<HTMLElementEventMap, ElementSpecificEvents>
+	: K extends keyof SVGElementTagNameMap ? SVGElementEventMap
+	: Record<string, Event>
+
 /**
  * An augmented DOM event with a narrowed `currentTarget` type.
  *
@@ -62,22 +89,51 @@ export class EventDescriptor<
 	) {}
 }
 
+/**
+ * A tag-deferred event descriptor produced by the 2-argument overload of
+ * {@link EventBuilder} (`on(key, handler)`).
+ *
+ * Unlike {@link EventDescriptor} it carries no `tag` — the tag name is not
+ * known at call time because the descriptor is created before the element is.
+ * The runtime uses only `key`, `handler`, and `signal`, so the absence of a
+ * tag has no effect at runtime.
+ *
+ * @typeParam TElement - Element type inferred from the handler annotation.
+ * @typeParam EventKey - The specific event name key.
+ */
+export class DeferredEventDescriptor<
+	TElement extends HTMLElement,
+	EventKey extends keyof ElementEventMap<TElement>,
+> {
+	constructor(
+		readonly key: EventKey,
+		readonly handler: EventHandler<TElement, EventKey>,
+		readonly signal: AbortSignal,
+	) {}
+}
+
 export type EventHandler<TElement extends Element, EventKey extends keyof ElementEventMap<TElement>>
 	= (event: TargetedEvent<ElementEventMap<TElement>[EventKey], TElement>) => void | Promise<void>
 
 /**
- * One or more {@link EventDescriptor} values accepted by the `events` prop
- * of every element created via `create()` or `append()`.
+ * One or more {@link EventDescriptor} / {@link DeferredEventDescriptor} values
+ * accepted by the `events` prop of every element created via `element()`.
  *
  * - A single descriptor is applied as-is.
- * - An array of descriptors is iterated in order.
+ * - An array of descriptors is iterated in order; `undefined` entries are
+ *   skipped, allowing `events.for(...)` results to be placed directly in the
+ *   array without spreading.
  *
  * @see {@link EventBuilder} for creating descriptors with the `on` helper.
  */
 export type ElementEvents<TElement extends Element>
-	= Array<EventDescriptor<TElement>> | EventDescriptor<TElement>
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	= Array<EventDescriptor<TElement> | DeferredEventDescriptor<any, any> | undefined>
+	| EventDescriptor<TElement>
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	| DeferredEventDescriptor<any, any>
 
-export type EventDefinition = CustomEvent | EventDescriptor<Element>
+export type EventDefinition = CustomEvent | EventDescriptor<Element> | DeferredEventDescriptor<HTMLElement, keyof HTMLElementEventMap>
 
 export type EventBuilder = ReturnType<typeof createEventBuilder>
 export function createEventBuilder(eventTarget: Element, abortSignal: AbortSignal) {
@@ -106,16 +162,8 @@ export function createEventBuilder(eventTarget: Element, abortSignal: AbortSigna
 	function createInferredEventListener<
 		TElement extends HTMLElement,
 		EventKey extends keyof ElementEventMap<TElement>,
-	>(key: EventKey, handler: NoInfer<EventHandler<TElement, EventKey>>) {
-		// @claude I've built it to rely on the tagname heavily,
-		// how do we infer the actual tag name? or solve it differently
-		const tag = 'unknown' as TElement['tagName']
-		return new EventDescriptor(
-			key,
-			tag,
-			handler,
-			abortSignal,
-		)
+	>(key: EventKey, handler: EventHandler<TElement, EventKey>) {
+		return new DeferredEventDescriptor(key, handler, abortSignal)
 	}
 
 	function createElementEventListener<

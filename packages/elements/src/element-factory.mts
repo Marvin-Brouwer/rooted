@@ -1,4 +1,4 @@
-import { ElementEvents } from '@rooted/events'
+import { DeferredEventDescriptor, ElementEvents, EventDescriptor } from '@rooted/events'
 
 import { type Aria, buildAriaProperties } from './aria.mts'
 import { CssClasses } from './classes.mts'
@@ -30,10 +30,13 @@ type HtmlElementPropertiesMapped<TElement extends HTMLElement>
 type HtmlElementProperties<KElement extends keyof HTMLElementTagNameMap>
 	= HtmlElementPropertiesMapped<HTMLElementTagNameMap[KElement]>
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyDescriptor = EventDescriptor<any> | DeferredEventDescriptor<any, any>
 function buildEventListeners<TElement extends HTMLElement>(events: ElementEvents<TElement> | undefined, element: TElement) {
 	if (!events) return
-	const descriptors = Array.isArray(events) ? events : [events]
+	const descriptors: (AnyDescriptor | undefined)[] = Array.isArray(events) ? events : [events]
 	for (const descriptor of descriptors) {
+		if (!descriptor) continue
 		element.addEventListener(descriptor.key as string, descriptor.handler as unknown as EventListener, { signal: descriptor.signal })
 	}
 }
