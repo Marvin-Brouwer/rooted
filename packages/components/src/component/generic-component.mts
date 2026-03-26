@@ -6,6 +6,7 @@ import { create } from '../element-factory.mts'
 import { pageSignal } from '../page-context.mts'
 import { RootedElement } from '../rooted-element.mts'
 
+import { createEventBuilder } from './events.mts'
 import { applyContentStyleFallback, applyScope } from './styles.mts'
 
 type ComponentData<T> = {
@@ -162,9 +163,12 @@ export class GenericComponent extends RootedElement {
 				: realNodes
 		}
 
+		const on = createEventBuilder(this.abortController.signal)
+
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const context: ComponentContext<any> = {
 			signal: this.abortController.signal,
+			on,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			options,
 			create,

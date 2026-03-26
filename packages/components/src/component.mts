@@ -1,4 +1,5 @@
 import { GenericComponent } from './component/generic-component.mts'
+import type { EventBuilder } from './component/events.mts'
 import { injectStyles } from './component/styles.mts'
 import { devHelper } from './dev-helper.mts'
 import { create } from './element-factory.mts'
@@ -55,8 +56,36 @@ type BaseComponentContext = & {
 	 * Lifetime signal for the component, aborts when unmounted \
 	 * automatically aborts when page unloads
 	 */
-
 	signal: AbortSignal
+
+	/**
+	 * Create and bind event listeners tied to the component lifetime signal.
+	 *
+	 * All listeners added through `on` are automatically removed when the
+	 * component unmounts (or the page unloads).
+	 *
+	 * @see {@link EventBuilder} for the full list of call signatures.
+	 *
+	 * @example Global binding
+	 * ```ts
+	 * on(window, 'popstate', e => { })
+	 * on(document, 'visibilitychange', e => { })
+	 * ```
+	 *
+	 * @example Inline in `events` prop
+	 * ```ts
+	 * create('button', {
+	 *   events: [on('click', e => { e.currentTarget.disabled = true })]
+	 * })
+	 * ```
+	 *
+	 * @example Pre-defined (inside onMount, with signal embedded)
+	 * ```ts
+	 * const click = on(HTMLButtonElement, 'click', e => { e.clientX })
+	 * create('button', { events: [click] })
+	 * ```
+	 */
+	on: EventBuilder
 }
 
 const componentBrand: unique symbol = Symbol('@rooted/component')
