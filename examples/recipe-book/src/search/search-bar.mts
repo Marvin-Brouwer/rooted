@@ -15,9 +15,9 @@ export const SearchBar = component({
 			aria: {
 				label: 'Search recipes',
 			},
-			events: [
-				on('input', validateInput),
-			],
+			on: {
+				input: validateInput,
+			},
 		})
 
 		const submit = element('button', {
@@ -32,9 +32,9 @@ export const SearchBar = component({
 		append(
 			element('form', {
 				children: [input, submit],
-				events: [
-					on('submit', submitQuery),
-				],
+				on: {
+					submit: submitQuery,
+				},
 			}),
 		)
 

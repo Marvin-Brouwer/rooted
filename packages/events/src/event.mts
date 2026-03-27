@@ -1,13 +1,6 @@
-import { CustomEvent } from './custom-event.mts'
-
-declare class SyntheticEventElement<M extends Record<string, Event>> extends Element {
-	private declare _m: M
-}
-
 export type ElementEventMap<T extends Element>
 	= T extends HTMLElement ? HTMLElementEventMap
 	: T extends SVGElement ? SVGElementEventMap
-	: T extends SyntheticEventElement<infer M> ? M
 	: Record<string, Event>
 export type ElementKeys = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap
 export type ElementMap<K extends ElementKeys>
@@ -64,81 +57,64 @@ export type TagSpecificEventMap<K extends ElementKeys>
 export type TargetedEvent<TEvent extends Event, TTarget extends EventTarget>
 	= Omit<TEvent, 'currentTarget'> & { readonly currentTarget: TTarget }
 
-/**
- * A deferred event descriptor produced by {@link EventBuilder}.
- *
- * Carries the event `type`, `handler`, and the `AbortSignal` that will be
- * used to remove the listener when the component unmounts. Pass these in the
- * `events` property of any `create()` / `append()` call.
- *
- * You will not typically construct this type directly — use the `on` helper
- * available on {@link ComponentContext} or {@link createEventBuilder}.
- *
- * @typeParam TElement - Element type the listener targets (HTML or SVG).
- * @typeParam K - The specific event name key (defaults to the full event map).
- */
-export class EventDescriptor<
-	TElement extends Element,
-	EventKey extends keyof ElementEventMap<TElement> = keyof ElementEventMap<TElement>,
-> {
-	constructor(
-		readonly key: EventKey,
-		readonly tag: TElement['tagName'],
-		readonly handler: EventHandler<TElement, EventKey>,
-		readonly signal: AbortSignal,
-	) {}
-}
+// Resolves a tag name string or element class to a concrete element class.
+type ResolvedElement<T extends Element | ElementKeys>
+	= T extends ElementKeys ? ElementMap<T> : T extends Element ? T : never
 
 /**
- * A tag-deferred event descriptor produced by the 2-argument overload of
- * {@link EventBuilder} (`on(key, handler)`).
+ * A typed event handler for a DOM element event.
  *
- * Unlike {@link EventDescriptor} it carries no `tag` — the tag name is not
- * known at call time because the descriptor is created before the element is.
- * The runtime uses only `key`, `handler`, and `signal`, so the absence of a
- * tag has no effect at runtime.
+ * Accepts either an element class or a tag name string as the first type
+ * parameter:
+ * - `EventHandler<'button', 'click'>` — tag name form (recommended for options types)
+ * - `EventHandler<HTMLButtonElement, 'click'>` — element class form
  *
- * @typeParam TElement - Element type inferred from the handler annotation.
- * @typeParam EventKey - The specific event name key.
+ * Both forms produce the same handler type. The handler may optionally accept
+ * the typed event object, or take no arguments at all.
+ *
+ * @typeParam TElementOrTag - The element type or tag name string.
+ * @typeParam EventKey - The event name key.
+ *
+ * @example
+ * ```ts
+ * // In a component options type:
+ * type ButtonOptions = {
+ *   on?: { click?: EventHandler<'button', 'click'> }
+ * }
+ * ```
  */
-export class DeferredEventDescriptor<
-	TElement extends HTMLElement,
-	EventKey extends keyof ElementEventMap<TElement>,
-> {
-	constructor(
-		readonly key: EventKey,
-		readonly handler: EventHandler<TElement, EventKey>,
-		readonly signal: AbortSignal,
-	) {}
-}
-
-export type EventHandler<TElement extends Element, EventKey extends keyof ElementEventMap<TElement>>
-	= ((event: TargetedEvent<ElementEventMap<TElement>[EventKey] & Event, TElement>) => void | Promise<void>)
+export type EventHandler<
+	TElementOrTag extends Element | ElementKeys,
+	EventKey extends keyof ElementEventMap<ResolvedElement<TElementOrTag>>,
+> =
+	| ((event: TargetedEvent<
+		ElementEventMap<ResolvedElement<TElementOrTag>>[EventKey] & Event,
+		ResolvedElement<TElementOrTag>
+	>) => void | Promise<void>)
 	| (() => void | Promise<void>)
 
 /**
- * One or more {@link EventDescriptor} / {@link DeferredEventDescriptor} values
- * accepted by the `events` prop of every element created via `element()`.
+ * A map of optional event handlers for all events applicable to a given HTML
+ * element. Used as the type of the `on` prop in element factory calls.
  *
- * - A single descriptor is applied as-is.
- * - An array of descriptors is iterated in order; `undefined` entries are
- *   skipped, allowing `events.for(...)` results to be placed directly in the
- *   array without spreading.
+ * Handler values are contextually typed from the surrounding element's event
+ * map — no explicit annotation needed.
  *
- * @see {@link EventBuilder} for creating descriptors with the `on` helper.
+ * @example
+ * ```ts
+ * element('input', {
+ *   on: {
+ *     input(e) { e.currentTarget.value },  // e.currentTarget: HTMLInputElement
+ *     change() { },
+ *   }
+ * })
+ * ```
  */
-export type ElementEvents<TElement extends Element>
-	= Array<
-		| EventDescriptor<TElement>
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		| (TElement extends HTMLElement ? DeferredEventDescriptor<TElement, any> : never)
-		| undefined
-	>
-	| EventDescriptor<TElement>
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	| (TElement extends HTMLElement ? DeferredEventDescriptor<TElement, any> : never)
-
-export type EventDefinition = CustomEvent | EventDescriptor<Element> | DeferredEventDescriptor<HTMLElement, keyof HTMLElementEventMap>
+export type ElementOnHandlers<TElement extends HTMLElement> = {
+	[K in keyof ElementEventMap<TElement> & string]?:
+		| ((event: TargetedEvent<ElementEventMap<TElement>[K] & Event, TElement>) => void | Promise<void>)
+		| (() => void | Promise<void>)
+}
 
 export type EventBuilder = ReturnType<typeof createEventBuilder>
 export function createEventBuilder(eventTarget: Element, abortSignal: AbortSignal) {
@@ -174,40 +150,10 @@ export function createEventBuilder(eventTarget: Element, abortSignal: AbortSigna
 		)
 	}
 
-	function createInferredEventListener<
-		TElement extends HTMLElement,
-		EventKey extends keyof ElementEventMap<TElement>,
-	>(key: EventKey, handler: EventHandler<TElement, EventKey>) {
-		return new DeferredEventDescriptor(key, handler, abortSignal)
-	}
-
-	function createElementEventListener<
-		KElement extends ElementKeys,
-		EventKey extends keyof ElementEventMap<ElementMap<KElement>>,
-	>(tag: KElement, key: EventKey, handler: NoInfer<EventHandler<ElementMap<KElement>, EventKey>>) {
-		return new EventDescriptor(
-			key,
-			tag,
-			handler,
-			abortSignal,
-		)
-	}
-
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	function on(...arguments_: [key: any, handler: any] | [target: any, key: any, handler: any]) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		if (arguments_.length === 2) return createInferredEventListener(arguments_[0], arguments_[1])
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const [target, key, handler] = arguments_
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+	function on(target: 'window' | 'document', key: any, handler: any) {
 		if (target === 'window') return createWindowEventListener(target, key, handler)
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		if (target === 'document') return createDocumentEventListener(target, key, handler)
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		return createElementEventListener(target, key, handler)
+		return createDocumentEventListener(target, key, handler)
 	}
-	return on as unknown as typeof createWindowEventListener
-		& typeof createDocumentEventListener
-		& typeof createInferredEventListener
-		& typeof createElementEventListener
+	return on as unknown as typeof createWindowEventListener & typeof createDocumentEventListener
 }
