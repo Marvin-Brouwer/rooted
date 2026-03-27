@@ -5,37 +5,11 @@
 ```ts
 
 // @public (undocumented)
-export function createEventBuilder(eventTarget: Element, abortSignal: AbortSignal): (<K extends keyof WindowEventMap>(target: "window", key: K, handler: ((event: TargetedEvent<WindowEventMap[K], Window>) => void | Promise<void>) | (() => void | Promise<void>)) => void) & (<K extends keyof DocumentEventMap>(target: "document", key: K, handler: ((event: TargetedEvent<DocumentEventMap[K], Document>) => void | Promise<void>) | (() => void | Promise<void>)) => void) & (<TElement extends HTMLElement, EventKey extends keyof ElementEventMap_2<TElement>>(key: EventKey, handler: EventHandler<TElement, EventKey>) => DeferredEventDescriptor<TElement, EventKey>) & (<KElement extends ElementKeys, EventKey extends keyof ElementEventMap_2<ElementMap<KElement>>>(tag: KElement, key: EventKey, handler: NoInfer<EventHandler<ElementMap<KElement>, EventKey>>) => EventDescriptor<ElementMap<KElement>, EventKey>);
+export function createEventBuilder(eventTarget: Element, abortSignal: AbortSignal): (<K extends keyof WindowEventMap>(target: "window", key: K, handler: ((event: TargetedEvent<WindowEventMap[K], Window>) => void | Promise<void>) | (() => void | Promise<void>)) => void) & (<K extends keyof DocumentEventMap>(target: "document", key: K, handler: ((event: TargetedEvent<DocumentEventMap[K], Document>) => void | Promise<void>) | (() => void | Promise<void>)) => void);
 
 // @public (undocumented)
-export function createEventHelper(eventTarget: EventTarget, abortSignal: AbortSignal): {
-    <T extends EventDefinition>(events: T): EventsHelper<ArrayElement<T>>;
-    <T extends Array<EventDefinition>>(events: T): EventsHelper<ArrayElement<T>>;
-};
-
-// @public (undocumented)
-class CustomEvent_2<TDetail extends object | never = any> extends globalThis.CustomEvent<TDetail> {
-    constructor(eventKey: string, init?: CustomEventInit<TDetail>);
-}
-export { CustomEvent_2 as CustomEvent }
-
-// @public
-export class DeferredEventDescriptor<TElement extends HTMLElement, EventKey extends keyof ElementEventMap_2<TElement>> {
-    constructor(key: EventKey, handler: EventHandler<TElement, EventKey>, signal: AbortSignal);
-    // (undocumented)
-    readonly handler: EventHandler<TElement, EventKey>;
-    // (undocumented)
-    readonly key: EventKey;
-    // (undocumented)
-    readonly signal: AbortSignal;
-}
-
-// @public (undocumented)
-type ElementEventMap_2<T extends Element> = T extends HTMLElement ? HTMLElementEventMap : T extends SVGElement ? SVGElementEventMap : T extends SyntheticEventElement<infer M> ? M : Record<string, Event>;
+type ElementEventMap_2<T extends Element> = T extends HTMLElement ? HTMLElementEventMap : T extends SVGElement ? SVGElementEventMap : Record<string, Event>;
 export { ElementEventMap_2 as ElementEventMap }
-
-// @public
-export type ElementEvents<TElement extends Element> = Array<EventDescriptor<TElement> | (TElement extends HTMLElement ? DeferredEventDescriptor<TElement, any> : never) | undefined> | EventDescriptor<TElement> | (TElement extends HTMLElement ? DeferredEventDescriptor<TElement, any> : never);
 
 // @public (undocumented)
 export type ElementKeys = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap;
@@ -43,58 +17,16 @@ export type ElementKeys = keyof HTMLElementTagNameMap | keyof SVGElementTagNameM
 // @public (undocumented)
 export type ElementMap<K extends ElementKeys> = K extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[K] : K extends keyof SVGElementTagNameMap ? SVGElementTagNameMap[K] : Element;
 
-// @public (undocumented)
-function event_2(eventKey: string, init?: EventInit): CustomEvent_2<never>;
-export { event_2 as event }
+// @public
+export type ElementOnHandlers<TElement extends HTMLElement> = {
+    [K in keyof ElementEventMap_2<TElement> & string]?: ((event: TargetedEvent<ElementEventMap_2<TElement>[K] & Event, TElement>) => void | Promise<void>) | (() => void | Promise<void>);
+};
 
 // @public (undocumented)
 export type EventBuilder = ReturnType<typeof createEventBuilder>;
 
-// @public (undocumented)
-export type EventDefinition = CustomEvent_2 | EventDescriptor<Element> | DeferredEventDescriptor<HTMLElement, keyof HTMLElementEventMap>;
-
 // @public
-export class EventDescriptor<TElement extends Element, EventKey extends keyof ElementEventMap_2<TElement> = keyof ElementEventMap_2<TElement>> {
-    constructor(key: EventKey, tag: TElement['tagName'], handler: EventHandler<TElement, EventKey>, signal: AbortSignal);
-    // (undocumented)
-    readonly handler: EventHandler<TElement, EventKey>;
-    // (undocumented)
-    readonly key: EventKey;
-    // (undocumented)
-    readonly signal: AbortSignal;
-    // (undocumented)
-    readonly tag: TElement['tagName'];
-}
-
-// @public (undocumented)
-export type EventHandler<TElement extends Element, EventKey extends keyof ElementEventMap_2<TElement>> = ((event: TargetedEvent<ElementEventMap_2<TElement>[EventKey] & Event, TElement>) => void | Promise<void>) | (() => void | Promise<void>);
-
-// @public (undocumented)
-export type EventHelper = ReturnType<typeof createEventHelper>;
-
-// @public (undocumented)
-export class EventsHelper<T extends EventDefinition> {
-    constructor(events: Array<T>, abortSignal: AbortSignal, eventTarget: EventTarget);
-    // (undocumented)
-    emit(definition: CustomEvent_2<never>): void;
-    // (undocumented)
-    emit<TDetail extends object>(definition: CustomEvent_2<TDetail>, detail: TDetail): void;
-    // (undocumented)
-    for<KElement extends ElementKeys, EventKey extends keyof ElementEventMap_2<ElementMap<KElement>>>(definition: CustomEvent_2, descriptor: EventDescriptor<ElementMap<KElement>, EventKey> | DeferredEventDescriptor<any, any>): typeof descriptor | undefined;
-    forward<KElement extends ElementKeys, EventKey extends keyof TagSpecificEventMap<KElement>>(forwardedEvent: ForwardedEvent<KElement, EventKey>): (EventDescriptor<ElementMap<KElement>> | DeferredEventDescriptor<any, any>)[];
-}
-
-// @public
-export class ForwardedEvent<KElement extends ElementKeys, EventKey extends keyof TagSpecificEventMap<KElement>> {
-    constructor(tag: KElement, key: EventKey);
-    // (undocumented)
-    readonly key: EventKey;
-    // (undocumented)
-    readonly tag: KElement;
-}
-
-// @public (undocumented)
-export function forwardEvent<KElement extends ElementKeys, TEvent extends keyof TagSpecificEventMap<KElement>>(tag: KElement, eventName: TEvent): ForwardedEvent<KElement, TEvent>;
+export type EventHandler<TElementOrTag extends Element | ElementKeys, EventKey extends keyof ElementEventMap_2<ResolvedElement<TElementOrTag>>> = ((event: TargetedEvent<ElementEventMap_2<ResolvedElement<TElementOrTag>>[EventKey] & Event, ResolvedElement<TElementOrTag>>) => void | Promise<void>) | (() => void | Promise<void>);
 
 // @public
 export type TagSpecificEventMap<K extends ElementKeys> = K extends keyof HTMLElementTagNameMap ? K extends FormControlTags ? HTMLElementEventMap : HTMLElementTagNameMap[K] extends HTMLVideoElement ? HTMLVideoElementEventMap : HTMLElementTagNameMap[K] extends HTMLMediaElement ? HTMLMediaElementEventMap : Omit<HTMLElementEventMap, ElementSpecificEvents> : K extends keyof SVGElementTagNameMap ? SVGElementEventMap : Record<string, Event>;

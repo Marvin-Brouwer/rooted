@@ -2,12 +2,18 @@ import { component } from '@rooted/components'
 import { TargetedEvent } from '@rooted/components/events'
 import { navigate } from '@rooted/router'
 
+import { SearchRoute } from './_routes.mts'
 import styles from './search-bar.css'
 
 export const SearchBar = component({
 	name: 'search-bar',
 	styles,
-	onMount({ append, element, on }) {
+	async onMount({ append, element, on }) {
+		const submit = element('button', {
+			type: 'submit',
+			textContent: 'Search',
+		})
+
 		const input = element('input', {
 			type: 'search',
 			name: 'query',
@@ -18,11 +24,6 @@ export const SearchBar = component({
 			on: {
 				input: validateInput,
 			},
-		})
-
-		const submit = element('button', {
-			type: 'submit',
-			textContent: 'Search',
 		})
 
 		function validateInput() {
@@ -40,13 +41,13 @@ export const SearchBar = component({
 
 		// Keep the search bar in sync with the URL: show the active query on the search page,
 		// clear it everywhere else
-		const syncInput = () => {
-			const match = globalThis.location.pathname.match(/^\/search\/(.+)\/$/)
-			input.value = match ? decodeURIComponent(match[1]) : ''
+		const syncInput = async () => {
+			const match = await SearchRoute.match()
+			input.value = match.success ? decodeURIComponent(match.tokens.query) : ''
 			validateInput()
 		}
 		on('window', 'popstate', syncInput)
-		syncInput()
+		await syncInput()
 	},
 })
 
