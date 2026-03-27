@@ -1,4 +1,4 @@
-import { DeferredEventDescriptor, ElementEvents, EventDescriptor } from '@rooted/events'
+import { ElementOnHandlers } from '@rooted/events'
 
 import { type Aria, buildAriaProperties } from './aria.mts'
 import { CssClasses } from './classes.mts'
@@ -10,12 +10,14 @@ type NonWritableKeys<T> = {
 type FunctionKeys<T> = {
 	[P in keyof T]: NonNullable<T[P]> extends (...arguments_: never[]) => unknown ? P : never
 }[keyof T]
+type OnHandlerKeys<T> = { [P in keyof T]: P extends `on${string}` ? P : never }[keyof T]
 
 type SanitizedHtmlProperties<TElement extends HTMLElement> = Omit<
 	TElement,
 	| NonWritableKeys<TElement>
 	| FunctionKeys<TElement>
 	| Exclude<keyof ARIAMixin, 'role'>
+	| OnHandlerKeys<TElement>
 	| 'children' | 'className' | 'classList'
 >
 type HtmlElementPropertiesMapped<TElement extends HTMLElement>
@@ -24,20 +26,26 @@ type HtmlElementPropertiesMapped<TElement extends HTMLElement>
 		children?: Array<Node | string> | Node | string
 		classes?: CssClasses
 		aria?: Aria
-		events?: ElementEvents<TElement>
+		on?: ElementOnHandlers<TElement>
 	}
 
 type HtmlElementProperties<KElement extends keyof HTMLElementTagNameMap>
 	= HtmlElementPropertiesMapped<HTMLElementTagNameMap[KElement]>
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyDescriptor = EventDescriptor<any> | DeferredEventDescriptor<any, any>
-function buildEventListeners<TElement extends HTMLElement>(events: ElementEvents<TElement> | undefined, element: TElement) {
-	if (!events) return
-	const descriptors: (AnyDescriptor | undefined)[] = Array.isArray(events) ? events : [events]
-	for (const descriptor of descriptors) {
-		if (!descriptor) continue
-		element.addEventListener(descriptor.key as string, descriptor.handler as unknown as EventListener, { signal: descriptor.signal })
+function buildOnHandlers<TElement extends HTMLElement>(
+	on: ElementOnHandlers<TElement> | undefined,
+	element: TElement,
+	signal: AbortSignal | undefined,
+): void {
+	if (!on) return
+	for (const [key, handler] of Object.entries(on)) {
+		if (!handler) continue
+		element.addEventListener(
+			key,
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			event => void (handler as (event?: Event) => void | Promise<void>)(event),
+			signal ? { signal } : undefined,
+		)
 	}
 }
 
@@ -50,7 +58,7 @@ function buildClassList(classes: CssClasses | undefined) {
 
 export type ElementCreator = (key: string) => HTMLElement
 export type ElementFactory = ReturnType<typeof createElementFactory>
-export function createElementFactory(constructElement: ElementCreator) {
+export function createElementFactory(constructElement: ElementCreator, signal?: AbortSignal) {
 	/**
 	 * Creates a new HTML element. The element is **not** appended to the
 	 * document automatically.
@@ -68,7 +76,8 @@ export function createElementFactory(constructElement: ElementCreator) {
 	 * **Children** — pass a single `Node` or an array of `Node`s via the
 	 * `children` property; they are appended in order.
 	 *
-	 * **Event listeners** — use the `events` prop with event descriptors.
+	 * **Event listeners** — use the `on` prop with an object of event handlers.
+	 * Listeners are automatically removed when the component unmounts.
 	 *
 	 * **ARIA** — use the `aria` prop for ARIA attributes. Accepts string IDs or
 	 * `Element` references for IDL reflection properties.
@@ -86,7 +95,7 @@ export function createElementFactory(constructElement: ElementCreator) {
 	 * ```
 	 */
 	function createElement<KElement extends keyof HTMLElementTagNameMap>(tag: KElement, properties?: NoInfer<HtmlElementProperties<KElement>>): HTMLElementTagNameMap[KElement] {
-		const { aria, children, classes, events, ...assignableProperties } = (properties ?? {})
+		const { aria, children, classes, on, ...assignableProperties } = (properties ?? {})
 		const definedProperties = Object.fromEntries(Object
 			.entries(assignableProperties)
 			.filter(([, v]) => v !== undefined && v !== null),
@@ -108,7 +117,7 @@ export function createElementFactory(constructElement: ElementCreator) {
 			newElement.append(children)
 		}
 
-		buildEventListeners(events, newElement)
+		buildOnHandlers(on, newElement, signal)
 
 		return newElement as HTMLElementTagNameMap[KElement]
 	}
