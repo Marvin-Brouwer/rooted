@@ -1,6 +1,10 @@
 /// <reference path="../../node_modules/vite/types/import-meta.d.ts" />
 
+import { createElementFactory } from '@rooted/elements'
+
 import { type CssArtifacts, cssArtifacts, type CssModule } from './css-artifacts.mts'
+
+const createElement = createElementFactory(document.createElement.bind(document))
 
 /** Map from injected href to its <link> element, for cache-busting on HMR. */
 const injectedLinks = new Map<string, HTMLLinkElement>()
@@ -16,7 +20,7 @@ export function injectStyles(styles: CssModule) {
 	const href = supportsScope ? artifacts.scoped : artifacts.tagged
 	if (injectedLinks.has(href)) return
 
-	const link = Object.assign(document.createElement('link'), { rel: 'stylesheet', href })
+	const link = createElement('link', { rel: 'stylesheet', href })
 
 	document.head.append(link)
 	injectedLinks.set(href, link)

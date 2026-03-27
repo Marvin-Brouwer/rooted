@@ -14,9 +14,6 @@ type HtmlComponentProperties<TElement extends HTMLElement> = Partial<Pick<TEleme
 	children?: Array<Node | string> | Node | string
 }
 
-function createComponent<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: RootedElementProperties<TComponent>) {
-	return createElement<TComponent>(component.tagName, properties as HtmlComponentProperties<TComponent>)
-}
 function createElement<TElement extends HTMLElement>(element: string, properties: HtmlComponentProperties<TElement>) {
 	const { children, ...assignableProperties } = properties ?? {}
 	const definedProperties = Object.fromEntries(Object
@@ -105,6 +102,5 @@ export function create(
 		return element
 	}
 
-	// TODO rebuild factory or move create into components itself
-	return createComponent(component, {})
+	return createElement<RootedElement>(component.tagName, (properties ?? {}) as HtmlComponentProperties<RootedElement>)
 }
