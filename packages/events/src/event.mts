@@ -36,11 +36,11 @@ type FormControlTags = 'input' | 'select' | 'textarea' | 'form'
  */
 export type TagSpecificEventMap<K extends ElementKeys>
 	= K extends keyof HTMLElementTagNameMap
-		? K extends FormControlTags
-			? HTMLElementEventMap
-			: HTMLElementTagNameMap[K] extends HTMLVideoElement ? HTMLVideoElementEventMap
-			: HTMLElementTagNameMap[K] extends HTMLMediaElement ? HTMLMediaElementEventMap
-			: Omit<HTMLElementEventMap, ElementSpecificEvents>
+	? K extends FormControlTags
+	? HTMLElementEventMap
+	: HTMLElementTagNameMap[K] extends HTMLVideoElement ? HTMLVideoElementEventMap
+	: HTMLElementTagNameMap[K] extends HTMLMediaElement ? HTMLMediaElementEventMap
+	: Omit<HTMLElementEventMap, ElementSpecificEvents>
 	: K extends keyof SVGElementTagNameMap ? SVGElementEventMap
 	: Record<string, Event>
 
@@ -61,8 +61,8 @@ export type TagSpecificEventMap<K extends ElementKeys>
  * })
  * ```
  */
-export type TargetedEvent<TEvent, TTarget extends EventTarget>
-	= TEvent & { readonly currentTarget: TTarget }
+export type TargetedEvent<TEvent extends Event, TTarget extends EventTarget>
+	= Omit<TEvent, 'currentTarget'> & { readonly currentTarget: TTarget }
 
 /**
  * A deferred event descriptor produced by {@link EventBuilder}.
@@ -113,7 +113,8 @@ export class DeferredEventDescriptor<
 }
 
 export type EventHandler<TElement extends Element, EventKey extends keyof ElementEventMap<TElement>>
-	= (event: TargetedEvent<ElementEventMap<TElement>[EventKey], TElement>) => void | Promise<void>
+	= ((event: TargetedEvent<ElementEventMap<TElement>[EventKey] & Event, TElement>) => void | Promise<void>)
+	| (() => void | Promise<void>)
 
 /**
  * One or more {@link EventDescriptor} / {@link DeferredEventDescriptor} values
@@ -143,7 +144,7 @@ export function createEventBuilder(eventTarget: Element, abortSignal: AbortSigna
 		void target
 		globalThis.window.addEventListener(
 			key,
-			event => void handler(event as TargetedEvent<typeof event, Window>),
+			event => void handler(event as unknown as TargetedEvent<typeof event, Window>),
 			{ signal: abortSignal },
 		)
 	}
@@ -154,7 +155,7 @@ export function createEventBuilder(eventTarget: Element, abortSignal: AbortSigna
 		void target
 		eventTarget.ownerDocument.addEventListener(
 			key,
-			event => void handler(event as TargetedEvent<typeof event, Document>),
+			event => void handler(event as unknown as TargetedEvent<typeof event, Document>),
 			{ signal: abortSignal },
 		)
 	}

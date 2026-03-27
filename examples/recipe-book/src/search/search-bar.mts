@@ -1,6 +1,6 @@
 import { component } from '@rooted/components'
+import { TargetedEvent } from '@rooted/components/events'
 import { navigate } from '@rooted/router'
-import { TargetedEvent } from '@rooted/events'
 
 import styles from './search-bar.css'
 
@@ -12,7 +12,9 @@ export const SearchBar = component({
 			type: 'search',
 			name: 'query',
 			placeholder: 'Search recipes…',
-			ariaLabel: 'Search recipes',
+			aria: {
+				label: 'Search recipes',
+			},
 			events: [
 				on('input', validateInput),
 			],
@@ -48,9 +50,9 @@ export const SearchBar = component({
 	},
 })
 
-function submitQuery(e: TargetedEvent<SubmitEvent, HTMLFormElement>) {
-	e.preventDefault()
-	const formData = new FormData(e.currentTarget)
+function submitQuery(event: TargetedEvent<SubmitEvent, HTMLFormElement>) {
+	event.preventDefault()
+	const formData = new FormData(event.currentTarget)
 	const query = (formData.get('query') as string)?.trim()
 	if (query) navigate(`/search/${encodeURIComponent(query)}/`)
 }

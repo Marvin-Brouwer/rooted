@@ -6,6 +6,7 @@
 
 import { ElementFactory } from '@rooted/elements';
 import { EventBuilder } from '@rooted/events';
+import { EventHelper } from '@rooted/events';
 
 // @public
 export function c(component: Component): GenericComponent;
