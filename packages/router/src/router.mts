@@ -97,7 +97,7 @@ type RouterProperties = {
 }
 const Router = component<RouterProperties>({
 	name: '@rooted/router',
-	async onMount({ replace, create, signal, options }) {
+	async onMount({ replace, create, on, options }) {
 		let lastPath: string | undefined
 
 		const cache = new Map<string, undefined | { route: Route<any>, match: SuccessRouteMatch }>()
@@ -129,7 +129,7 @@ const Router = component<RouterProperties>({
 			return renderRoute(matchRouteResult.element)
 		}
 
-		globalThis.addEventListener('popstate', () => void update(), { signal })
+		on('window', 'popstate', update)
 		await update()
 	},
 })
