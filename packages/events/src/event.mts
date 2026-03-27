@@ -128,34 +128,48 @@ export type EventHandler<TElement extends Element, EventKey extends keyof Elemen
  * @see {@link EventBuilder} for creating descriptors with the `on` helper.
  */
 export type ElementEvents<TElement extends Element>
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	= Array<EventDescriptor<TElement> | DeferredEventDescriptor<any, any> | undefined>
+	= Array<
+		| EventDescriptor<TElement>
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		| (TElement extends HTMLElement ? DeferredEventDescriptor<TElement, any> : never)
+		| undefined
+	>
 	| EventDescriptor<TElement>
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	| DeferredEventDescriptor<any, any>
+	| (TElement extends HTMLElement ? DeferredEventDescriptor<TElement, any> : never)
 
 export type EventDefinition = CustomEvent | EventDescriptor<Element> | DeferredEventDescriptor<HTMLElement, keyof HTMLElementEventMap>
 
 export type EventBuilder = ReturnType<typeof createEventBuilder>
 export function createEventBuilder(eventTarget: Element, abortSignal: AbortSignal) {
 	function createWindowEventListener<K extends keyof WindowEventMap>(
-		target: 'window', key: K, handler: (event: TargetedEvent<WindowEventMap[K], Window>) => void | Promise<void>,
+		target: 'window', key: K,
+		handler:
+			| ((event: TargetedEvent<WindowEventMap[K], Window>) => void | Promise<void>)
+			| (() => void | Promise<void>),
 	) {
 		void target
 		globalThis.window.addEventListener(
 			key,
-			event => void handler(event as unknown as TargetedEvent<typeof event, Window>),
+			event => void (handler as (event?: TargetedEvent<WindowEventMap[K], Window>) => void | Promise<void>)(
+				event as unknown as TargetedEvent<typeof event, Window>,
+			),
 			{ signal: abortSignal },
 		)
 	}
 
 	function createDocumentEventListener<K extends keyof DocumentEventMap>(
-		target: 'document', key: K, handler: (event: TargetedEvent<DocumentEventMap[K], Document>) => void | Promise<void>,
+		target: 'document', key: K,
+		handler:
+			| ((event: TargetedEvent<DocumentEventMap[K], Document>) => void | Promise<void>)
+			| (() => void | Promise<void>),
 	) {
 		void target
 		eventTarget.ownerDocument.addEventListener(
 			key,
-			event => void handler(event as unknown as TargetedEvent<typeof event, Document>),
+			event => void (handler as (event?: TargetedEvent<DocumentEventMap[K], Document>) => void | Promise<void>)(
+				event as unknown as TargetedEvent<typeof event, Document>,
+			),
 			{ signal: abortSignal },
 		)
 	}
