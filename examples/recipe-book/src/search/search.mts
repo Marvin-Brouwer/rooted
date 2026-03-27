@@ -3,6 +3,7 @@ import { href, Link } from '@rooted/router'
 
 import { RecipeRoute } from '../recipes/_routes.mts'
 
+import { SearchRoute } from './_routes.mts'
 import styles from './search.css'
 
 export const SearchPage = component({
@@ -17,14 +18,13 @@ export const SearchPage = component({
 			root.replaceChildren()
 
 			// Always read from the live URL so re-searches while on this page reflect the new query
-			const rawQuery = globalThis.location.pathname.replace(/^\/search\//, '').replace(/\/$/, '')
-			const query = decodeURIComponent(rawQuery).toLowerCase().trim()
-			const displayQuery = decodeURIComponent(rawQuery)
+			const urlQuery = await getSearchQueryFromUrl()
+			const query = urlQuery.toLowerCase().trim()
 
 			root.append(element('h1', {
 				children: [
 					document.createTextNode('Results for '),
-					element('span', { classes: styles.searchQuery, textContent: `"${displayQuery}"` }),
+					element('span', { classes: styles.searchQuery, textContent: `"${urlQuery}"` }),
 				],
 			}))
 
@@ -68,3 +68,8 @@ export const SearchPage = component({
 		await render()
 	},
 })
+
+export async function getSearchQueryFromUrl() {
+	const match = await SearchRoute.match()
+	return match.success ? decodeURIComponent(match.tokens.query) : ''
+}
