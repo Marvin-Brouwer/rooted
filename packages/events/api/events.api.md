@@ -5,7 +5,7 @@
 ```ts
 
 // @public (undocumented)
-export function createEventBuilder(eventTarget: Element, abortSignal: AbortSignal): (<K extends keyof WindowEventMap>(target: "window", key: K, handler: (event: TargetedEvent<WindowEventMap[K], Window>) => void | Promise<void>) => void) & (<K extends keyof DocumentEventMap>(target: "document", key: K, handler: (event: TargetedEvent<DocumentEventMap[K], Document>) => void | Promise<void>) => void) & (<TElement extends HTMLElement, EventKey extends keyof ElementEventMap_2<TElement>>(key: EventKey, handler: EventHandler<TElement, EventKey>) => DeferredEventDescriptor<TElement, EventKey>) & (<KElement extends ElementKeys, EventKey extends keyof ElementEventMap_2<ElementMap<KElement>>>(tag: KElement, key: EventKey, handler: NoInfer<EventHandler<ElementMap<KElement>, EventKey>>) => EventDescriptor<ElementMap<KElement>, EventKey>);
+export function createEventBuilder(eventTarget: Element, abortSignal: AbortSignal): (<K extends keyof WindowEventMap>(target: "window", key: K, handler: ((event: TargetedEvent<WindowEventMap[K], Window>) => void | Promise<void>) | (() => void | Promise<void>)) => void) & (<K extends keyof DocumentEventMap>(target: "document", key: K, handler: ((event: TargetedEvent<DocumentEventMap[K], Document>) => void | Promise<void>) | (() => void | Promise<void>)) => void) & (<TElement extends HTMLElement, EventKey extends keyof ElementEventMap_2<TElement>>(key: EventKey, handler: EventHandler<TElement, EventKey>) => DeferredEventDescriptor<TElement, EventKey>) & (<KElement extends ElementKeys, EventKey extends keyof ElementEventMap_2<ElementMap<KElement>>>(tag: KElement, key: EventKey, handler: NoInfer<EventHandler<ElementMap<KElement>, EventKey>>) => EventDescriptor<ElementMap<KElement>, EventKey>);
 
 // @public (undocumented)
 export function createEventHelper(eventTarget: EventTarget, abortSignal: AbortSignal): {
@@ -35,7 +35,7 @@ type ElementEventMap_2<T extends Element> = T extends HTMLElement ? HTMLElementE
 export { ElementEventMap_2 as ElementEventMap }
 
 // @public
-export type ElementEvents<TElement extends Element> = Array<EventDescriptor<TElement> | DeferredEventDescriptor<any, any> | undefined> | EventDescriptor<TElement> | DeferredEventDescriptor<any, any>;
+export type ElementEvents<TElement extends Element> = Array<EventDescriptor<TElement> | (TElement extends HTMLElement ? DeferredEventDescriptor<TElement, any> : never) | undefined> | EventDescriptor<TElement> | (TElement extends HTMLElement ? DeferredEventDescriptor<TElement, any> : never);
 
 // @public (undocumented)
 export type ElementKeys = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap;

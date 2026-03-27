@@ -46,6 +46,7 @@ export class EventsHelper<T extends EventDefinition> {
 	forward<KElement extends ElementKeys, EventKey extends keyof TagSpecificEventMap<KElement>>(
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		forwardedEvent: ForwardedEvent<KElement, EventKey>): (EventDescriptor<ElementMap<KElement>> | DeferredEventDescriptor<any, any>)[] {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return (this.events as AnyDescriptor[])
 			.filter((d): d is AnyDescriptor => d instanceof EventDescriptor || d instanceof DeferredEventDescriptor)
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any

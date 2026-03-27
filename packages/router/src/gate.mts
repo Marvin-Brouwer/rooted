@@ -58,7 +58,7 @@ type GateOptions<TRoute extends AnyRoute> = {
 }
 const Gate = component<GateOptions<AnyRoute>>({
 	name: 'sling:gate',
-	async onMount({ options, replace, remove, signal }) {
+	async onMount({ options, replace, remove, on }) {
 		const { routeReference, renderGate } = options
 		let innerNodes: Element[] | undefined
 
@@ -75,7 +75,7 @@ const Gate = component<GateOptions<AnyRoute>>({
 			}
 		}
 
-		globalThis.addEventListener('popstate', () => void checkGate(), { signal })
+		on('window', 'popstate', checkGate)
 		await checkGate()
 	},
 })

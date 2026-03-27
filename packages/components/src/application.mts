@@ -35,10 +35,10 @@ export function application<T extends Component>(component: T, options?: Applica
 }
 
 if (isDevelopment()) {
-	globalThis.addEventListener('error', (errorEvent) => {
+	globalThis.window.addEventListener('error', (errorEvent) => {
 		console.error(errorEvent)
 	})
-	globalThis.addEventListener('unhandledrejection', (rejectionEvent) => {
+	globalThis.window.addEventListener('unhandledrejection', (rejectionEvent) => {
 		console.error(rejectionEvent)
 	})
 }
