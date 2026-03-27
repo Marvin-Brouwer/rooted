@@ -63,8 +63,8 @@ export const SearchPage = component({
 			root.append(list)
 		}
 
-		await render()
 		// Re-render when the user searches again while already on this page (same gate, new query)
-		on('window', 'popstate', () => void render())
+		on('window', 'popstate', render)
+		await render()
 	},
 })
