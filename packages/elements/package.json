@@ -34,6 +34,10 @@
 		".": {
 			"import": "./dist/elements.mjs",
 			"types": "./dist/elements.d.mjs"
+		},
+		"./events": {
+			"import": "./dist/events.mjs",
+			"types": "./dist/events.d.mjs"
 		}
 	},
 	"scripts": {
@@ -47,6 +51,9 @@
 	"dependencies": {
 		"@rooted/events": "workspace:^"
 	},
+	"bundledDependencies": [
+		"@rooted.events"
+	],
 	"devDependencies": {
 		"@rooted/development": "workspace:*",
 		"tsx": "^4.19.0"

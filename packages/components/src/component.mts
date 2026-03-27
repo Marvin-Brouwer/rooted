@@ -1,5 +1,5 @@
 import { ElementFactory } from '@rooted/elements'
-import { EventBuilder } from '@rooted/events'
+import { EventBuilder } from '@rooted/elements/events'
 
 import { GenericComponent } from './component/generic-component.mts'
 import { injectStyles } from './component/styles.mts'

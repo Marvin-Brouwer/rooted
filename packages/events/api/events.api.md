@@ -5,7 +5,7 @@
 ```ts
 
 // @public (undocumented)
-export function createEventBuilder(eventTarget: Element, abortSignal: AbortSignal): (<K extends keyof WindowEventMap>(target: "window", key: K, handler: ((event: TargetedEvent<WindowEventMap[K], Window>) => void | Promise<void>) | (() => void | Promise<void>)) => void) & (<K extends keyof DocumentEventMap>(target: "document", key: K, handler: ((event: TargetedEvent<DocumentEventMap[K], Document>) => void | Promise<void>) | (() => void | Promise<void>)) => void);
+export function createEventBuilder(eventTarget: Element, abortSignal: AbortSignal): (<K extends keyof WindowEventMap>(target: "window", key: K, handler: ((event: TargetedEvent<WindowEventMap[K], Window>) => void | Promise<void>) | (() => void | Promise<void>)) => void) & (<K extends keyof DocumentEventMap>(target: "document", key: K, handler: ((event: TargetedEvent<DocumentEventMap[K], Document>) => void | Promise<void>) | (() => void | Promise<void>)) => void) & (<K extends keyof GlobalEventMap>(target: "global", key: K, handler: GlobalEventHandler<K>) => void);
 
 // @public (undocumented)
 type ElementEventMap_2<T extends Element> = T extends HTMLElement ? HTMLElementEventMap : T extends SVGElement ? SVGElementEventMap : Record<string, Event>;
@@ -28,6 +28,17 @@ export type EventBuilder = ReturnType<typeof createEventBuilder>;
 // @public
 export type EventHandler<TElementOrTag extends Element | ElementKeys, EventKey extends keyof ElementEventMap_2<ResolvedElement<TElementOrTag>>> = ((event: TargetedEvent<ElementEventMap_2<ResolvedElement<TElementOrTag>>[EventKey] & Event, ResolvedElement<TElementOrTag>>) => void | Promise<void>) | (() => void | Promise<void>);
 
+// @public (undocumented)
+export type GlobalEventHandler<K extends keyof GlobalEventMap> = ((event: TargetedEvent<GlobalEventMap[K], Window>) => void | Promise<void>) | (() => void | Promise<void>);
+
+// @public (undocumented)
+export type GlobalEventMap = {
+    'unhandled-error': UnhandledErrorEvent;
+};
+
+// @public (undocumented)
+export function isApplicationErrorError(event: ErrorEvent | PromiseRejectionEvent): boolean;
+
 // @public
 export type TagSpecificEventMap<K extends ElementKeys> = K extends keyof HTMLElementTagNameMap ? K extends FormControlTags ? HTMLElementEventMap : HTMLElementTagNameMap[K] extends HTMLVideoElement ? HTMLVideoElementEventMap : HTMLElementTagNameMap[K] extends HTMLMediaElement ? HTMLMediaElementEventMap : Omit<HTMLElementEventMap, ElementSpecificEvents> : K extends keyof SVGElementTagNameMap ? SVGElementEventMap : Record<string, Event>;
 
@@ -35,6 +46,18 @@ export type TagSpecificEventMap<K extends ElementKeys> = K extends keyof HTMLEle
 export type TargetedEvent<TEvent extends Event, TTarget extends EventTarget> = Omit<TEvent, 'currentTarget'> & {
     readonly currentTarget: TTarget;
 };
+
+// @public
+export class UnhandledErrorEvent extends ErrorEvent {
+    // (undocumented)
+    static forError(innerEvent: ErrorEvent): TargetedEvent<UnhandledErrorEvent, Window>;
+    // (undocumented)
+    static forRejection(innerEvent: PromiseRejectionEvent): TargetedEvent<UnhandledErrorEvent, Window>;
+    // (undocumented)
+    readonly innerEvent: PromiseRejectionEvent | ErrorEvent;
+    // (undocumented)
+    readonly promise?: Promise<unknown> | undefined;
+}
 
 // (No @packageDocumentation comment for this package)
 

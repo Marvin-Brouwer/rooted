@@ -32,8 +32,8 @@ describe('createEventBuilder — window events', () => {
 	test('fires when event dispatched on window', () => {
 		const listeners: Record<string, EventListener[]> = {}
 		const fakeWindow = {
-			addEventListener(type: string, fn: EventListener) {
-				;(listeners[type] ??= []).push(fn)
+			addEventListener(type: string, function_: EventListener) {
+				;(listeners[type] ??= []).push(function_)
 			},
 		}
 		vi.stubGlobal('window', fakeWindow)
@@ -43,7 +43,7 @@ describe('createEventBuilder — window events', () => {
 		on('window', 'popstate', handler)
 
 		const event = new Event('popstate')
-		listeners['popstate']?.forEach(fn => fn(event))
+		if (listeners['popstate']) for (const function_ of listeners['popstate']) function_(event)
 		expect(handler).toHaveBeenCalledOnce()
 
 		vi.unstubAllGlobals()
@@ -52,8 +52,8 @@ describe('createEventBuilder — window events', () => {
 	test('no-arg handler fires without needing the event parameter', () => {
 		const listeners: Record<string, EventListener[]> = {}
 		const fakeWindow = {
-			addEventListener(type: string, fn: EventListener) {
-				;(listeners[type] ??= []).push(fn)
+			addEventListener(type: string, function_: EventListener) {
+				;(listeners[type] ??= []).push(function_)
 			},
 		}
 		vi.stubGlobal('window', fakeWindow)
@@ -62,7 +62,7 @@ describe('createEventBuilder — window events', () => {
 		const handler = vi.fn()
 		on('window', 'popstate', handler)
 
-		listeners['popstate']?.forEach(fn => fn(new Event('popstate')))
+		if (listeners['popstate']) for (const function_ of listeners['popstate']) function_(new Event('popstate'))
 		expect(handler).toHaveBeenCalledOnce()
 
 		vi.unstubAllGlobals()

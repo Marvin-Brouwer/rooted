@@ -1,5 +1,5 @@
 import { createElementFactory, ElementCreator } from '@rooted/elements'
-import { createEventBuilder } from '@rooted/events'
+import { createEventBuilder } from '@rooted/elements/events'
 import { isDevelopment } from '@rooted/util/dev'
 
 import { create } from '../component-factory.mts'
