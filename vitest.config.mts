@@ -15,6 +15,14 @@ export default defineConfig({
 				replacement: fileURLToPath(new URL('packages/util/src/_module/util.mts', import.meta.url)),
 			},
 			{
+				find: '@rooted/events',
+				replacement: fileURLToPath(new URL('packages/events/src/_module/events.mts', import.meta.url)),
+			},
+			{
+				find: '@rooted/elements',
+				replacement: fileURLToPath(new URL('packages/elements/src/_module/elements.mts', import.meta.url)),
+			},
+			{
 				find: '@rooted/components/elements',
 				replacement: fileURLToPath(new URL('packages/components/src/_module/elements.mts', import.meta.url)),
 			},
@@ -26,7 +34,7 @@ export default defineConfig({
 	},
 	test: {
 		globals: true,
-		include: ['packages/*/tests/**/*.test.ts'],
+		include: ['packages/*/tests/**/*.test.ts', 'packages/*/tests/**/*.spec.ts'],
 		environment: 'happy-dom',
 		environmentMatchGlobs: [
 			['packages/router/tests/**', 'happy-dom'],
