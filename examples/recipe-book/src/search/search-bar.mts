@@ -1,7 +1,8 @@
 import { component } from '@rooted/components'
 import { TargetedEvent } from '@rooted/components/events'
-import { navigate } from '@rooted/router'
+import { href, navigate } from '@rooted/router'
 
+import { SearchRoute } from './_routes.mts'
 import styles from './search-bar.css'
 import { getSearchQueryFromUrl } from './search.mts'
 
@@ -54,5 +55,5 @@ function submitQuery(event: TargetedEvent<SubmitEvent, HTMLFormElement>) {
 	event.preventDefault()
 	const formData = new FormData(event.currentTarget)
 	const query = (formData.get('query') as string)?.trim()
-	if (query) navigate(`/search/${encodeURIComponent(query)}/`)
+	if (query) navigate(href.for(SearchRoute, { query }))
 }
