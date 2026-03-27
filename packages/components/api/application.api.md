@@ -6,7 +6,6 @@
 
 import { ElementFactory } from '@rooted/elements';
 import { EventBuilder } from '@rooted/events';
-import { EventHelper } from '@rooted/events';
 
 // @public
 export function application<T extends Component>(component: T, options?: ApplicationOptions): GenericComponent;

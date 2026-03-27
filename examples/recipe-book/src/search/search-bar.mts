@@ -2,8 +2,8 @@ import { component } from '@rooted/components'
 import { TargetedEvent } from '@rooted/components/events'
 import { navigate } from '@rooted/router'
 
-import { SearchRoute } from './_routes.mts'
 import styles from './search-bar.css'
+import { getSearchQueryFromUrl } from './search.mts'
 
 export const SearchBar = component({
 	name: 'search-bar',
@@ -42,8 +42,7 @@ export const SearchBar = component({
 		// Keep the search bar in sync with the URL: show the active query on the search page,
 		// clear it everywhere else
 		const syncInput = async () => {
-			const match = await SearchRoute.match()
-			input.value = match.success ? decodeURIComponent(match.tokens.query) : ''
+			input.value = await getSearchQueryFromUrl()
 			validateInput()
 		}
 		on('window', 'popstate', syncInput)
