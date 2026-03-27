@@ -106,10 +106,13 @@ describe('route() — wildcard matching', () => {
 		expect(match.tokens.rest).toBe('pasta')
 	})
 
-	test('does not match multiple segments (checkInclusive=true)', async () => {
+	test('matches multiple path segments (greedy wildcard)', async () => {
 		const r = route`/search/${wildcard()}/`({ resolve: () => Promise.resolve(void 0) })
-		// wildcard captures up to the next '/', leaving '/world/' unconsumed
-		expect((await r.match({ target: '/search/hello/world/' })).success).toBe(false)
+		// wildcard is greedy — captures the full remainder including intermediate slashes
+		const match = await r.match({ target: '/search/hello/world/' })
+		expect(match.success).toBe(true)
+		if (!match.success) return
+		expect(match.tokens.rest).toBe('hello/world')
 	})
 
 	test('named wildcard uses the given key', async () => {
