@@ -86,8 +86,8 @@ type ResolvedElement<T extends Element | ElementKeys>
 export type EventHandler<
 	TElementOrTag extends Element | ElementKeys,
 	EventKey extends keyof ElementEventMap<ResolvedElement<TElementOrTag>>,
-> =
-	| ((event: TargetedEvent<
+>
+	= ((event: TargetedEvent<
 		ElementEventMap<ResolvedElement<TElementOrTag>>[EventKey] & Event,
 		ResolvedElement<TElementOrTag>
 	>) => void | Promise<void>)
@@ -112,8 +112,8 @@ export type EventHandler<
  */
 export type ElementOnHandlers<TElement extends HTMLElement> = {
 	[K in keyof ElementEventMap<TElement> & string]?:
-		| ((event: TargetedEvent<ElementEventMap<TElement>[K] & Event, TElement>) => void | Promise<void>)
-		| (() => void | Promise<void>)
+	| ((event: TargetedEvent<ElementEventMap<TElement>[K] & Event, TElement>) => void | Promise<void>)
+	| (() => void | Promise<void>)
 }
 
 export type EventBuilder = ReturnType<typeof createEventBuilder>
@@ -152,7 +152,9 @@ export function createEventBuilder(eventTarget: Element, abortSignal: AbortSigna
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function on(target: 'window' | 'document', key: any, handler: any) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		if (target === 'window') return createWindowEventListener(target, key, handler)
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		return createDocumentEventListener(target, key, handler)
 	}
 	return on as unknown as typeof createWindowEventListener & typeof createDocumentEventListener

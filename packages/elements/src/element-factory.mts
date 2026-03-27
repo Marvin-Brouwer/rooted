@@ -35,14 +35,14 @@ type HtmlElementProperties<KElement extends keyof HTMLElementTagNameMap>
 function buildOnHandlers<TElement extends HTMLElement>(
 	on: ElementOnHandlers<TElement> | undefined,
 	element: TElement,
-	signal: AbortSignal | undefined,
+	signal: AbortSignal,
 ): void {
 	if (!on) return
 	for (const [key, handler] of Object.entries(on)) {
 		if (!handler) continue
 		element.addEventListener(
 			key,
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 			event => void (handler as (event?: Event) => void | Promise<void>)(event),
 			signal ? { signal } : undefined,
 		)
@@ -58,7 +58,7 @@ function buildClassList(classes: CssClasses | undefined) {
 
 export type ElementCreator = (key: string) => HTMLElement
 export type ElementFactory = ReturnType<typeof createElementFactory>
-export function createElementFactory(constructElement: ElementCreator, signal?: AbortSignal) {
+export function createElementFactory(constructElement: ElementCreator, signal: AbortSignal) {
 	/**
 	 * Creates a new HTML element. The element is **not** appended to the
 	 * document automatically.
@@ -107,6 +107,7 @@ export function createElementFactory(constructElement: ElementCreator, signal?: 
 		)
 
 		buildAriaProperties(aria, newElement)
+		buildOnHandlers(on, newElement, signal)
 
 		if (Array.isArray(children)) {
 			for (const child of children) {
@@ -116,8 +117,6 @@ export function createElementFactory(constructElement: ElementCreator, signal?: 
 		else if (children) {
 			newElement.append(children)
 		}
-
-		buildOnHandlers(on, newElement, signal)
 
 		return newElement as HTMLElementTagNameMap[KElement]
 	}
