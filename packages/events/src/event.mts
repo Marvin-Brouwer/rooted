@@ -193,10 +193,16 @@ export function createEventBuilder(eventTarget: Element, abortSignal: AbortSigna
 		)
 	}
 
-	return Object.assign(
-		createWindowEventListener,
-		createDocumentEventListener,
-		createInferredEventListener,
-		createElementEventListener,
-	)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	function on(...args: [key: any, handler: any] | [target: any, key: any, handler: any]) {
+		if (args.length === 2) return createInferredEventListener(args[0], args[1])
+		const [target, key, handler] = args
+		if (target === 'window') return createWindowEventListener(target, key, handler)
+		if (target === 'document') return createDocumentEventListener(target, key, handler)
+		return createElementEventListener(target, key, handler)
+	}
+	return on as unknown as typeof createWindowEventListener
+		& typeof createDocumentEventListener
+		& typeof createInferredEventListener
+		& typeof createElementEventListener
 }
