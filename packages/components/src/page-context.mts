@@ -23,4 +23,4 @@ if (typeof window !== 'undefined') {
  *
  * @internal Not part of the public API; consumed by `GenericComponent`.
  */
-export const pageSignal = controller.signal
+export const pageSignal: AbortSignal = controller.signal
