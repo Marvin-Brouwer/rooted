@@ -1,3 +1,5 @@
+import { Path, Url } from './href.mts'
+
 /**
  * Performs client-side navigation by pushing to the browser history and
  * dispatching a `popstate` event so the router re-evaluates the current URL —
@@ -18,15 +20,32 @@
  *
  * @see {@link Link} for a component that calls `navigate` on click
  */
-export function navigate<T extends {}>(state: T): void
-export function navigate(href: string): void
-export function navigate(hrefOrState: string | object): void {
+export function navigate(href: string | Url | Path): void
+/** @deprecated */
+export function navigate(href: URL): void
+export function navigate<T extends object>(state: T): void
+export function navigate(hrefOrState: string | Url | Path | URL | object): void {
+	if (hrefOrState instanceof Path) {
+		history.pushState(undefined, '', hrefOrState.href)
+		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: undefined }))
+		return
+	}
+	if (hrefOrState instanceof Url) {
+		history.pushState(undefined, '', hrefOrState.href)
+		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: undefined }))
+		return
+	}
+	if (hrefOrState instanceof URL) {
+		history.pushState(undefined, '', hrefOrState.href)
+		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: undefined }))
+		return
+	}
 	if (typeof hrefOrState === 'string') {
-		history.pushState(null, '', hrefOrState)
-		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+		history.pushState(undefined, '', hrefOrState)
+		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: undefined }))
+		return
 	}
-	else {
-		history.pushState(hrefOrState, '', null)
-		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: hrefOrState }))
-	}
+
+	history.pushState(hrefOrState, '')
+	globalThis.dispatchEvent(new PopStateEvent('popstate', { state: hrefOrState }))
 }

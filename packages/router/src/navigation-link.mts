@@ -68,11 +68,10 @@ export const Link = component<LinkOptions>({
 	name: '@rooted/navigation-link',
 	onMount({ options, append, element }) {
 		const { href, classes, children, target, rel, ...aria } = options
-		const stringHref = typeof href === 'string' ? href : href.href
 
 		function navigateToHref(event: PointerEvent) {
 			event.preventDefault()
-			navigate(stringHref)
+			navigate(href)
 		}
 
 		const click = target === undefined || target === '_self'
@@ -82,7 +81,7 @@ export const Link = component<LinkOptions>({
 		append(
 			element('a', {
 				...aria,
-				href: stringHref,
+				href: typeof href === 'string' ? href : href.href,
 				children,
 				classes,
 				target,
