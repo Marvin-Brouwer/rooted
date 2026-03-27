@@ -1,4 +1,4 @@
-import { create } from '@rooted/components/elements'
+import { createComponent } from '@rooted/components/elements'
 import { describe, test, expect, vi } from 'vitest'
 
 import { gate } from '../src/gate.mts'
@@ -12,11 +12,11 @@ vi.mock('@rooted/components', () => ({
 }))
 
 vi.mock('@rooted/components/elements', () => ({
-	create: vi.fn(() => ({ tagName: 'MOCK-GATE', __isMockElement: true })),
+	createComponent: vi.fn(() => ({ tagName: 'MOCK-GATE', __isMockElement: true })),
 }))
 
 vi.mock('../src/dev-helper.mts', () => ({ devHelper: {} }))
-const mockedCreate = vi.mocked(create)
+const mockedCreate = vi.mocked(createComponent)
 
 describe('gate()', () => {
 	test('returns the result of create()', () => {

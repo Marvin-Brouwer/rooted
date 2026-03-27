@@ -68,7 +68,7 @@ describe('classes option', () => {
 describe('aria option', () => {
 	test('sets ariaLabel via the aria prop', () => {
 		const button = element('button', { aria: { label: 'Close dialog' } })
-		expect(button.getAttribute('aria-label')).toBe('Close dialog')
+		expect(button.ariaLabel).toBe('Close dialog')
 	})
 
 	test('sets role attribute', () => {
