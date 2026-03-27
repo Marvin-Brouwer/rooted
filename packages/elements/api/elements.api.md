@@ -4,13 +4,13 @@
 
 ```ts
 
-import { ElementEvents } from '@rooted/events';
+import { ElementOnHandlers } from '@rooted/events';
 
 // @public (undocumented)
 export type Aria = AriaStringProperties & AriaIdReferenceProperties;
 
 // @public (undocumented)
-export function createElementFactory(constructElement: ElementCreator): <KElement extends keyof HTMLElementTagNameMap>(tag: KElement, properties?: NoInfer<HtmlElementProperties<KElement>>) => HTMLElementTagNameMap[KElement];
+export function createElementFactory(constructElement: ElementCreator, signal: AbortSignal): <KElement extends keyof HTMLElementTagNameMap>(tag: KElement, properties?: NoInfer<HtmlElementProperties<KElement>>) => HTMLElementTagNameMap[KElement];
 
 // @public
 export type CssClass = string | undefined | null;

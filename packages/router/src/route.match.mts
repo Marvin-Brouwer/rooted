@@ -1,6 +1,6 @@
 import { tupleResult } from '@rooted/util'
 
-import { isParameterToken, type RouteParameter, type TokenMatchResult } from './route.tokens.mts'
+import { isParameterToken, isWildcardParameter, type RouteParameter, type TokenMatchResult } from './route.tokens.mts'
 
 import type { Path, Url } from './href.mts'
 import type { PathParameterDictionary, Route, RouteParameterDictionary } from './route.mts'
@@ -72,7 +72,8 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 			}
 
 			const nextPart = path.pathOnly.slice(offset)
-			const segment = nextPart.slice(0, nextPart.indexOf('/'))
+			const slashIndex = isWildcardParameter(part) ? nextPart.lastIndexOf('/') : nextPart.indexOf('/')
+			const segment = nextPart.slice(0, slashIndex)
 			if (segment === '') return tupleResult.error('Empty path segment')
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const matchResult = part.match(segment) as TokenMatchResult<any>
