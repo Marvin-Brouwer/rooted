@@ -43,6 +43,10 @@
 			"import": "./dist/elements.mjs",
 			"types": "./dist/elements.d.mjs"
 		},
+		"./events": {
+			"import": "./dist/events.mjs",
+			"types": "./dist/events.d.mjs"
+		},
 		"./css-loader": {
 			"import": "./dist/css-loader.mjs",
 			"types": "./dist/css-loader.d.mts"
