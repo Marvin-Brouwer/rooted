@@ -1,2 +1,3 @@
 *.g.ts linguist-generated=true
 *.g.mts linguist-generated=true
+./types/environment.d.ts linguist-generated=true
