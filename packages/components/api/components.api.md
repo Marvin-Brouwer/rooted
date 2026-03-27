@@ -5,7 +5,7 @@
 ```ts
 
 import { ElementFactory } from '@rooted/elements';
-import { EventBuilder } from '@rooted/events';
+import { EventBuilder } from '@rooted/elements/events';
 
 // @public
 export function c(component: Component): GenericComponent;
