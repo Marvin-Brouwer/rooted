@@ -33,12 +33,14 @@ export function application<T extends Component>(component: T, options?: Applica
 
 	return appComponent
 }
-
-if (isDevelopment()) {
-	globalThis.window.addEventListener('error', (errorEvent) => {
+// eslint-disable-next-line unicorn/prefer-global-this
+if (isDevelopment() && typeof window !== 'undefined') {
+	// eslint-disable-next-line unicorn/prefer-global-this
+	window.addEventListener('error', (errorEvent) => {
 		console.error(errorEvent)
 	})
-	globalThis.window.addEventListener('unhandledrejection', (rejectionEvent) => {
+	// eslint-disable-next-line unicorn/prefer-global-this
+	window.addEventListener('unhandledrejection', (rejectionEvent) => {
 		console.error(rejectionEvent)
 	})
 }

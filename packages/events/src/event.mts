@@ -1,3 +1,5 @@
+import { GlobalEventHandler, GlobalEventMap, mapUnhandledError, mapUnhandledRejection } from './global-events.mts'
+
 export type ElementEventMap<T extends Element>
 	= T extends HTMLElement ? HTMLElementEventMap
 	: T extends SVGElement ? SVGElementEventMap
@@ -118,6 +120,16 @@ export type ElementOnHandlers<TElement extends HTMLElement> = {
 
 export type EventBuilder = ReturnType<typeof createEventBuilder>
 export function createEventBuilder(eventTarget: Element, abortSignal: AbortSignal) {
+	function createGlobalEventListener<K extends keyof GlobalEventMap>(
+		target: 'global', key: K,
+		handler: GlobalEventHandler<K>,
+	) {
+		void target
+		if (key === 'unhandled-error') {
+			createWindowEventListener('window', 'error', mapUnhandledError(handler))
+			createWindowEventListener('window', 'unhandledrejection', mapUnhandledRejection(handler))
+		}
+	}
 	function createWindowEventListener<K extends keyof WindowEventMap>(
 		target: 'window', key: K,
 		handler:
@@ -151,11 +163,16 @@ export function createEventBuilder(eventTarget: Element, abortSignal: AbortSigna
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	function on(target: 'window' | 'document', key: any, handler: any) {
+	function on(target: 'window' | 'document' | 'global', key: any, handler: any) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		if (target === 'window') return createWindowEventListener(target, key, handler)
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		if (target === 'global') return createGlobalEventListener(target, key, handler)
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		return createDocumentEventListener(target, key, handler)
 	}
-	return on as unknown as typeof createWindowEventListener & typeof createDocumentEventListener
+	return on as unknown as
+		& typeof createWindowEventListener
+		& typeof createDocumentEventListener
+		& typeof createGlobalEventListener
 }

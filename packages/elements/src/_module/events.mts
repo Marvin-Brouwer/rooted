@@ -3,4 +3,4 @@
  * @module
  */
 
-export * from '@rooted/elements/events'
+export * from '@rooted/events'

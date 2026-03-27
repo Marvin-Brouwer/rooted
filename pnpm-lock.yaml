@@ -167,9 +167,6 @@ importers:
       '@rooted/elements':
         specifier: workspace:^
         version: link:../elements
-      '@rooted/events':
-        specifier: workspace:^
-        version: link:../events
       '@rooted/util':
         specifier: workspace:^
         version: link:../util
