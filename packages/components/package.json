@@ -65,11 +65,9 @@
 	},
 	"dependencies": {
 		"@rooted/util": "workspace:^",
-		"@rooted/events": "workspace:^",
 		"@rooted/elements": "workspace:^"
 	},
 	"bundleDependencies": [
-		"@rooted/events",
 		"@rooted/elements"
 	],
 	"peerDependencies": {
