@@ -16,17 +16,11 @@ lower-level Custom Elements API directly.
   - [append](#append)
   - [create](#create)
   - [signal](#signal)
+  - [on](#on)
   - [options](#options)
 - [Typed options](#typed-options)
 - [Bootstrapping — `application()`](#bootstrapping--application)
 - [Development mode](#development-mode)
-- [Full example](#full-example)
-  - [append](#append)
-  - [create](#create)
-  - [signal](#signal)
-  - [options](#options)
-- [Typed options](#typed-options)
-- [Bootstrapping — `application()`](#bootstrapping--application)
 - [Full example](#full-example)
 
 ---
@@ -200,6 +194,21 @@ use DOM property names, not HTML attribute names:
 **`children`** — accepts a single `Node` or an array of `Node`s; they are
 appended in order.
 
+**`on`** — attach typed event listeners directly in the `create`/`append` call; the
+component's abort signal is wired automatically so listeners clean up on unmount:
+
+```ts
+append('button', {
+  textContent: 'Save',
+  on: {
+    click(e) { save(e.currentTarget.form) },
+    // e.currentTarget is HTMLButtonElement — no cast needed
+  },
+})
+```
+
+See the [events guide](./events.md) for the `EventHandler` and `TargetedEvent` types.
+
 ### `signal`
 
 ```ts
@@ -207,19 +216,54 @@ signal: AbortSignal
 ```
 
 An `AbortSignal` that fires when the component is unmounted or the page unloads.
-Pass it to `addEventListener` and `fetch` to clean up automatically:
+Use it with `fetch` and other async resources to clean up automatically. For element
+event listeners, prefer the [`on: {}`](#on-1) prop on `create`/`append` — the signal is
+threaded automatically without needing a reference to the element:
 
 ```ts
-onMount({ append, signal }) {
-  const button = append('button', { textContent: 'Click me' })
-  button.addEventListener('click', handler, { signal })
-  //                                       ^^^^^^ removed on unmount
-
+onMount({ signal }) {
+  // Signal is needed for fetch and other async resources:
   const controller = new AbortController()
   signal.addEventListener('abort', () => controller.abort())
   fetch('/api/data', { signal: controller.signal })
 }
 ```
+
+### `on`
+
+```ts
+on(target: 'window', event: keyof WindowEventMap, handler): void
+on(target: 'document', event: keyof DocumentEventMap, handler): void
+on(target: 'global', event: 'unhandled-error', handler): void
+```
+
+Registers a page-scoped event listener that is automatically removed when the component
+unmounts. Use this for events that live above the component's own DOM node — window resize,
+popstate, document-level clicks, or global error capture:
+
+```ts
+onMount({ on }) {
+  on('window', 'resize', () => { /* recalculate layout */ })
+  on('document', 'click', e => { /* close dropdowns */ })
+}
+```
+
+The `'global'` target is a convenience wrapper for unhandled errors and promise rejections.
+It normalises both into a single `UnhandledErrorEvent` and filters out cross-origin and
+browser-extension errors automatically:
+
+```ts
+import { UnhandledErrorEvent } from '@rooted/events'
+
+onMount({ on }) {
+  on('global', 'unhandled-error', (e: UnhandledErrorEvent) => {
+    reportError({ message: e.message, filename: e.filename, lineno: e.lineno })
+  })
+}
+```
+
+See the [events guide](./events.md) for full details on `UnhandledErrorEvent` and the
+filtering rules.
 
 ### `options`
 
@@ -372,16 +416,24 @@ import { component } from '@rooted/components'
 export const Counter = component({
   name: 'counter',
   styles,
-  onMount({ append, signal }) {
+  onMount({ append, on }) {
     let count = 0
     const display = append('output', { textContent: '0' })
-    const decrement = append('button', { textContent: '−' })
-    const increment = append('button', { textContent: '+' })
 
-    const update = () => { display.textContent = String(count) }
+    append('button', {
+      textContent: '−',
+      on: { click() { display.textContent = String(--count) } },
+    })
+    append('button', {
+      textContent: '+',
+      on: { click() { display.textContent = String(++count) } },
+    })
 
-    decrement.addEventListener('click', () => { count--; update() }, { signal })
-    increment.addEventListener('click', () => { count++; update() }, { signal })
+    // page-level event — cleaned up on unmount automatically
+    on('window', 'keydown', e => {
+      if (e.key === 'ArrowUp') display.textContent = String(++count)
+      if (e.key === 'ArrowDown') display.textContent = String(--count)
+    })
   },
 })
 ```

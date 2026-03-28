@@ -1,5 +1,5 @@
 import { Component, component, GenericComponent } from '@rooted/components'
-import { create } from '@rooted/components/elements'
+import { createComponent } from '@rooted/components/elements'
 
 import { devHelper } from './dev-helper.mts'
 import * as href from './href.mts'
@@ -77,6 +77,7 @@ export type ValidatedRouterConfig<T extends RouterConfig> = {
  */
 export function router<const T extends RouterConfig>(config: ValidatedRouterConfig<T>): GenericComponent {
 	const { home: homeComponent, notFound: notFoundComponent, ...userRoutes } = config
+
 	const routes = [
 		route`/`({ resolve: ({ create }) => create(homeComponent) }),
 
@@ -87,7 +88,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 	devHelper.validateDuplicateRoutes?.(config)
 
-	return create(Router, { routes, fallback: notFoundComponent })
+	return createComponent(Router, { routes, fallback: notFoundComponent })
 }
 
 type RouterProperties = {
@@ -96,7 +97,7 @@ type RouterProperties = {
 }
 const Router = component<RouterProperties>({
 	name: '@rooted/router',
-	async onMount({ replace, create, signal, options }) {
+	async onMount({ replace, create, on, options }) {
 		let lastPath: string | undefined
 
 		const cache = new Map<string, undefined | { route: Route<any>, match: SuccessRouteMatch }>()
@@ -128,7 +129,7 @@ const Router = component<RouterProperties>({
 			return renderRoute(matchRouteResult.element)
 		}
 
-		globalThis.addEventListener('popstate', () => void update(), { signal })
+		on('window', 'popstate', update)
 		await update()
 	},
 })
@@ -145,7 +146,7 @@ async function filterRoute(route: Route<any>, target: href.Path): Promise<Filter
 	const patternMatch = await route.match({ target })
 	if (!patternMatch.success) return { kind: 'no-match' }
 
-	const element = await route.resolve({ create, tokens: patternMatch.tokens })
+	const element = await route.resolve({ create: createComponent, tokens: patternMatch.tokens })
 	if (!element) return { kind: 'suppressed', patternLength: patternMatch.length }
 
 	return { kind: 'matched', match: patternMatch, element }

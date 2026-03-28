@@ -4,7 +4,8 @@
 
 ```ts
 
-import { create } from '@rooted/components/elements';
+import { Aria } from '@rooted/components/elements';
+import { createComponent } from '@rooted/components/elements';
 import { CssClasses } from '@rooted/components/elements';
 import { GenericComponent } from '@rooted/components';
 import * as _rooted_components from '@rooted/components';
@@ -32,19 +33,23 @@ export const href: {
 export const Link: _rooted_components.Component<LinkOptions>;
 
 // @public
-export type LinkOptions = Partial<ARIAMixin> & {
+export type LinkOptions = {
     href: string | Url | Path;
     classes?: CssClasses;
     children?: string | Node | Node[];
     target?: string;
     rel?: string;
+    aria?: Aria;
 };
 
 // @public
-export function navigate<T extends {}>(state: T): void;
+export function navigate(href: string | Url | Path): void;
+
+// @public @deprecated (undocumented)
+export function navigate(href: URL): void;
 
 // @public (undocumented)
-export function navigate(href: string): void;
+export function navigate<T extends object>(state: T): void;
 
 // @public
 export class Path extends HrefBase {

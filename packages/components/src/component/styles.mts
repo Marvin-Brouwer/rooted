@@ -1,15 +1,14 @@
-/// <reference path="../../node_modules/vite/types/import-meta.d.ts" />
-
-import { create } from '../element-factory.mts'
-
-import { type CssArtifacts, cssArtifacts, type CssModule } from './css-artifacts.mts'
+import { cssArtifacts, type CssArtifacts, type CssModule } from './css-artifacts.mts'
 
 /** Map from injected href to its <link> element, for cache-busting on HMR. */
 const injectedLinks = new Map<string, HTMLLinkElement>()
 
 /** True when the browser supports `@scope` — detected once at module load time. */
 const supportsScope: boolean = await (async () => {
-	try { await new CSSStyleSheet().replace('@scope {}'); return true }
+	try {
+		await new CSSStyleSheet().replace('@scope {}')
+		return true
+	}
 	catch { return false }
 })()
 
@@ -18,7 +17,9 @@ export function injectStyles(styles: CssModule) {
 	const href = supportsScope ? artifacts.scoped : artifacts.tagged
 	if (injectedLinks.has(href)) return
 
-	const link = create('link', {
+	// This doesn't use the createElementFactory on purpose
+	// It gave really weird chunking errors in DTS
+	const link = Object.assign(document.createElement('link'), {
 		rel: 'stylesheet',
 		href,
 	})
@@ -29,10 +30,10 @@ export function injectStyles(styles: CssModule) {
 
 function getDisplayStyle(element: Element) {
 	if (!('computedStyleMap' in Element.prototype))
-		return globalThis.getComputedStyle(element, null).display
+		return globalThis.getComputedStyle(element).display
 
 	return element.computedStyleMap()?.get('display')?.toString()
-		?? globalThis.getComputedStyle(element, null).display
+		?? globalThis.getComputedStyle(element).display
 }
 
 // In case the style didn't take

@@ -13,16 +13,16 @@ export type RecipeOptions = {
 export const Recipe = component<RecipeOptions>({
 	name: 'recipe-detail',
 	styles,
-	async onMount({ append, create, options }) {
+	async onMount({ append, element, create, options }) {
 		const recipe = await recipeData.getRecipeById(options.id)
 
 		if (!recipe) return void append(
 			create(Link, { href: href.for(CategoriesRoute), classes: styles.backLink, children: '← Browse' }),
-			create('div', {
+			element('div', {
 				classes: styles.recipeHeader,
-				children: create('h1', { textContent: 'No recipe' }),
+				children: element('h1', { textContent: 'No recipe' }),
 			}),
-			create('p', { classes: styles.notFound, textContent: 'Recipe not found.' }),
+			element('p', { classes: styles.notFound, textContent: 'Recipe not found.' }),
 		)
 
 		append(
@@ -31,18 +31,18 @@ export const Recipe = component<RecipeOptions>({
 				classes: styles.backLink,
 				children: `← Back to ${recipe.category}`,
 			}),
-			create('div', {
+			element('div', {
 				classes: 'recipe-header',
 				children: [
-					create('h1', { textContent: recipe.title }),
-					create('ul', {
+					element('h1', { textContent: recipe.title }),
+					element('ul', {
 						classes: styles.recipeMeta,
-						children: meta(create, recipe),
+						children: meta(element, recipe),
 					}),
 				],
 			}),
 
-			create('div', {
+			element('div', {
 				classes: styles.recipeBody,
 				// Render the markdown-converted HTML body.
 				// Safe: content originates from version-controlled markdown files.
@@ -52,12 +52,12 @@ export const Recipe = component<RecipeOptions>({
 	},
 })
 
-function meta(create: ComponentContext<typeof Recipe>['create'], recipe: DataRecipe) {
+function meta(element: ComponentContext['element'], recipe: DataRecipe) {
 	return [
-		create('li', { classes: 'meta-badge', textContent: recipe.category }),
-		create('li', { classes: 'meta-badge', textContent: `${recipe.servings} serving${recipe.servings === 1 ? '' : 's'}` }),
-		create('li', { classes: 'meta-badge', textContent: `Prep ${recipe.prepTime} min` }),
-		create('li', { classes: 'meta-badge', textContent: `Cook ${recipe.cookTime} min` }),
-		create('li', { classes: 'meta-badge', textContent: recipe.difficulty }),
+		element('li', { classes: 'meta-badge', textContent: recipe.category }),
+		element('li', { classes: 'meta-badge', textContent: `${recipe.servings} serving${recipe.servings === 1 ? '' : 's'}` }),
+		element('li', { classes: 'meta-badge', textContent: `Prep ${recipe.prepTime} min` }),
+		element('li', { classes: 'meta-badge', textContent: `Cook ${recipe.cookTime} min` }),
+		element('li', { classes: 'meta-badge', textContent: recipe.difficulty }),
 	]
 }

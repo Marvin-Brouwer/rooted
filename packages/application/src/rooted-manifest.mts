@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 
 import { cssLoader } from '@rooted/components/css-loader'
+import { ArrayElement } from '@rooted/util'
 import { defineConfig } from 'vite'
 import { analyzer } from 'vite-bundle-analyzer'
 import { ManifestOptions } from 'vite-plugin-pwa'
@@ -34,7 +35,6 @@ function codeSplittingGroups(applicationGroups: CodeSplittingGroups): CodeSplitt
 	]
 }
 
-type ArrayElement<T> = T extends readonly (infer U)[] ? U : T
 type RolldownOptions = NonNullable<BuildEnvironmentOptions['rolldownOptions']>
 type TreeshakeOptions = ArrayElement<NonNullable<RolldownOptions['treeshake']>>
 type OutputOptions = ArrayElement<NonNullable<RolldownOptions['output']>>

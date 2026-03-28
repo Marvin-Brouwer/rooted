@@ -4,6 +4,7 @@
 
 ```ts
 
+import { ArrayElement } from '@rooted/util';
 import { BuildEnvironmentOptions } from 'vite';
 import { ManifestOptions } from 'vite-plugin-pwa';
 import { UserConfig } from 'vite';

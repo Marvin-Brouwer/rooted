@@ -1,5 +1,5 @@
 import { component } from '@rooted/components'
-import { CssClasses } from '@rooted/components/elements'
+import { Aria, CssClasses } from '@rooted/components/elements'
 
 import { Path, Url } from './href.mts'
 import { navigate } from './navigation.mts'
@@ -7,7 +7,7 @@ import { navigate } from './navigation.mts'
 /**
  * Options for {@link Link}.
  */
-export type LinkOptions = Partial<ARIAMixin> & {
+export type LinkOptions = {
 	/** The destination URL passed to {@link navigate} on click. */
 	href: string | Url | Path
 	/** CSS class name applied to the rendered `<a>` element. */
@@ -24,6 +24,7 @@ export type LinkOptions = Partial<ARIAMixin> & {
 	target?: string
 	/** Maps to the `<a>` element's `rel` attribute. */
 	rel?: string
+	aria?: Aria
 }
 
 /**
@@ -65,29 +66,30 @@ export type LinkOptions = Partial<ARIAMixin> & {
  */
 export const Link = component<LinkOptions>({
 	name: '@rooted/navigation-link',
-	onMount({ options, append, create, signal }) {
+	onMount({ options, append, element }) {
 		const { href, classes, children, target, rel, ...aria } = options
-		const stringHref = typeof href === 'string' ? href : href.href
 
 		function navigateToHref(event: PointerEvent) {
 			event.preventDefault()
-			navigate(stringHref)
+			navigate(href)
 		}
 
-		const anchor = append(
-			create('a', {
+		const click = target === undefined || target === '_self'
+			? navigateToHref
+			: undefined
+
+		append(
+			element('a', {
 				...aria,
-				href: stringHref,
-				children: typeof children === 'string'
-					? document.createTextNode(children)
-					: children,
+				href: typeof href === 'string' ? href : href.href,
+				children,
 				classes,
 				target,
 				rel,
+				on: {
+					click,
+				},
 			}),
 		)
-
-		if (!target)
-			anchor.addEventListener('click', navigateToHref, { signal })
 	},
 })

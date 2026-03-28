@@ -5,6 +5,9 @@
 ```ts
 
 // @public
+export type ArrayElement<T> = T extends readonly (infer U)[] ? U : T;
+
+// @public
 export type ErrorTuple = [success: false, value: never, error: Error];
 
 // @public

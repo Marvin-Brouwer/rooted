@@ -7,17 +7,17 @@ import styles from './not-found.css'
 export const NotFoundPage = component({
 	name: 'not-found-page',
 	styles,
-	onMount({ append, create }) {
+	onMount({ append, element, create }) {
 		append(
 			create(Hero),
-			create('div', {
+			element('div', {
 				classes: styles.notFound,
 				children: [
-					create('h1', { textContent: 'Page not found' }),
-					create('p', {
+					element('h1', { textContent: 'Page not found' }),
+					element('p', {
 						classes: styles.message,
 						children: [
-							'The page you\'re looking for', create('br'),
+							'The page you\'re looking for', element('br'),
 							'doesn\'t exist or has been moved.',
 						],
 					}),

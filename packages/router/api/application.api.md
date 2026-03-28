@@ -5,7 +5,7 @@
 ```ts
 
 import { Component } from '@rooted/components';
-import { create } from '@rooted/components/elements';
+import { createComponent } from '@rooted/components/elements';
 import { GenericComponent } from '@rooted/components';
 import { TupleResult } from '@rooted/util';
 

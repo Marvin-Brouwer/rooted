@@ -1,7 +1,7 @@
 import { isDevelopment } from '@rooted/util/dev'
 
+import { create } from './component-factory.mts'
 import { Component } from './component.mts'
-import { create } from './element-factory.mts'
 
 type RootSelector = {
 	/** CSS selector for the application root element. Defaults to `#app`. */
@@ -33,12 +33,14 @@ export function application<T extends Component>(component: T, options?: Applica
 
 	return appComponent
 }
-
-if (isDevelopment()) {
-	globalThis.addEventListener('error', (errorEvent) => {
+// eslint-disable-next-line unicorn/prefer-global-this
+if (isDevelopment() && typeof window !== 'undefined') {
+	// eslint-disable-next-line unicorn/prefer-global-this
+	window.addEventListener('error', (errorEvent) => {
 		console.error(errorEvent)
 	})
-	globalThis.addEventListener('unhandledrejection', (rejectionEvent) => {
+	// eslint-disable-next-line unicorn/prefer-global-this
+	window.addEventListener('unhandledrejection', (rejectionEvent) => {
 		console.error(rejectionEvent)
 	})
 }

@@ -5,6 +5,7 @@ packages:
 
 onlyBuiltDependencies:
   - "@vscode/vsce-sign"
-  - esbuild
-  - keytar
-  - unrs-resolver
+  - "esbuild"
+  - "keytar"
+  - "sharp"
+  - "unrs-resolver"

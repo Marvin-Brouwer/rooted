@@ -1,14 +1,17 @@
+import { ElementFactory } from '@rooted/elements'
+import { EventBuilder } from '@rooted/elements/events'
+
 import { GenericComponent } from './component/generic-component.mts'
 import { injectStyles } from './component/styles.mts'
+import { create } from './component-factory.mts'
 import { devHelper } from './dev-helper.mts'
-import { create } from './element-factory.mts'
 
 /**
  * ## `ComponentContext`
  *
  * Properties for internal component logic
  */
-export type ComponentContext<TOptions extends {} = never> = [TOptions] extends [never]
+export type ComponentContext<TOptions extends object = never> = [TOptions] extends [never]
 	? BaseComponentContext
 	: BaseComponentContext & { options: Readonly<TOptions> }
 
@@ -16,6 +19,8 @@ type BaseComponentContext = & {
 
 	/** {@inheritdoc typeof create} */
 	create: typeof create
+	/** {@inheritdoc ElementFactory} */
+	element: ElementFactory
 
 	/** {@inheritdoc HTMLElement['append']} */
 	append: {
@@ -55,8 +60,23 @@ type BaseComponentContext = & {
 	 * Lifetime signal for the component, aborts when unmounted \
 	 * automatically aborts when page unloads
 	 */
-
 	signal: AbortSignal
+
+	/**
+	 * Create and bind event listeners tied to the component lifetime signal.
+	 *
+	 * All listeners added through `on` are automatically removed when the
+	 * component unmounts (or the page unloads).
+	 *
+	 * @see {@link EventBuilder} for the full list of call signatures.
+	 *
+	 * @example Global binding
+	 * ```ts
+	 * on('window', 'popstate', e => { })
+	 * on('document', 'visibilitychange', e => { })
+	 * ```
+	 */
+	on: EventBuilder
 }
 
 const componentBrand: unique symbol = Symbol('@rooted/component')
@@ -69,6 +89,7 @@ export const definedAt: unique symbol = Symbol('@rooted/definedAt')
  * @param value - Any value to test.
  * @returns `true` if `value` carries the internal component brand symbol.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isComponent(value: unknown): value is Component<any> {
 	return typeof value === 'object' && value !== null && componentBrand in value
 }
@@ -84,7 +105,7 @@ export function isComponent(value: unknown): value is Component<any> {
  * @typeParam TOptions - The options type the component expects when mounted.
  *   Use `never` (default) for components that take no external options.
  */
-export type Component<TOptions extends {} = never> = ComponentConstructor<TOptions> & {
+export type Component<TOptions extends object = never> = ComponentConstructor<TOptions> & {
 	readonly [componentBrand]: TOptions
 }
 
@@ -116,7 +137,7 @@ export type Component<TOptions extends {} = never> = ComponentConstructor<TOptio
  * This is by design, offering you the option to destructure the context
  * but also using `this` if necessary
  */
-export type ComponentConstructor<TOptions extends {} = never> = {
+export type ComponentConstructor<TOptions extends object = never> = {
 	/**
 	 * Name of the component.
 	 *
@@ -158,8 +179,8 @@ export type ComponentConstructor<TOptions extends {} = never> = {
  * ```
  */
 export function component(constructor: ComponentConstructor): Component
-export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>): Component<TOptions>
-export function component<TOptions extends {}>(constructor: ComponentConstructor<TOptions>) {
+export function component<TOptions extends object>(constructor: ComponentConstructor<TOptions>): Component<TOptions>
+export function component<TOptions extends object>(constructor: ComponentConstructor<TOptions>) {
 	constructor[definedAt] = devHelper.appendSourceLocation?.()
 	devHelper.componentNameCheck?.(constructor)
 	if (constructor.styles) injectStyles(constructor.styles)

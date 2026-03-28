@@ -1,8 +1,10 @@
+import { createElementFactory, ElementCreator } from '@rooted/elements'
+import { createEventBuilder } from '@rooted/elements/events'
 import { isDevelopment } from '@rooted/util/dev'
 
+import { create } from '../component-factory.mts'
 import { ComponentConstructor, ComponentContext } from '../component.mts'
 import { devHelper } from '../dev-helper.mts'
-import { create } from '../element-factory.mts'
 import { pageSignal } from '../page-context.mts'
 import { RootedElement } from '../rooted-element.mts'
 
@@ -91,6 +93,10 @@ export class GenericComponent extends RootedElement {
 
 		// eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias -- necessary for closures
 		const base = this
+		const ownerDocument = this.ownerDocument
+
+		const createElement: ElementCreator = ownerDocument.createElement.bind(ownerDocument)
+		const element = createElementFactory(createElement, this.abortController.signal)
 
 		function append<T extends Node | string | GenericComponent>(node: T): T
 		function append<T extends Node | string | GenericComponent>(...node: T[]): T[]
@@ -162,12 +168,18 @@ export class GenericComponent extends RootedElement {
 				: realNodes
 		}
 
+		const on = createEventBuilder(
+			base,
+			this.abortController.signal,
+		)
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const context: ComponentContext<any> = {
 			signal: this.abortController.signal,
+			on,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			options,
 			create,
+			element,
 			append,
 			prepend,
 			// eslint-disable-next-line unicorn/no-null
@@ -180,10 +192,12 @@ export class GenericComponent extends RootedElement {
 		const handleError = (error: unknown) => {
 			console.error(`[component] Mounting ${component.name} failed`, error)
 			if (isDevelopment()) {
-				this.append(create('pre', {
-					role: 'alert',
-					textContent: String(error),
-				}))
+				append(
+					element('pre', {
+						role: 'alert',
+						textContent: String(error),
+					}),
+				)
 			}
 		}
 
