@@ -40,3 +40,9 @@ fix(#65): correct SSR hydration mismatch
 ci(#22): switch to OIDC trusted publishing
 docs: add guide for publishing new @rooted/* packages
 ```
+
+## Pull request summary
+
+Always use the template found in: `.github/pull_request_template.md`.
+If no issue is related to the change you may replace "<!--Issue number-->" with "`na`".
+When in doubt, ask the user for a related issue number.
