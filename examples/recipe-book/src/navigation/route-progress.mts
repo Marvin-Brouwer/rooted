@@ -6,6 +6,7 @@ import styles from './route-progress.css'
 export type ProgressState = {
 	navigationType: NavigateEvent['navigationType'] | 'idle'
 	spinnerRecommended: boolean
+	progressCount: number
 }
 
 export const RouteProgress = component<{ progressState: ProgressState }>({
@@ -32,26 +33,38 @@ export const RouteProgress = component<{ progressState: ProgressState }>({
 
 		let fakeProgress = 0
 		let lastType: ProgressState['navigationType'] = 'idle'
+		let lastProgressCount = 0
 
 		const intervalId = setInterval(() => {
-			const { navigationType, spinnerRecommended } = progressState
-			if (navigationType === lastType) return
-			lastType = navigationType
+			const { navigationType, spinnerRecommended, progressCount } = progressState
 
-			if (navigationType === 'start') {
+			if (navigationType === lastType && progressCount === lastProgressCount) return
+
+			if (navigationType === 'start' && lastType !== 'start') {
+				lastType = navigationType
+				lastProgressCount = 0
 				fakeProgress = 0
 				bar.value = 0
 				wrapper.classList.add(styles.active)
 				announcer.textContent = 'Loading\u2026'
 				spinner.classList.toggle(styles.visible, spinnerRecommended)
-			} else if (navigationType === 'progress') {
-				fakeProgress += Math.random() * (90 - fakeProgress)
+			} else if (navigationType === 'progress' && progressCount !== lastProgressCount) {
+				lastType = navigationType
+				lastProgressCount = progressCount
+				if (progressCount === 1) {
+					fakeProgress = Math.random() * 30
+				} else {
+					fakeProgress += Math.random() * (90 - fakeProgress)
+				}
 				bar.value = fakeProgress
-			} else if (navigationType === 'end') {
+			} else if (navigationType === 'end' && lastType !== 'end') {
+				lastType = navigationType
 				bar.value = 100
 				announcer.textContent = 'Done'
-				wrapper.classList.remove(styles.active)
-				setTimeout(() => { announcer.textContent = '' }, 1000)
+				setTimeout(() => {
+					wrapper.classList.remove(styles.active)
+					setTimeout(() => { announcer.textContent = '' }, 1000)
+				}, 150)
 			}
 		}, 50)
 

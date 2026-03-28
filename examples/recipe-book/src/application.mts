@@ -11,7 +11,7 @@ import { NavigationMenu } from './navigation/navigation-menu.mts'
 import { NotFoundPage } from './navigation/not-found.mts'
 import { RouteProgress, type ProgressState } from './navigation/route-progress.mts'
 
-const progressState: ProgressState = { navigationType: 'idle', spinnerRecommended: false }
+const progressState: ProgressState = { navigationType: 'idle', spinnerRecommended: false, progressCount: 0 }
 
 const Router = router({
 	home: HomePage,
@@ -45,6 +45,8 @@ export const Application = component({
 								navigate(event) {
 									progressState.navigationType = event.navigationType
 									progressState.spinnerRecommended = event.spinnerRecommended
+									if (event.navigationType === 'start') progressState.progressCount = 0
+									else if (event.navigationType === 'progress') progressState.progressCount++
 								},
 							},
 						}),

@@ -66,9 +66,9 @@ export type RouterOptions = {
 		 * - `'on:start'` — scroll before the route resolves
 		 * - `'on:end'` — scroll after the route renders
 		 * - `'on:start-and-end'` — scroll both before and after (default)
-		 * - `false` — never scroll to top automatically
+		 * - `'skip'` — never scroll to top automatically
 		 */
-		scrollToTop?: 'on:start' | 'on:end' | 'on:start-and-end' | false
+		scrollToTop?: 'on:start' | 'on:end' | 'on:start-and-end' | 'skip'
 		/**
 		 * When `true` (default), the current scroll position is saved before
 		 * push navigations so it can be restored on back/forward navigation.
