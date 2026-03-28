@@ -39,18 +39,26 @@ export const RouteProgress = component<{ progressState: ProgressState }>({
 			const { navigationType, spinnerRecommended, progressCount } = progressState
 
 			if (navigationType === lastType && progressCount === lastProgressCount) return
+			if (navigationType === 'idle') return
+
+			// Ensure bar is visible — handles fast navigation where 'start' was missed by the poll
+			if (!wrapper.classList.contains(styles.active)) {
+				fakeProgress = 0
+				bar.value = 0
+				wrapper.classList.add(styles.active)
+				announcer.textContent = 'Loading\u2026'
+			}
 
 			if (navigationType === 'start' && lastType !== 'start') {
 				lastType = navigationType
 				lastProgressCount = 0
 				fakeProgress = 0
 				bar.value = 0
-				wrapper.classList.add(styles.active)
-				announcer.textContent = 'Loading\u2026'
 				spinner.classList.toggle(styles.visible, spinnerRecommended)
 			} else if (navigationType === 'progress' && progressCount !== lastProgressCount) {
 				lastType = navigationType
 				lastProgressCount = progressCount
+				spinner.classList.toggle(styles.visible, spinnerRecommended)
 				if (progressCount === 1) {
 					fakeProgress = Math.random() * 30
 				} else {
@@ -63,6 +71,7 @@ export const RouteProgress = component<{ progressState: ProgressState }>({
 				announcer.textContent = 'Done'
 				setTimeout(() => {
 					wrapper.classList.remove(styles.active)
+					spinner.classList.remove(styles.visible)
 					setTimeout(() => { announcer.textContent = '' }, 1000)
 				}, 150)
 			}
