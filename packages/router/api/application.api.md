@@ -6,8 +6,10 @@
 
 import { Component } from '@rooted/components';
 import { createComponent } from '@rooted/components/elements';
-import { GenericComponent } from '@rooted/components';
 import { TupleResult } from '@rooted/util';
+
+// @public
+export type ErrorHandler = (event: NavigationErrorEvent) => void;
 
 // @public
 export type MatchRouteOptions = {
@@ -15,6 +17,31 @@ export type MatchRouteOptions = {
     offset?: number;
     checkInclusive?: boolean;
 };
+
+// @public
+export class NavigateEvent extends CustomEvent<never> {
+    constructor(navigationType: 'start' | 'progress' | 'end', spinnerRecommended: boolean, href: string);
+    // (undocumented)
+    readonly href: string;
+    // (undocumented)
+    readonly navigationType: 'start' | 'progress' | 'end';
+    // (undocumented)
+    readonly spinnerRecommended: boolean;
+}
+
+// @public
+export type NavigateHandler = (event: NavigateEvent) => void;
+
+// @public
+export class NavigationErrorEvent extends CustomEvent<Error> {
+    constructor(error: Error, route: Route<any>, href: string);
+    // (undocumented)
+    errorHandled: boolean;
+    // (undocumented)
+    readonly href: string;
+    // (undocumented)
+    readonly route: Route<any>;
+}
 
 // @public
 export type Parameter<K extends string = string, T extends ParameterTokenType = ParameterTokenType> = {
@@ -67,10 +94,24 @@ export type RouteParameter = Parameter | Route<any>;
 export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10> = D extends 0 ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> : [TRoute[typeof routeMetadata]['parentType']] extends [never] ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> : TRoute[typeof routeMetadata]['parentType'] extends Route<any> ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetadata]['parentType'], RecursionCounter[D]> : Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>>;
 
 // @public
-export function router<const T extends RouterConfig>(config: ValidatedRouterConfig<T>): GenericComponent;
+export function router<const T extends RouterConfig>(config: ValidatedRouterConfig<T>): Component<RouterOptions>;
 
 // @public
 export type RouterCompatibleRoute<G> = G extends Route<any> ? G : never;
+
+// @public
+export type RouterOptions = {
+    viewTransition?: boolean;
+    scrollBehavior?: {
+        scrollToTop?: 'on:start' | 'on:end' | 'on:start-and-end' | false;
+        saveScrollBeforeNavigate?: boolean;
+        target?: Element;
+    };
+    on?: {
+        navigate?: NavigateHandler;
+        error?: ErrorHandler;
+    };
+};
 
 // @public
 export function token<K extends string = string, T extends ParameterType = ParameterType>(name: K, type: T): Parameter<K, ParameterToTokenType<T>>;

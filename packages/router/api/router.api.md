@@ -15,6 +15,9 @@ import { TupleResult } from '@rooted/util';
 export type AnyRoute = Route<any>;
 
 // @public
+export type ErrorHandler = (event: NavigationErrorEvent) => void;
+
+// @public
 export function gate<TRoute extends AnyRoute>(route: TRoute, render: GateRenderFunction<TRoute>): GenericComponent;
 
 // @public
@@ -52,6 +55,31 @@ export function navigate(href: URL): void;
 export function navigate<T extends object>(state: T): void;
 
 // @public
+export class NavigateEvent extends CustomEvent<never> {
+    constructor(navigationType: 'start' | 'progress' | 'end', spinnerRecommended: boolean, href: string);
+    // (undocumented)
+    readonly href: string;
+    // (undocumented)
+    readonly navigationType: 'start' | 'progress' | 'end';
+    // (undocumented)
+    readonly spinnerRecommended: boolean;
+}
+
+// @public
+export type NavigateHandler = (event: NavigateEvent) => void;
+
+// @public
+export class NavigationErrorEvent extends CustomEvent<Error> {
+    constructor(error: Error, route: Route<any>, href: string);
+    // (undocumented)
+    errorHandled: boolean;
+    // (undocumented)
+    readonly href: string;
+    // (undocumented)
+    readonly route: Route<any>;
+}
+
+// @public
 export class Path extends HrefBase {
     // (undocumented)
     static fromLocation(href: Location): Path;
@@ -64,6 +92,20 @@ export class Path extends HrefBase {
     // (undocumented)
     get pathOnly(): string;
 }
+
+// @public
+export type RouterOptions = {
+    viewTransition?: boolean;
+    scrollBehavior?: {
+        scrollToTop?: 'on:start' | 'on:end' | 'on:start-and-end' | false;
+        saveScrollBeforeNavigate?: boolean;
+        target?: Element;
+    };
+    on?: {
+        navigate?: NavigateHandler;
+        error?: ErrorHandler;
+    };
+};
 
 // @public
 export class Url extends HrefBase {

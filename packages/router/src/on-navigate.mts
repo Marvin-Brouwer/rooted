@@ -18,7 +18,7 @@ export function createNavigateTracker(href: string, handler: NavigateHandler): {
 	handler(new NavigateEvent('start', false, href))
 
 	// Compute spinnerRecommended async, re-fire progress when done
-	computeSpinnerRecommended(href).then(result => {
+	computeSpinnerRecommended(href).then((result) => {
 		spinnerRecommended = result
 		handler(new NavigateEvent('progress', spinnerRecommended, href))
 	})
@@ -31,7 +31,8 @@ export function createNavigateTracker(href: string, handler: NavigateHandler): {
 		})
 		observer.observe({ type: 'resource', buffered: false })
 		cleanup = () => observer.disconnect()
-	} else if (isClient()) {
+	}
+	else if (isClient()) {
 		// Fallback: timer-based fake progress
 		const id = setInterval(() => {
 			handler(new NavigateEvent('progress', spinnerRecommended, href))
@@ -50,24 +51,27 @@ export function createNavigateTracker(href: string, handler: NavigateHandler): {
 async function computeSpinnerRecommended(href: string): Promise<boolean> {
 	if (!isClient()) return false
 
-	// 1. Primary cache check: route URL in performance timeline
-	const isCachedPrimary = performance.getEntriesByName(href).length > 0
-
-	// 2. Fallback cache check: only-if-cached fetch
-	const isCached = isCachedPrimary || await (async () => {
-		try {
-			const res = await fetch(href, { method: 'HEAD', cache: 'only-if-cached', mode: 'same-origin' })
-			return res.ok
-		} catch { return false }
-	})()
-
-	if (isCached) return false
+	if (await isCached(href)) return false
 
 	// 3. Network speed
-	const networkSlow = (navigator as any).connection?.effectiveType !== '4g' // eslint-disable-line @typescript-eslint/no-explicit-any
+	const networkSlow = navigator.connection?.effectiveType !== '4g'
 
 	// 4. CPU proxy
 	const cpuSlow = (navigator.hardwareConcurrency ?? 4) <= 2
 
 	return networkSlow || cpuSlow
+}
+async function isCached(href: string) {
+	// 1. Primary cache check: route URL in performance timeline
+	if (typeof performance !== 'undefined' && 'getEntriesByName' in performance)
+		return performance.getEntriesByName(href).length > 0
+
+	// 2. Fallback cache check: only-if-cached fetch
+	try {
+		const response = await fetch(href, { method: 'HEAD', cache: 'only-if-cached', mode: 'same-origin' })
+		return response.ok
+	}
+	catch {
+		return false
+	}
 }
