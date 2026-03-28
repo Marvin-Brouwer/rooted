@@ -67,9 +67,6 @@
 		"@rooted/util": "workspace:^",
 		"@rooted/elements": "workspace:^"
 	},
-	"bundleDependencies": [
-		"@rooted/elements"
-	],
 	"peerDependencies": {
 		"vite": ">=8.0.1"
 	},

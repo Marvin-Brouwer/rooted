@@ -121,9 +121,6 @@ importers:
 
   packages/application:
     dependencies:
-      '@rooted/components':
-        specifier: workspace:^
-        version: link:../components
       '@rooted/util':
         specifier: workspace:^
         version: link:../util
@@ -143,6 +140,9 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(@vite-pwa/assets-generator@1.0.2)(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0))(workbox-build@7.4.0)(workbox-window@7.4.0)
     devDependencies:
+      '@rooted/components':
+        specifier: workspace:^
+        version: link:../components
       '@rooted/development':
         specifier: workspace:*
         version: link:../../tooling/development
@@ -191,14 +191,13 @@ importers:
         version: 8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0)
 
   packages/elements:
-    dependencies:
-      '@rooted/events':
-        specifier: workspace:^
-        version: link:../events
     devDependencies:
       '@rooted/development':
         specifier: workspace:*
         version: link:../../tooling/development
+      '@rooted/events':
+        specifier: workspace:^
+        version: link:../events
       tsx:
         specifier: ^4.19.0
         version: 4.21.0
@@ -218,12 +217,6 @@ importers:
 
   packages/router:
     dependencies:
-      '@rooted/components':
-        specifier: workspace:^
-        version: link:../components
-      '@rooted/util':
-        specifier: workspace:^
-        version: link:../util
       jiti:
         specifier: ^2.0.0
         version: 2.6.1
@@ -231,12 +224,18 @@ importers:
         specifier: ^0.2.0
         version: 0.2.15
     devDependencies:
+      '@rooted/components':
+        specifier: workspace:^
+        version: link:../components
       '@rooted/development':
         specifier: workspace:*
         version: link:../../tooling/development
       '@rooted/tsup':
         specifier: workspace:^
         version: link:../../tooling/tsup
+      '@rooted/util':
+        specifier: workspace:^
+        version: link:../util
       '@types/node':
         specifier: ^25.5.0
         version: 25.5.0
