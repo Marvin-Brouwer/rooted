@@ -9,6 +9,9 @@ import styles from './application.css'
 import { HomePage } from './navigation/home.mts'
 import { NavigationMenu } from './navigation/navigation-menu.mts'
 import { NotFoundPage } from './navigation/not-found.mts'
+import { RouteProgress, type ProgressState } from './navigation/route-progress.mts'
+
+const progressState: ProgressState = { navigationType: 'idle', spinnerRecommended: false }
 
 const Router = router({
 	home: HomePage,
@@ -22,6 +25,7 @@ export const Application = component({
 	onMount({ append, element, create }) {
 		document.title = 'Recipe Book'
 		append(
+			create(RouteProgress, { progressState }),
 			element('div', {
 				id: 'app',
 				children: [
@@ -34,7 +38,16 @@ export const Application = component({
 					}),
 					element('main', {
 						id: 'main-content',
-						children: Router,
+						children: create(Router, {
+							viewTransition: true,
+							scrollBehavior: { scrollToTop: 'on:start-and-end' },
+							on: {
+								navigate(event) {
+									progressState.navigationType = event.navigationType
+									progressState.spinnerRecommended = event.spinnerRecommended
+								},
+							},
+						}),
 					}),
 					element('footer', {
 						children: [create(Doormat)],
