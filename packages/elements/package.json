@@ -48,14 +48,12 @@
 		"clean": "rm -rf dist",
 		"extract-api": "rooted-development extract-api"
 	},
-	"dependencies": {
+	"peerDependencies": {
 		"@rooted/events": "workspace:^"
 	},
-	"bundledDependencies": [
-		"@rooted.events"
-	],
 	"devDependencies": {
 		"@rooted/development": "workspace:*",
+		"@rooted/events": "workspace:^",
 		"tsx": "^4.19.0"
 	}
 }

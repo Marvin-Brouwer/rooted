@@ -47,7 +47,6 @@
 		"vite-plugin-pwa": ">= 1.2.0"
 	},
 	"dependencies": {
-		"@rooted/components": "workspace:^",
 		"@rooted/util": "workspace:^",
 		"@vite-pwa/assets-generator": "^1.0.0",
 		"tinyglobby": "^0.2.0",
@@ -64,6 +63,7 @@
 		"extract-api": "rooted-development extract-api"
 	},
 	"devDependencies": {
+		"@rooted/components": "workspace:^",
 		"@rooted/development": "workspace:*",
 		"@rooted/router": "workspace:^",
 		"@rooted/tsup": "workspace:^",
