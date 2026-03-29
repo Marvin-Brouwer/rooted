@@ -11,14 +11,17 @@ import { NavigateEvent, type NavigateHandler } from './navigate-event.mts'
  *
  * Only create a tracker when an `on.navigate` handler is configured —
  * the tracker always runs in the background to observe resource loads.
+ *
+ * @param routeCached - Pass `true` when the router already has a cached result
+ *   for this path, so `spinnerRecommended` is always `false`.
  */
-export function createNavigateTracker(href: string, handler: NavigateHandler): { stop(): void } {
+export function createNavigateTracker(href: string, handler: NavigateHandler, routeCached: boolean): { stop(): void } {
 	let spinnerRecommended = false
 
 	handler(new NavigateEvent('start', false, href))
 
 	// Compute spinnerRecommended async, re-fire progress when done
-	computeSpinnerRecommended(href).then((result) => {
+	computeSpinnerRecommended(routeCached).then((result) => {
 		spinnerRecommended = result
 		handler(new NavigateEvent('progress', spinnerRecommended, href))
 	})
@@ -48,30 +51,16 @@ export function createNavigateTracker(href: string, handler: NavigateHandler): {
 	}
 }
 
-async function computeSpinnerRecommended(href: string): Promise<boolean> {
+async function computeSpinnerRecommended(routeCached: boolean): Promise<boolean> {
 	if (!isClient()) return false
 
-	if (await isCached(href)) return false
+	if (routeCached) return false
 
-	// 3. Network speed
+	// Network speed
 	const networkSlow = navigator.connection?.effectiveType !== '4g'
 
-	// 4. CPU proxy
+	// CPU proxy
 	const cpuSlow = (navigator.hardwareConcurrency ?? 4) <= 2
 
 	return networkSlow || cpuSlow
-}
-async function isCached(href: string) {
-	// 1. Primary cache check: route URL in performance timeline
-	if (typeof performance !== 'undefined' && 'getEntriesByName' in performance)
-		return performance.getEntriesByName(href).length > 0
-
-	// 2. Fallback cache check: only-if-cached fetch
-	try {
-		const response = await fetch(href, { method: 'HEAD', cache: 'only-if-cached', mode: 'same-origin' })
-		return response.ok
-	}
-	catch {
-		return false
-	}
 }

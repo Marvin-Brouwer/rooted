@@ -182,7 +182,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 				// Set up navigate tracker
 				const tracker = handlers?.navigate
-					? createNavigateTracker(currentHref, handlers.navigate)
+					? createNavigateTracker(currentHref, handlers.navigate, cache.has(target.pathOnly))
 					: undefined
 
 				try {
