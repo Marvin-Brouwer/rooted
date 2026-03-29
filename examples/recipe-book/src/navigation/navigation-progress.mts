@@ -117,7 +117,7 @@ export const NavigationSpinner = component({
 			],
 		})) as HTMLDialogElement
 
-		dialog.showModal()
+		dialog.show()
 		signal.addEventListener('abort', () => dialog.close())
 	},
 })

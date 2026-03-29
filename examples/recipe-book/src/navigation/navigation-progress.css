@@ -34,16 +34,23 @@ progress::-moz-progress-bar {
 }
 
 .spinnerDialog {
-  border: none;
-  background: transparent;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
   padding: 0;
+  border: none;
   outline: none;
-}
-
-.spinnerDialog::backdrop {
+  background: rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  background: rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
 }
 
 .spinnerCard {
@@ -104,7 +111,7 @@ progress::-moz-progress-bar {
   progress::-webkit-progress-value {
     transition: none;
   }
-  .spinnerDialog::backdrop {
+  .spinnerDialog {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
