@@ -97,9 +97,9 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 export const NavigationSpinner = component({
 	name: 'navigation-progress-spinner',
 	styles,
-	onMount({ replace, element, signal }) {
-		const dialog = replace(element('dialog', {
-			classes: styles.spinnerDialog,
+	onMount({ replace, element }) {
+		replace(element('div', {
+			classes: styles.spinnerOverlay,
 			children: [
 				element('div', {
 					classes: styles.spinnerCard,
@@ -115,9 +115,6 @@ export const NavigationSpinner = component({
 					],
 				}),
 			],
-		})) as HTMLDialogElement
-
-		dialog.show()
-		signal.addEventListener('abort', () => dialog.close())
+		}))
 	},
 })

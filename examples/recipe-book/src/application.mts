@@ -17,15 +17,35 @@ const Router = router({
 	...appRoutes,
 })
 
+type PopoverElement = HTMLElement & { showPopover(): void; hidePopover(): void }
+
 export const Application = component({
 	name: 'recipe-application',
 	styles,
-	onMount({ append, element, create }) {
+	onMount({ append, element, create, signal }) {
 		document.title = 'Recipe Book'
 
 		const progress: Record<string, { done: boolean }> = {}
 
 		const spinner = create(NavigationSpinner)
+
+		const navOverlay = document.createElement('div') as PopoverElement
+		navOverlay.setAttribute('popover', 'manual')
+		navOverlay.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;margin:0;padding:0;border:none;background:transparent;pointer-events:none;'
+		document.body.appendChild(navOverlay)
+
+		let navOverlayShowing = false
+		const navObserver = new MutationObserver(() => {
+			if (navOverlay.children.length === 0 && navOverlayShowing) {
+				navOverlay.hidePopover()
+				navOverlayShowing = false
+			}
+		})
+		navObserver.observe(navOverlay, { childList: true })
+		signal.addEventListener('abort', () => {
+			navObserver.disconnect()
+			navOverlay.remove()
+		})
 
 		append(
 			element('div', {
@@ -46,20 +66,21 @@ export const Application = component({
 							on: {
 								navigate(event) {
 									if (event.spinnerRecommended) {
-										append(spinner)
+										navOverlay.appendChild(spinner)
 									}
 									else {
 										spinner.remove()
 									}
 
 									if (event.navigationType === 'start') {
-										if (progress[event.href]) {
-											console.log(progress)
-											return
-										}
+										if (progress[event.href]) return
 										progress[event.href] = { done: false }
 
-										append(create(NavigationProgress, { href: event.href, state: progress[event.href] }))
+										navOverlay.appendChild(create(NavigationProgress, { href: event.href, state: progress[event.href] }))
+										if (!navOverlayShowing) {
+											navOverlay.showPopover()
+											navOverlayShowing = true
+										}
 									}
 									if (event.navigationType === 'end') {
 										progress[event.href].done = true
