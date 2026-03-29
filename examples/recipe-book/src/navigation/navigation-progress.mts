@@ -97,7 +97,27 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 export const NavigationSpinner = component({
 	name: 'navigation-progress-spinner',
 	styles,
-	onMount({ append, element }) {
-		append(element('div', { classes: styles.spinner }))
+	onMount({ replace, element, signal }) {
+		const dialog = replace(element('dialog', {
+			classes: styles.spinnerDialog,
+			children: [
+				element('div', {
+					classes: styles.spinnerCard,
+					children: [
+						element('div', {
+							classes: styles.dotPulse,
+							children: [element('span'), element('span'), element('span')],
+						}),
+						element('p', {
+							classes: styles.spinnerLabel,
+							textContent: 'loading\u2026',
+						}),
+					],
+				}),
+			],
+		})) as HTMLDialogElement
+
+		dialog.showModal()
+		signal.addEventListener('abort', () => dialog.close())
 	},
 })
