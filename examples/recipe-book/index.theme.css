@@ -2,8 +2,9 @@
 
 html {
   scrollbar-gutter: stable;
-	overflow-x: auto;
-	overflow-y: visible;
+	/* We don't want horizontal overscroll, however, this shows us if there's any issues with overflow */
+	overflow-x: visible;
+	overflow-y: scroll;
 }
 html.navigating {
   overflow-x: clip;
