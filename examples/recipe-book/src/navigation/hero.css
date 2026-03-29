@@ -1,6 +1,6 @@
 .hero {
 	position: relative;
-	overflow: hidden;
+	overflow: clip;
 	isolation: isolate;
 	color: var(--color-surface);
 	padding: 5rem 2rem 3rem;
