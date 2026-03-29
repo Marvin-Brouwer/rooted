@@ -211,7 +211,7 @@ export class GenericComponent extends RootedElement {
 	}
 
 	protected onUnmount() {
-		this.abortController.abort('component unmounted')
+		this.abortController?.abort('component unmounted')
 	}
 }
 
