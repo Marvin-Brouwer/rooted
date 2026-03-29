@@ -11,7 +11,7 @@ const SCROLL_KEY = '@rooted/scrollY'
  */
 export function saveScrollPosition(): void {
 	if (!isClient()) return
-	history.replaceState({ ...(history.state ?? {}), [SCROLL_KEY]: window.scrollY }, '')
+	history.replaceState({ ...history.state, [SCROLL_KEY]: window.scrollY }, '')
 }
 
 /**

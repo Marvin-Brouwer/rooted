@@ -1,6 +1,6 @@
-import { isClient } from '@rooted/util'
 import { Component, component } from '@rooted/components'
 import { createComponent } from '@rooted/components/elements'
+import { isClient } from '@rooted/util'
 
 import { devHelper } from './dev-helper.mts'
 import * as href from './href.mts'
@@ -10,6 +10,7 @@ import { RouteMatch } from './route.match.mts'
 import { isRoute, routeMetadata } from './route.metadata.mts'
 import { Route, route } from './route.mts'
 import { getSavedScrollPosition } from './scroll.mts'
+
 import type { ErrorHandler, NavigateHandler } from './navigate-event.mts'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -149,18 +150,19 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 				if (scrollTarget) {
 					if (y === 0) scrollTarget.scrollTo?.({ top: 0, behavior: 'instant' })
 					else scrollTarget.scrollTop = y
-				} else {
+				}
+				else {
 					window.scrollTo({ top: y, behavior: 'instant' })
 				}
 			}
 
-			function renderRoute(element: Element | undefined) {
+			function renderRoute(element?: Element) {
 				replace(element ?? create(notFoundComponent))
 			}
 
 			function applyTransition(render: () => void) {
 				if (viewTransition && isClient() && 'startViewTransition' in document)
-					(document as any).startViewTransition(render)
+					(document as Document & { startViewTransition(callback: () => void): void }).startViewTransition(render)
 				else
 					render()
 			}
@@ -187,33 +189,38 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 				try {
 					const matchRouteResult = await matchRoute(target, routes)
 					if (!matchRouteResult) {
-						applyTransition(() => renderRoute(undefined))
-					} else if (matchRouteResult.kind === 'error') {
+						applyTransition(() => renderRoute())
+					}
+					else if (matchRouteResult.kind === 'error') {
 						const { error, route: errorRoute } = matchRouteResult
 						if (handlers?.error) {
 							const event = new NavigationErrorEvent(error, errorRoute, currentHref)
 							handlers.error(event)
 							if (!event.errorHandled) throw error
-						} else {
+						}
+						else {
 							throw error
 						}
-					} else {
+					}
+					else {
 						applyTransition(() => renderRoute(matchRouteResult.element))
 					}
-				} finally {
+				}
+				finally {
 					tracker?.stop()
 				}
 
 				// Scroll restoration after render
 				if (savedScrollY !== undefined) {
 					scrollTo(savedScrollY)
-				} else if (scrollToTop === 'on:end' || scrollToTop === 'on:start-and-end') {
+				}
+				else if (scrollToTop === 'on:end' || scrollToTop === 'on:start-and-end') {
 					scrollTo(0)
 				}
 			}
 
-			on('window', 'popstate', (e: PopStateEvent) => update(e.state))
-			await update(undefined)
+			on('window', 'popstate', (event: PopStateEvent) => update(event.state))
+			await update()
 		},
 	})
 }
@@ -239,7 +246,8 @@ async function filterRoute(route: Route<any>, target: href.Path): Promise<Filter
 		if (!element) return { kind: 'suppressed', patternLength: patternMatch.length }
 
 		return { kind: 'matched', match: patternMatch, element }
-	} catch (rawError) {
+	}
+	catch (rawError) {
 		const error = rawError instanceof Error ? rawError : new Error(String(rawError))
 		return { kind: 'error', error, route }
 	}

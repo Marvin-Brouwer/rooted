@@ -22,7 +22,7 @@ export function createNavigateTracker(href: string, handler: NavigateHandler): {
 	handler(new NavigateEvent('start', false, href))
 
 	// Compute spinnerRecommended async, re-fire progress when done
-	computeSpinnerRecommended(href).then((result) => {
+	void computeSpinnerRecommended(href).then((result) => {
 		if (stopped) return
 		spinnerRecommended = result
 		handler(new NavigateEvent('progress', spinnerRecommended, href))

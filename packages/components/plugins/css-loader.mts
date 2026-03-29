@@ -32,27 +32,37 @@ function extractClassNames(css: string): Record<string, string> {
  */
 function findBlockEnd(css: string, start: number): number {
 	let depth = 1
-	let i = start
-	while (i < css.length && depth > 0) {
-		const ch = css[i]
-		if (ch === '/' && css[i + 1] === '*') {
-			const end = css.indexOf('*/', i + 2)
-			i = end === -1 ? css.length : end + 2
+	let index = start
+	while (index < css.length && depth > 0) {
+		const ch = css[index]
+		if (ch === '/' && css[index + 1] === '*') {
+			const end = css.indexOf('*/', index + 2)
+			index = end === -1 ? css.length : end + 2
 			continue
 		}
-		if (ch === '"' || ch === "'") {
-			const q = ch
-			i++
-			while (i < css.length && css[i] !== q) {
-				if (css[i] === '\\') i++
-				i++
+		switch (ch) {
+			case '"':
+			case '\'': {
+				const q = ch
+				index++
+				while (index < css.length && css[index] !== q) {
+					if (css[index] === '\\') index++
+					index++
+				}
+				break
+			}
+			case '{': {
+				depth++
+				break
+			}
+			case '}': {
+				depth--
+				break
 			}
 		}
-		else if (ch === '{') { depth++ }
-		else if (ch === '}') { depth-- }
-		if (depth > 0) i++
+		if (depth > 0) index++
 	}
-	return i
+	return index
 }
 
 /**
@@ -90,66 +100,73 @@ function splitSelectors(selectorList: string): string[] {
 function scopeCSS(css: string, scopeId: string): string {
 	const prefix = `[r="${scopeId}"]`
 	let result = ''
-	let i = 0
+	let index = 0
 
-	while (i < css.length) {
+	while (index < css.length) {
 		// Preserve leading whitespace / newlines
-		const wsStart = i
-		while (i < css.length && /\s/.test(css[i])) i++
-		result += css.slice(wsStart, i)
-		if (i >= css.length) break
+		const wsStart = index
+		while (index < css.length && /\s/.test(css[index])) index++
+		result += css.slice(wsStart, index)
+		if (index >= css.length) break
 
 		// Preserve block comments
-		if (css[i] === '/' && css[i + 1] === '*') {
-			const end = css.indexOf('*/', i + 2)
-			if (end === -1) { result += css.slice(i); break }
-			result += css.slice(i, end + 2)
-			i = end + 2
+		if (css[index] === '/' && css[index + 1] === '*') {
+			const end = css.indexOf('*/', index + 2)
+			if (end === -1) {
+				result += css.slice(index)
+				break
+			}
+			result += css.slice(index, end + 2)
+			index = end + 2
 			continue
 		}
 
 		// Collect prelude (selector or at-rule keyword + params) until `{` or `;`
 		let prelude = ''
-		while (i < css.length && css[i] !== '{' && css[i] !== '}') {
+		while (index < css.length && css[index] !== '{' && css[index] !== '}') {
 			// Inline comment inside prelude
-			if (css[i] === '/' && css[i + 1] === '*') {
-				const end = css.indexOf('*/', i + 2)
-				if (end === -1) { prelude += css.slice(i); i = css.length; break }
-				prelude += css.slice(i, end + 2)
-				i = end + 2
+			if (css[index] === '/' && css[index + 1] === '*') {
+				const end = css.indexOf('*/', index + 2)
+				if (end === -1) {
+					prelude += css.slice(index)
+					index = css.length
+					break
+				}
+				prelude += css.slice(index, end + 2)
+				index = end + 2
 				continue
 			}
 			// String inside prelude (e.g. @charset "UTF-8" or content: "…")
-			if (css[i] === '"' || css[i] === "'") {
-				const q = css[i]
+			if (css[index] === '"' || css[index] === '\'') {
+				const q = css[index]
 				prelude += q
-				i++
-				while (i < css.length && css[i] !== q) {
-					if (css[i] === '\\') prelude += css[i++]
-					prelude += css[i++]
+				index++
+				while (index < css.length && css[index] !== q) {
+					if (css[index] === '\\') prelude += css[index++]
+					prelude += css[index++]
 				}
-				prelude += css[i++]
+				prelude += css[index++]
 				continue
 			}
 			// Simple @statements like @import …; @charset …; @layer name;
-			if (css[i] === ';') {
-				prelude += css[i++]
+			if (css[index] === ';') {
+				prelude += css[index++]
 				break
 			}
-			prelude += css[i++]
+			prelude += css[index++]
 		}
 
 		// Simple statement (no block) — emit as-is
-		if (i >= css.length || css[i] === '}' || prelude.trimEnd().endsWith(';')) {
+		if (index >= css.length || css[index] === '}' || prelude.trimEnd().endsWith(';')) {
 			result += prelude
 			continue
 		}
 
-		// css[i] === '{' — consume and capture block content
-		i++ // skip '{'
-		const blockEnd = findBlockEnd(css, i)
-		const blockContent = css.slice(i, blockEnd)
-		i = blockEnd + 1 // skip '}'
+		// css[index] === '{' — consume and capture block content
+		index++ // skip '{'
+		const blockEnd = findBlockEnd(css, index)
+		const blockContent = css.slice(index, blockEnd)
+		index = blockEnd + 1 // skip '}'
 
 		const trimmedPrelude = prelude.trim()
 
@@ -167,7 +184,7 @@ function scopeCSS(css: string, scopeId: string): string {
 			// Qualified rule — prefix each selector in the list
 			const selectors = splitSelectors(trimmedPrelude)
 			const prefixed = selectors
-				.map(s => {
+				.map((s) => {
 					const sel = s.trim()
 					if (!sel) return ''
 					// :global(selector) escape hatch — emit without prefix
@@ -184,7 +201,7 @@ function scopeCSS(css: string, scopeId: string): string {
 
 function buildInlineSourceMap(rawCode: string, relativePath: string): string {
 	const lineCount = rawCode.split('\n').length
-	const contentMappings = ['AAAA', ...Array.from({ length: lineCount - 1 }).fill('AACA')].join(';')
+	const contentMappings = ['AAAA', ...Array.from<string>({ length: lineCount - 1 }).fill('AACA')].join(';')
 	const map = JSON.stringify({
 		version: 3,
 		sources: [`/${relativePath}`],
@@ -209,6 +226,11 @@ function buildModule(
 		`_c[Symbol.for('@rooted/css-artifacts')] = { href: ${JSON.stringify(href)}, scopeId: ${JSON.stringify(scopeId)} }`,
 		`export default _c`,
 	].join('\n')
+}
+
+function buildArtifact(rawCode: string, scopeId: string, relativePath: string): string {
+	const sourceMap = buildInlineSourceMap(rawCode, relativePath)
+	return scopeCSS(rawCode, scopeId) + `\n/*# sourceMappingURL=${sourceMap} */`
 }
 
 /** CSS content and token for a file pending asset emission and URL resolution. */
@@ -260,11 +282,6 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 	const pending = new Map<string, PendingAsset>()
 	/** Cached Rollup asset refs once emitFile has been called, to avoid duplicate emission. */
 	const emittedReferences = new Map<string, string>()
-
-	function buildArtifact(rawCode: string, scopeId: string, relativePath: string): string {
-		const sourceMap = buildInlineSourceMap(rawCode, relativePath)
-		return scopeCSS(rawCode, scopeId) + `\n/*# sourceMappingURL=${sourceMap} */`
-	}
 
 	/**
 	 * Pre-plugin: runs before Vite's built-in CSS pipeline so that bare .css
@@ -414,9 +431,9 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 			}
 			let result = code
 			for (const [filePath, { token }] of pending) {
-				const ref = emittedReferences.get(filePath)
-				if (!ref) continue
-				result = result.replaceAll(token, config.base + this.getFileName(ref))
+				const reference = emittedReferences.get(filePath)
+				if (!reference) continue
+				result = result.replaceAll(token, config.base + this.getFileName(reference))
 			}
 			return result === code ? undefined : { code: result, map: undefined }
 		},
