@@ -46,11 +46,11 @@ export const Application = component({
 							on: {
 								navigate(event) {
 									if (event.spinnerRecommended) {
-										document.body.classList.add('navigating')
+										document.documentElement.classList.add('navigating')
 										append(spinner)
 									}
 									else {
-										document.body.classList.remove('navigating')
+										document.documentElement.classList.remove('navigating')
 										spinner.remove()
 									}
 
@@ -63,7 +63,7 @@ export const Application = component({
 									if (event.navigationType === 'end') {
 										progress[event.href].done = true
 										requestAnimationFrame(() => delete progress[event.href])
-										document.body.classList.remove('navigating')
+										document.documentElement.classList.remove('navigating')
 										spinner.remove()
 									}
 								},

@@ -26,7 +26,7 @@ footer {
   animation: 220ms ease-in both fade-in;
 }
 
-body.navigating {
+html.navigating {
   overflow: hidden;
   scrollbar-gutter: stable;
 }
