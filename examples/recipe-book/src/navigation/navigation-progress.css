@@ -43,10 +43,6 @@ progress::-moz-progress-bar {
   border-top-color: var(--color-primary, #4a90e2);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
-  display: none;
-}
-
-.spinner.visible {
   display: block;
 }
 

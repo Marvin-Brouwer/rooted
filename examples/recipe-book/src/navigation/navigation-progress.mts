@@ -1,15 +1,15 @@
 import { component } from '@rooted/components'
 
-import styles from './route-progress.css'
+import styles from './navigation-progress.css'
 
 const supportsPerformanceObserver = typeof PerformanceObserver !== 'undefined'
 
-export type RouteProgressOptions = {
+export type NavigationProgressOptions = {
 	href: string
 	state: { done: boolean }
 }
-export const RouteProgress = component<RouteProgressOptions>({
-	name: 'route-progress',
+export const NavigationProgress = component<NavigationProgressOptions>({
+	name: 'navigation-progress',
 	styles,
 	onMount({ append, element, options, signal }) {
 		const { href, state } = options
@@ -48,37 +48,47 @@ export const RouteProgress = component<RouteProgressOptions>({
 			}),
 		)
 
-		function handleUpdate() {
+		function increment() {
 			// Force reflow so the opacity transition fires from 0 → 1
 			progress.getBoundingClientRect()
-
-			if (state.done) {
-				progress.value = 100
-				announcer.textContent = `Finished loading ${href}\u2026`
-				requestAnimationFrame(() => progress.className = styles.progressWrapper as string)
-				return
-			}
 
 			const currentValue = progress.value
 			progress.value = currentValue === 0
 				? Math.random() * 30
 				: currentValue + Math.random() * (90 - currentValue)
+
+			handleUpdate()
+		}
+		const id = setInterval(handleUpdate, 200)
+		function handleUpdate() {
+			// Force reflow so the opacity transition fires from 0 → 1
+			progress.getBoundingClientRect()
+			if (!state.done) return
+
+			progress.value = 100
+			announcer.textContent = `Finished loading ${href}\u2026`
+			requestAnimationFrame(() => progress.className = styles.progressWrapper as string)
+			clearInterval(id)
 		}
 
-		// Start remove immediately if mounted on 100%
-		if (state.done) {
-			handleUpdate()
-			return
-		}
+		signal.addEventListener('abort', () => clearInterval(id))
 
 		if (supportsPerformanceObserver) {
-			const observer = new PerformanceObserver(handleUpdate)
+			const observer = new PerformanceObserver(increment)
 			observer.observe({ type: 'resource', buffered: false })
 			signal.addEventListener('abort', observer.disconnect.bind(observer))
 		}
 		else {
-			const id = setInterval(handleUpdate, 200)
+			const id = setInterval(increment, 200)
 			signal.addEventListener('abort', () => clearInterval(id))
 		}
+	},
+})
+
+export const NavigationSpinner = component({
+	name: 'navigation-progress-spinner',
+	styles,
+	onMount({ append, element }) {
+		append(element('div', { classes: styles.spinner }))
 	},
 })

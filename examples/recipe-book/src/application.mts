@@ -8,8 +8,8 @@ import { appRoutes } from './_routes.g.mts'
 import styles from './application.css'
 import { HomePage } from './navigation/home.mts'
 import { NavigationMenu } from './navigation/navigation-menu.mts'
+import { NavigationProgress, NavigationSpinner } from './navigation/navigation-progress.mts'
 import { NotFoundPage } from './navigation/not-found.mts'
-import { RouteProgress } from './navigation/route-progress.mts'
 
 const Router = router({
 	home: HomePage,
@@ -24,6 +24,8 @@ export const Application = component({
 		document.title = 'Recipe Book'
 
 		const progress: Record<string, { done: boolean }> = {}
+
+		const spinner = create(NavigationSpinner)
 
 		append(
 			element('div', {
@@ -43,6 +45,13 @@ export const Application = component({
 							scrollBehavior: { scrollToTop: 'on:start-and-end' },
 							on: {
 								navigate(event) {
+									if (event.spinnerRecommended) {
+										append(spinner)
+									}
+									else {
+										spinner.remove()
+									}
+
 									if (event.navigationType === 'start') {
 										if (progress[event.href]) {
 											console.log(progress)
@@ -50,11 +59,12 @@ export const Application = component({
 										}
 										progress[event.href] = { done: false }
 
-										append(create(RouteProgress, { href: event.href, state: progress[event.href] }))
+										append(create(NavigationProgress, { href: event.href, state: progress[event.href] }))
 									}
 									if (event.navigationType === 'end') {
 										progress[event.href].done = true
 										requestAnimationFrame(() => delete progress[event.href])
+										spinner.remove()
 									}
 								},
 							},
