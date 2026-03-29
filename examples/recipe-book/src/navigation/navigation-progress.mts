@@ -82,6 +82,15 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 			const id = setInterval(increment, 200)
 			signal.addEventListener('abort', () => clearInterval(id))
 		}
+
+		// Fallback for cached navigations: PerformanceObserver never fires when no
+		// resources are loaded, so poll state.done directly to ensure the bar always completes.
+		const completionId = setInterval(() => {
+			if (!state.done) return
+			clearInterval(completionId)
+			handleUpdate()
+		}, 50)
+		signal.addEventListener('abort', () => clearInterval(completionId))
 	},
 })
 
