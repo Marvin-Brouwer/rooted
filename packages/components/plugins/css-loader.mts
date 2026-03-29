@@ -27,15 +27,163 @@ function extractClassNames(css: string): Record<string, string> {
 }
 
 /**
- * Builds an inline CSS source map that maps the wrapped artifact lines back
- * to the original source file. The wrapper always adds exactly one line before
- * the raw content and one closing brace line after, so the VLQ mappings are
- * trivial: skip 1 line, then shift each source line by +1.
+ * Returns the index of the closing `}` that matches the opening `{` at `start - 1`.
+ * Skips comments and strings to avoid false positives.
  */
+function findBlockEnd(css: string, start: number): number {
+	let depth = 1
+	let i = start
+	while (i < css.length && depth > 0) {
+		const ch = css[i]
+		if (ch === '/' && css[i + 1] === '*') {
+			const end = css.indexOf('*/', i + 2)
+			i = end === -1 ? css.length : end + 2
+			continue
+		}
+		if (ch === '"' || ch === "'") {
+			const q = ch
+			i++
+			while (i < css.length && css[i] !== q) {
+				if (css[i] === '\\') i++
+				i++
+			}
+		}
+		else if (ch === '{') { depth++ }
+		else if (ch === '}') { depth-- }
+		if (depth > 0) i++
+	}
+	return i
+}
+
+/**
+ * Splits a CSS selector list on commas, ignoring commas inside pseudo-functions
+ * like `:is()`, `:not()`, `:has()`, `:where()`, and attribute selectors `[…]`.
+ */
+function splitSelectors(selectorList: string): string[] {
+	const selectors: string[] = []
+	let depth = 0
+	let current = ''
+	for (const ch of selectorList) {
+		if (ch === '(' || ch === '[') depth++
+		else if (ch === ')' || ch === ']') depth--
+		else if (ch === ',' && depth === 0) {
+			selectors.push(current)
+			current = ''
+			continue
+		}
+		current += ch
+	}
+	if (current.trim()) selectors.push(current)
+	return selectors
+}
+
+/**
+ * Transforms a CSS string so that every qualified rule selector is prefixed with
+ * `[r="${scopeId}"] `, producing a flat, well-supported stylesheet.
+ *
+ * - `@keyframes` and `@font-face` blocks are passed through unchanged.
+ * - `@media`, `@supports`, `@container`, `@layer` etc. are recurse-processed.
+ * - `:global(selector)` strips the wrapper so that selector is left unscoped.
+ * - CSS nesting written in source files is left as-is; it still works in all
+ *   modern browsers (Chrome 112+, Firefox 117+, Safari 16.5+).
+ */
+function scopeCSS(css: string, scopeId: string): string {
+	const prefix = `[r="${scopeId}"]`
+	let result = ''
+	let i = 0
+
+	while (i < css.length) {
+		// Preserve leading whitespace / newlines
+		const wsStart = i
+		while (i < css.length && /\s/.test(css[i])) i++
+		result += css.slice(wsStart, i)
+		if (i >= css.length) break
+
+		// Preserve block comments
+		if (css[i] === '/' && css[i + 1] === '*') {
+			const end = css.indexOf('*/', i + 2)
+			if (end === -1) { result += css.slice(i); break }
+			result += css.slice(i, end + 2)
+			i = end + 2
+			continue
+		}
+
+		// Collect prelude (selector or at-rule keyword + params) until `{` or `;`
+		let prelude = ''
+		while (i < css.length && css[i] !== '{' && css[i] !== '}') {
+			// Inline comment inside prelude
+			if (css[i] === '/' && css[i + 1] === '*') {
+				const end = css.indexOf('*/', i + 2)
+				if (end === -1) { prelude += css.slice(i); i = css.length; break }
+				prelude += css.slice(i, end + 2)
+				i = end + 2
+				continue
+			}
+			// String inside prelude (e.g. @charset "UTF-8" or content: "…")
+			if (css[i] === '"' || css[i] === "'") {
+				const q = css[i]
+				prelude += q
+				i++
+				while (i < css.length && css[i] !== q) {
+					if (css[i] === '\\') prelude += css[i++]
+					prelude += css[i++]
+				}
+				prelude += css[i++]
+				continue
+			}
+			// Simple @statements like @import …; @charset …; @layer name;
+			if (css[i] === ';') {
+				prelude += css[i++]
+				break
+			}
+			prelude += css[i++]
+		}
+
+		// Simple statement (no block) — emit as-is
+		if (i >= css.length || css[i] === '}' || prelude.trimEnd().endsWith(';')) {
+			result += prelude
+			continue
+		}
+
+		// css[i] === '{' — consume and capture block content
+		i++ // skip '{'
+		const blockEnd = findBlockEnd(css, i)
+		const blockContent = css.slice(i, blockEnd)
+		i = blockEnd + 1 // skip '}'
+
+		const trimmedPrelude = prelude.trim()
+
+		if (/^@(-webkit-|-moz-|-ms-)?keyframes\b/.test(trimmedPrelude)
+			|| /^@font-face\b/i.test(trimmedPrelude)) {
+			// Pass through unchanged — selectors inside are percentages/from/to
+			result += trimmedPrelude + ' {' + blockContent + '}'
+		}
+		else if (trimmedPrelude.startsWith('@')) {
+			// Conditional group rules (@media, @supports, @container, @layer, …)
+			// Recurse into the block so the rules inside get prefixed
+			result += trimmedPrelude + ' {' + scopeCSS(blockContent, scopeId) + '}'
+		}
+		else {
+			// Qualified rule — prefix each selector in the list
+			const selectors = splitSelectors(trimmedPrelude)
+			const prefixed = selectors
+				.map(s => {
+					const sel = s.trim()
+					if (!sel) return ''
+					// :global(selector) escape hatch — emit without prefix
+					if (sel.startsWith(':global(') && sel.endsWith(')')) return sel.slice(8, -1)
+					return `${prefix} ${sel}`
+				})
+				.filter(Boolean)
+			result += prefixed.join(', ') + ' {' + blockContent + '}'
+		}
+	}
+
+	return result
+}
+
 function buildInlineSourceMap(rawCode: string, relativePath: string): string {
 	const lineCount = rawCode.split('\n').length
-	// ';' = empty line (wrapper), then AAAA for first source line,
-	// AACA for each subsequent line (sourceLine delta = +1), then trailing ';' for closing brace
 	const contentMappings = ['AAAA', ...Array.from({ length: lineCount - 1 }).fill('AACA')].join(';')
 	const map = JSON.stringify({
 		version: 3,
@@ -48,8 +196,7 @@ function buildInlineSourceMap(rawCode: string, relativePath: string): string {
 
 function buildModule(
 	rawCode: string,
-	scopedUrl: string,
-	taggedUrl: string,
+	href: string,
 	scopeId: string,
 ): string {
 	const classes = extractClassNames(rawCode)
@@ -59,19 +206,17 @@ function buildModule(
 	)
 	return [
 		`const _c = ${classesJson}`,
-		`_c[Symbol.for('@rooted/css-artifacts')] = { scoped: ${JSON.stringify(scopedUrl)}, tagged: ${JSON.stringify(taggedUrl)}, scopeId: ${JSON.stringify(scopeId)} }`,
+		`_c[Symbol.for('@rooted/css-artifacts')] = { href: ${JSON.stringify(href)}, scopeId: ${JSON.stringify(scopeId)} }`,
 		`export default _c`,
 	].join('\n')
 }
 
-/** CSS content and tokens for a file pending asset emission and URL resolution. */
+/** CSS content and token for a file pending asset emission and URL resolution. */
 type PendingAsset = {
 	stem: string
-	scopedCss: string
-	taggedCss: string
+	css: string
 	/** Unique token embedded in JS chunk code to be replaced with the final URL. */
-	scopedToken: string
-	taggedToken: string
+	token: string
 }
 
 /** Options for the {@link cssLoader} Vite plugin. */
@@ -88,12 +233,13 @@ export type CssLoaderOptions = {
  * Vite plugin that transforms plain `.css` imports into `CssModule` objects.
  *
  * For each intercepted CSS file the plugin:
- * - Emits two pre-scoped CSS artifacts: `{stem}.scoped.css` (wrapped in `@scope`)
- *   and `{stem}.tagged.css` (wrapped with an attribute selector).
+ * - Scopes every qualified rule selector by prefixing it with `[r="${scopeId}"] `,
+ *   producing a single flat CSS artifact (`{stem}.css`) with no `@scope` or
+ *   CSS-nesting dependency in the output.
  * - Returns a JS module whose default export is a `CssModule`:
  *   an object mapping camelCase class names to their kebab-case originals,
  *   with a non-enumerable `[cssArtifacts]` symbol property holding the
- *   public URLs of the two emitted files.
+ *   public URL and scope ID of the emitted file.
  *
  * Imports with a query suffix (`?inline`, `?raw`, etc.) are passed through
  * unchanged so Vite's built-in handlers continue to work.
@@ -113,7 +259,12 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 	/** CSS content and tokens for files awaiting asset emission. */
 	const pending = new Map<string, PendingAsset>()
 	/** Cached Rollup asset refs once emitFile has been called, to avoid duplicate emission. */
-	const emittedReferences = new Map<string, { scopedRef: string, taggedRef: string }>()
+	const emittedReferences = new Map<string, string>()
+
+	function buildArtifact(rawCode: string, scopeId: string, relativePath: string): string {
+		const sourceMap = buildInlineSourceMap(rawCode, relativePath)
+		return scopeCSS(rawCode, scopeId) + `\n/*# sourceMappingURL=${sourceMap} */`
+	}
 
 	/**
 	 * Pre-plugin: runs before Vite's built-in CSS pipeline so that bare .css
@@ -150,27 +301,25 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 		},
 
 		/**
-		 * When a source CSS file changes, update the in-memory artifacts and
+		 * When a source CSS file changes, update the in-memory artifact and
 		 * notify the browser via a custom HMR event so it re-fetches the
 		 * stylesheet without a full page reload.
 		 */
 		handleHotUpdate({ file, server }) {
 			if (!file.endsWith('.css')) return
 			const stem = path.basename(file, '.css')
-			const scopedKey = `${DEV_PREFIX}${stem}.scoped.css`
-			if (!developmentArtifacts.has(scopedKey)) return
+			const key = `${DEV_PREFIX}${stem}.css`
+			if (!developmentArtifacts.has(key)) return
 
 			const rawCode = readFileSync(file, 'utf8')
 			const relativePath = path.relative(config.root, file).replaceAll('\\', '/')
 			const scopeId = seededId(relativePath)
-			const sourceMap = buildInlineSourceMap(rawCode, relativePath)
-			developmentArtifacts.set(scopedKey, `@scope ([r="${scopeId}"]) {\n${rawCode}\n}\n/*# sourceMappingURL=${sourceMap} */`)
-			developmentArtifacts.set(`${DEV_PREFIX}${stem}.tagged.css`, `[r="${scopeId}"] {\n${rawCode}\n}\n/*# sourceMappingURL=${sourceMap} */`)
+			developmentArtifacts.set(key, buildArtifact(rawCode, scopeId, relativePath))
 
 			server.hot.send({
 				type: 'custom',
 				event: '@rooted/components:css-update',
-				data: { scoped: scopedKey, tagged: `${DEV_PREFIX}${stem}.tagged.css` },
+				data: { href: key },
 			})
 
 			return [] // CSS is served via middleware; no JS module reload needed
@@ -215,33 +364,25 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 			const stem = path.basename(absolutePath, '.css')
 			const relativePath = path.relative(config.root, absolutePath).replaceAll('\\', '/')
 			const scopeId = seededId(relativePath)
-			const sourceMap = buildInlineSourceMap(rawCode, relativePath)
-			const scopedCss = `@scope ([r="${scopeId}"]) {\n${rawCode}\n}\n/*# sourceMappingURL=${sourceMap} */`
-			const taggedCss = `[r="${scopeId}"] {\n${rawCode}\n}\n/*# sourceMappingURL=${sourceMap} */`
 
-			let scopedUrl: string
-			let taggedUrl: string
+			let href: string
 
 			if (config.command === 'serve') {
-				scopedUrl = `${DEV_PREFIX}${stem}.scoped.css`
-				taggedUrl = `${DEV_PREFIX}${stem}.tagged.css`
-				developmentArtifacts.set(scopedUrl, scopedCss)
-				developmentArtifacts.set(taggedUrl, taggedCss)
+				href = `${DEV_PREFIX}${stem}.css`
+				developmentArtifacts.set(href, buildArtifact(rawCode, scopeId, relativePath))
 				// Watch the source CSS file so HMR fires when it changes
 				this.addWatchFile(absolutePath)
 			}
 			else {
-				// Store CSS content and placeholder tokens.
-				// The output plugin emits the assets and replaces tokens in renderChunk.
+				// Store CSS content and placeholder token.
+				// The output plugin emits the asset and replaces the token in renderChunk.
 				const key = absolutePath.replaceAll('\\', '/')
-				const scopedToken = `__ROOTED_SCOPED_${key}__`
-				const taggedToken = `__ROOTED_TAGGED_${key}__`
-				pending.set(absolutePath, { stem, scopedCss, taggedCss, scopedToken, taggedToken })
-				scopedUrl = scopedToken
-				taggedUrl = taggedToken
+				const token = `__ROOTED_CSS_${key}__`
+				pending.set(absolutePath, { stem, css: buildArtifact(rawCode, scopeId, relativePath), token })
+				href = token
 			}
 
-			return { code: buildModule(rawCode, scopedUrl, taggedUrl, scopeId), map: undefined }
+			return { code: buildModule(rawCode, href, scopeId), map: undefined }
 		},
 	}
 
@@ -264,24 +405,18 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 				? (await transform(css, { loader: 'css', minify: true })).code
 				: css
 			// Emit CSS assets on first chunk (Rollup deduplicates by content+name).
-			for (const [path, { stem, scopedCss, taggedCss }] of pending) {
-				if (!emittedReferences.has(path)) {
-					const scoped = await minify(scopedCss)
-					const tagged = await minify(taggedCss)
-					emittedReferences.set(path, {
-						scopedRef: this.emitFile({ type: 'asset', name: `${stem}.scoped.css`, source: scoped }),
-						taggedRef: this.emitFile({ type: 'asset', name: `${stem}.tagged.css`, source: tagged }),
-					})
+			for (const [filePath, { stem, css }] of pending) {
+				if (!emittedReferences.has(filePath)) {
+					emittedReferences.set(filePath,
+						this.emitFile({ type: 'asset', name: `${stem}.css`, source: await minify(css) }),
+					)
 				}
 			}
 			let result = code
-			for (const [path, { scopedToken, taggedToken }] of pending) {
-				const emitted = emittedReferences.get(path)
-				if (!emitted) continue
-				const { scopedRef, taggedRef } = emitted
-				result = result
-					.replaceAll(scopedToken, config.base + this.getFileName(scopedRef))
-					.replaceAll(taggedToken, config.base + this.getFileName(taggedRef))
+			for (const [filePath, { token }] of pending) {
+				const ref = emittedReferences.get(filePath)
+				if (!ref) continue
+				result = result.replaceAll(token, config.base + this.getFileName(ref))
 			}
 			return result === code ? undefined : { code: result, map: undefined }
 		},
