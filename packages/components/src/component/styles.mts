@@ -6,8 +6,9 @@ const injectedLinks = new Map<string, HTMLLinkElement>()
 /** True when the browser supports `@scope` — detected once at module load time. */
 const supportsScope: boolean = await (async () => {
 	try {
-		await new CSSStyleSheet().replace('@scope {}')
-		return true
+		const sheet = new CSSStyleSheet()
+		await sheet.replace('@scope {}')
+		return sheet.cssRules.length > 0
 	}
 	catch { return false }
 })()
