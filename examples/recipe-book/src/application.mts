@@ -9,9 +9,7 @@ import styles from './application.css'
 import { HomePage } from './navigation/home.mts'
 import { NavigationMenu } from './navigation/navigation-menu.mts'
 import { NotFoundPage } from './navigation/not-found.mts'
-import { RouteProgress, type ProgressState } from './navigation/route-progress.mts'
-
-const progressState: ProgressState = {}
+import { RouteProgress } from './navigation/route-progress.mts'
 
 const Router = router({
 	home: HomePage,
@@ -25,8 +23,9 @@ export const Application = component({
 	onMount({ append, element, create }) {
 		document.title = 'Recipe Book'
 
+		const progress: Record<string, { done: boolean }> = {}
+
 		append(
-			create(RouteProgress, { progressState }),
 			element('div', {
 				id: 'app',
 				children: [
@@ -44,25 +43,18 @@ export const Application = component({
 							scrollBehavior: { scrollToTop: 'on:start-and-end' },
 							on: {
 								navigate(event) {
-									switch (event.navigationType) {
-										case 'start': {
-											progressState[event.href] = { progress: 0, done: false }
-											break
+									if (event.navigationType === 'start') {
+										if (progress[event.href]) {
+											console.log(progress)
+											return
 										}
-										case 'progress': {
-											const entry = progressState[event.href]
-											if (!entry) return
-											entry.progress = entry.progress === 0
-												? Math.random() * 30
-												: entry.progress + Math.random() * (90 - entry.progress)
-											break
-										}
-										case 'end': {
-											progressState[event.href] = { progress: 100, done: false }
-											progressState[event.href] = { progress: 100, done: true }
-											break
-										}
-									// No default
+										progress[event.href] = { done: false }
+
+										append(create(RouteProgress, { href: event.href, state: progress[event.href] }))
+									}
+									if (event.navigationType === 'end') {
+										progress[event.href].done = true
+										requestAnimationFrame(() => delete progress[event.href])
 									}
 								},
 							},

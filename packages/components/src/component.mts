@@ -24,7 +24,11 @@ type BaseComponentContext = & {
 
 	/** {@inheritdoc HTMLElement['append']} */
 	append: {
+		<T extends GenericComponent>(node: T): T
+		<T extends Node>(node: T): T
+		<T extends string>(node: T): T
 		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends (Node | string | GenericComponent)[]>(...nodes: T): T
 		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
 		(...nodes: (Node | string | GenericComponent)[]): Node[]
 	}
@@ -48,6 +52,7 @@ type BaseComponentContext = & {
 		<T extends Node>(node: T): T
 		<T extends string>(node: T): T
 		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends (Node | string | GenericComponent)[]>(...nodes: T): T
 		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
 		(...nodes: (Node | string | GenericComponent)[]): Node[]
 	}

@@ -1,70 +1,84 @@
-import { component, cssClass } from '@rooted/components'
+import { component } from '@rooted/components'
 
 import styles from './route-progress.css'
 
-export type ProgressState = Record<string, { progress: number, done: boolean }>
+const supportsPerformanceObserver = typeof PerformanceObserver !== 'undefined'
 
-export const RouteProgress = component<{ progressState: ProgressState }>({
+export type RouteProgressOptions = {
+	href: string
+	state: { done: boolean }
+}
+export const RouteProgress = component<RouteProgressOptions>({
 	name: 'route-progress',
 	styles,
-	onMount({ replace, create, options, signal }) {
-		const { progressState } = options
+	onMount({ append, element, options, signal }) {
+		const { href, state } = options
 
-		const intervalId = setInterval(() => {
-			replace(...Object
-				.keys(progressState)
-				.map(href => create(ProgressBar, { href, progressState })),
-			)
-		}, 5000)
-
-		signal.addEventListener('abort', () => {
-			clearInterval(intervalId)
-		})
-	},
-})
-
-type ProgressBarOptions = {
-	progressState: ProgressState
-	href: string
-}
-const ProgressBar = component<ProgressBarOptions>({
-	name: 'route-progress-bar',
-	styles,
-	onMount({ append, element, options }) {
-		const { progressState, href } = options
-
-		const routeProgress = progressState[href]
-		if (!routeProgress) return
-
-		append(
+		const [announcer, progress] = append(
 			element('div', {
 				role: 'status',
-				aria: { live: 'polite', atomic: 'true' },
+				aria: {
+					live: 'polite',
+					atomic: 'true',
+				},
 				classes: styles.srOnly,
-				textContent: routeProgress.done
-					? `Finished loading ${href}.`
-					: `Loading ${href}\u2026`,
+				textContent: `Loading ${href}\u2026`,
 			}),
-			element('div', {
+			element('progress', {
 				classes: [
-					cssClass(styles.progressWrapper),
-					cssClass(styles.active, !routeProgress.done),
+					styles.progressWrapper,
+					styles.active,
 				],
-				on: routeProgress?.progress > 0
-					? {
-						transitionend() { delete progressState[href] },
-						webkittransitionend() { delete progressState[href] },
-					}
-					: undefined,
-				children: element('progress', {
-					max: 100,
-					value: routeProgress?.progress ?? 0,
-					aria: {
-						// TODO, better aria-type
-						hidden: 'true',
+				aria: {
+					// TODO, better aria-type
+					hidden: 'true',
+				},
+				on: {
+					transitionend({ currentTarget }) {
+						if (!state.done) return
+						currentTarget.parentElement?.remove()
 					},
-				}),
+					webkittransitionend({ currentTarget }) {
+						if (!state.done) return
+						currentTarget.parentElement?.remove()
+					},
+				},
+				max: 100,
+				value: state.done ? 100 : 0,
 			}),
 		)
+
+		function handleUpdate() {
+			// Force reflow so the opacity transition fires from 0 → 1
+			progress.getBoundingClientRect()
+
+			if (state.done) {
+				progress.value = 100
+				announcer.textContent = `Finished loading ${href}\u2026`
+				requestAnimationFrame(() => progress.className = styles.progressWrapper as string)
+				return
+			}
+
+			const currentValue = progress.value
+			progress.value = currentValue === 0
+				? Math.random() * 30
+				: currentValue + Math.random() * (90 - currentValue)
+		}
+
+		// Start remove immediately if mounted on 100%
+		if (state.done) {
+			handleUpdate()
+			return
+		}
+
+		if (supportsPerformanceObserver) {
+			const observer = new PerformanceObserver(handleUpdate)
+			observer.observe({ type: 'resource', buffered: false })
+			signal.addEventListener('abort', observer.disconnect.bind(observer))
+		}
+		else {
+			const id = setInterval(handleUpdate, 200)
+			signal.addEventListener('abort', () => clearInterval(id))
+		}
 	},
 })

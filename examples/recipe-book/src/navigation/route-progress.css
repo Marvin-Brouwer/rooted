@@ -1,15 +1,3 @@
-.progress-wrapper {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 200ms ease;
-  pointer-events: none;
-}
-
 .progress-wrapper.active {
   opacity: 1;
 }
@@ -17,11 +5,19 @@
 progress {
   -webkit-appearance: none;
   appearance: none;
-  width: 100%;
-  height: 100%;
   border: none;
   background: transparent;
   display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  width: 100%;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
 }
 
 progress::-webkit-progress-bar {
