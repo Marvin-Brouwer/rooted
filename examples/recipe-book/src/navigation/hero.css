@@ -46,13 +46,14 @@
 	font-weight: 700;
 	margin: 0 0 0.75rem;
 	color: var(--color-surface);
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 .subtitle {
 	font-size: 1.15rem;
 	margin: 0 0 2rem;
 	color: var(--color-surface);
-	opacity: 0.9;
+	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 
 form {
