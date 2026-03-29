@@ -1,97 +1,70 @@
-import { component } from '@rooted/components'
-import type { NavigateEvent } from '@rooted/router'
+import { component, cssClass } from '@rooted/components'
 
 import styles from './route-progress.css'
 
-export type ProgressState = {
-	navigationType: NavigateEvent['navigationType'] | 'idle'
-	spinnerRecommended: boolean
-	progressCount: number
-}
+export type ProgressState = Record<string, { progress: number, done: boolean }>
 
 export const RouteProgress = component<{ progressState: ProgressState }>({
 	name: 'route-progress',
 	styles,
-	onMount({ append, element, options, signal }) {
+	onMount({ replace, create, options, signal }) {
 		const { progressState } = options
 
-		let fakeProgress = 0
-		let lastType: ProgressState['navigationType'] = 'idle'
-		let lastProgressCount = 0
-		let currentNav: {
-			wrapper: HTMLElement
-			bar: HTMLProgressElement
-			spinner: HTMLElement
-			announcer: HTMLElement
-		} | undefined
-
 		const intervalId = setInterval(() => {
-			const { navigationType, spinnerRecommended, progressCount } = progressState
-
-			if (navigationType === lastType && progressCount === lastProgressCount) return
-			if (navigationType === 'idle') return
-
-			if (navigationType === 'start' && lastType !== 'start') {
-				lastType = navigationType
-				lastProgressCount = 0
-				fakeProgress = 0
-
-				const announcer = element('div', {
-					role: 'status',
-					aria: { live: 'polite', atomic: 'true' },
-					classes: styles.srOnly,
-				})
-				const bar = element('progress', { max: 100 }) as HTMLProgressElement
-				bar.setAttribute('aria-hidden', 'true')
-				bar.value = 0
-				const spinner = element('div', { classes: styles.spinner })
-				spinner.setAttribute('aria-hidden', 'true')
-				const wrapper = element('div', {
-					classes: styles.progressWrapper,
-					children: [announcer, bar, spinner],
-				})
-				announcer.textContent = 'Loading\u2026'
-				spinner.classList.toggle(styles.visible, spinnerRecommended)
-				append(wrapper)
-				// Force reflow so the opacity transition fires from 0 → 1
-				wrapper.getBoundingClientRect()
-				wrapper.classList.add(styles.active)
-
-				currentNav = { wrapper, bar, spinner, announcer }
-
-			} else if (navigationType === 'progress' && progressCount !== lastProgressCount) {
-				lastType = navigationType
-				lastProgressCount = progressCount
-				if (!currentNav) return
-				currentNav.spinner.classList.toggle(styles.visible, spinnerRecommended)
-				if (progressCount === 1) {
-					fakeProgress = Math.random() * 30
-				} else {
-					fakeProgress += Math.random() * (90 - fakeProgress)
-				}
-				currentNav.bar.value = fakeProgress
-
-			} else if (navigationType === 'end' && lastType !== 'end') {
-				lastType = navigationType
-				if (!currentNav) return
-				const { wrapper, bar, spinner, announcer } = currentNav
-				currentNav = undefined
-				bar.value = 100
-				announcer.textContent = 'Done'
-				setTimeout(() => {
-					wrapper.classList.remove(styles.active)
-					spinner.classList.remove(styles.visible)
-					setTimeout(() => {
-						wrapper.remove()
-						announcer.textContent = ''
-					}, 300) // wait for opacity fade-out transition (200ms)
-				}, 150)
-			}
-		}, 50)
+			replace(...Object
+				.keys(progressState)
+				.map(href => create(ProgressBar, { href, progressState })),
+			)
+		}, 5000)
 
 		signal.addEventListener('abort', () => {
 			clearInterval(intervalId)
-			currentNav?.wrapper.remove()
 		})
+	},
+})
+
+type ProgressBarOptions = {
+	progressState: ProgressState
+	href: string
+}
+const ProgressBar = component<ProgressBarOptions>({
+	name: 'route-progress-bar',
+	styles,
+	onMount({ append, element, options }) {
+		const { progressState, href } = options
+
+		const routeProgress = progressState[href]
+		if (!routeProgress) return
+
+		append(
+			element('div', {
+				role: 'status',
+				aria: { live: 'polite', atomic: 'true' },
+				classes: styles.srOnly,
+				textContent: routeProgress.done
+					? `Finished loading ${href}.`
+					: `Loading ${href}\u2026`,
+			}),
+			element('div', {
+				classes: [
+					cssClass(styles.progressWrapper),
+					cssClass(styles.active, !routeProgress.done),
+				],
+				on: routeProgress?.progress > 0
+					? {
+						transitionend() { delete progressState[href] },
+						webkittransitionend() { delete progressState[href] },
+					}
+					: undefined,
+				children: element('progress', {
+					max: 100,
+					value: routeProgress?.progress ?? 0,
+					aria: {
+						// TODO, better aria-type
+						hidden: 'true',
+					},
+				}),
+			}),
+		)
 	},
 })

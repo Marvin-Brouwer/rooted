@@ -142,7 +142,8 @@ export class GenericComponent extends RootedElement {
 					: nodeOrString as Node
 			})
 
-			base.replaceChildren(...realNodes)
+			if ((nodes.length > 0 || base.children.length > 0))
+				base.replaceChildren(...realNodes)
 
 			return nodes.length === 1
 				? realNodes[0]

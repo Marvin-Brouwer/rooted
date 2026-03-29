@@ -11,7 +11,7 @@ import { NavigationMenu } from './navigation/navigation-menu.mts'
 import { NotFoundPage } from './navigation/not-found.mts'
 import { RouteProgress, type ProgressState } from './navigation/route-progress.mts'
 
-const progressState: ProgressState = { navigationType: 'idle', spinnerRecommended: false, progressCount: 0 }
+const progressState: ProgressState = {}
 
 const Router = router({
 	home: HomePage,
@@ -24,6 +24,7 @@ export const Application = component({
 	styles,
 	onMount({ append, element, create }) {
 		document.title = 'Recipe Book'
+
 		append(
 			create(RouteProgress, { progressState }),
 			element('div', {
@@ -43,10 +44,26 @@ export const Application = component({
 							scrollBehavior: { scrollToTop: 'on:start-and-end' },
 							on: {
 								navigate(event) {
-									progressState.navigationType = event.navigationType
-									progressState.spinnerRecommended = event.spinnerRecommended
-									if (event.navigationType === 'start') progressState.progressCount = 0
-									else if (event.navigationType === 'progress') progressState.progressCount++
+									switch (event.navigationType) {
+										case 'start': {
+											progressState[event.href] = { progress: 0, done: false }
+											break
+										}
+										case 'progress': {
+											const entry = progressState[event.href]
+											if (!entry) return
+											entry.progress = entry.progress === 0
+												? Math.random() * 30
+												: entry.progress + Math.random() * (90 - entry.progress)
+											break
+										}
+										case 'end': {
+											progressState[event.href] = { progress: 100, done: false }
+											progressState[event.href] = { progress: 100, done: true }
+											break
+										}
+									// No default
+									}
 								},
 							},
 						}),
