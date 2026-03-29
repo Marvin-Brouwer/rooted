@@ -5,8 +5,9 @@ import { cssLoader } from '@rooted/components/css-loader'
 import { ArrayElement } from '@rooted/util'
 import { defineConfig } from 'vite'
 import { analyzer } from 'vite-bundle-analyzer'
-import { ManifestOptions } from 'vite-plugin-pwa'
-import type { RuntimeCaching } from 'workbox-build'
+import { ManifestOptions, type VitePWAOptions } from 'vite-plugin-pwa'
+
+type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
 import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'

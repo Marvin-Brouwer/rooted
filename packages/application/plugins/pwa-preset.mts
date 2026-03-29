@@ -1,5 +1,6 @@
-import { VitePWA } from 'vite-plugin-pwa'
-import type { RuntimeCaching } from 'workbox-build'
+import { VitePWA, type VitePWAOptions } from 'vite-plugin-pwa'
+
+type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 
 import type { RootedApplicationManifest } from '../src/rooted-manifest.mts'
 
