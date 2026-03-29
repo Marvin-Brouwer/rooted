@@ -143,7 +143,6 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 			} = options ?? {}
 
 			let lastPath: string | undefined
-			const cache = new Map<string, undefined | { route: Route<any>, match: SuccessRouteMatch }>()
 
 			function scrollTo(y: number) {
 				if (!isClient()) return
@@ -182,36 +181,24 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 				// Set up navigate tracker
 				const tracker = handlers?.navigate
-					? createNavigateTracker(currentHref, handlers.navigate, cache.has(target.pathOnly))
+					? createNavigateTracker(currentHref, handlers.navigate)
 					: undefined
 
 				try {
-					if (cache.has(target.pathOnly)) {
-						const cached = cache.get(target.pathOnly)
-						if (!cached) {
-							applyTransition(() => renderRoute(undefined))
+					const matchRouteResult = await matchRoute(target, routes)
+					if (!matchRouteResult) {
+						applyTransition(() => renderRoute(undefined))
+					} else if (matchRouteResult.kind === 'error') {
+						const { error, route: errorRoute } = matchRouteResult
+						if (handlers?.error) {
+							const event = new NavigationErrorEvent(error, errorRoute, currentHref)
+							handlers.error(event)
+							if (!event.errorHandled) throw error
 						} else {
-							const element = await cached.route.resolve({ create, tokens: cached.match.tokens })
-							applyTransition(() => renderRoute(element))
+							throw error
 						}
 					} else {
-						const matchRouteResult = await matchRoute(target, routes)
-						if (!matchRouteResult) {
-							cache.set(target.pathOnly, undefined)
-							applyTransition(() => renderRoute(undefined))
-						} else if (matchRouteResult.kind === 'error') {
-							const { error, route: errorRoute } = matchRouteResult
-							if (handlers?.error) {
-								const event = new NavigationErrorEvent(error, errorRoute, currentHref)
-								handlers.error(event)
-								if (!event.errorHandled) throw error
-							} else {
-								throw error
-							}
-						} else {
-							cache.set(target.pathOnly, { route: matchRouteResult.route, match: matchRouteResult.match })
-							applyTransition(() => renderRoute(matchRouteResult.element))
-						}
+						applyTransition(() => renderRoute(matchRouteResult.element))
 					}
 				} finally {
 					tracker?.stop()

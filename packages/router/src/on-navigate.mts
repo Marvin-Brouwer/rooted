@@ -15,13 +15,13 @@ import { NavigateEvent, type NavigateHandler } from './navigate-event.mts'
  * @param routeCached - Pass `true` when the router already has a cached result
  *   for this path, so `spinnerRecommended` is always `false`.
  */
-export function createNavigateTracker(href: string, handler: NavigateHandler, routeCached: boolean): { stop(): void } {
+export function createNavigateTracker(href: string, handler: NavigateHandler): { stop(): void } {
 	let spinnerRecommended = false
 
 	handler(new NavigateEvent('start', false, href))
 
 	// Compute spinnerRecommended async, re-fire progress when done
-	computeSpinnerRecommended(routeCached).then((result) => {
+	computeSpinnerRecommended(href).then((result) => {
 		spinnerRecommended = result
 		handler(new NavigateEvent('progress', spinnerRecommended, href))
 	})
@@ -51,10 +51,10 @@ export function createNavigateTracker(href: string, handler: NavigateHandler, ro
 	}
 }
 
-async function computeSpinnerRecommended(routeCached: boolean): Promise<boolean> {
+async function computeSpinnerRecommended(href: string): Promise<boolean> {
 	if (!isClient()) return false
 
-	if (routeCached) return false
+	if (await isRouteCached(href)) return false
 
 	// Network speed
 	const networkSlow = navigator.connection?.effectiveType !== '4g'
@@ -63,4 +63,10 @@ async function computeSpinnerRecommended(routeCached: boolean): Promise<boolean>
 	const cpuSlow = (navigator.hardwareConcurrency ?? 4) <= 2
 
 	return networkSlow || cpuSlow
+}
+
+async function isRouteCached(href: string): Promise<boolean> {
+	if (typeof caches === 'undefined') return false
+	const response = await caches.match(href)
+	return response !== undefined
 }
