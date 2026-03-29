@@ -61,10 +61,11 @@ export const Application = component({
 										append(create(NavigationProgress, { href: event.href, state: progress[event.href] }))
 									}
 									if (event.navigationType === 'end') {
-										progress[event.href].done = true
-										requestAnimationFrame(() => delete progress[event.href])
 										document.documentElement.classList.remove('navigating')
 										spinner.remove()
+										if (!progress[event.href]) return
+										progress[event.href].done = true
+										requestAnimationFrame(() => delete progress[event.href])
 									}
 								},
 							},

@@ -6,9 +6,9 @@
 	padding: 5rem 2rem 3rem;
 	text-align: center;
 	/* Full-bleed breakout from the constrained main container */
-	width: calc(100% + 4rem);
-	/* left: 50%; */
-	transform: translateX(-2rem);
+	width: 100vw;
+	left: 50%;
+	transform: translateX(-50%);
 	/* Close the nav's margin-bottom gap */
 	margin-top: -2rem;
 	/* Space before the recipe grid */
