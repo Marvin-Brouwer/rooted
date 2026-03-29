@@ -17,11 +17,13 @@ import { NavigateEvent, type NavigateHandler } from './navigate-event.mts'
  */
 export function createNavigateTracker(href: string, handler: NavigateHandler): { stop(): void } {
 	let spinnerRecommended = false
+	let stopped = false
 
 	handler(new NavigateEvent('start', false, href))
 
 	// Compute spinnerRecommended async, re-fire progress when done
 	computeSpinnerRecommended(href).then((result) => {
+		if (stopped) return
 		spinnerRecommended = result
 		handler(new NavigateEvent('progress', spinnerRecommended, href))
 	})
@@ -45,6 +47,7 @@ export function createNavigateTracker(href: string, handler: NavigateHandler): {
 
 	return {
 		stop() {
+			stopped = true
 			cleanup?.()
 			handler(new NavigateEvent('end', spinnerRecommended, href))
 		},
@@ -67,6 +70,6 @@ async function computeSpinnerRecommended(href: string): Promise<boolean> {
 
 async function isRouteCached(href: string): Promise<boolean> {
 	if (typeof caches === 'undefined') return false
-	const response = await caches.match(href)
+	const response = await caches.match(href, { ignoreSearch: true })
 	return response !== undefined
 }
