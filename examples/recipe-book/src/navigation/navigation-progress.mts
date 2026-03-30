@@ -128,6 +128,17 @@ export const NavigationSpinner = component<NavigationSpinnerOptions>({
 			if (signal.aborted) return
 			if (recommended) dialog.show()
 		})
+
+		type Connection = { effectiveType: string, addEventListener(type: string, listener: () => void): void, removeEventListener(type: string, listener: () => void): void }
+		const connection = (navigator as Navigator & { connection?: Connection }).connection
+		if (connection) {
+			const onNetworkChange = () => {
+				if (signal.aborted || dialog.open) return
+				if (connection.effectiveType !== '4g') dialog.show()
+			}
+			connection.addEventListener('change', onNetworkChange)
+			signal.addEventListener('abort', () => connection.removeEventListener('change', onNetworkChange))
+		}
 	},
 })
 

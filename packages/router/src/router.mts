@@ -4,8 +4,7 @@ import { isClient } from '@rooted/util'
 
 import { devHelper } from './dev-helper.mts'
 import * as href from './href.mts'
-import { NavigationErrorEvent } from './navigate-event.mts'
-import { createNavigateTracker } from './on-navigate.mts'
+import { NavigateEvent, NavigationErrorEvent } from './navigate-event.mts'
 import { RouteMatch } from './route.match.mts'
 import { isRoute, routeMetadata } from './route.metadata.mts'
 import { Route, route } from './route.mts'
@@ -182,8 +181,10 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 				}
 
 				// Set up navigate tracker
-				const tracker = handlers?.navigate
-					? createNavigateTracker(currentHref, handlers.navigate)
+				const navigate = handlers?.navigate
+				if (navigate) navigate(new NavigateEvent('start', currentHref))
+				const tracker = navigate
+					? { stop() { navigate(new NavigateEvent('end', currentHref)) } }
 					: undefined
 
 				try {
