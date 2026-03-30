@@ -1,7 +1,4 @@
-import { isClient } from '@rooted/util'
-
 import { Path, Url } from './href.mts'
-import { saveScrollPosition } from './scroll.mts'
 
 /**
  * Performs client-side navigation by pushing to the browser history and
@@ -29,30 +26,22 @@ export function navigate(href: URL): void
 export function navigate<T extends object>(state: T): void
 export function navigate(hrefOrState: string | Url | Path | URL | object): void {
 	if (hrefOrState instanceof Path) {
-		saveScrollPosition()
 		history.pushState(undefined, '', hrefOrState.href)
-		if (isClient()) window.scrollTo({ top: 0, behavior: 'instant' })
 		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: undefined }))
 		return
 	}
 	if (hrefOrState instanceof Url) {
-		saveScrollPosition()
 		history.pushState(undefined, '', hrefOrState.href)
-		if (isClient()) window.scrollTo({ top: 0, behavior: 'instant' })
 		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: undefined }))
 		return
 	}
 	if (hrefOrState instanceof URL) {
-		saveScrollPosition()
 		history.pushState(undefined, '', hrefOrState.href)
-		if (isClient()) window.scrollTo({ top: 0, behavior: 'instant' })
 		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: undefined }))
 		return
 	}
 	if (typeof hrefOrState === 'string') {
-		saveScrollPosition()
 		history.pushState(undefined, '', hrefOrState)
-		if (isClient()) window.scrollTo({ top: 0, behavior: 'instant' })
 		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: undefined }))
 		return
 	}

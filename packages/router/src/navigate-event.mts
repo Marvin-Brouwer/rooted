@@ -14,7 +14,7 @@ export class NavigateEvent extends CustomEvent<never> {
 		public readonly navigationType: 'start' | 'end',
 		public readonly href: string,
 	) {
-		super('router:navigate')
+		super('@rooted/router:navigate')
 	}
 }
 

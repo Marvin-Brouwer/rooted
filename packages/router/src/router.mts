@@ -58,6 +58,8 @@ export type ValidatedRouterConfig<T extends RouterConfig> = {
  * - `on` — lifecycle event handlers.
  */
 export type RouterOptions = {
+	/** Override the component rendered when no route matches. Defaults to the `notFound` component passed to {@link router}. */
+	fallback?: Component
 	/** Wrap route renders in `document.startViewTransition` when available. Default: `false`. */
 	viewTransition?: boolean
 	scrollBehavior?: {
@@ -133,6 +135,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 		name: '@rooted/router',
 		async onMount({ replace, create, on, options }) {
 			const {
+				fallback = notFoundComponent,
 				viewTransition = false,
 				scrollBehavior: {
 					scrollToTop = 'on:start-and-end',
@@ -156,7 +159,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 			}
 
 			function renderRoute(element?: Element) {
-				replace(element ?? create(notFoundComponent))
+				replace(element ?? create(fallback))
 			}
 
 			function applyTransition(render: () => void) {
@@ -192,11 +195,8 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 						if (handlers?.error) {
 							const event = new NavigationErrorEvent(error, errorRoute, currentHref)
 							handlers.error(event)
-							if (!event.errorHandled) throw error
 						}
-						else {
-							throw error
-						}
+						applyTransition(() => renderRoute())
 					}
 					else {
 						applyTransition(() => renderRoute(matchRouteResult.element))

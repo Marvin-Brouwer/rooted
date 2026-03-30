@@ -41,7 +41,6 @@ export const Application = component({
 						id: 'main-content',
 						children: create(Router, {
 							viewTransition: true,
-							scrollBehavior: { scrollToTop: 'on:start-and-end' },
 							on: {
 								navigate(event) {
 									if (event.navigationType === 'start') {
