@@ -142,7 +142,7 @@ async function computeSpinnerRecommended(href: string): Promise<boolean> {
 	if (globalThis.window === undefined) return false
 	if (await isRouteCached(href)) return false
 
-	const networkSlow = navigator.connection?.effectiveType !== '4g'
+	const networkSlow = navigator.connection != null && navigator.connection.effectiveType !== '4g'
 	const cpuSlow = (navigator.hardwareConcurrency ?? 4) <= 2
 
 	return networkSlow || cpuSlow
