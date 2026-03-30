@@ -94,10 +94,15 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 	},
 })
 
-export const NavigationSpinner = component({
+export type NavigationSpinnerOptions = {
+	href: string
+}
+export const NavigationSpinner = component<NavigationSpinnerOptions>({
 	name: 'navigation-progress-spinner',
 	styles,
-	onMount({ replace, element, signal }) {
+	onMount({ replace, element, options, signal }) {
+		const { href } = options
+
 		const dialog = replace(element('dialog', {
 			classes: styles.spinnerOverlay,
 			children: [
@@ -117,7 +122,28 @@ export const NavigationSpinner = component({
 			],
 		}))
 
-		dialog.show()
 		signal.addEventListener('abort', () => dialog.close())
+
+		void computeSpinnerRecommended(href).then((recommended) => {
+			if (signal.aborted) return
+			if (recommended) dialog.show()
+		})
 	},
 })
+
+async function computeSpinnerRecommended(href: string): Promise<boolean> {
+	if (typeof window === 'undefined') return false
+	if (await isRouteCached(href)) return false
+
+	const connection = (navigator as Navigator & { connection?: { effectiveType: string } }).connection
+	const networkSlow = connection?.effectiveType !== '4g'
+	const cpuSlow = (navigator.hardwareConcurrency ?? 4) <= 2
+
+	return networkSlow || cpuSlow
+}
+
+async function isRouteCached(href: string): Promise<boolean> {
+	if (typeof caches === 'undefined') return false
+	const response = await caches.match(href, { ignoreSearch: true })
+	return response !== undefined
+}

@@ -24,8 +24,7 @@ export const Application = component({
 		document.title = 'Recipe Book'
 
 		const progress: Record<string, { done: boolean }> = {}
-
-		const spinner = create(NavigationSpinner)
+		let spinner: Element | undefined
 
 		append(
 			element('div', {
@@ -45,24 +44,16 @@ export const Application = component({
 							scrollBehavior: { scrollToTop: 'on:start-and-end' },
 							on: {
 								navigate(event) {
-									if (event.spinnerRecommended) {
-										document.documentElement.classList.add('navigating')
-										append(spinner)
-									}
-									else {
-										document.documentElement.classList.remove('navigating')
-										spinner.remove()
-									}
-
 									if (event.navigationType === 'start') {
 										if (progress[event.href]) return
 										progress[event.href] = { done: false }
 
+										spinner = append(create(NavigationSpinner, { href: event.href }))
 										append(create(NavigationProgress, { href: event.href, state: progress[event.href] }))
 									}
 									if (event.navigationType === 'end') {
-										document.documentElement.classList.remove('navigating')
-										spinner.remove()
+										spinner?.remove()
+										spinner = undefined
 										if (!progress[event.href]) return
 										progress[event.href].done = true
 										requestAnimationFrame(() => delete progress[event.href])

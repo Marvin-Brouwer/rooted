@@ -3,18 +3,15 @@ import type { Route } from './route.mts'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
- * Fired by the router during a navigation lifecycle to report progress.
+ * Fired by the router during a navigation lifecycle.
  *
- * Three lifecycle phases are emitted in order:
- * - `'start'`    — navigation has begun; `spinnerRecommended` is always `false`
- * - `'progress'` — one or more resource loads observed; `spinnerRecommended`
- *                  reflects whether a spinner is advised based on cache / network
- * - `'end'`      — the new route has finished rendering
+ * Two lifecycle phases are emitted in order:
+ * - `'start'` — navigation has begun
+ * - `'end'`   — the new route has finished rendering
  */
 export class NavigateEvent extends CustomEvent<never> {
 	constructor(
-		public readonly navigationType: 'start' | 'progress' | 'end',
-		public readonly spinnerRecommended: boolean,
+		public readonly navigationType: 'start' | 'end',
 		public readonly href: string,
 	) {
 		super('router:navigate')
