@@ -91,15 +91,11 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 	},
 })
 
-export type NavigationSpinnerOptions = {
-	href: string
-}
-export const NavigationSpinner = component<NavigationSpinnerOptions>({
+
+export const NavigationSpinner = component({
 	name: 'navigation-progress-spinner',
 	styles,
-	async onMount({ replace, element, options, signal }) {
-		const { href } = options
-
+	onMount({ replace, element, signal }) {
 		const dialog = replace(element('dialog', {
 			classes: styles.spinnerOverlay,
 			children: [
@@ -119,37 +115,22 @@ export const NavigationSpinner = component<NavigationSpinnerOptions>({
 			],
 		}))
 
-		signal.addEventListener('abort', () => dialog.close())
+		// Show if navigation is still ongoing after 500ms
+		const showTimer = setTimeout(() => {
+			if (!signal.aborted && !dialog.open) dialog.show()
+		}, 500)
 
-		async function checkSpinnerRecommended() {
-			if (signal.aborted || dialog.open) return
-			const recommended = await computeSpinnerRecommended(href)
-			if (signal.aborted || dialog.open) return
-			if (recommended) dialog.show()
-		}
-
-		// Only show on degrading connection — never auto-close to avoid flashing on flaky networks.
-		// When routing ends the signal aborts, closing the dialog and resetting state for the next navigation.
+		// Also show immediately on mid-navigation network degradation.
+		// Never auto-close on improvement — avoid flashing on flaky connections.
+		// When routing ends the signal aborts, resetting state for the next navigation.
 		navigator.connection?.addEventListener('change', () => {
-			if (navigator.connection?.effectiveType === '4g') return
-			void checkSpinnerRecommended()
+			if (signal.aborted || dialog.open) return
+			if (navigator.connection?.effectiveType !== '4g') dialog.show()
 		}, { signal })
-		await checkSpinnerRecommended()
+
+		signal.addEventListener('abort', () => {
+			clearTimeout(showTimer)
+			dialog.close()
+		})
 	},
 })
-
-async function computeSpinnerRecommended(href: string): Promise<boolean> {
-	if (globalThis.window === undefined) return false
-	if (await isRouteCached(href)) return false
-
-	const networkSlow = navigator.connection != null && navigator.connection.effectiveType !== '4g'
-	const cpuSlow = (navigator.hardwareConcurrency ?? 4) <= 2
-
-	return networkSlow || cpuSlow
-}
-
-async function isRouteCached(href: string): Promise<boolean> {
-	if (typeof caches === 'undefined') return false
-	const response = await caches.match(href, { ignoreSearch: true })
-	return response !== undefined
-}

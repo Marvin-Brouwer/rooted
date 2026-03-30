@@ -48,7 +48,7 @@ export const Application = component({
 										if (progress[event.href]) return
 										progress[event.href] = { done: false }
 
-										spinner = append(create(NavigationSpinner, { href: event.href }))
+										spinner = append(create(NavigationSpinner))
 										append(create(NavigationProgress, { href: event.href, state: progress[event.href] }))
 									}
 									if (event.navigationType === 'end') {
