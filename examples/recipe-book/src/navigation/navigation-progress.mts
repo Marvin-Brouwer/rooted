@@ -49,9 +49,6 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 		)
 
 		function increment() {
-			// Force reflow so the opacity transition fires from 0 → 1
-			progress.getBoundingClientRect()
-
 			const currentValue = progress.value
 			progress.value = currentValue === 0
 				? Math.random() * 30
