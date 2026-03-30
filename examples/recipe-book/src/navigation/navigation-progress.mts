@@ -4,17 +4,6 @@ import styles from './navigation-progress.css'
 
 const supportsPerformanceObserver = typeof PerformanceObserver !== 'undefined'
 
-// Track network slow/fast state at module level via 'change' events so it persists
-// accurately across navigations. Reading effectiveType at navigation-start time is
-// unreliable: the browser's estimate can lag behind after throttle changes.
-const _connection = typeof navigator !== 'undefined' ? navigator.connection : undefined
-let networkKnownSlow = _connection != null && _connection.effectiveType !== '4g'
-if (_connection) {
-	_connection.addEventListener('change', () => {
-		networkKnownSlow = _connection.effectiveType !== '4g'
-	})
-}
-
 export type NavigationProgressOptions = {
 	href: string
 	state: { done: boolean }
@@ -153,9 +142,10 @@ async function computeSpinnerRecommended(href: string): Promise<boolean> {
 	if (globalThis.window === undefined) return false
 	if (await isRouteCached(href)) return false
 
+	const networkSlow = navigator.connection != null && navigator.connection.effectiveType !== '4g'
 	const cpuSlow = (navigator.hardwareConcurrency ?? 4) <= 2
 
-	return networkKnownSlow || cpuSlow
+	return networkSlow || cpuSlow
 }
 
 async function isRouteCached(href: string): Promise<boolean> {
