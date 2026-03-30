@@ -47,10 +47,13 @@ progress::-moz-progress-bar {
   background: rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  z-index: 9998;
+}
+
+.spinnerOverlay[open] {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9998;
 }
 
 .spinnerCard {
