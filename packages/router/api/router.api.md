@@ -56,13 +56,11 @@ export function navigate<T extends object>(state: T): void;
 
 // @public
 export class NavigateEvent extends CustomEvent<never> {
-    constructor(navigationType: 'start' | 'progress' | 'end', spinnerRecommended: boolean, href: string);
+    constructor(navigationType: 'start' | 'end', href: string);
     // (undocumented)
     readonly href: string;
     // (undocumented)
-    readonly navigationType: 'start' | 'progress' | 'end';
-    // (undocumented)
-    readonly spinnerRecommended: boolean;
+    readonly navigationType: 'start' | 'end';
 }
 
 // @public
@@ -97,7 +95,7 @@ export class Path extends HrefBase {
 export type RouterOptions = {
     viewTransition?: boolean;
     scrollBehavior?: {
-        scrollToTop?: 'on:start' | 'on:end' | 'on:start-and-end' | false;
+        scrollToTop?: 'on:start' | 'on:end' | 'on:start-and-end' | 'skip';
         saveScrollBeforeNavigate?: boolean;
         target?: Element;
     };

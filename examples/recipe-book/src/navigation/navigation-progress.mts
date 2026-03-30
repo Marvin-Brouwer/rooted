@@ -100,7 +100,7 @@ export type NavigationSpinnerOptions = {
 export const NavigationSpinner = component<NavigationSpinnerOptions>({
 	name: 'navigation-progress-spinner',
 	styles,
-	onMount({ replace, element, options, signal }) {
+	async onMount({ replace, element, options, signal }) {
 		const { href } = options
 
 		const dialog = replace(element('dialog', {
@@ -124,23 +124,21 @@ export const NavigationSpinner = component<NavigationSpinnerOptions>({
 
 		signal.addEventListener('abort', () => dialog.close())
 
-		void computeSpinnerRecommended(href).then((recommended) => {
-			if (signal.aborted) return
-			if (recommended) dialog.show()
-		})
-
 		// Only show on degrading connection — never auto-close to avoid flashing on flaky networks
-		if (navigator.connection) {
-			navigator.connection.addEventListener('change', () => {
-				if (signal.aborted || dialog.open) return
-				if (navigator.connection?.effectiveType !== '4g') dialog.show()
-			}, { signal })
+		async function checkSpinnerRecommended() {
+			if (signal.aborted || dialog.open) return
+			const recommended = await computeSpinnerRecommended(href)
+			if (signal.aborted || dialog.open) return
+			if (recommended) dialog.show()
 		}
+
+		navigator.connection?.addEventListener('change', () => void checkSpinnerRecommended(), { signal })
+		await checkSpinnerRecommended()
 	},
 })
 
 async function computeSpinnerRecommended(href: string): Promise<boolean> {
-	if (typeof window === 'undefined') return false
+	if (globalThis.window === undefined) return false
 	if (await isRouteCached(href)) return false
 
 	const networkSlow = navigator.connection?.effectiveType !== '4g'
