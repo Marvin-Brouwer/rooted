@@ -129,8 +129,8 @@ export const NavigationSpinner = component<NavigationSpinnerOptions>({
 			if (recommended) dialog.show()
 		})
 
-		type Connection = { effectiveType: string, addEventListener(type: string, listener: () => void): void, removeEventListener(type: string, listener: () => void): void }
-		const connection = (navigator as Navigator & { connection?: Connection }).connection
+		// Only show on degrading connection — never auto-close to avoid flashing on flaky networks
+		const connection = navigator.connection
 		if (connection) {
 			const onNetworkChange = () => {
 				if (signal.aborted || dialog.open) return
@@ -146,8 +146,7 @@ async function computeSpinnerRecommended(href: string): Promise<boolean> {
 	if (typeof window === 'undefined') return false
 	if (await isRouteCached(href)) return false
 
-	const connection = (navigator as Navigator & { connection?: { effectiveType: string } }).connection
-	const networkSlow = connection?.effectiveType !== '4g'
+	const networkSlow = navigator.connection?.effectiveType !== '4g'
 	const cpuSlow = (navigator.hardwareConcurrency ?? 4) <= 2
 
 	return networkSlow || cpuSlow

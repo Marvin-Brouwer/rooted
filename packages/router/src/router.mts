@@ -180,12 +180,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 					scrollTo(0)
 				}
 
-				// Set up navigate tracker
-				const navigate = handlers?.navigate
-				if (navigate) navigate(new NavigateEvent('start', currentHref))
-				const tracker = navigate
-					? { stop() { navigate(new NavigateEvent('end', currentHref)) } }
-					: undefined
+				handlers?.navigate?.(new NavigateEvent('start', currentHref))
 
 				try {
 					const matchRouteResult = await matchRoute(target, routes)
@@ -208,7 +203,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 					}
 				}
 				finally {
-					tracker?.stop()
+					handlers?.navigate?.(new NavigateEvent('end', currentHref))
 				}
 
 				// Scroll restoration after render
