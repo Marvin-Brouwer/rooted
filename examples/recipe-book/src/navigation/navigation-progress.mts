@@ -121,7 +121,6 @@ export const NavigationSpinner = component<NavigationSpinnerOptions>({
 
 		signal.addEventListener('abort', () => dialog.close())
 
-		// Only show on degrading connection — never auto-close to avoid flashing on flaky networks
 		async function checkSpinnerRecommended() {
 			if (signal.aborted || dialog.open) return
 			const recommended = await computeSpinnerRecommended(href)
@@ -129,7 +128,12 @@ export const NavigationSpinner = component<NavigationSpinnerOptions>({
 			if (recommended) dialog.show()
 		}
 
-		navigator.connection?.addEventListener('change', () => void checkSpinnerRecommended(), { signal })
+		// Only show on degrading connection — never auto-close to avoid flashing on flaky networks.
+		// When routing ends the signal aborts, closing the dialog and resetting state for the next navigation.
+		navigator.connection?.addEventListener('change', () => {
+			if (navigator.connection?.effectiveType === '4g') return
+			void checkSpinnerRecommended()
+		}, { signal })
 		await checkSpinnerRecommended()
 	},
 })
