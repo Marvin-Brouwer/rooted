@@ -130,14 +130,11 @@ export const NavigationSpinner = component<NavigationSpinnerOptions>({
 		})
 
 		// Only show on degrading connection — never auto-close to avoid flashing on flaky networks
-		const connection = navigator.connection
-		if (connection) {
-			const onNetworkChange = () => {
+		if (navigator.connection) {
+			navigator.connection.addEventListener('change', () => {
 				if (signal.aborted || dialog.open) return
-				if (connection.effectiveType !== '4g') dialog.show()
-			}
-			connection.addEventListener('change', onNetworkChange)
-			signal.addEventListener('abort', () => connection.removeEventListener('change', onNetworkChange))
+				if (navigator.connection?.effectiveType !== '4g') dialog.show()
+			}, { signal })
 		}
 	},
 })
