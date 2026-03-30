@@ -115,12 +115,11 @@ export const NavigationSpinner = component({
 			],
 		}))
 
-		// Show if navigation is still ongoing after 500ms
-		const showTimer = setTimeout(() => {
-			if (!signal.aborted && !dialog.open) dialog.show()
-		}, 500)
+		// Show immediately if connection is already degraded
+		if (!signal.aborted && navigator.connection != null && navigator.connection.effectiveType !== '4g')
+			dialog.show()
 
-		// Also show immediately on mid-navigation network degradation.
+		// Also show on mid-navigation network degradation.
 		// Never auto-close on improvement — avoid flashing on flaky connections.
 		// When routing ends the signal aborts, resetting state for the next navigation.
 		navigator.connection?.addEventListener('change', () => {
@@ -128,9 +127,6 @@ export const NavigationSpinner = component({
 			if (navigator.connection?.effectiveType !== '4g') dialog.show()
 		}, { signal })
 
-		signal.addEventListener('abort', () => {
-			clearTimeout(showTimer)
-			dialog.close()
-		})
+		signal.addEventListener('abort', () => dialog.close())
 	},
 })
