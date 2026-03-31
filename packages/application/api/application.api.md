@@ -9,6 +9,7 @@ import { BuildEnvironmentOptions } from 'vite';
 import { ManifestOptions } from 'vite-plugin-pwa';
 import { UserConfig } from 'vite';
 import * as vite from 'vite';
+import { VitePWAOptions } from 'vite-plugin-pwa';
 
 // @public (undocumented)
 export type CodeSplittingGroups = NonNullable<CodeSplittingOptions['groups']>;
@@ -34,6 +35,7 @@ export type RootedApplicationManifest = {
     };
     icon?: string;
     seo?: SeoOptions;
+    runtimeCaching?: RuntimeCaching[];
 };
 
 // @public (undocumented)

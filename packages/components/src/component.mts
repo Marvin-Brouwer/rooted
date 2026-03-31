@@ -24,7 +24,11 @@ type BaseComponentContext = & {
 
 	/** {@inheritdoc HTMLElement['append']} */
 	append: {
+		<T extends GenericComponent>(node: T): T
+		<T extends Node>(node: T): T
+		<T extends string>(node: T): T
 		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends [...(Node | string | GenericComponent)[]]>(...nodes: T): T
 		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
 		(...nodes: (Node | string | GenericComponent)[]): Node[]
 	}
@@ -32,6 +36,7 @@ type BaseComponentContext = & {
 	/** {@inheritdoc HTMLElement['prepend']} */
 	prepend: {
 		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends [...(Node | string | GenericComponent)[]]>(...nodes: T): T
 		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
 		(...nodes: (Node | string | GenericComponent)[]): Node[]
 	}
@@ -44,7 +49,11 @@ type BaseComponentContext = & {
 
 	/** {@inheritdoc HTMLElement['replaceChildren']} */
 	replace: {
+		<T extends GenericComponent>(node: T): T
+		<T extends Node>(node: T): T
+		<T extends string>(node: T): T
 		<T extends Node | string | GenericComponent>(node: T): T
+		<T extends [...(Node | string | GenericComponent)[]]>(...nodes: T): T
 		<T extends Node | string | GenericComponent>(...nodes: T[]): T[]
 		(...nodes: (Node | string | GenericComponent)[]): Node[]
 	}

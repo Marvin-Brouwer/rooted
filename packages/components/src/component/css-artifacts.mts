@@ -6,12 +6,10 @@ import type { CssClass } from './classes.mts'
  */
 export const cssArtifacts = Symbol.for('@rooted/css-artifacts')
 
-/** Public URLs of the two pre-scoped CSS artifacts emitted by the CSS loader plugin. */
+/** Public URL and scope ID of the CSS artifact emitted by the CSS loader plugin. */
 export type CssArtifacts = {
-	/** Public URL of the `@scope`-wrapped CSS artifact. */
-	readonly scoped: string
-	/** Public URL of the attribute-selector-wrapped CSS artifact (fallback). */
-	readonly tagged: string
+	/** Public URL of the PostCSS-scoped CSS artifact. */
+	readonly href: string
 	/** The `r` attribute value used to scope CSS to this component's element. */
 	readonly scopeId: string
 }

@@ -1,20 +1,10 @@
-import { cssArtifacts, type CssArtifacts, type CssModule } from './css-artifacts.mts'
+import { cssArtifacts, type CssModule } from './css-artifacts.mts'
 
 /** Map from injected href to its <link> element, for cache-busting on HMR. */
 const injectedLinks = new Map<string, HTMLLinkElement>()
 
-/** True when the browser supports `@scope` — detected once at module load time. */
-const supportsScope: boolean = await (async () => {
-	try {
-		await new CSSStyleSheet().replace('@scope {}')
-		return true
-	}
-	catch { return false }
-})()
-
 export function injectStyles(styles: CssModule) {
-	const artifacts = styles[cssArtifacts]
-	const href = supportsScope ? artifacts.scoped : artifacts.tagged
+	const { href } = styles[cssArtifacts]
 	if (injectedLinks.has(href)) return
 
 	// This doesn't use the createElementFactory on purpose
@@ -51,9 +41,7 @@ export function applyScope(element: HTMLElement, styles: CssModule | undefined) 
 
 // Dev-mode HMR: when a source CSS file changes, the plugin sends this event
 // so we can force-refetch the stylesheet without a full page reload.
-import.meta.hot?.on('@rooted/components:css-update', ({ scoped, tagged }: CssArtifacts) => {
-	for (const href of [scoped, tagged]) {
-		const link = injectedLinks.get(href)
-		if (link) link.href = `${href}?t=${Date.now()}`
-	}
+import.meta.hot?.on('@rooted/components:css-update', ({ href }: { href: string }) => {
+	const link = injectedLinks.get(href)
+	if (link) link.href = `${href}?t=${Date.now()}`
 })

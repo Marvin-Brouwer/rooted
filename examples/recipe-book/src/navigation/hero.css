@@ -1,6 +1,6 @@
 .hero {
 	position: relative;
-	overflow: hidden;
+	overflow: clip;
 	isolation: isolate;
 	color: var(--color-surface);
 	padding: 5rem 2rem 3rem;
@@ -41,18 +41,19 @@
 	margin: 0 auto;
 }
 
-h1 {
+.content h1 {
 	font-size: 3rem;
 	font-weight: 700;
 	margin: 0 0 0.75rem;
 	color: var(--color-surface);
+	text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 .subtitle {
 	font-size: 1.15rem;
 	margin: 0 0 2rem;
-	color: var(--color-surface);
-	opacity: 0.9;
+	color: var(--color-text-muted-inverted);
+	text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9), 0 0 16px rgba(0, 0, 0, 0.6);
 }
 
 form {
