@@ -5,7 +5,9 @@ import { cssLoader } from '@rooted/components/css-loader'
 import { ArrayElement } from '@rooted/util'
 import { defineConfig } from 'vite'
 import { analyzer } from 'vite-bundle-analyzer'
-import { ManifestOptions } from 'vite-plugin-pwa'
+import { ManifestOptions, type VitePWAOptions } from 'vite-plugin-pwa'
+
+type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
 import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
@@ -64,6 +66,7 @@ export type RootedApplicationManifest = {
 	 */
 	icon?: string
 	seo?: SeoOptions
+	runtimeCaching?: RuntimeCaching[]
 }
 
 function resolveBase(url: string | undefined): string | undefined {
@@ -142,7 +145,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						analyzerMode: 'static',
 					},
 				),
-				pwaPreset({ manifest, skipPwaGenerator, minify, autoIcon }),
+				pwaPreset({ manifest, skipPwaGenerator, minify, autoIcon, runtimeCaching: manifest.runtimeCaching }),
 				pwaAssetsPlugin(!!manifest.icon || skipPwaGenerator),
 				seoPlugin(manifest.webManifest.url, manifest.seo),
 			],

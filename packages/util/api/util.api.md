@@ -11,6 +11,9 @@ export type ArrayElement<T> = T extends readonly (infer U)[] ? U : T;
 export type ErrorTuple = [success: false, value: never, error: Error];
 
 // @public
+export function isClient(): boolean;
+
+// @public
 export function seededId(name: string): string;
 
 // @public

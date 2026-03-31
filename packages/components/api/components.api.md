@@ -42,8 +42,7 @@ export type ComponentContext<TOptions extends object = never> = [TOptions] exten
 
 // @public
 export type CssArtifacts = {
-    readonly scoped: string;
-    readonly tagged: string;
+    readonly href: string;
     readonly scopeId: string;
 };
 
