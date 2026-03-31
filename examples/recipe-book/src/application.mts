@@ -8,6 +8,7 @@ import { appRoutes } from './_routes.g.mts'
 import styles from './application.css'
 import { HomePage } from './navigation/home.mts'
 import { NavigationMenu } from './navigation/navigation-menu.mts'
+import { NavigationProgress, NavigationSpinner } from './navigation/navigation-progress.mts'
 import { NotFoundPage } from './navigation/not-found.mts'
 
 const Router = router({
@@ -21,6 +22,10 @@ export const Application = component({
 	styles,
 	onMount({ append, element, create }) {
 		document.title = 'Recipe Book'
+
+		const progress: Record<string, { done: boolean }> = {}
+		let spinner: Element | undefined
+
 		append(
 			element('div', {
 				id: 'app',
@@ -34,7 +39,27 @@ export const Application = component({
 					}),
 					element('main', {
 						id: 'main-content',
-						children: Router,
+						children: create(Router, {
+							viewTransition: true,
+							on: {
+								navigate(event) {
+									if (event.navigationType === 'start') {
+										if (progress[event.href]) return
+										progress[event.href] = { done: false }
+
+										spinner = append(create(NavigationSpinner))
+										append(create(NavigationProgress, { href: event.href, state: progress[event.href] }))
+									}
+									if (event.navigationType === 'end') {
+										spinner?.remove()
+										spinner = undefined
+										if (!progress[event.href]) return
+										progress[event.href].done = true
+										requestAnimationFrame(() => delete progress[event.href])
+									}
+								},
+							},
+						}),
 					}),
 					element('footer', {
 						children: [create(Doormat)],
