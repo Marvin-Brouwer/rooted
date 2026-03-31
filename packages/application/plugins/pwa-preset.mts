@@ -1,15 +1,30 @@
-import { VitePWA } from 'vite-plugin-pwa'
+import { VitePWA, type VitePWAOptions } from 'vite-plugin-pwa'
+
+type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 
 import type { RootedApplicationManifest } from '../src/rooted-manifest.mts'
+
+const imageCacheEntry: RuntimeCaching = {
+	urlPattern: /\.(?:webp|avif|jpe?g|png|gif|svg)(?:\?.*)?$/i,
+	handler: 'CacheFirst',
+	options: {
+		cacheName: 'images',
+		expiration: {
+			maxEntries: 60,
+			maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+		},
+	},
+}
 
 export type PwaOptions = {
 	manifest: RootedApplicationManifest
 	skipPwaGenerator: boolean
 	minify: boolean
 	autoIcon: boolean
+	runtimeCaching: RuntimeCaching[] | undefined
 }
 export function pwaPreset(
-	{ manifest, skipPwaGenerator, minify, autoIcon }: PwaOptions,
+	{ manifest, skipPwaGenerator, minify, autoIcon, runtimeCaching }: PwaOptions,
 ) {
 	return VitePWA({
 		// Utility for speeding up build times
@@ -21,6 +36,7 @@ export function pwaPreset(
 		workbox: {
 			sourcemap: !minify,
 			navigateFallbackDenylist: [/\.\w+$/],
+			runtimeCaching: [imageCacheEntry, ...(runtimeCaching ?? [])],
 		},
 		...(manifest.icon && {
 			pwaAssets: {
