@@ -34,7 +34,7 @@ jobs:
           lfs: true
       # Supposedly this speeds up the build
       # https://github.com/actions/setup-node/issues/819#issuecomment-1659698335
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: "~/.pnpm"
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
