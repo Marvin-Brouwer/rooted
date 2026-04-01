@@ -3,7 +3,8 @@
 		"target": "esnext",
 		"module": "esnext",
 		"moduleResolution": "bundler",
-		"moduleDetection": "force"
+		"moduleDetection": "force",
+		"ignoreDeprecations": "6.0"
 	},
 	"exclude": [
 		"node_modules",
