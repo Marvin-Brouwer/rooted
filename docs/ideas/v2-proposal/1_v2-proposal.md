@@ -71,15 +71,15 @@ New functionality:
     use as much of the apis the browser has to offer.
 - extendable eventing, offer a type to extend the `on` function
 - better default functions
-  - after(miliseconds, callback) = setTimeOut with auto cleanup based on abortSignal
-  - every(miliseconds, callback) = setInterval with auto cleanup based on abortSignal
-  - query<keyof HTMLTagList>(queryString) = document.querySelector + rooted()
+  - `after(miliseconds, callback)` = `setTimeOut` with auto cleanup based on `abortSignal`
+  - `every(miliseconds, callback)` = `setInterval` with auto cleanup based on `abortSignal`
+  - `query<keyof HTMLTagList>(queryString)` = `document.querySelector` + `rooted()`
 
 What remains:
 
 - No data accessible in the dom
 - More ergonomic api than default elements
-- abortSignal on unmount
+- `abortSignal` on unmount
 - async support in everything
 - css imports as `.css` files in the head
 - prebuilt pwa from manifest
