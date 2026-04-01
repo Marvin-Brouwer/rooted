@@ -16,10 +16,6 @@ updates:
       testing:
         patterns:
           - vitest
-      typescript:
-        patterns:
-          - typescript
-          - tsup
       pipeline:
         patterns:
           - husky
