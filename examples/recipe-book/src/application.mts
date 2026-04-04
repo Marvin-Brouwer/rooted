@@ -1,6 +1,7 @@
 import { component } from '@rooted/components'
 import { application } from '@rooted/components/application'
 import { router } from '@rooted/router/application'
+import { createStore } from '@rooted/store'
 
 import { ContentBanner } from './_layout/content-banner.mts'
 import { Doormat } from './_layout/doormat.mts'
@@ -23,7 +24,7 @@ export const Application = component({
 	onMount({ append, element, create }) {
 		document.title = 'Recipe Book'
 
-		const progress: Record<string, { done: boolean }> = {}
+		const progress = createStore<Record<string, { done: boolean }>>({})
 		let spinner: Element | undefined
 
 		append(
@@ -44,18 +45,18 @@ export const Application = component({
 							on: {
 								navigate(event) {
 									if (event.navigationType === 'start') {
-										if (progress[event.href]) return
-										progress[event.href] = { done: false }
+										if (progress.value[event.href]) return
+										progress.update(s => { s[event.href] = { done: false } })
 
 										spinner = append(create(NavigationSpinner))
-										append(create(NavigationProgress, { href: event.href, state: progress[event.href] }))
+										append(create(NavigationProgress, { href: event.href, state: progress }))
 									}
 									if (event.navigationType === 'end') {
 										spinner?.remove()
 										spinner = undefined
-										if (!progress[event.href]) return
-										progress[event.href].done = true
-										requestAnimationFrame(() => delete progress[event.href])
+										if (!progress.value[event.href]) return
+										progress.update(s => { if (s[event.href]) s[event.href]!.done = true })
+										requestAnimationFrame(() => progress.update(s => { delete s[event.href] }))
 									}
 								},
 							},

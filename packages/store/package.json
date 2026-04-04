@@ -1,0 +1,51 @@
+{
+	"name": "@rooted/store",
+	"version": "1.0.0-alpha.0",
+	"description": "rooted — store utilities",
+	"keywords": [
+		"web-components",
+		"store",
+		"state",
+		"framework-free",
+		"typescript",
+		"rooted"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "packages/store"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
+	"sideEffects": false,
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
+	"files": [
+		"dist",
+		"readme.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"exports": {
+		".": {
+			"import": "./dist/store.mjs",
+			"types": "./dist/store.d.mts"
+		}
+	},
+	"scripts": {
+		"build": "pnpm build:ci",
+		"build:dev": "pnpm build:ci && rooted-development extract-api",
+		"build:ci": "tsup",
+		"watch": "tsup --watch --no-clean & rooted-development extract-api",
+		"clean": "rm -rf dist",
+		"extract-api": "rooted-development extract-api"
+	},
+	"devDependencies": {
+		"@rooted/development": "workspace:*"
+	}
+}

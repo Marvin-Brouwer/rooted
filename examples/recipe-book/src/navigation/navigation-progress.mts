@@ -1,4 +1,5 @@
 import { component } from '@rooted/components'
+import { type Store } from '@rooted/store'
 
 import styles from './navigation-progress.css'
 
@@ -6,13 +7,15 @@ const supportsPerformanceObserver = typeof PerformanceObserver !== 'undefined'
 
 export type NavigationProgressOptions = {
 	href: string
-	state: { done: boolean }
+	state: Store<Record<string, { done: boolean }>>
 }
 export const NavigationProgress = component<NavigationProgressOptions>({
 	name: 'navigation-progress',
 	styles,
 	onMount({ append, element, options, signal }) {
 		const { href, state } = options
+
+		const isDone = () => state.value[href]?.done === true
 
 		const [announcer, progress] = append(
 			element('div', {
@@ -35,16 +38,16 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 				},
 				on: {
 					transitionend({ currentTarget }) {
-						if (!state.done) return
+						if (!isDone()) return
 						currentTarget.parentElement?.remove()
 					},
 					webkittransitionend({ currentTarget }) {
-						if (!state.done) return
+						if (!isDone()) return
 						currentTarget.parentElement?.remove()
 					},
 				},
 				max: 100,
-				value: state.done ? 100 : 0,
+				value: isDone() ? 100 : 0,
 			}),
 		)
 
@@ -60,7 +63,7 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 		function handleUpdate() {
 			// Force reflow so the opacity transition fires from 0 → 1
 			progress.getBoundingClientRect()
-			if (!state.done) return
+			if (!isDone()) return
 
 			progress.value = 100
 			announcer.textContent = `Finished loading ${href}\u2026`
@@ -80,14 +83,12 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 			signal.addEventListener('abort', () => clearInterval(id))
 		}
 
-		// Fallback for cached navigations: PerformanceObserver never fires when no
-		// resources are loaded, so poll state.done directly to ensure the bar always completes.
-		const completionId = setInterval(() => {
-			if (!state.done) return
-			clearInterval(completionId)
+		// Subscribe to store updates so cached navigations (where PerformanceObserver
+		// never fires) still complete the bar without polling.
+		state.on('update', signal, () => {
+			if (!isDone()) return
 			handleUpdate()
-		}, 50)
-		signal.addEventListener('abort', () => clearInterval(completionId))
+		})
 	},
 })
 
