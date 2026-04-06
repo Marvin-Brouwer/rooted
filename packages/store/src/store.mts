@@ -6,9 +6,10 @@ export type StoreEvent<TState> = CustomEvent<StoreEventDetail<TState>>
 
 /**
  * The set of value types a {@link Store} may hold.
- * Covers all common serialisable primitives, objects, dates, and arrays thereof.
+ * Covers all common serialisable primitives, objects, dates, arrays thereof,
+ * and `undefined` (for stores created without an initial value).
  */
-export type StateType = Date | string | boolean | number | bigint | object
+export type StateType = Date | string | boolean | number | bigint | object | undefined
 
 type SetterResult<TState> = TState extends object ? Partial<TState> | void : TState | void
 
@@ -58,34 +59,40 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 
 	constructor(initial: TState) {
 		super()
-		this.#state = structuredClone(initial)
+		this.#state = this.#clone(initial)
 		this.#hash = hashState(this.#state)
 		this.#isObject = typeof initial === 'object' && initial !== null
 	}
 
+	// structuredClone throws on undefined — guard here so the rest of the class stays clean
+	#clone(value: TState): TState {
+		if (value === undefined) return undefined as TState
+		return structuredClone(value)
+	}
+
 	get value(): Readonly<TState> {
-		const cloned = structuredClone(this.#state)
+		const cloned = this.#clone(this.#state)
 		return this.#isObject
 			? Object.freeze(cloned) as Readonly<TState>
 			: cloned as Readonly<TState>
 	}
 
 	update(setter: (currentValue: TState) => SetterResult<TState>): void {
-		const draft = structuredClone(this.#state)
+		const draft = this.#clone(this.#state)
 		const result = setter(draft)
 
 		if (result === undefined) {
 			this.#state = draft
 		}
 		else if (this.#isObject) {
-			this.#state = Object.assign(structuredClone(this.#state), result as Partial<TState>) as TState
+			this.#state = Object.assign(this.#clone(this.#state) as object, result as Partial<TState>) as TState
 		}
 		else {
 			this.#state = result as TState
 		}
 
 		const frozenState = this.#isObject
-			? Object.freeze(structuredClone(this.#state)) as Readonly<TState>
+			? Object.freeze(this.#clone(this.#state)) as Readonly<TState>
 			: this.#state as Readonly<TState>
 
 		this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('update', { detail: { state: frozenState } }))
@@ -109,12 +116,21 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 /**
  * Creates a new {@link Store} with the given initial state.
  *
+ * Primitive values are widened to their base type — `createStore(true)` returns
+ * `Store<boolean>`, not `Store<true>`. Use an explicit type parameter to narrow
+ * further: `createStore<'idle' | 'navigating'>('idle')`.
+ *
+ * Calling without an argument creates a store with `undefined` as the initial
+ * value. The type parameter is required in this form: `createStore<string>()`.
+ *
  * @example
  * ```ts
- * // Primitive state
- * const nav = createStore<'idle' | 'navigating'>('idle')
- * nav.update(() => 'navigating')
- * nav.on('change', signal, ({ detail }) => console.log(detail.state))
+ * // No initial value
+ * const store = createStore<string>()          // Store<string | undefined>
+ *
+ * // Primitive state — widened automatically
+ * const flag = createStore(true)               // Store<boolean>
+ * const nav = createStore<'idle' | 'navigating'>('idle')  // Store<'idle' | 'navigating'>
  *
  * // Object state
  * const counter = createStore({ count: 0 })
@@ -122,6 +138,12 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
  * counter.on('change', signal, ({ detail }) => render(detail.state))
  * ```
  */
-export function createStore<TState extends StateType | Array<StateType>>(initial: TState): Store<TState> {
-	return new StoreImpl(initial)
+export function createStore<T extends StateType | Array<StateType>>(): Store<T | undefined>
+export function createStore(initial: boolean): Store<boolean>
+export function createStore(initial: number): Store<number>
+export function createStore(initial: string): Store<string>
+export function createStore(initial: bigint): Store<bigint>
+export function createStore<T extends StateType | Array<StateType>>(initial: T): Store<T>
+export function createStore<T extends StateType | Array<StateType>>(initial?: T): Store<T | undefined> {
+	return new StoreImpl(initial) as Store<T | undefined>
 }

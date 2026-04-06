@@ -168,6 +168,41 @@ describe('hashState — key ordering', () => {
 	})
 })
 
+describe('createStore — no initial value', () => {
+	test('value is undefined when created without argument', () => {
+		const store = createStore<string>()
+		expect(store.value).toBeUndefined()
+	})
+
+	test('can update from undefined to a value', () => {
+		const store = createStore<string>()
+		store.update(() => 'hello')
+		expect(store.value).toBe('hello')
+	})
+
+	test('change fires when transitioning from undefined', () => {
+		const store = createStore<string>()
+		const controller = new AbortController()
+		const handler = vi.fn()
+		store.on('change', controller.signal, handler)
+
+		store.update(() => 'hello')
+		expect(handler).toHaveBeenCalledTimes(1)
+		controller.abort()
+	})
+
+	test('change does not fire when staying undefined', () => {
+		const store = createStore<string>()
+		const controller = new AbortController()
+		const handler = vi.fn()
+		store.on('change', controller.signal, handler)
+
+		store.update(() => undefined)
+		expect(handler).toHaveBeenCalledTimes(0)
+		controller.abort()
+	})
+})
+
 describe('createStore — primitive state', () => {
 	test('value returns the initial primitive', () => {
 		const store = createStore<'idle' | 'navigating'>('idle')

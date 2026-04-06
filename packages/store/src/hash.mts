@@ -20,5 +20,6 @@ function hashReplacer(_key: string, value: unknown): unknown {
 }
 
 export function hashState(state: unknown): string {
-	return JSON.stringify(state, hashReplacer)
+	if (state === undefined) return 'undefined'
+	return JSON.stringify(state, hashReplacer) ?? 'undefined'
 }
