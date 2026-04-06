@@ -3,19 +3,21 @@ import { type Store } from '@rooted/store'
 
 import styles from './navigation-progress.css'
 
+export type NavigationState = 'idle' | 'navigating'
+
 const supportsPerformanceObserver = typeof PerformanceObserver !== 'undefined'
 
 export type NavigationProgressOptions = {
 	href: string
-	state: Store<Record<string, { done: boolean }>>
+	state: Store<NavigationState>
 }
 export const NavigationProgress = component<NavigationProgressOptions>({
 	name: 'navigation-progress',
 	styles,
-	onMount({ append, element, options, signal }) {
+	onMount({ append, element, options, signal, create }) {
 		const { href, state } = options
 
-		const isDone = () => state.value[href]?.done === true
+		const isNavigating = () => state.value === 'navigating'
 
 		const [announcer, progress] = append(
 			element('div', {
@@ -38,16 +40,16 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 				},
 				on: {
 					transitionend({ currentTarget }) {
-						if (!isDone()) return
+						if (isNavigating()) return
 						currentTarget.parentElement?.remove()
 					},
 					webkittransitionend({ currentTarget }) {
-						if (!isDone()) return
+						if (isNavigating()) return
 						currentTarget.parentElement?.remove()
 					},
 				},
 				max: 100,
-				value: isDone() ? 100 : 0,
+				value: isNavigating() ? 0 : 100,
 			}),
 		)
 
@@ -63,7 +65,7 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 		function handleUpdate() {
 			// Force reflow so the opacity transition fires from 0 → 1
 			progress.getBoundingClientRect()
-			if (!isDone()) return
+			if (isNavigating()) return
 
 			progress.value = 100
 			announcer.textContent = `Finished loading ${href}\u2026`
@@ -83,12 +85,14 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 			signal.addEventListener('abort', () => clearInterval(id))
 		}
 
-		// Subscribe to store updates so cached navigations (where PerformanceObserver
-		// never fires) still complete the bar without polling.
+		// Complete when state transitions back to idle — covers cached navigations
+		// where PerformanceObserver never fires.
 		state.on('update', signal, () => {
-			if (!isDone()) return
+			if (isNavigating()) return
 			handleUpdate()
 		})
+
+		append(create(NavigationSpinner))
 	},
 })
 

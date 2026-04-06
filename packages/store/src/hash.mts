@@ -19,6 +19,6 @@ function hashReplacer(_key: string, value: unknown): unknown {
 	return value
 }
 
-export function hashState(state: object): string {
+export function hashState(state: unknown): string {
 	return JSON.stringify(state, hashReplacer)
 }

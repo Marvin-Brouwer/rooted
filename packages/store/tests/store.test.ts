@@ -168,6 +168,54 @@ describe('hashState — key ordering', () => {
 	})
 })
 
+describe('createStore — primitive state', () => {
+	test('value returns the initial primitive', () => {
+		const store = createStore<'idle' | 'navigating'>('idle')
+		expect(store.value).toBe('idle')
+	})
+
+	test('update replaces primitive state', () => {
+		const store = createStore<'idle' | 'navigating'>('idle')
+		store.update(() => 'navigating')
+		expect(store.value).toBe('navigating')
+	})
+
+	test('change fires when primitive differs', () => {
+		const store = createStore<'idle' | 'navigating'>('idle')
+		const controller = new AbortController()
+		const handler = vi.fn()
+		store.on('change', controller.signal, handler)
+
+		store.update(() => 'navigating')
+		expect(handler).toHaveBeenCalledTimes(1)
+		controller.abort()
+	})
+
+	test('change does not fire for same primitive value', () => {
+		const store = createStore<'idle' | 'navigating'>('navigating')
+		const controller = new AbortController()
+		const handler = vi.fn()
+		store.on('change', controller.signal, handler)
+
+		store.update(() => 'navigating') // no change
+		store.update(() => 'navigating') // still no change
+		expect(handler).toHaveBeenCalledTimes(0)
+		controller.abort()
+	})
+
+	test('update fires on every primitive update call', () => {
+		const store = createStore<'idle' | 'navigating'>('idle')
+		const controller = new AbortController()
+		const handler = vi.fn()
+		store.on('update', controller.signal, handler)
+
+		store.update(() => 'navigating')
+		store.update(() => 'navigating') // same value, but update still fires
+		expect(handler).toHaveBeenCalledTimes(2)
+		controller.abort()
+	})
+})
+
 describe('hashState — hashedProperties()', () => {
 	test('change detection uses only hashedProperties() when present', () => {
 		type State = { value: number; cursor: number; hashedProperties(): { value: number } }

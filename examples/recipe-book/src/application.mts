@@ -9,7 +9,7 @@ import { appRoutes } from './_routes.g.mts'
 import styles from './application.css'
 import { HomePage } from './navigation/home.mts'
 import { NavigationMenu } from './navigation/navigation-menu.mts'
-import { NavigationProgress, NavigationSpinner } from './navigation/navigation-progress.mts'
+import { NavigationProgress, type NavigationState } from './navigation/navigation-progress.mts'
 import { NotFoundPage } from './navigation/not-found.mts'
 
 const Router = router({
@@ -24,8 +24,7 @@ export const Application = component({
 	onMount({ append, element, create }) {
 		document.title = 'Recipe Book'
 
-		const progress = createStore<Record<string, { done: boolean }>>({})
-		let spinner: Element | undefined
+		const progress = createStore<NavigationState>('idle')
 
 		append(
 			element('div', {
@@ -45,18 +44,13 @@ export const Application = component({
 							on: {
 								navigate(event) {
 									if (event.navigationType === 'start') {
-										if (progress.value[event.href]) return
-										progress.update(s => { s[event.href] = { done: false } })
-
-										spinner = append(create(NavigationSpinner))
+										if (progress.value === 'navigating') return
+										progress.update(() => 'navigating')
 										append(create(NavigationProgress, { href: event.href, state: progress }))
 									}
 									if (event.navigationType === 'end') {
-										spinner?.remove()
-										spinner = undefined
-										if (!progress.value[event.href]) return
-										progress.update(s => { if (s[event.href]) s[event.href]!.done = true })
-										requestAnimationFrame(() => progress.update(s => { delete s[event.href] }))
+										if (progress.value === 'idle') return
+										progress.update(() => 'idle')
 									}
 								},
 							},
