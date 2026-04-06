@@ -6,6 +6,7 @@ import styles from './navigation-progress.css'
 export type NavigationState = 'idle' | 'navigating'
 
 const supportsPerformanceObserver = typeof PerformanceObserver !== 'undefined'
+const supportsConnectionInfo = navigator.connection
 
 export type NavigationProgressOptions = {
 	href: string
@@ -96,7 +97,6 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 	},
 })
 
-
 export type NavigationSpinnerOptions = {
 	state: Store<NavigationState>
 }
@@ -125,7 +125,7 @@ export const NavigationSpinner = component<NavigationSpinnerOptions>({
 		}))
 
 		// Show immediately if connection is already degraded
-		if (!signal.aborted && navigator.connection != null && navigator.connection.effectiveType !== '4g')
+		if (!signal.aborted && supportsConnectionInfo && navigator.connection!.effectiveType !== '4g')
 			dialog.show()
 
 		// Also show on mid-navigation network degradation.

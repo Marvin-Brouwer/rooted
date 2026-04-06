@@ -40,7 +40,7 @@ function makeFakeWindow() {
 			},
 		},
 		dispatch(type: string, event: Event) {
-			for (const function_ of listeners[type]?.slice()) function_(event)
+			for (const function_ of listeners[type]?.slice() ?? []) function_(event)
 		},
 	}
 }
@@ -73,8 +73,8 @@ describe('on("global", "unhandled-error") — single handler for all app errors'
 		const { on } = makeBuilder()
 		on('global', 'unhandled-error', vi.fn())
 
-		expect(addSpy.mock.calls.map(([type]) => type)).toContain('error')
-		expect(addSpy.mock.calls.map(([type]) => type)).toContain('unhandledrejection')
+		expect(addSpy.mock.calls.map(([type]) => type as string)).toContain('error')
+		expect(addSpy.mock.calls.map(([type]) => type as string)).toContain('unhandledrejection')
 	})
 
 	test('synchronous errors arrive as UnhandledErrorEvent', () => {

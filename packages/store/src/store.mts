@@ -9,7 +9,7 @@ export type StoreEvent<TState> = CustomEvent<StoreEventDetail<TState>>
  * Covers all common serialisable primitives, objects, dates, arrays thereof,
  * and `undefined` (for stores created without an initial value).
  */
-export type StateType = Date | string | boolean | number | bigint | object | undefined
+export type StateType = Date | string | boolean | number | bigint | object | undefined | null
 
 type SetterResult<TState> = TState extends object ? Partial<TState> | void : TState | void
 
@@ -67,13 +67,15 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 	// structuredClone throws on undefined — guard here so the rest of the class stays clean
 	#clone(value: TState): TState {
 		if (value === undefined) return undefined as TState
+		// eslint-disable-next-line unicorn/no-null
+		if (value === null) return null as unknown as TState
 		return structuredClone(value)
 	}
 
 	get value(): Readonly<TState> {
 		const cloned = this.#clone(this.#state)
 		return this.#isObject
-			? Object.freeze(cloned) as Readonly<TState>
+			? Object.freeze(cloned)
 			: cloned as Readonly<TState>
 	}
 
@@ -92,7 +94,7 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 		}
 
 		const frozenState = this.#isObject
-			? Object.freeze(this.#clone(this.#state)) as Readonly<TState>
+			? Object.freeze(structuredClone(this.#state))
 			: this.#state as Readonly<TState>
 
 		this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('update', { detail: { state: frozenState } }))

@@ -1,4 +1,4 @@
-import path, { dirname } from 'node:path'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { CodeSplittingGroups, rootedManifest } from '@rooted/application'
@@ -12,7 +12,7 @@ import packageJson from './package.json' with { type: 'json' }
 import { markdownPlugin } from './plugins/markdown.mts'
 import { responsiveImages } from './plugins/responsive-images.mts'
 
-const rootedDir = normalizePath(path.join(dirname(fileURLToPath(import.meta.resolve('@rooted/router'))), '../../'))
+const rootedDirectory = normalizePath(path.join(path.dirname(fileURLToPath(import.meta.resolve('@rooted/router'))), '../../'))
 
 /**
  * Aliases `@rooted/*` to the dist files in the monorepo.
@@ -21,8 +21,8 @@ const rootedDir = normalizePath(path.join(dirname(fileURLToPath(import.meta.reso
  * Subpath regex must come before the bare-package regex.
  */
 const rootedAliases = [
-	{ find: /^@rooted\/([^/]+)\/([^/]+)$/, replacement: `${rootedDir}/$1/dist/$2.mjs` },
-	{ find: /^@rooted\/([^/]+)$/, replacement: `${rootedDir}/$1/dist/$1.mjs` },
+	{ find: /^@rooted\/([^/]+)\/([^/]+)$/, replacement: `${rootedDirectory}/$1/dist/$2.mjs` },
+	{ find: /^@rooted\/([^/]+)$/, replacement: `${rootedDirectory}/$1/dist/$1.mjs` },
 ]
 
 const codeSplittingGroups: CodeSplittingGroups = [
@@ -34,8 +34,8 @@ const codeSplittingGroups: CodeSplittingGroups = [
 		test: id => id.endsWith('.md'),
 	},
 
-	// In MONOREPO, chunk rootedDir source paths as if they were @rooted/*
-	{ name: 'vendor/@rooted', test: id => id.startsWith(rootedDir) },
+	// In MONOREPO, chunk rootedDirectory source paths as if they were @rooted/*
+	{ name: 'vendor/@rooted', test: id => id.startsWith(rootedDirectory) },
 ]
 
 export default rootedManifest({
@@ -64,7 +64,7 @@ export default rootedManifest({
 		groups: codeSplittingGroups,
 	},
 
-	// In MONOREPO, forward aliases @rooted/* to rootedDir source paths
+	// In MONOREPO, forward aliases @rooted/* to rootedDirectory source paths
 	resolve: {
 		alias: rootedAliases,
 	},

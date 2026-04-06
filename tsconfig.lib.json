@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"allowImportingTsExtensions": true,
+		"noEmit": false,
 		"useDefineForClassFields": true,
 		"emitDeclarationOnly": true,
 		"esModuleInterop": true,

@@ -11,7 +11,9 @@ describe('createStore — value', () => {
 	test('value is a frozen snapshot, not the internal reference', () => {
 		const store = createStore({ count: 0 })
 		const snapshot = store.value
-		store.update(s => { s.count = 1 })
+		store.update((s) => {
+			s.count = 1
+		})
 		expect(snapshot.count).toBe(0) // old snapshot unchanged
 		expect(store.value.count).toBe(1)
 	})
@@ -25,7 +27,9 @@ describe('createStore — value', () => {
 describe('createStore — update', () => {
 	test('applies mutation (void return)', () => {
 		const store = createStore({ count: 0 })
-		store.update(s => { s.count = 5 })
+		store.update((s) => {
+			s.count = 5
+		})
 		expect(store.value.count).toBe(5)
 	})
 
@@ -37,11 +41,11 @@ describe('createStore — update', () => {
 
 	test('currentValue is a structuredClone — mutations do not bleed into each other', () => {
 		const store = createStore({ items: [1, 2, 3] })
-		store.update(s => {
+		store.update((s) => {
 			s.items.push(4)
 		})
 		// A second update should still get the post-first-update state
-		store.update(s => {
+		store.update((s) => {
 			expect(s.items).toEqual([1, 2, 3, 4])
 		})
 	})
@@ -49,7 +53,7 @@ describe('createStore — update', () => {
 	test('mutations to currentValue after setter returns do not affect stored state', () => {
 		const store = createStore({ count: 0 })
 		let captured: { count: number } | undefined
-		store.update(s => {
+		store.update((s) => {
 			captured = s
 		})
 		captured!.count = 999
@@ -64,8 +68,12 @@ describe('createStore — update event', () => {
 		const handler = vi.fn()
 		store.on('update', controller.signal, handler)
 
-		store.update(s => { s.count = 1 })
-		store.update(s => { s.count = 1 }) // same value — no hash change
+		store.update((s) => {
+			s.count = 1
+		})
+		store.update((s) => {
+			s.count = 1
+		}) // same value — no hash change
 		expect(handler).toHaveBeenCalledTimes(2)
 		controller.abort()
 	})
@@ -76,8 +84,11 @@ describe('createStore — update event', () => {
 		const handler = vi.fn()
 		store.on('update', controller.signal, handler)
 
-		store.update(s => { s.count = 7 })
-		expect(handler.mock.calls[0][0].detail.state.count).toBe(7)
+		store.update((s) => {
+			s.count = 7
+		})
+		const event = handler.mock.calls[0][0] as CustomEvent<{ state: { count: number } }>
+		expect(event.detail.state.count).toBe(7)
 		controller.abort()
 	})
 })
@@ -89,8 +100,12 @@ describe('createStore — change event', () => {
 		const handler = vi.fn()
 		store.on('change', controller.signal, handler)
 
-		store.update(s => { s.count = 1 })
-		store.update(s => { s.count = 1 }) // same value
+		store.update((s) => {
+			s.count = 1
+		})
+		store.update((s) => {
+			s.count = 1
+		}) // same value
 		expect(handler).toHaveBeenCalledTimes(1)
 		controller.abort()
 	})
@@ -101,8 +116,12 @@ describe('createStore — change event', () => {
 		const handler = vi.fn()
 		store.on('change', controller.signal, handler)
 
-		store.update(s => { s.count = 1 })
-		store.update(s => { s.count = 0 })
+		store.update((s) => {
+			s.count = 1
+		})
+		store.update((s) => {
+			s.count = 0
+		})
 		expect(handler).toHaveBeenCalledTimes(2)
 		controller.abort()
 	})
@@ -115,11 +134,15 @@ describe('createStore — signal cleanup', () => {
 		const handler = vi.fn()
 		store.on('update', controller.signal, handler)
 
-		store.update(s => { s.count = 1 })
+		store.update((s) => {
+			s.count = 1
+		})
 		expect(handler).toHaveBeenCalledTimes(1)
 
 		controller.abort()
-		store.update(s => { s.count = 2 })
+		store.update((s) => {
+			s.count = 2
+		})
 		expect(handler).toHaveBeenCalledTimes(1) // no new calls after abort
 	})
 })
@@ -159,10 +182,14 @@ describe('hashState — key ordering', () => {
 		const handler = vi.fn()
 		store.on('change', controller.signal, handler)
 
-		store.update(s => { s.ts = new Date('2026-01-01T00:00:00.000Z') }) // same date, new instance
+		store.update((s) => {
+			s.ts = new Date('2026-01-01T00:00:00.000Z')
+		}) // same date, new instance
 		expect(handler).toHaveBeenCalledTimes(0) // no change
 
-		store.update(s => { s.ts = new Date('2027-01-01T00:00:00.000Z') })
+		store.update((s) => {
+			s.ts = new Date('2027-01-01T00:00:00.000Z')
+		})
 		expect(handler).toHaveBeenCalledTimes(1)
 		controller.abort()
 	})
@@ -253,7 +280,7 @@ describe('createStore — primitive state', () => {
 
 describe('hashState — hashedProperties()', () => {
 	test('change detection uses only hashedProperties() when present', () => {
-		type State = { value: number; cursor: number; hashedProperties(): { value: number } }
+		type State = { value: number, cursor: number, hashedProperties(): { value: number } }
 		const initial: State = {
 			value: 1,
 			cursor: 0,
@@ -265,11 +292,15 @@ describe('hashState — hashedProperties()', () => {
 		store.on('change', controller.signal, handler)
 
 		// Changing cursor only — should NOT trigger change
-		store.update(s => { s.cursor = 99 })
+		store.update((s) => {
+			s.cursor = 99
+		})
 		expect(handler).toHaveBeenCalledTimes(0)
 
 		// Changing value — should trigger change
-		store.update(s => { s.value = 2 })
+		store.update((s) => {
+			s.value = 2
+		})
 		expect(handler).toHaveBeenCalledTimes(1)
 		controller.abort()
 	})

@@ -13,7 +13,7 @@ function hashReplacer(_key: string, value: unknown): unknown {
 		// Return a new object with keys in sorted order so JSON.stringify
 		// produces a stable string regardless of original insertion order
 		return Object.fromEntries(
-			Object.entries(target).sort(([a], [b]) => a.localeCompare(b)),
+			Object.entries(target).toSorted(([a], [b]) => a.localeCompare(b)),
 		)
 	}
 	return value
