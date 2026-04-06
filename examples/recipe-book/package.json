@@ -20,7 +20,7 @@
 	"devDependencies": {
 		"@rooted/application": "workspace:^",
 		"@varlock/vite-integration": "^0.2.9",
-		"varlock": "^0.7.0",
+		"varlock": "^0.7.1",
 		"gray-matter": "^4.0.3",
 		"html-minifier-terser": "^7.2.0",
 		"@types/html-minifier-terser": "^7.0.2",
