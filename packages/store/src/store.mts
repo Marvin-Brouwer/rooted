@@ -64,11 +64,22 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 		this.#isObject = typeof initial === 'object' && initial !== null
 	}
 
-	// structuredClone throws on undefined — guard here so the rest of the class stays clean
+	// structuredClone throws on undefined, null, and objects with methods — guard here
 	#clone(value: TState): TState {
 		if (value === undefined) return undefined as TState
 		// eslint-disable-next-line unicorn/no-null
 		if (value === null) return null as unknown as TState
+		if (typeof value === 'object') {
+			const entries = Object.entries(value as object)
+			const functionEntries = entries.filter(([, v]) => typeof v === 'function')
+			if (functionEntries.length > 0) {
+				const dataEntries = entries.filter(([, v]) => typeof v !== 'function')
+				return Object.assign(
+					structuredClone(Object.fromEntries(dataEntries)),
+					Object.fromEntries(functionEntries),
+				) as TState
+			}
+		}
 		return structuredClone(value)
 	}
 
@@ -84,7 +95,7 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 		const result = setter(draft)
 
 		if (result === undefined) {
-			this.#state = draft
+			this.#state = this.#isObject ? this.#clone(draft) : draft
 		}
 		else if (this.#isObject) {
 			this.#state = Object.assign(this.#clone(this.#state) as object, result as Partial<TState>) as TState
@@ -94,7 +105,7 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 		}
 
 		const frozenState = this.#isObject
-			? Object.freeze(structuredClone(this.#state))
+			? Object.freeze(this.#clone(this.#state))
 			: this.#state as Readonly<TState>
 
 		this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('update', { detail: { state: frozenState } }))
