@@ -92,15 +92,19 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 			handleUpdate()
 		})
 
-		append(create(NavigationSpinner))
+		append(create(NavigationSpinner, { state }))
 	},
 })
 
 
-export const NavigationSpinner = component({
+export type NavigationSpinnerOptions = {
+	state: Store<NavigationState>
+}
+export const NavigationSpinner = component<NavigationSpinnerOptions>({
 	name: 'navigation-progress-spinner',
 	styles,
-	onMount({ replace, element, signal }) {
+	onMount({ replace, element, signal, options }) {
+		const { state } = options
 		const dialog = replace(element('dialog', {
 			classes: styles.spinnerOverlay,
 			children: [
@@ -126,11 +130,17 @@ export const NavigationSpinner = component({
 
 		// Also show on mid-navigation network degradation.
 		// Never auto-close on improvement — avoid flashing on flaky connections.
-		// When routing ends the signal aborts, resetting state for the next navigation.
 		navigator.connection?.addEventListener('change', () => {
 			if (signal.aborted || dialog.open) return
 			if (navigator.connection?.effectiveType !== '4g') dialog.show()
 		}, { signal })
+
+		// Close immediately when navigation ends — don't wait for the progress bar
+		// transition, otherwise the spinner flashes on fast cached navigations.
+		state.on('update', signal, () => {
+			if (state.value === 'navigating') return
+			dialog.close()
+		})
 
 		signal.addEventListener('abort', () => dialog.close())
 	},
