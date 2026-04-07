@@ -20,6 +20,7 @@
 	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
 	"sideEffects": false,
 	"publishConfig": {
+    	"registry": "https://registry.npmjs.org/",
 		"access": "public",
 		"provenance": true
 	},

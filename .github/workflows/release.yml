@@ -45,4 +45,4 @@ jobs:
           # https://github.com/orgs/community/discussions/176761#discussioncomment-15063945
           NODE_AUTH_TOKEN: ""
           NPM_CONFIG_PROVENANCE: true
-          NPM_CONFIG_REGISTRY: https://registry.npmjs.com/
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
