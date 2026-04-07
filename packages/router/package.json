@@ -13,13 +13,14 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Marvin-Brouwer/rooted.git",
+		"url": "git+https://github.com/Marvin-Brouwer/rooted.git",
 		"directory": "packages/router"
 	},
 	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
 	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
 	"sideEffects": false,
 	"publishConfig": {
+		"registry": "https://registry.npmjs.org/",
 		"access": "public",
 		"provenance": true
 	},
@@ -75,8 +76,8 @@
 		"@rooted/components": "workspace:^",
 		"@rooted/development": "workspace:*",
 		"@rooted/tsup": "workspace:^",
-		"@types/node": "^25.5.0",
+		"@types/node": "^25.5.2",
 		"tsx": "^4.19.0",
-		"vite": "^8.0.3"
+		"vite": "^8.0.5"
 	}
 }

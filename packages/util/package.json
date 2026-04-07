@@ -11,13 +11,14 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Marvin-Brouwer/rooted.git",
+		"url": "git+https://github.com/Marvin-Brouwer/rooted.git",
 		"directory": "packages/util"
 	},
 	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
 	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
 	"sideEffects": false,
 	"publishConfig": {
+		"registry": "https://registry.npmjs.org/",
 		"access": "public",
 		"provenance": true
 	},

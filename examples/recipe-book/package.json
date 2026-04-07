@@ -20,13 +20,13 @@
 	},
 	"devDependencies": {
 		"@rooted/application": "workspace:^",
-		"@varlock/vite-integration": "^0.2.8",
-		"varlock": "^0.7.0",
+		"@varlock/vite-integration": "^0.2.9",
+		"varlock": "^0.7.1",
 		"gray-matter": "^4.0.3",
 		"html-minifier-terser": "^7.2.0",
 		"@types/html-minifier-terser": "^7.0.2",
-		"marked": "^17.0.5",
+		"marked": "^17.0.6",
 		"typescript": "^6.0.2",
-		"vite": "^8.0.3"
+		"vite": "^8.0.5"
 	}
 }
