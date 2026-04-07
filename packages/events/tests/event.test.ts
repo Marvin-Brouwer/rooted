@@ -77,7 +77,7 @@ describe('createEventBuilder — window events', () => {
 		const on = createEventBuilder(fakeElement, controller.signal)
 		on('window', 'resize', vi.fn())
 
-		const options = addSpy.mock.calls[0][2]
+		const options = addSpy.mock.calls[0][2] as AddEventListenerOptions | undefined
 		expect(options?.signal).toBe(controller.signal)
 
 		vi.unstubAllGlobals()
@@ -92,7 +92,7 @@ describe('createEventBuilder — document events', () => {
 		const handler = vi.fn()
 		on('document', 'click', handler)
 
-		expect(addSpy).toHaveBeenCalledWith('click', expect.any(Function), expect.objectContaining({ signal: expect.any(AbortSignal) }))
+		expect(addSpy).toHaveBeenCalledWith('click', expect.any(Function), expect.objectContaining({ signal: expect.any(AbortSignal) as AbortSignal }))
 		addSpy.mockRestore()
 	})
 

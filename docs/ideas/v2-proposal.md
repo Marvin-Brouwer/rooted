@@ -205,6 +205,14 @@ export const UsageExample = component({
 })
 ```
 
+Not yet sure about the `option` and `property` helpers. \
+Eventually we need:
+
+- constructor options
+  - required
+  - optional
+- settable properties
+
 ## Other things to improve
 
 - aria types are string only

@@ -41,6 +41,10 @@ ci(#22): switch to OIDC trusted publishing
 docs: add guide for publishing new @rooted/* packages
 ```
 
+## Running the linter
+
+Always run `pnpm eslint` from the repo root. Never use `npx eslint`.
+
 ## Pull request summary
 
 Always use the template found in: `.github/pull_request_template.md`.

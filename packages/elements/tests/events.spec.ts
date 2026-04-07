@@ -27,8 +27,8 @@ describe('on: {} prop — basic usage', () => {
 		let capturedTarget: EventTarget | null = null
 		const input = element('input', {
 			on: {
-				input(e) {
-					capturedTarget = e.currentTarget
+				input(event) {
+					capturedTarget = event.currentTarget
 				},
 			},
 		})
@@ -103,9 +103,9 @@ describe('on: {} prop — form events', () => {
 		let capturedTarget: EventTarget | null = null
 		const form = element('form', {
 			on: {
-				submit(e) {
-					e.preventDefault()
-					capturedTarget = e.currentTarget
+				submit(event) {
+					event.preventDefault()
+					capturedTarget = event.currentTarget
 				},
 			},
 		})

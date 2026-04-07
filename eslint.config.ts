@@ -3,9 +3,9 @@ import { Config, defineConfig, globalIgnores } from 'eslint/config'
 import unicorn from 'eslint-plugin-unicorn'
 import globals from 'globals'
 
-import { lintImports } from './eslint.preset.import.js'
-import { lintJs, lintTs } from './eslint.preset.lang.js'
-import { projectConfig } from './eslint.preset.project'
+import { lintImports } from './eslint.preset.import.ts'
+import { lintJs, lintTs } from './eslint.preset.lang.ts'
+import { projectConfig } from './eslint.preset.project.ts'
 
 export default defineConfig([
 	globalIgnores([
@@ -33,6 +33,7 @@ export default defineConfig([
 			'@typescript-eslint/no-explicit-any': 'off',
 			'unicorn/consistent-function-scoping': 'off',
 			'unicorn/no-await-expression-member': 'off',
+			'@typescript-eslint/unbound-method': 'off',
 		},
 	},
 ])

@@ -1,6 +1,7 @@
 import { component } from '@rooted/components'
 import { application } from '@rooted/components/application'
 import { router } from '@rooted/router/application'
+import { createStore } from '@rooted/store'
 
 import { ContentBanner } from './_layout/content-banner.mts'
 import { Doormat } from './_layout/doormat.mts'
@@ -8,7 +9,7 @@ import { appRoutes } from './_routes.g.mts'
 import styles from './application.css'
 import { HomePage } from './navigation/home.mts'
 import { NavigationMenu } from './navigation/navigation-menu.mts'
-import { NavigationProgress, NavigationSpinner } from './navigation/navigation-progress.mts'
+import { NavigationProgress, type NavigationState } from './navigation/navigation-progress.mts'
 import { NotFoundPage } from './navigation/not-found.mts'
 
 const Router = router({
@@ -23,8 +24,7 @@ export const Application = component({
 	onMount({ append, element, create }) {
 		document.title = 'Recipe Book'
 
-		const progress: Record<string, { done: boolean }> = {}
-		let spinner: Element | undefined
+		const progress = createStore<NavigationState>('idle')
 
 		append(
 			element('div', {
@@ -44,18 +44,13 @@ export const Application = component({
 							on: {
 								navigate(event) {
 									if (event.navigationType === 'start') {
-										if (progress[event.href]) return
-										progress[event.href] = { done: false }
-
-										spinner = append(create(NavigationSpinner))
-										append(create(NavigationProgress, { href: event.href, state: progress[event.href] }))
+										if (progress.value === 'navigating') return
+										progress.update(() => 'navigating')
+										append(create(NavigationProgress, { href: event.href, state: progress }))
 									}
 									if (event.navigationType === 'end') {
-										spinner?.remove()
-										spinner = undefined
-										if (!progress[event.href]) return
-										progress[event.href].done = true
-										requestAnimationFrame(() => delete progress[event.href])
+										if (progress.value === 'idle') return
+										progress.update(() => 'idle')
 									}
 								},
 							},
