@@ -42,8 +42,6 @@ jobs:
       - name: Release
         run: pnpm release
         env:
-          # https://github.com/orgs/community/discussions/176761#discussioncomment-15063945
-          NODE_AUTH_TOKEN: ""
           # This is necessary for semantic release
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
