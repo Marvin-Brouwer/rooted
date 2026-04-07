@@ -8,6 +8,11 @@ overrides:
   source-map@0.8.0-beta.0: 0.7.4
   sourcemap-codec: npm:@jridgewell/sourcemap-codec@^1.4.15
 
+patchedDependencies:
+  '@semantic-release/npm@13.1.5':
+    hash: d28135466a047c4c5d9edc8857a76e292f15681a77adea0113920c0046386827
+    path: patches/@semantic-release__npm@13.1.5.patch
+
 importers:
 
   .:
@@ -7163,7 +7168,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@semantic-release/npm@13.1.5(semantic-release@25.0.3(typescript@6.0.2))':
+  '@semantic-release/npm@13.1.5(patch_hash=d28135466a047c4c5d9edc8857a76e292f15681a77adea0113920c0046386827)(semantic-release@25.0.3(typescript@6.0.2))':
     dependencies:
       '@actions/core': 3.0.0
       '@semantic-release/error': 4.0.0
@@ -9966,7 +9971,7 @@ snapshots:
       '@semantic-release/commit-analyzer': 13.0.1(semantic-release@25.0.3(typescript@6.0.2))
       '@semantic-release/error': 4.0.0
       '@semantic-release/github': 12.0.6(semantic-release@25.0.3(typescript@6.0.2))
-      '@semantic-release/npm': 13.1.5(semantic-release@25.0.3(typescript@6.0.2))
+      '@semantic-release/npm': 13.1.5(patch_hash=d28135466a047c4c5d9edc8857a76e292f15681a77adea0113920c0046386827)(semantic-release@25.0.3(typescript@6.0.2))
       '@semantic-release/release-notes-generator': 14.1.0(semantic-release@25.0.3(typescript@6.0.2))
       aggregate-error: 5.0.0
       cosmiconfig: 9.0.1(typescript@6.0.2)

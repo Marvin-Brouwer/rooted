@@ -58,6 +58,9 @@
 		},
 		"allowedDeprecatedVersions": {
 			"glob": "11"
+		},
+		"patchedDependencies": {
+			"@semantic-release/npm@13.1.5": "patches/@semantic-release__npm@13.1.5.patch"
 		}
 	}
 }
