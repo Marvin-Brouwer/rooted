@@ -1,7 +1,8 @@
 {
 	"branches": [
 		"latest",
-		{ "name": "main", "prerelease": "alpha", "channel": "alpha" }
+		{ "name": "main", "prerelease": "alpha", "channel": "alpha" },
+		{ "name": "release-fix", "prerelease": "alpha", "channel": "alpha" }
 	],
 	"plugins": [
 		[
@@ -34,7 +35,9 @@
 				}
 			}
 		],
-		["@semantic-release/npm", { "provenance": true }],
+		["@semantic-release/npm", {
+			"provenance": true
+		}],
 		[
 			"@semantic-release/github",
 			{
