@@ -1,9 +1,25 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+
 import { defineConfig } from 'eslint/config'
 import { configs as packageJsonConfigs } from 'eslint-plugin-package-json'
 
 import type { Rule } from 'eslint'
 
-const OFFICIAL_REGISTRY = 'https://registry.npmjs.org/'
+const FALLBACK_REGISTRY = 'https://registry.npmjs.org/'
+
+function readRegistryFromNpmrc(): string {
+	try {
+		const content = readFileSync(path.resolve(import.meta.dirname, '.npmrc'), 'utf8')
+		const match = /^registry\s*=\s*(.+)$/m.exec(content)
+		return match?.[1]?.trim() ?? FALLBACK_REGISTRY
+	}
+	catch {
+		return FALLBACK_REGISTRY
+	}
+}
+
+const OFFICIAL_REGISTRY = readRegistryFromNpmrc()
 
 interface JsonLiteral {
 	value: unknown
