@@ -5,6 +5,7 @@ import globals from 'globals'
 
 import { lintImports } from './eslint.preset.import.ts'
 import { lintJs, lintTs } from './eslint.preset.lang.ts'
+import { lintPackageJson } from './eslint.preset.packagejson.ts'
 import { projectConfig } from './eslint.preset.project.ts'
 
 export default defineConfig([
@@ -24,6 +25,7 @@ export default defineConfig([
 	stylistic.configs.recommended,
 	unicorn.configs.recommended,
 	lintImports,
+	lintPackageJson,
 	projectConfig,
 	{
 		files: ['packages/*/tests/**/*.ts'],
