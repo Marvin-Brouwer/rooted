@@ -1,0 +1,52 @@
+{
+	"name": "@rooted/storage",
+	"version": "1.0.0-alpha.0",
+	"description": "rooted — storage utilities",
+	"keywords": [
+		"web-components",
+		"storage",
+		"cookies",
+		"framework-free",
+		"typescript",
+		"rooted"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "packages/storage"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
+	"sideEffects": false,
+	"publishConfig": {
+		"registry": "https://registry.npmjs.org/",
+		"access": "public",
+		"provenance": true
+	},
+	"files": [
+		"dist",
+		"readme.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"exports": {
+		"./web": {
+			"import": "./dist/web.mjs",
+			"types": "./dist/web.d.mts"
+		}
+	},
+	"scripts": {
+		"build": "pnpm build:ci",
+		"build:dev": "pnpm build:ci && rooted-development extract-api",
+		"build:ci": "tsup",
+		"watch": "tsup --watch --no-clean & rooted-development extract-api",
+		"clean": "rm -rf dist",
+		"extract-api": "rooted-development extract-api"
+	},
+	"devDependencies": {
+		"@rooted/development": "workspace:*"
+	}
+}
