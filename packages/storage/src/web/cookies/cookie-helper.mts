@@ -1,8 +1,8 @@
 /**
  * Low-level helpers for composing and parsing the `document.cookie` string.
  *
- * These functions never touch `document.cookie` themselves — that lives in
- * {@link ./cookie-storage.mts} — which keeps them trivially unit-testable.
+ * These functions never touch `document.cookie` themselves. That lives in
+ * {@link ./cookie-storage.mts}, which keeps this file trivially testable.
  */
 
 const SAME_SITE_LABEL: Record<globalThis.CookieSameSite, string> = {
@@ -14,15 +14,22 @@ const SAME_SITE_LABEL: Record<globalThis.CookieSameSite, string> = {
 /**
  * Build the string to assign to `document.cookie` for a single cookie.
  *
- * Takes the DOM global {@link globalThis.CookieInit} directly — `value`
- * is expected to be an already-serialised string (callers in
- * `cookie-storage.mts` handle JSON encoding before reaching this layer).
+ * Takes {@link globalThis.CookieInit} directly. `value` is expected to
+ * already be a string. Callers in `cookie-storage.mts` handle JSON
+ * encoding before reaching this layer.
  *
+ * A few things happen on the way out:
  * - Name and value are URL-encoded.
  * - `expires` is converted from a `DOMHighResTimeStamp` to a UTC string.
- * - `SameSite=None` auto-adds `Secure` (required by the spec — browsers
- *   reject `SameSite=None` cookies without it).
+ * - `SameSite=None` auto-adds `Secure`. The spec requires it, and
+ *   browsers reject `SameSite=None` cookies without it.
  * - `null` attribute values are treated as unset, per the CookieStore spec.
+ *
+ * @example
+ * ```ts
+ * buildCookieString({ name: 'token', value: 'abc', path: '/', sameSite: 'lax' })
+ * // 'token=abc; Path=/; SameSite=Lax'
+ * ```
  */
 export function buildCookieString(init: globalThis.CookieInit): string {
 	const { name, value, domain, path, expires, sameSite, partitioned } = init
@@ -45,9 +52,14 @@ export function buildCookieString(init: globalThis.CookieInit): string {
 
 /**
  * Parse the whole `document.cookie` string into a `Map<name, value>`.
- * Both sides are URL-decoded. Malformed entries are skipped silently —
- * the browser is the source of truth, not this parser, so defensive
- * tolerance is correct here.
+ * Both sides are URL-decoded. Malformed entries are skipped rather than
+ * raised as errors. See the `catch` inside for the reasoning.
+ *
+ * @example
+ * ```ts
+ * parseCookieHeader('a=1; b=2')
+ * // Map(2) { 'a' => '1', 'b' => '2' }
+ * ```
  */
 export function parseCookieHeader(header: string): Map<string, string> {
 	const result = new Map<string, string>()
@@ -66,7 +78,12 @@ export function parseCookieHeader(header: string): Map<string, string> {
 			result.set(name, value)
 		}
 		catch {
-			// Malformed percent-encoding — skip the entry rather than throw.
+			// decodeURIComponent throws on invalid percent-escapes like %ZZ
+			// or a truncated %C3. Our own writes go through encodeURIComponent
+			// so they're always valid, but document.cookie also surfaces
+			// cookies set by the server, extensions, and other scripts that
+			// may not encode correctly. Skip the broken entry instead of
+			// letting one bad cookie crash the whole parse.
 		}
 	}
 
