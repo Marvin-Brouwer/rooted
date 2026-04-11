@@ -39,9 +39,6 @@ jobs:
       - name: Build
         run: pnpm build:ci
 
-      - name: Fetch tags
-        run: git fetch --tags --force
-
       - name: Release
         run: pnpm release
         env:
