@@ -8,6 +8,11 @@ overrides:
   source-map@0.8.0-beta.0: 0.7.4
   sourcemap-codec: npm:@jridgewell/sourcemap-codec@^1.4.15
 
+patchedDependencies:
+  semantic-release@25.0.3:
+    hash: 9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc
+    path: patches/semantic-release@25.0.3.patch
+
 importers:
 
   .:
@@ -7186,7 +7191,7 @@ snapshots:
 
   '@sec-ant/readable-stream@0.4.1': {}
 
-  '@semantic-release/commit-analyzer@13.0.1(semantic-release@25.0.3(typescript@6.0.2))':
+  '@semantic-release/commit-analyzer@13.0.1(semantic-release@25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2))':
     dependencies:
       conventional-changelog-angular: 8.3.0
       conventional-changelog-writer: 8.4.0
@@ -7196,13 +7201,13 @@ snapshots:
       import-from-esm: 2.0.0
       lodash-es: 4.17.23
       micromatch: 4.0.8
-      semantic-release: 25.0.3(typescript@6.0.2)
+      semantic-release: 25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2)
     transitivePeerDependencies:
       - supports-color
 
   '@semantic-release/error@4.0.0': {}
 
-  '@semantic-release/github@12.0.6(semantic-release@25.0.3(typescript@6.0.2))':
+  '@semantic-release/github@12.0.6(semantic-release@25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2))':
     dependencies:
       '@octokit/core': 7.0.6
       '@octokit/plugin-paginate-rest': 14.0.0(@octokit/core@7.0.6)
@@ -7218,14 +7223,14 @@ snapshots:
       lodash-es: 4.17.23
       mime: 4.1.0
       p-filter: 4.1.0
-      semantic-release: 25.0.3(typescript@6.0.2)
+      semantic-release: 25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2)
       tinyglobby: 0.2.15
       undici: 7.24.4
       url-join: 5.0.0
     transitivePeerDependencies:
       - supports-color
 
-  '@semantic-release/npm@13.1.5(semantic-release@25.0.3(typescript@6.0.2))':
+  '@semantic-release/npm@13.1.5(semantic-release@25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2))':
     dependencies:
       '@actions/core': 3.0.0
       '@semantic-release/error': 4.0.0
@@ -7240,11 +7245,11 @@ snapshots:
       rc: 1.2.8
       read-pkg: 10.1.0
       registry-auth-token: 5.1.1
-      semantic-release: 25.0.3(typescript@6.0.2)
+      semantic-release: 25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2)
       semver: 7.7.4
       tempy: 3.2.0
 
-  '@semantic-release/release-notes-generator@14.1.0(semantic-release@25.0.3(typescript@6.0.2))':
+  '@semantic-release/release-notes-generator@14.1.0(semantic-release@25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2))':
     dependencies:
       conventional-changelog-angular: 8.3.0
       conventional-changelog-writer: 8.4.0
@@ -7256,7 +7261,7 @@ snapshots:
       into-stream: 7.0.0
       lodash-es: 4.17.23
       read-package-up: 11.0.0
-      semantic-release: 25.0.3(typescript@6.0.2)
+      semantic-release: 25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -9482,7 +9487,7 @@ snapshots:
       lodash: 4.17.23
       meow: 8.1.2
       promise-events: 0.2.4
-      semantic-release: 25.0.3(typescript@6.0.2)
+      semantic-release: 25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2)
       semver: 7.7.4
       signale: 1.4.0
       stream-buffers: 3.0.3
@@ -10064,13 +10069,13 @@ snapshots:
       extend-shallow: 2.0.1
       kind-of: 6.0.3
 
-  semantic-release@25.0.3(typescript@6.0.2):
+  semantic-release@25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2):
     dependencies:
-      '@semantic-release/commit-analyzer': 13.0.1(semantic-release@25.0.3(typescript@6.0.2))
+      '@semantic-release/commit-analyzer': 13.0.1(semantic-release@25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2))
       '@semantic-release/error': 4.0.0
-      '@semantic-release/github': 12.0.6(semantic-release@25.0.3(typescript@6.0.2))
-      '@semantic-release/npm': 13.1.5(semantic-release@25.0.3(typescript@6.0.2))
-      '@semantic-release/release-notes-generator': 14.1.0(semantic-release@25.0.3(typescript@6.0.2))
+      '@semantic-release/github': 12.0.6(semantic-release@25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2))
+      '@semantic-release/npm': 13.1.5(semantic-release@25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2))
+      '@semantic-release/release-notes-generator': 14.1.0(semantic-release@25.0.3(patch_hash=9a092b1691389f17af20b6e49ffb60b1bdbe602501a55cc015131b67289b23cc)(typescript@6.0.2))
       aggregate-error: 5.0.0
       cosmiconfig: 9.0.1(typescript@6.0.2)
       debug: 4.4.3
