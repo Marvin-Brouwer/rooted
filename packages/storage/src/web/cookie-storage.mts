@@ -124,25 +124,19 @@ function set<T>(nameOrInit: string | CookieInit<T>, value?: T): void {
 		return
 	}
 
-	const { name, value: raw, domain, path, expires, sameSite } = nameOrInit
-	const serialised = typeof raw === 'string' ? raw : jsonStringify(raw)
+	const serialised = typeof nameOrInit.value === 'string'
+		? nameOrInit.value
+		: jsonStringify(nameOrInit.value)
 
-	writeCookieHeader(buildCookieString({
-		name,
-		value: serialised,
-		domain: domain ?? undefined,
-		path: path ?? undefined,
-		expires: expires ?? undefined,
-		sameSite: sameSite ?? undefined,
-	}))
+	writeCookieHeader(buildCookieString({ ...nameOrInit, value: serialised }))
 }
 
 function removeItem(name: string, options?: Pick<CookieInit, 'domain' | 'path'>): void {
 	writeCookieHeader(buildCookieString({
 		name,
 		value: '',
-		domain: options?.domain ?? undefined,
-		path: options?.path ?? undefined,
+		domain: options?.domain,
+		path: options?.path,
 		expires: 0,
 	}))
 }

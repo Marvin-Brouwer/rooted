@@ -5,22 +5,6 @@
  * {@link ./cookie-storage.mts} — which keeps them trivially unit-testable.
  */
 
-/**
- * Input shape for {@link buildCookieString}. Mirrors the subset of
- * `globalThis.CookieInit` we forward to the browser, plus the already
- * serialised string value.
- */
-export type CookieAttributes = {
-	name: string
-	/** Already-serialised string value. */
-	value: string
-	domain?: string
-	path?: string
-	/** Absolute expiry as a DOMHighResTimeStamp (ms since epoch). */
-	expires?: DOMHighResTimeStamp
-	sameSite?: globalThis.CookieSameSite
-}
-
 const SAME_SITE_LABEL: Record<globalThis.CookieSameSite, string> = {
 	lax: 'Lax',
 	none: 'None',
@@ -30,25 +14,31 @@ const SAME_SITE_LABEL: Record<globalThis.CookieSameSite, string> = {
 /**
  * Build the string to assign to `document.cookie` for a single cookie.
  *
+ * Takes the DOM global {@link globalThis.CookieInit} directly — `value`
+ * is expected to be an already-serialised string (callers in
+ * `cookie-storage.mts` handle JSON encoding before reaching this layer).
+ *
  * - Name and value are URL-encoded.
  * - `expires` is converted from a `DOMHighResTimeStamp` to a UTC string.
  * - `SameSite=None` auto-adds `Secure` (required by the spec — browsers
  *   reject `SameSite=None` cookies without it).
+ * - `null` attribute values are treated as unset, per the CookieStore spec.
  */
-export function buildCookieString(attributes: CookieAttributes): string {
-	const { name, value, domain, path, expires, sameSite } = attributes
+export function buildCookieString(init: globalThis.CookieInit): string {
+	const { name, value, domain, path, expires, sameSite, partitioned } = init
 
 	const parts: string[] = [
 		`${encodeURIComponent(name)}=${encodeURIComponent(value)}`,
 	]
 
-	if (domain !== undefined) parts.push(`Domain=${domain}`)
-	if (path !== undefined) parts.push(`Path=${path}`)
-	if (expires !== undefined) parts.push(`Expires=${new Date(expires).toUTCString()}`)
-	if (sameSite !== undefined) {
+	if (domain != undefined) parts.push(`Domain=${domain}`)
+	if (path != undefined) parts.push(`Path=${path}`)
+	if (expires != undefined) parts.push(`Expires=${new Date(expires).toUTCString()}`)
+	if (sameSite != undefined) {
 		parts.push(`SameSite=${SAME_SITE_LABEL[sameSite]}`)
 		if (sameSite === 'none') parts.push('Secure')
 	}
+	if (partitioned === true) parts.push('Partitioned')
 
 	return parts.join('; ')
 }
