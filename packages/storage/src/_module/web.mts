@@ -8,4 +8,4 @@ export {
 	type CookieStorage,
 	type CookieInit,
 	type CookieSameSite,
-} from '../web/cookie-storage.mts'
+} from '../web/cookies/cookie-storage.mts'

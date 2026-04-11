@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
-import { cookieStorage } from '../src/web/cookie-storage.mts'
+import { cookieStorage } from '../src/web/cookies/cookie-storage.mts'
 
 function findCookieDescriptor(): PropertyDescriptor {
 	let object: object | null = document

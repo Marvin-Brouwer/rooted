@@ -1,5 +1,6 @@
-import { buildCookieString, parseCookieHeader } from './cookie-attributes.mts'
-import { jsonStringify, safeJsonParse } from './cookie-serialize.mts'
+import { jsonStringify, safeJsonParse } from '../../serializer.mts'
+
+import { buildCookieString, parseCookieHeader } from './cookie-helper.mts'
 
 /**
  * Re-export of the DOM global {@link globalThis.CookieSameSite} so

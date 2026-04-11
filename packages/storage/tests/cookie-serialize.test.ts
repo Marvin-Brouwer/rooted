@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { jsonStringify, safeJsonParse, safeReviver } from '../src/web/cookie-serialize.mts'
+import { jsonStringify, safeJsonParse, safeReviver } from '../src/serializer.mts'
 
 describe('safeReviver', () => {
 	test('returns primitive values unchanged', () => {

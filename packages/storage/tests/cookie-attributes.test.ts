@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { buildCookieString, parseCookieHeader } from '../src/web/cookie-attributes.mts'
+import { buildCookieString, parseCookieHeader } from '../src/web/cookies/cookie-helper.mts'
 
 describe('buildCookieString', () => {
 	test('URL-encodes name and value', () => {
