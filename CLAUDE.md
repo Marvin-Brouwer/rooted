@@ -1,5 +1,15 @@
 # Claude Code conventions
 
+## TSDOC
+
+When writing TSDOC on functionality, follow these rules:
+
+- NEVER use mdash
+- ALWAYS use normal, simple and humble, human language
+  Nobody on this projects cares about sounding important.
+- Copy the style of other comments
+- Include usage examples when relevant
+
 ## Commit messages
 
 Keep commit message headers (the first line) under 80 characters.
