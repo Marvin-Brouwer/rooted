@@ -59,6 +59,9 @@
 		},
 		"allowedDeprecatedVersions": {
 			"glob": "11"
+		},
+		"patchedDependencies": {
+			"semantic-release@25.0.3": "patches/semantic-release@25.0.3.patch"
 		}
 	}
 }
