@@ -32,6 +32,6 @@ description: Individual molten chocolate cakes with a warm, flowing centre — s
 7. Bake for 10–12 minutes — the edges should be set and the tops just barely firm. The centre should still wobble slightly when you nudge the ramekin.
 8. Rest for 1 minute, then run a knife around the edge and invert onto serving plates. Serve immediately with ice cream.
 
-## Notes
+### Notes
 
 Timing is everything. Every oven is different — do a test run with one ramekin first. Slightly underbaked is better than overdone.

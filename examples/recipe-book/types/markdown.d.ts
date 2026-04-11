@@ -4,6 +4,11 @@
  */
 
 declare module '*.md' {
+	type IngredientGroup = {
+		heading?: string
+		items: string[]
+	}
+
 	const recipe: {
 		title: string
 		category: string
@@ -14,8 +19,10 @@ declare module '*.md' {
 		difficulty: 'easy' | 'medium' | 'hard'
 		featured: boolean
 		description: string
-		/** Markdown body converted to an HTML string by `marked`. */
-		html: string
+		/** Ingredients parsed into groups. Flat lists produce a single group with no heading. */
+		ingredients: IngredientGroup[]
+		/** Everything outside the ingredients block, rendered to HTML by `marked`. */
+		instructionsHtml: string
 	}
 	export default recipe
 }

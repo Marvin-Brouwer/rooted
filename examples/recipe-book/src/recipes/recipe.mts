@@ -4,6 +4,8 @@ import { href, Link } from '@rooted/router'
 import { type RecipeData as DataRecipe, recipeData } from '../_shared/data/data.mts'
 import { CategoriesRoute, CategoryRoute } from '../categories/_routes.mts'
 
+import { IngredientsList } from './ingredients-list.mts'
+import { RecipeTabs } from './recipe-tabs.mts'
 import styles from './recipe.css'
 
 export type RecipeOptions = {
@@ -25,6 +27,12 @@ export const Recipe = component<RecipeOptions>({
 			element('p', { classes: styles.notFound, textContent: 'Recipe not found.' }),
 		)
 
+		const instructionsPanel = element('div', {
+			classes: styles.instructions,
+			// Safe: content originates from version-controlled markdown files.
+			innerHTML: recipe.instructionsHtml,
+		})
+
 		append(
 			create(Link, {
 				href: href.for(CategoryRoute, { slug: recipe.category }),
@@ -42,11 +50,19 @@ export const Recipe = component<RecipeOptions>({
 				],
 			}),
 
-			element('div', {
-				classes: styles.recipeBody,
-				// Render the markdown-converted HTML body.
-				// Safe: content originates from version-controlled markdown files.
-				innerHTML: recipe.html,
+			create(RecipeTabs, {
+				tabs: [
+					{
+						id: 'ingredients',
+						label: 'Ingredients',
+						panel: create(IngredientsList, { groups: recipe.ingredients }),
+					},
+					{
+						id: 'instructions',
+						label: 'Instructions',
+						panel: instructionsPanel,
+					},
+				],
 			}),
 		)
 	},

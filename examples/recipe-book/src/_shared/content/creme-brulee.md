@@ -29,6 +29,6 @@ description: Silky vanilla custard baked low and slow, then crowned with a crack
 8. Remove from the water bath and cool to room temperature, then refrigerate for at least 3 hours (or overnight).
 9. **To brûlée:** Sprinkle 1 tsp caster sugar evenly over each custard. Using a kitchen blowtorch, move the flame in small circles until the sugar melts and turns a deep amber. Leave for 1 minute to harden, then serve.
 
-## Notes
+### Notes
 
 Don't rush the infusion — it's what gives the custard its depth of flavour. If you don't have a blowtorch, caramelise the sugar under a very hot grill, watching closely. The custards must be cold before you brûlée or the heat will curdle them.

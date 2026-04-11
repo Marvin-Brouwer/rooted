@@ -32,6 +32,6 @@ description: The golden risotto of Milan — creamy arborio rice perfumed with s
 6. Remove from heat. Add the remaining cold butter and the Parmigiano. Beat vigorously with a wooden spoon for 1–2 minutes until the risotto is loose and creamy (this is the *mantecatura*).
 7. Cover and rest for 2 minutes. Season with salt and white pepper and serve at once — risotto waits for no one.
 
-## Notes
+### Notes
 
 The *mantecatura* — the off-heat beating with cold butter and cheese — is what gives risotto its characteristic wave (*all'onda*) when the plate is tilted. Don't skip it, and don't use warm butter.

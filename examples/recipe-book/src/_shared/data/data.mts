@@ -8,6 +8,17 @@ import pastaData from '../content/pasta-carbonara.md'
 import risottoData from '../content/risotto-milanese.md'
 import stickyToffeeData from '../content/sticky-toffee-pudding.md'
 
+/**
+ * A single group of ingredients on a recipe.
+ * `heading` holds the sub-section label when the recipe splits its ingredients
+ * into groups (like "Marinade" and "Sauce"). Flat recipes produce a single
+ * group with `heading` left undefined.
+ */
+export type IngredientGroup = {
+	heading?: string
+	items: string[]
+}
+
 export type RecipeData = {
 	id: number
 	title: string
@@ -19,7 +30,8 @@ export type RecipeData = {
 	difficulty: 'easy' | 'medium' | 'hard'
 	featured: boolean
 	description: string
-	html: string
+	ingredients: IngredientGroup[]
+	instructionsHtml: string
 }
 
 const recipes: RecipeData[] = [

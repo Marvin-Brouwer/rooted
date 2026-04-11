@@ -29,6 +29,6 @@ description: A classic Roman pasta with crispy guanciale, eggs, and Pecorino Rom
 5. Remove the pan from heat entirely. Pour the egg mixture over the pasta, tossing continuously and adding pasta water a splash at a time until you have a glossy, creamy sauce.
 6. Serve immediately with extra cheese and black pepper.
 
-## Notes
+### Notes
 
 The key to a smooth carbonara is keeping the eggs off direct heat — they should cook from the residual warmth of the pasta alone. Work quickly and keep tossing.

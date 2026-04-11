@@ -40,9 +40,20 @@ description: Seasoned ground beef with a zingy slaw, avocado, and pickled jalape
 
 ## Instructions
 
-1. **Make the slaw:** Toss shredded cabbage with lime juice, honey, and salt. Set aside — it softens as it sits.
-2. **Cook the beef:** Heat a drizzle of oil in a wide skillet over medium-high heat. Add onion, cook 3 minutes until softened. Add garlic, cook 1 minute.
-3. Add the ground beef and cook, breaking it up, until browned all over, about 5 minutes. Drain excess fat.
-4. Stir in cumin, paprika, oregano, and chilli. Cook 1 minute until fragrant. Add tomato paste and stock, simmer until the liquid is mostly absorbed, about 5 minutes. Season to taste.
-5. **Warm the tortillas** directly over a gas flame for 30 seconds per side, or in a dry skillet.
-6. **Assemble:** Spoon beef into tortillas. Top with slaw, avocado, jalapeños, sour cream, and coriander. Serve with lime wedges.
+### Make the slaw
+
+1. Toss shredded cabbage with lime juice, honey, and salt. Set aside — it softens as it sits.
+
+### Cook the beef
+
+1. Heat a drizzle of oil in a wide skillet over medium-high heat. Add onion, cook 3 minutes until softened. Add garlic, cook 1 minute.
+2. Add the ground beef and cook, breaking it up, until browned all over, about 5 minutes. Drain excess fat.
+3. Stir in cumin, paprika, oregano, and chilli. Cook 1 minute until fragrant. Add tomato paste and stock, simmer until the liquid is mostly absorbed, about 5 minutes. Season to taste.
+
+### Warm the tortillas
+
+1. Warm tortillas directly over a gas flame for 30 seconds per side, or in a dry skillet.
+
+### Assemble
+
+1. Spoon beef into tortillas. Top with slaw, avocado, jalapeños, sour cream, and coriander. Serve with lime wedges.
