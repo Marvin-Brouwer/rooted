@@ -72,20 +72,29 @@ export function parseCookieHeader(header: string): Map<string, string> {
 		const eq = entry.indexOf('=')
 		if (eq === -1) continue
 
-		try {
-			const name = decodeURIComponent(entry.slice(0, eq))
-			const value = decodeURIComponent(entry.slice(eq + 1))
-			result.set(name, value)
-		}
-		catch {
-			// decodeURIComponent throws on invalid percent-escapes like %ZZ
-			// or a truncated %C3. Our own writes go through encodeURIComponent
-			// so they're always valid, but document.cookie also surfaces
-			// cookies set by the server, extensions, and other scripts that
-			// may not encode correctly. Skip the broken entry instead of
-			// letting one bad cookie crash the whole parse.
-		}
+		const [key, value] = tryParseValue(entry, eq)
+		if (key !== undefined) result.set(key, value)
 	}
 
 	return result
+}
+
+/**
+ * `decodeURIComponent` throws on invalid percent-escapes
+ * like `%ZZ` or a truncated `%C3`. \
+ * Our own writes go through `encodeURIComponent` so they're always valid,
+ * but document.cookie also surfaces cookies set
+ * by the server, extensions, and other scripts that may not encode correctly.
+ *
+ * Skip the broken entry instead of letting one bad cookie crash the whole parse.
+ */
+function tryParseValue(entry: string, eq: number) {
+	try {
+		const name = decodeURIComponent(entry.slice(0, eq))
+		const value = decodeURIComponent(entry.slice(eq + 1))
+		return [name, value] as [key: string, value: string]
+	}
+	catch {
+		return [] as never[]
+	}
 }
