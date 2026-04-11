@@ -1,7 +1,7 @@
 /**
  * JSON helpers for cookie values.
  *
- * Cookies are an untrusted channel — any script on the origin (and the
+ * Local storage is an untrusted channel — any script on the origin (and the
  * server, and potentially other tabs) can set them. When we parse a value
  * back into an object, a malicious payload such as
  * `{"__proto__":{"polluted":true}}` would normally land on the returned
@@ -35,8 +35,8 @@ export function safeJsonParse<T>(raw: string): T | undefined {
 }
 
 /**
- * Serialise a value for storage in a cookie. Thin wrapper around
- * `JSON.stringify` — exposed so the serialisation point is explicit and
+ * Serialize a value for storage in a cookie. Thin wrapper around
+ * `JSON.stringify` — exposed so the serialization point is explicit and
  * easy to swap in tests.
  */
 export function jsonStringify(value: unknown): string {
