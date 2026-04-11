@@ -5,7 +5,22 @@
 ```ts
 
 // @public
-export function createStore<TState extends StateType | Array<StateType>>(initial: TState): Store<TState>;
+export function createStore<T extends StateType | Array<StateType>>(): Store<T | undefined>;
+
+// @public (undocumented)
+export function createStore(initial: boolean): Store<boolean>;
+
+// @public (undocumented)
+export function createStore(initial: number): Store<number>;
+
+// @public (undocumented)
+export function createStore(initial: string): Store<string>;
+
+// @public (undocumented)
+export function createStore(initial: bigint): Store<bigint>;
+
+// @public (undocumented)
+export function createStore<T extends StateType | Array<StateType>>(initial: T): Store<T>;
 
 // @public
 export type Store<TState extends StateType | Array<StateType>> = {
