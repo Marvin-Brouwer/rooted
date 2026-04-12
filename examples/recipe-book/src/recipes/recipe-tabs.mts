@@ -143,8 +143,9 @@ export const RecipeTabs = component<RecipeTabsOptions>({
 			...panels,
 		)
 
-		if (sessionStorage.get<boolean>('focus-tab')) {
-			buttons[activeIndex]?.focus()
+		const autofocus = sessionStorage.get<boolean>('focus-tab')
+		if (autofocus !== undefined) {
+			if (autofocus) buttons[activeIndex]?.focus()
 			sessionStorage.removeItem('focus-tab')
 		}
 	},
