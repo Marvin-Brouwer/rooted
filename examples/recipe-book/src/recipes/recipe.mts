@@ -4,6 +4,7 @@ import { href, Link } from '@rooted/router'
 import { type RecipeData as DataRecipe, recipeData } from '../_shared/data/data.mts'
 import { CategoriesRoute, CategoryRoute } from '../categories/_routes.mts'
 
+import { RecipeIngredientsRoute, RecipeInstructionsRoute } from './_routes.mts'
 import { IngredientsList } from './ingredients-list.mts'
 import { RecipeTabs } from './recipe-tabs.mts'
 import styles from './recipe.css'
@@ -51,16 +52,19 @@ export const Recipe = component<RecipeOptions>({
 			}),
 
 			create(RecipeTabs, {
+				recipeId: options.id,
 				tabs: [
-					{
-						id: 'ingredients',
-						label: 'Ingredients',
-						panel: create(IngredientsList, { groups: recipe.ingredients }),
-					},
 					{
 						id: 'instructions',
 						label: 'Instructions',
 						panel: instructionsPanel,
+						route: RecipeInstructionsRoute,
+					},
+					{
+						id: 'ingredients',
+						label: 'Ingredients',
+						panel: create(IngredientsList, { groups: recipe.ingredients }),
+						route: RecipeIngredientsRoute,
 					},
 				],
 			}),

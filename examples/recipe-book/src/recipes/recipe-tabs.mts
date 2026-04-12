@@ -1,5 +1,7 @@
 import { component } from '@rooted/components'
 import { TargetedEvent } from '@rooted/components/events'
+import { AnyRoute, href, navigate } from '@rooted/router'
+import { sessionStorage } from '@rooted/storage/web'
 
 import styles from './recipe-tabs.css'
 
@@ -12,12 +14,13 @@ export type RecipeTab = {
 	id: string
 	label: string
 	panel: Node
+	// TODO EmptyRoute
+	route: AnyRoute
 }
 
 export type RecipeTabsOptions = {
+	recipeId: number
 	tabs: RecipeTab[]
-	/** Which tab id is visible on first mount. Defaults to the first tab. */
-	initial?: string
 }
 
 let tabGroupId = 0
@@ -35,8 +38,8 @@ let tabGroupId = 0
  * ```ts
  * create(RecipeTabs, {
  *   tabs: [
- *     { id: 'ingredients',  label: 'Ingredients',  panel: ingredientsNode },
  *     { id: 'instructions', label: 'Instructions', panel: instructionsNode },
+ *     { id: 'ingredients',  label: 'Ingredients',  panel: ingredientsNode },
  *   ],
  * })
  * ```
@@ -44,27 +47,29 @@ let tabGroupId = 0
 export const RecipeTabs = component<RecipeTabsOptions>({
 	name: 'recipe-tabs',
 	styles,
-	onMount({ append, element, options }) {
+	async onMount({ append, element, options }) {
 		const { tabs } = options
 		if (tabs.length === 0) return
 
 		const groupId = `recipe-tabs-${++tabGroupId}`
-		const requestedIndex = options.initial
-			? tabs.findIndex(tab => tab.id === options.initial)
-			: 0
-		let activeIndex = Math.max(0, requestedIndex)
+
+		const activeTab = await findActiveTab(options.tabs)
+		const activeIndex = options.tabs.indexOf(activeTab)
 
 		const buttons: HTMLButtonElement[] = []
 		const panels: HTMLDivElement[] = []
 
 		function setActive(nextIndex: number, focus = false) {
-			activeIndex = nextIndex
+			// keep focus state after navigate
+			sessionStorage.set('focus-tab', focus)
+			const newTab = options.tabs[nextIndex]
 			for (const [index, button] of buttons.entries()) {
 				const selected = index === activeIndex
 				button.ariaSelected = selected ? 'true' : 'false'
 				button.tabIndex = selected ? 0 : -1
 				panels[index].hidden = !selected
 			}
+			navigate(href.for(newTab.route, { id: options.recipeId }))
 			if (focus) buttons[activeIndex]?.focus()
 		}
 
@@ -137,5 +142,19 @@ export const RecipeTabs = component<RecipeTabsOptions>({
 			}),
 			...panels,
 		)
+
+		if (sessionStorage.get<boolean>('focus-tab')) {
+			buttons[activeIndex]?.focus()
+			sessionStorage.removeItem('focus-tab')
+		}
 	},
 })
+
+async function findActiveTab(tabs: RecipeTab[]) {
+	for (const tab of tabs) {
+		const routeMatch = await tab.route.match()
+		if (routeMatch.success) return tab
+	}
+
+	return tabs[0]
+}

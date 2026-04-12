@@ -16,6 +16,7 @@
 	"dependencies": {
 		"@rooted/components": "workspace:^",
 		"@rooted/router": "workspace:^",
+		"@rooted/storage": "workspace:^",
 		"@rooted/store": "workspace:^"
 	},
 	"devDependencies": {
