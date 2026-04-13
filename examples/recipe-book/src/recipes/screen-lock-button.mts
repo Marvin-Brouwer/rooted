@@ -1,5 +1,7 @@
 import { component } from '@rooted/components'
 
+import { announceToScreenReader } from '../_shared/a11y/announcer.mts'
+
 import styles from './screen-lock-button.css'
 import activeSvg from './screen-lock-button.icon-active.svg?no-inline'
 import inactiveSvg from './screen-lock-button.icon-inactive.svg?no-inline'
@@ -72,7 +74,12 @@ export const ScreenLockButton = component({
 
 		// signal aborts when the component unmounts (SPA route change),
 		// which is the correct teardown hook — window unload does not fire for route changes
-		signal.addEventListener('abort', () => void release())
+		signal.addEventListener('abort', () => {
+			if (!locked) return void release()
+
+			announceToScreenReader('Sleep lock disabled')
+			void release()
+		})
 
 		// Re-acquire if the page regains visibility and the lock was lost
 		on('document', 'visibilitychange', () => {
