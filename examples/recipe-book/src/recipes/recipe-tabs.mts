@@ -4,6 +4,7 @@ import { AnyRoute, href, navigate } from '@rooted/router'
 import { sessionStorage } from '@rooted/storage/web'
 
 import styles from './recipe-tabs.css'
+import { ScreenLockButton } from './screen-lock-button.mts'
 
 /**
  * A tab in a {@link RecipeTabs} group.
@@ -47,7 +48,7 @@ let tabGroupId = 0
 export const RecipeTabs = component<RecipeTabsOptions>({
 	name: 'recipe-tabs',
 	styles,
-	async onMount({ append, element, options }) {
+	async onMount({ append, element, create, options }) {
 		const { tabs } = options
 		if (tabs.length === 0) return
 
@@ -138,7 +139,7 @@ export const RecipeTabs = component<RecipeTabsOptions>({
 			element('div', {
 				classes: styles.tablist,
 				role: 'tablist',
-				children: buttons,
+				children: [...buttons, create(ScreenLockButton)],
 			}),
 			...panels,
 		)

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 30 25"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="screen-lock-button.icon-inactive.original.svg"
+   width="30"
+   height="25"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#00000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showguides="true"
+     inkscape:zoom="16"
+     inkscape:cx="3.75"
+     inkscape:cy="1.71875"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g7-1" />
+  <g
+     id="img"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.5"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     transform="translate(-0.4015211,-0.74604533)">
+    <!-- Phone body (landscape) -->
+    <!-- Left strip divider -->
+    <g
+       id="g7-1"
+       inkscape:label="Phone"
+       transform="translate(3.3646717,1.3458687)">
+      <path
+         id="rect1-5"
+         style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;fill:currentColor;stroke:none;stroke-linecap:butt;stroke-linejoin:miter;enable-background:accumulate;stop-color:currentColor;stop-opacity:1"
+         d="M 2.99974 4.249786 C 1.4892129 4.249786 0.24974002 5.489259 0.24974002 6.999786 L 0.24974002 16.999786 C 0.24974003 18.510313 1.4892129 19.749786 2.99974 19.749786 L 20.810287 19.749786 C 20.9006 19.749786 20.98975 19.744749 21.077865 19.736114 C 21.117965 19.732172 21.157412 19.724206 21.197006 19.718536 C 21.252459 19.710608 21.308657 19.704374 21.363021 19.693145 C 21.452049 19.674757 21.53898 19.651661 21.62474 19.624786 C 21.626714 19.624167 21.628627 19.623456 21.630599 19.622833 C 21.699455 19.601082 21.767237 19.577527 21.833724 19.550567 C 21.833589 19.549941 21.833858 19.549241 21.833724 19.548614 C 22.827926 19.14514 23.538914 18.17547 23.558334 17.046661 C 23.558345 17.046005 23.558323 17.045364 23.558334 17.044708 C 23.560344 17.031243 23.560287 17.016045 23.560287 16.999786 L 23.560287 6.999786 C 23.560287 6.9846056 23.558583 6.9699888 23.558334 6.9548641 C 23.558237 6.9542168 23.558435 6.9535522 23.558334 6.952911 C 23.538914 5.824102 22.827926 4.8544323 21.833724 4.4509579 C 21.833858 4.450331 21.833589 4.4496314 21.833724 4.4490048 C 21.767237 4.4220454 21.699455 4.3984899 21.630599 4.3767391 C 21.628627 4.3761161 21.626714 4.3754046 21.62474 4.374786 C 21.53898 4.3479106 21.452049 4.3248154 21.363021 4.3064266 C 21.308657 4.2951977 21.252459 4.2889635 21.197006 4.281036 C 21.157412 4.2753655 21.117965 4.2674004 21.077865 4.2634579 C 20.98975 4.2548231 20.9006 4.249786 20.810287 4.249786 L 2.99974 4.249786 z M 2.99974 5.749786 L 20.810287 5.749786 C 21.51576 5.749786 22.060287 6.294313 22.060287 6.999786 L 22.060287 16.999786 C 22.060287 17.705259 21.51576 18.249786 20.810287 18.249786 L 2.99974 18.249786 C 2.2942671 18.249786 1.74974 17.705259 1.74974 16.999786 L 1.74974 6.999786 C 1.74974 6.9556939 1.7514389 6.9116676 1.7555994 6.8689266 C 1.8180065 6.2278113 2.3383592 5.749786 2.99974 5.749786 z " />
+      <path
+         id="rect1-5-9"
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill:none;stroke:none;stroke-linecap:butt;stroke-linejoin:miter;enable-background:accumulate;stop-color:currentColor"
+         d="M 22.060548 8.2753909 L 22.060547 17 C 22.060547 17.705473 21.51602 18.25 20.810547 18.25 L 3 18.25 C 2.2945271 18.25 1.75 17.705473 1.75 17 L 1.75 7 C 1.75 6.2945271 2.2945271 5.75 3 5.75 L 3 5.75 L 19.160157 5.75 " />
+      <path
+         id="path4"
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill:none;stroke:none;stroke-linecap:butt;stroke-linejoin:miter;enable-background:accumulate;stop-color:currentColor"
+         d="M 19.160157 5.75 L 20.810547 5.75 C 21.51602 5.75 22.060547 6.2945271 22.060547 7 L 22.060548 8.2753909 " />
+      <path
+         id="path2"
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill:none;stroke:none;stroke-linecap:butt;stroke-linejoin:miter;enable-background:accumulate;stop-color:currentColor"
+         d="M 19.160157 4.2500001 L 3 4.25 C 1.4894729 4.25 0.25 5.4894729 0.25 7 L 0.25 17 C 0.25 18.510527 1.4894729 19.75 3 19.75 L 20.810547 19.75 C 22.321074 19.75 23.560547 18.510527 23.560547 17 L 23.560547 8.2753904 " />
+      <path
+         id="path1"
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill:none;stroke:none;stroke-linecap:butt;stroke-linejoin:miter;enable-background:accumulate;stop-color:currentColor"
+         d="M 23.560547 8.2753904 L 23.560547 7 C 23.560547 6.5963143 23.719115 7.3464829 23.560547 7 L 23.038256 7.4065404 C 23.038256 7.4065404 23.30593 7.4065404 23.038256 7.4065404 C 22.770583 7.4065404 21.90426 7.2173101 22.060547 7 C 23.045827 5.6300097 22.62916 5.213343 20.810547 5.75 C 20.479199 5.56435 21.809554 5.0555919 21.810547 4.6757812 C 21.810096 4.5996332 21.817947 4.5236624 21.833987 4.4492188 C 21.516986 4.3206812 21.171798 4.25 20.810547 4.25 L 19.160157 4.2500001 " />
+      <line
+         x1="5"
+         y1="5"
+         x2="5"
+         y2="19"
+         id="line1-2" />
+    </g>
+    <!-- ZZZ (small to large, bottom-left to top-right) -->
+    <g
+       id="g6"
+       inkscape:label="Zs"
+       transform="translate(3.0648622,0.77275772)">
+      <path
+         d="M 8.7125154,8.2664189 H 12.228007 L 8.7125154,10.610079 h 3.5154916"
+         id="path3"
+         style="stroke-width:1.75774" />
+      <path
+         d="m 12.205083,12.573111 h 2.79306 l -2.79306,1.740188 h 2.79306"
+         id="path3-4"
+         style="stroke-width:1.35006" />
+      <path
+         d="m 16.517968,15.331025 h 1.229246 l -1.229246,0.76587 h 1.229246"
+         id="path3-4-8"
+         style="display:inline;fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.594171;stroke-opacity:0.759214" />
+    </g>
+  </g>
+</svg>
