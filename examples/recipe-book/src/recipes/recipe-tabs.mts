@@ -61,16 +61,16 @@ export const RecipeTabs = component<RecipeTabsOptions>({
 
 		function setActive(nextIndex: number, focus = false) {
 			// keep focus state after navigate
-			sessionStorage.set('focus-tab', focus)
+			sessionStorage.set('recipe-tabs/focus-tab', focus)
 			const newTab = options.tabs[nextIndex]
 			for (const [index, button] of buttons.entries()) {
-				const selected = index === activeIndex
+				const selected = index === nextIndex
 				button.ariaSelected = selected ? 'true' : 'false'
 				button.tabIndex = selected ? 0 : -1
 				panels[index].hidden = !selected
 			}
 			navigate(href.for(newTab.route, { id: options.recipeId }))
-			if (focus) buttons[activeIndex]?.focus()
+			if (focus) buttons[nextIndex]?.focus()
 		}
 
 		function handleKeydown(event: TargetedEvent<KeyboardEvent, HTMLButtonElement>) {
@@ -143,10 +143,10 @@ export const RecipeTabs = component<RecipeTabsOptions>({
 			...panels,
 		)
 
-		const autofocus = sessionStorage.get<boolean>('focus-tab')
+		const autofocus = sessionStorage.get<boolean>('recipe-tabs/focus-tab')
 		if (autofocus !== undefined) {
 			if (autofocus) buttons[activeIndex]?.focus()
-			sessionStorage.removeItem('focus-tab')
+			sessionStorage.removeItem('recipe-tabs/focus-tab')
 		}
 	},
 })

@@ -34,7 +34,7 @@ export const lintTs = defineConfig([
 			parserOptions: {
 				projectService: {
 					allowDefaultProject: ['packages/*/tests/*.ts'],
-					maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 20,
+					maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 30,
 				},
 				tsconfigRootDir: import.meta.dirname,
 			},
