@@ -10,7 +10,7 @@ import { ElementOnHandlers } from '@rooted/events';
 export type Aria = AriaStringProperties & AriaIdReferenceProperties;
 
 // @public (undocumented)
-export function createElementFactory(constructElement: ElementCreator, signal: AbortSignal): <KElement extends keyof HTMLElementTagNameMap>(tag: KElement, properties?: NoInfer<HtmlElementProperties<KElement>>) => HTMLElementTagNameMap[KElement];
+export function createElementFactory(constructElement: ElementCreator, signal: AbortSignal): ElementCreatorFunction;
 
 // @public
 export type CssClass = string | undefined | null;
@@ -31,10 +31,32 @@ export function cssClass(className: CssClass, visible: boolean | null | undefine
 export type CssClasses = Array<CssClass> | CssClass;
 
 // @public (undocumented)
-export type ElementCreator = (key: string) => HTMLElement;
+export type ElementCreator = (key: string, ns?: string) => Element;
 
 // @public (undocumented)
-export type ElementFactory = ReturnType<typeof createElementFactory>;
+export type InlineStyle = { [K in keyof CSSStyleDeclaration as CSSStyleDeclaration[K] extends string ? K : never]?: string };
+
+// @public
+export interface ElementCreatorFunction {
+    (tag: 'svg', properties?: SvgElementProperties<'svg'>): SVGSVGElement;
+    <K extends Exclude<SvgTagName, 'svg'>>(tag: K, properties?: SvgElementProperties<K>): SvgTagElement<K>;
+    <K extends keyof HTMLElementTagNameMap>(tag: K, properties?: NoInfer<HtmlElementProperties<K>>): HTMLElementTagNameMap[K];
+}
+
+// @public (undocumented)
+export type ElementFactory = ElementCreatorFunction;
+
+// @public (undocumented)
+export type HtmlElementProperties<KElement extends keyof HTMLElementTagNameMap> = HtmlElementPropertiesMapped<HTMLElementTagNameMap[KElement]>;
+
+// @public (undocumented)
+export type SvgElementProperties<K extends SvgTagName> = SvgElementPropertiesMapped<SvgTagElement<K> & SVGElement>;
+
+// @public (undocumented)
+export type SvgTagElement<T extends SvgTagName> = T extends 'svg' ? SVGSVGElement : T extends `svg:${infer K extends keyof SVGElementTagNameMap}` ? SVGElementTagNameMap[K] : never;
+
+// @public (undocumented)
+export type SvgTagName = 'svg' | `svg:${Exclude<keyof SVGElementTagNameMap, 'svg'>}`;
 
 // (No @packageDocumentation comment for this package)
 
