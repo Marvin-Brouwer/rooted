@@ -24,19 +24,47 @@ export const ScreenLockButton = component({
 		let wakeLock: WakeLockSentinel | undefined
 		let locked = false
 
-		const activeIcon = svgIcon(activeSvg)
-		activeIcon.style.display = 'none'
-		const inactiveIcon = svgIcon(inactiveSvg)
-
-		const label = element('span', { classes: styles.label, textContent: 'Sleep lock' })
-
-		const button = element('button', {
-			type: 'button',
-			classes: styles.button,
-			aria: { pressed: 'false' },
-			on: { click: handleClick },
-			children: [activeIcon, inactiveIcon, label] as unknown as Node,
+		const activeIcon = element('svg:use', {
+			href: activeSvg,
+			style: {
+				display: 'none',
+			},
 		})
+		const inactiveIcon = element('svg:use', {
+			href: inactiveSvg,
+		})
+
+		const button = append(
+			element('button', {
+				type: 'button',
+				classes: styles.button,
+				aria: {
+					pressed: 'false',
+				},
+				on: {
+					click: handleClick,
+				},
+				children: [
+					element('svg', {
+						width: '24',
+						height: '24',
+						viewBox: '0 0 24 24',
+						aria: {
+							hidden: 'true',
+						},
+						classes: styles.icon,
+						children: [
+							activeIcon,
+							inactiveIcon,
+						],
+					}),
+					element('span', {
+						classes: styles.label,
+						textContent: 'Sleep lock',
+					}),
+				],
+			}),
+		)
 
 		function updateButton() {
 			activeIcon.style.display = locked ? '' : 'none'
@@ -87,24 +115,5 @@ export const ScreenLockButton = component({
 				void acquire()
 			}
 		})
-
-		append(button)
 	},
 })
-
-function svgUse(url: string) {
-	const use = document.createElementNS('http://www.w3.org/2000/svg', 'use')
-	use.setAttribute('href', url)
-	return use
-}
-
-function svgIcon(url: string) {
-	const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-	svg.setAttribute('width', '24')
-	svg.setAttribute('height', '24')
-	svg.setAttribute('viewBox', '0 0 24 24')
-	svg.setAttribute('aria-hidden', 'true')
-	svg.classList.add(styles.icon!.toString())
-	svg.append(svgUse(url))
-	return svg
-}
