@@ -109,8 +109,8 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
       '@varlock/vite-integration':
-        specifier: ^0.2.9
-        version: 0.2.9(varlock@0.7.4)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0))
+        specifier: ^0.2.10
+        version: 0.2.10(varlock@0.7.4)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0))
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -2328,11 +2328,11 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@varlock/vite-integration@0.2.9':
-    resolution: {integrity: sha512-QnsQqJpqXK2N3DrlyZ1KRpKsdRvn9Q32Tr/UbCTTCR/rnhs1yyS9/35TuUfKWWM4vBVMcOy9zVmjvlTnm3+7SA==}
+  '@varlock/vite-integration@0.2.10':
+    resolution: {integrity: sha512-awd2fSWA/p/kR6eqX4+qCiVqVHhnMt01sjHCIBcuNq7qyTmyaet+9MSdPHd8TykeiectJhGPodzMj4Zw6cy8gA==}
     engines: {node: '>=22'}
     peerDependencies:
-      varlock: ^0.7.1
+      varlock: ^0.7.2
       vite: '>=5'
 
   '@vite-pwa/assets-generator@1.0.2':
@@ -7514,7 +7514,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@varlock/vite-integration@0.2.9(varlock@0.7.4)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0))':
+  '@varlock/vite-integration@0.2.10(varlock@0.7.4)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0))':
     dependencies:
       varlock: 0.7.4
       vite: 8.0.8(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0)
