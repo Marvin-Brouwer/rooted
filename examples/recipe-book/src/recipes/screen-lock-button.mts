@@ -22,8 +22,9 @@ export const ScreenLockButton = component({
 		let wakeLock: WakeLockSentinel | undefined
 		let locked = false
 
-		const icon = svgIcon(inactiveSvg)
-		if (styles.icon) icon.classList.add(styles.icon)
+		const activeIcon = svgIcon(activeSvg)
+		activeIcon.style.display = 'none'
+		const inactiveIcon = svgIcon(inactiveSvg)
 
 		const label = element('span', { classes: styles.label, textContent: 'Sleep lock' })
 
@@ -32,11 +33,12 @@ export const ScreenLockButton = component({
 			classes: styles.button,
 			aria: { pressed: 'false' },
 			on: { click: handleClick },
-			children: [icon, label] as unknown as Node,
+			children: [activeIcon, inactiveIcon, label] as unknown as Node,
 		})
 
 		function updateButton() {
-			icon.replaceChildren(svgUse(locked ? activeSvg : inactiveSvg))
+			activeIcon.style.display = locked ? '' : 'none'
+			inactiveIcon.style.display = locked ? 'none' : ''
 			button.ariaPressed = locked ? 'true' : 'false'
 			button.ariaLabel = locked ? 'Sleep lock on: screen will stay on' : 'Sleep lock off: screen may turn off automatically'
 		}
@@ -95,6 +97,7 @@ function svgIcon(url: string) {
 	svg.setAttribute('height', '24')
 	svg.setAttribute('viewBox', '0 0 24 24')
 	svg.setAttribute('aria-hidden', 'true')
+	svg.classList.add(styles.icon!.toString())
 	svg.append(svgUse(url))
 	return svg
 }
