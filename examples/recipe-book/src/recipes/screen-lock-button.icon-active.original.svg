@@ -24,7 +24,7 @@
      inkscape:deskcolor="#d1d1d1"
      showguides="true"
      inkscape:zoom="11.888233"
-     inkscape:cx="-17.538351"
+     inkscape:cx="2.6496789"
      inkscape:cy="0.29440877"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
@@ -59,23 +59,6 @@
          id="line1-2" />
     </g>
     <!-- ZZZ (small to large, bottom-left to top-right) -->
-    <g
-       id="g6"
-       inkscape:label="Zs"
-       transform="translate(3.0648622,0.77275772)">
-      <path
-         d="M 8.7125154,8.2664189 H 12.228007 L 8.7125154,10.610079 h 3.5154916"
-         id="path3"
-         style="stroke-width:1.75774" />
-      <path
-         d="m 12.205083,12.573111 h 2.79306 l -2.79306,1.740188 h 2.79306"
-         id="path3-4"
-         style="stroke-width:1.35006" />
-      <path
-         d="m 16.517968,15.331025 h 1.229246 l -1.229246,0.76587 h 1.229246"
-         id="path3-4-8"
-         style="display:inline;fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.594171;stroke-opacity:0.759214" />
-    </g>
     <!-- Padlock overlapping top-right corner -->
     <g
        id="g5"
@@ -89,6 +72,19 @@
          d="M 20.621494,1.4611598 V 0.09627563 q 1.819026,-1.47862463 3.638052,0 V 1.4611598"
          id="path4"
          style="stroke-width:1.24568" />
+    </g>
+    <g
+       id="g6"
+       inkscape:label="Zs"
+       transform="matrix(1.3453593,0,0,1.3453593,0.35944001,-1.7786009)">
+      <path
+         d="M 8.7125154,8.2664189 H 12.228007 L 8.7125154,10.610079 h 3.5154916"
+         id="path3"
+         style="stroke-width:1.75774" />
+      <path
+         d="m 12.205083,12.573111 h 2.79306 l -2.79306,1.740188 h 2.79306"
+         id="path3-4"
+         style="fill:none;stroke:currentColor;stroke-width:1.35006;stroke-opacity:0.7" />
     </g>
   </g>
 </svg>

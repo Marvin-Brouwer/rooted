@@ -14,10 +14,9 @@
    <line x1="5" x2="5" y1="5" y2="19"/>
   </g>
   <!-- ZZZ (small to large, bottom-left to top-right) -->
-  <g transform="translate(3.0649 .77276)">
+  <g transform="matrix(1.3454 0 0 1.3454 .35944 -1.7786)">
    <path d="m8.7125 8.2664h3.5155l-3.5155 2.3437h3.5155" stroke-width="1.7577"/>
-   <path d="m12.205 12.573h2.7931l-2.7931 1.7402h2.7931" stroke-width="1.3501"/>
-   <path d="m16.518 15.331h1.2292l-1.2292 0.76587h1.2292" fill="none" stroke="currentColor" stroke-opacity=".75921" stroke-width=".59417"/>
+   <path d="m12.205 12.573h2.7931l-2.7931 1.7402h2.7931" fill="none" stroke="currentColor" stroke-opacity=".7" stroke-width="1.3501"/>
   </g>
  </g>
 </svg>
