@@ -63,7 +63,7 @@ export const Recipe = component<RecipeOptions>({
 					{
 						id: 'ingredients',
 						label: 'Ingredients',
-						panel: create(IngredientsList, { groups: recipe.ingredients }),
+						panel: create(IngredientsList, { recipe }),
 						route: RecipeIngredientsRoute,
 					},
 				],

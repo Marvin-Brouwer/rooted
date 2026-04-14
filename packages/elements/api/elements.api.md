@@ -33,13 +33,13 @@ export type CssClasses = Array<CssClass> | CssClass;
 // @public (undocumented)
 export type ElementCreator = (key: string, ns?: string) => Element;
 
-// @public (undocumented)
-export type InlineStyle = { [K in keyof CSSStyleDeclaration as CSSStyleDeclaration[K] extends string ? K : never]?: string };
-
 // @public
 export interface ElementCreatorFunction {
+    // (undocumented)
     (tag: 'svg', properties?: SvgElementProperties<'svg'>): SVGSVGElement;
+    // (undocumented)
     <K extends Exclude<SvgTagName, 'svg'>>(tag: K, properties?: SvgElementProperties<K>): SvgTagElement<K>;
+    // (undocumented)
     <K extends keyof HTMLElementTagNameMap>(tag: K, properties?: NoInfer<HtmlElementProperties<K>>): HTMLElementTagNameMap[K];
 }
 
