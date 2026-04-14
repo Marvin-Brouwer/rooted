@@ -25,13 +25,13 @@ export const ScreenLockButton = component({
 		let locked = false
 
 		const activeIcon = element('svg:use', {
-			href: activeSvg,
+			href: `${activeSvg}#img`,
 			style: {
 				display: 'none',
 			},
 		})
 		const inactiveIcon = element('svg:use', {
-			href: inactiveSvg,
+			href: `${inactiveSvg}#img`,
 		})
 
 		const button = append(
