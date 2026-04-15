@@ -103,8 +103,9 @@ export const recipeData = {
 	 * This is just to illustrate only loading what you need. See it as a stored procedure.
 	 */
 	listFeatured() {
-		return Promise.all(
-			REGISTRY.filter(e => e.featured).map(e => loadById(e.id)),
+		return Promise.all(REGISTRY
+			.filter(recipe => recipe.featured)
+			.map(recipe => loadById(recipe.id)),
 		) as Promise<RecipeData[]>
 	},
 
