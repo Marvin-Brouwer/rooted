@@ -1,19 +1,20 @@
 .stepper {
-	display: inline-flex;
+	display: inline-grid;
+	grid-template-areas: "reset decrease count increase";
+	grid-template-columns: auto auto auto auto;
 	align-items: center;
-	gap: 0.25rem;
 	margin-bottom: 1rem;
 	border: 1px solid var(--color-border);
-	border-radius: 20px;
-	padding: 0.2rem 0.4rem;
+	border-radius: 8px;
+	overflow: hidden;
 	font-size: 0.85rem;
 	color: var(--color-text-muted);
 }
 
-.count {
-	min-width: 6ch;
-	text-align: center;
-}
+.reset-btn { grid-area: reset; }
+.decrease  { grid-area: decrease; }
+.count     { grid-area: count; }
+.increase  { grid-area: increase; }
 
 .btn {
 	background: transparent;
@@ -21,9 +22,8 @@
 	cursor: pointer;
 	color: var(--color-primary);
 	font-size: 1.1rem;
-	line-height: 1.1;
-	padding: 0 0.3rem;
-	border-radius: 4px;
+	line-height: 1;
+	padding: 0.3rem 0.55rem;
 	user-select: none;
 }
 
@@ -37,24 +37,60 @@
 }
 
 .reset-btn {
-	background: transparent;
-	border: none;
-	cursor: pointer;
 	color: var(--color-text-muted);
 	font-size: 0.9rem;
-	line-height: 1;
-	padding: 0 0.2rem;
-	border-radius: 4px;
+	padding: 0.3rem 0.45rem;
 	opacity: 0.7;
-	user-select: none;
 }
 
 .reset-btn:hover:not(:disabled) {
-	background: var(--color-border);
 	opacity: 1;
 }
 
 .reset-btn:disabled {
 	opacity: 0.25;
-	cursor: default;
+}
+
+.count {
+	min-width: 6ch;
+	text-align: center;
+	padding: 0.3rem 0.6rem;
+}
+
+.decrease,
+.count,
+.increase {
+	border-left: 1px solid var(--color-border);
+}
+
+@media (max-width: 640px) {
+	.stepper {
+		display: grid;
+		width: 100%;
+		grid-template-areas: "count reset decrease increase";
+		grid-template-columns: 1fr auto auto auto;
+	}
+
+	.count {
+		min-width: unset;
+		text-align: left;
+		border-left: none;
+	}
+
+	.decrease {
+		border-left: none;
+	}
+
+	.reset-btn,
+	.btn {
+		border-left: 1px solid var(--color-border);
+		padding: 0.7rem 1rem;
+		min-height: 44px;
+		min-width: 44px;
+		font-size: 1.2rem;
+	}
+
+	.reset-btn {
+		font-size: 1rem;
+	}
 }

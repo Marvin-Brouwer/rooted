@@ -32,7 +32,7 @@ export const ServingStepper = component<ServingStepperOptions>({
 
 		const resetButton = element('button', {
 			type: 'button',
-			classes: styles.resetBtn,
+			classes: [styles.btn, styles.resetBtn],
 			textContent: '↺',
 			disabled: servingsStore.value === baseServings,
 			aria: { label: `Reset to ${servingLabel(baseServings)}` },
@@ -46,7 +46,7 @@ export const ServingStepper = component<ServingStepperOptions>({
 
 		const decreaseButton = element('button', {
 			type: 'button',
-			classes: styles.btn,
+			classes: [styles.btn, styles.decrease],
 			textContent: '−',
 			disabled: servingsStore.value === 1,
 			aria: { label: 'Decrease servings' },
@@ -62,7 +62,7 @@ export const ServingStepper = component<ServingStepperOptions>({
 
 		const increaseButton = element('button', {
 			type: 'button',
-			classes: styles.btn,
+			classes: [styles.btn, styles.increase],
 			textContent: '+',
 			aria: { label: 'Increase servings' },
 			title: 'Increase servings',
@@ -133,5 +133,7 @@ function addHoldRepeat(button: HTMLButtonElement, action: () => void, signal: Ab
 
 	button.addEventListener('pointerup', stop, { signal })
 	button.addEventListener('pointercancel', stop, { signal })
-	button.addEventListener('contextmenu', (event) => { event.preventDefault() }, { signal })
+	button.addEventListener('contextmenu', (event) => {
+		event.preventDefault()
+	}, { signal })
 }
