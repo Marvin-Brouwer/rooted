@@ -24,6 +24,7 @@
 	line-height: 1.1;
 	padding: 0 0.3rem;
 	border-radius: 4px;
+	user-select: none;
 }
 
 .btn:hover:not(:disabled) {
@@ -45,6 +46,7 @@
 	padding: 0 0.2rem;
 	border-radius: 4px;
 	opacity: 0.7;
+	user-select: none;
 }
 
 .reset-btn:hover:not(:disabled) {

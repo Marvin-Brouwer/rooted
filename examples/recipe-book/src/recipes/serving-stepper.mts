@@ -36,6 +36,7 @@ export const ServingStepper = component<ServingStepperOptions>({
 			textContent: '↺',
 			disabled: servingsStore.value === baseServings,
 			aria: { label: `Reset to ${servingLabel(baseServings)}` },
+			title: `Reset to ${servingLabel(baseServings)}`,
 			on: {
 				click() {
 					servingsStore.update(() => baseServings)
@@ -49,12 +50,9 @@ export const ServingStepper = component<ServingStepperOptions>({
 			textContent: '−',
 			disabled: servingsStore.value === 1,
 			aria: { label: 'Decrease servings' },
-			on: {
-				click() {
-					servingsStore.update(n => Math.max(1, n - 1))
-				},
-			},
+			title: 'Decrease servings',
 		})
+		addHoldRepeat(decreaseButton, () => servingsStore.update(n => Math.max(1, n - 1)), signal)
 
 		const countSpan = element('span', {
 			classes: styles.count,
@@ -67,12 +65,9 @@ export const ServingStepper = component<ServingStepperOptions>({
 			classes: styles.btn,
 			textContent: '+',
 			aria: { label: 'Increase servings' },
-			on: {
-				click() {
-					servingsStore.update(n => n + 1)
-				},
-			},
+			title: 'Increase servings',
 		})
+		addHoldRepeat(increaseButton, () => servingsStore.update(n => n + 1), signal)
 
 		append(
 			element('div', {
@@ -90,7 +85,8 @@ export const ServingStepper = component<ServingStepperOptions>({
 			resetButton.disabled = current === baseServings
 			if (current === baseServings) {
 				localStorage.removeItem(servingsKey)
-			} else {
+			}
+			else {
 				localStorage.set(servingsKey, current)
 			}
 		})
@@ -99,4 +95,43 @@ export const ServingStepper = component<ServingStepperOptions>({
 
 function servingLabel(n: number): string {
 	return `${n} serving${n === 1 ? '' : 's'}`
+}
+
+/**
+ * Adds hold-to-repeat behavior to a button.
+ *
+ * - Pointer (mouse / touch): fires action immediately on pointerdown, then
+ *   repeats every 80 ms after a 500 ms hold delay.
+ * - Keyboard (Enter / Space): fires action once on click (detail === 0).
+ *
+ * Pointer capture keeps the repeat running even if the pointer drifts off
+ * the button. All listeners are removed when signal aborts.
+ */
+function addHoldRepeat(button: HTMLButtonElement, action: () => void, signal: AbortSignal): void {
+	let holdTimeout: ReturnType<typeof setTimeout> | undefined
+	let holdInterval: ReturnType<typeof setInterval> | undefined
+
+	function stop() {
+		clearTimeout(holdTimeout)
+		clearInterval(holdInterval)
+		holdTimeout = undefined
+		holdInterval = undefined
+	}
+
+	// Keyboard-initiated clicks (Enter / Space) have detail === 0.
+	button.addEventListener('click', (event) => {
+		if (event.detail === 0) action()
+	}, { signal })
+
+	button.addEventListener('pointerdown', (event) => {
+		button.setPointerCapture(event.pointerId)
+		action()
+		holdTimeout = setTimeout(() => {
+			holdInterval = setInterval(action, 80)
+		}, 500)
+	}, { signal })
+
+	button.addEventListener('pointerup', stop, { signal })
+	button.addEventListener('pointercancel', stop, { signal })
+	button.addEventListener('contextmenu', (event) => { event.preventDefault() }, { signal })
 }
