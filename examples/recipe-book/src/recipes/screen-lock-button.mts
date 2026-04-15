@@ -38,6 +38,7 @@ export const ScreenLockButton = component({
 			element('button', {
 				type: 'button',
 				classes: styles.button,
+				disabled: !('wakeLock' in navigator),
 				aria: {
 					pressed: 'false',
 				},
