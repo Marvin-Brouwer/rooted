@@ -13,28 +13,30 @@ description: A deeply moist date sponge drenched in butterscotch toffee sauce �
 ## Ingredients
 
 ### Sponge
-- 200g pitted dates, roughly chopped
-- 200ml boiling water
-- 1 tsp bicarbonate of soda
-- 175g self-raising flour
-- 1 tsp baking powder
-- 175g light brown sugar
-- 75g unsalted butter, softened
-- 2 large eggs
-- 1 tsp vanilla extract
+
+- `[200 g]` pitted dates, roughly chopped
+- `[200 ml]` boiling water
+- `[1 tsp]` bicarbonate of soda
+- `[175 g]` self-raising flour
+- `[1 tsp]` baking powder
+- `[175 g]` light brown sugar
+- `[75 g]` unsalted butter, softened
+- `[2]` large eggs
+- `[1 tsp]` vanilla extract
 
 ### Toffee Sauce
-- 150g unsalted butter
-- 200g light brown sugar
-- 200ml double cream
-- 1 tsp vanilla extract
+
+- `[150 g]` unsalted butter
+- `[200 g]` light brown sugar
+- `[200 ml]` double cream
+- `[1 tsp]` vanilla extract
 - Pinch of flaky salt
 
 ## Instructions
 
 ### Prep
 
-1. Preheat the oven to 180°C. Grease a 20cm square baking tin.
+1. Preheat the oven to 180°C. Grease a 20cm square baking tin per 6 servings.
 
 ### Soak the dates
 

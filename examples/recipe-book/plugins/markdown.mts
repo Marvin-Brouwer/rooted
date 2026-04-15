@@ -4,6 +4,20 @@ import { marked, type Tokens } from 'marked'
 
 import type { Plugin } from 'vite'
 
+const CODE_MEASURE = /^\[(\d+(?:\.\d+)?)\s*([a-zA-Z]+)?\]$/
+
+marked.use({
+	renderer: {
+		codespan({ text }: Tokens.Codespan): string {
+			const m = CODE_MEASURE.exec(text)
+			if (!m) return `<code>${text}</code>`
+			const [, amount, unit] = m
+			const unitAttribute = unit ? ` data-unit="${unit}"` : ''
+			return `<var data-value="${amount}"${unitAttribute}>${amount}${unit ? `\u202F${unit}` : ''}</var>`
+		},
+	},
+})
+
 const minifyOptions: MinifyOptions = {
 	collapseWhitespace: true,
 	removeComments: true,

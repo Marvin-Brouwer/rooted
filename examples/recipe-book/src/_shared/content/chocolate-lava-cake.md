@@ -12,18 +12,18 @@ description: Individual molten chocolate cakes with a warm, flowing centre — s
 
 ## Ingredients
 
-- 150g dark chocolate (70% cocoa), chopped
-- 150g unsalted butter, plus extra for greasing
-- 3 large eggs
-- 3 large egg yolks
-- 150g icing sugar, sifted
-- 60g plain flour
+- `[150 g]` dark chocolate (70% cocoa), chopped
+- `[150 g]` unsalted butter, plus extra for greasing
+- `[3]` large eggs
+- `[3]` large egg yolks
+- `[150 g]` icing sugar, sifted
+- `[60 g]` plain flour
 - Cocoa powder for dusting
 - Vanilla ice cream to serve
 
 ## Instructions
 
-1. Preheat your oven to 200°C (180°C fan). Butter four 175ml ramekins generously and dust with cocoa powder, tapping out the excess.
+1. Preheat your oven to 200°C (180°C fan). Butter one 175ml ramekin per serving generously and dust with cocoa powder, tapping out the excess.
 2. Melt the chocolate and butter together in a heatproof bowl over barely simmering water, stirring until smooth. Remove from heat and let cool slightly.
 3. Whisk the eggs, yolks, and icing sugar together in a large bowl until pale and thick, about 3 minutes.
 4. Fold the chocolate mixture into the egg mixture until just combined.

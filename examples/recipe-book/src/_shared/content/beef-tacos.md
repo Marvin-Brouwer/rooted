@@ -13,26 +13,29 @@ description: Seasoned ground beef with a zingy slaw, avocado, and pickled jalape
 ## Ingredients
 
 ### Beef
-- 500g lean ground beef
-- 1 small onion, finely diced
-- 3 cloves garlic, minced
-- 2 tsp cumin
-- 1.5 tsp smoked paprika
-- 1 tsp dried oregano
-- 0.5 tsp chilli powder (or to taste)
-- 2 tbsp tomato paste
-- 100ml beef stock
+
+- `[500 g]` lean ground beef
+- `[1]` small onion, finely diced
+- `[3]` cloves garlic, minced
+- `[2 tsp]` cumin
+- `[1.5 tsp]` smoked paprika
+- `[1 tsp]` dried oregano
+- `[0.5 tsp]` chilli powder (or to taste)
+- `[2 tbsp]` tomato paste
+- `[100 ml]` beef stock
 - Salt and pepper to taste
 
 ### Quick Slaw
-- 0.25 head red cabbage, finely shredded
-- 2 tbsp lime juice
-- 1 tsp honey
+
+- `[0.25]` head red cabbage, finely shredded
+- `[2 tbsp]` lime juice
+- `[1 tsp]` honey
 - Salt to taste
 
 ### To Serve
-- 8–12 small corn tortillas, warmed
-- 1 ripe avocado, sliced
+
+- `[8]`–`[12]` small corn tortillas, warmed
+- `[1]` ripe avocado, sliced
 - Pickled jalapeños
 - Sour cream
 - Fresh coriander
