@@ -20,6 +20,12 @@ const SMALL: Record<string, UnitEntry> = {
 	tbsp: { factor: 3, display: 'tbsp' },
 }
 
+const LENGTH: Record<string, UnitEntry> = {
+	cm: { factor: 1, display: 'cm' },
+	m: { factor: 100, display: 'm' },
+	km: { factor: 100_000, display: 'km' },
+}
+
 const TOKEN = /`\[(\d+(?:\.\d+)?)\s*([a-zA-Z]+)?\]`/g
 
 export type MeasurementSegment = { type: 'measurement', value: number, unit?: string }
@@ -37,13 +43,15 @@ function formatNumber(n: number): string {
  * - 1000 g or more is expressed as kg
  * - 1000 ml or more is expressed as L
  * - multiples of 3 tsp are expressed as tbsp
- * - known unit with no simplification rule (e.g. cm): number with unit preserved
+ * - 100 cm or more is expressed as m
+ * - unknown unit: number with unit preserved as-is
  * - missing unit: bare number with no suffix
  *
  * @example
  * formatMeasurement(1000, 'g')    // '1 kg'
  * formatMeasurement(1500, 'ml')   // '1.5 L'
  * formatMeasurement(6, 'tsp')     // '2 tbsp'
+ * formatMeasurement(200, 'cm')    // '2 m'
  * formatMeasurement(3, undefined) // '3'
  */
 export function formatMeasurement(amount: number, unit?: string): string {
@@ -68,6 +76,12 @@ export function formatMeasurement(amount: number, unit?: string): string {
 			return `${formatNumber(asTbsp)}\u202Ftbsp`
 		}
 		return `${formatNumber(base)}\u202Ftsp`
+	}
+
+	if (key && key in LENGTH) {
+		const base = amount * LENGTH[key].factor
+		if (base >= 100) return `${formatNumber(base / 100)}\u202Fm`
+		return `${formatNumber(base)}\u202Fcm`
 	}
 
 	return unit ? `${formatNumber(amount)}\u202F${unit}` : formatNumber(amount)
