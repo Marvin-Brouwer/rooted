@@ -22,9 +22,9 @@ export const HomePage = component({
 })
 
 async function grid(element: ComponentContext['element'], create: ComponentContext['create']) {
-	const recipes = await recipeData.listRecipes()
+	const recipes = await recipeData.listFeatured()
 
-	return recipes.filter(r => r.featured).map((recipe) => {
+	return recipes.map((recipe) => {
 		return create(Link, {
 			href: href.for(RecipeRoute, recipe),
 			classes: styles.recipeCard,

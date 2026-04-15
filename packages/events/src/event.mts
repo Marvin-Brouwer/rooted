@@ -112,7 +112,7 @@ export type EventHandler<
  * })
  * ```
  */
-export type ElementOnHandlers<TElement extends HTMLElement> = {
+export type ElementOnHandlers<TElement extends Element> = {
 	[K in keyof ElementEventMap<TElement> & string]?:
 	| ((event: TargetedEvent<ElementEventMap<TElement>[K] & Event, TElement>) => void | Promise<void>)
 	| (() => void | Promise<void>)

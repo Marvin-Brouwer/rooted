@@ -2,37 +2,10 @@ import { ElementOnHandlers } from '@rooted/events'
 
 import { type Aria, buildAriaProperties } from './aria.mts'
 import { CssClasses } from './classes.mts'
+import { HtmlElementProperties } from './html-element-properties.mts'
+import { SvgElementProperties, SvgTagElement, SvgTagName } from './svg-element-properties.mts'
 
-type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? A : B
-type NonWritableKeys<T> = {
-	[P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, never, P>
-}[keyof T]
-type FunctionKeys<T> = {
-	[P in keyof T]: NonNullable<T[P]> extends (...arguments_: never[]) => unknown ? P : never
-}[keyof T]
-type OnHandlerKeys<T> = { [P in keyof T]: P extends `on${string}` ? P : never }[keyof T]
-
-type SanitizedHtmlProperties<TElement extends HTMLElement> = Omit<
-	TElement,
-	| NonWritableKeys<TElement>
-	| FunctionKeys<TElement>
-	| Exclude<keyof ARIAMixin, 'role'>
-	| OnHandlerKeys<TElement>
-	| 'children' | 'className' | 'classList'
->
-type HtmlElementPropertiesMapped<TElement extends HTMLElement>
-	= Partial<SanitizedHtmlProperties<TElement>>
-	& {
-		children?: Array<Node | string> | Node | string
-		classes?: CssClasses
-		aria?: Aria
-		on?: ElementOnHandlers<TElement>
-	}
-
-type HtmlElementProperties<KElement extends keyof HTMLElementTagNameMap>
-	= HtmlElementPropertiesMapped<HTMLElementTagNameMap[KElement]>
-
-function buildOnHandlers<TElement extends HTMLElement>(
+function buildOnHandlers<TElement extends Element>(
 	on: ElementOnHandlers<TElement> | undefined,
 	element: TElement,
 	signal: AbortSignal,
@@ -42,7 +15,6 @@ function buildOnHandlers<TElement extends HTMLElement>(
 		if (!handler) continue
 		element.addEventListener(
 			key,
-
 			event => void (handler as (event?: Event) => void | Promise<void>)(event),
 			signal ? { signal } : undefined,
 		)
@@ -56,22 +28,57 @@ function buildClassList(classes: CssClasses | undefined) {
 	return { className: String(classes) }
 }
 
-export type ElementCreator = (key: string) => HTMLElement
-export type ElementFactory = ReturnType<typeof createElementFactory>
-export function createElementFactory(constructElement: ElementCreator, signal: AbortSignal) {
+function isWritableDomProperty(element: Element, key: string): boolean {
+	let proto: object | null = element
+	while (proto) {
+		const desc = Object.getOwnPropertyDescriptor(proto, key)
+		if (desc) return !!(desc.writable || desc.set)
+		proto = Object.getPrototypeOf(proto) as object | null
+	}
+	return false
+}
+
+export type ElementCreator = (key: string, ns?: string) => Element
+
+/**
+ * The overloaded function type returned by {@link createElementFactory}.
+ * Accepts HTML or SVG tag names and returns the matching element type.
+ */
+export interface ElementCreatorFunction {
+	(tag: 'svg', properties?: SvgElementProperties<'svg'>): SVGSVGElement
+	<K extends Exclude<SvgTagName, 'svg'>>(tag: K, properties?: SvgElementProperties<K>): SvgTagElement<K>
+	<K extends keyof HTMLElementTagNameMap>(tag: K, properties?: NoInfer<HtmlElementProperties<K>>): HTMLElementTagNameMap[K]
+}
+
+export type ElementFactory = ElementCreatorFunction
+export function createElementFactory(constructElement: ElementCreator, signal: AbortSignal): ElementCreatorFunction {
 	/**
-	 * Creates a new HTML element. The element is **not** appended to the
+	 * Creates a new HTML or SVG element. The element is **not** appended to the
 	 * document automatically.
+	 *
+	 * **HTML elements** — pass any tag from `HTMLElementTagNameMap`:
+	 * ```ts
+	 * element('div', { classes: 'card', children: [...] })
+	 * ```
+	 *
+	 * **SVG elements** — use `'svg'` for the root element, or prefix other SVG
+	 * tags with `'svg:'` to avoid collisions with same-named HTML tags:
+	 * ```ts
+	 * element('svg', { viewBox: '0 0 24 24', children: element('svg:use', { href: url }) })
+	 * ```
 	 *
 	 * **`classes`** — accepts a single class string or a {@link CssClasses} array;
 	 * falsy entries are filtered out automatically.
 	 *
-	 * **DOM property names** — other properties are set via `Object.assign` and
-	 * must use DOM property names, not HTML attribute names:
+	 * **DOM property names** — for HTML elements, other properties are set via
+	 * `Object.assign` and must use DOM property names, not HTML attribute names:
 	 * | HTML attribute | DOM property |
 	 * |----------------|--------------|
 	 * | `for`          | `htmlFor`    |
 	 * | `readonly`     | `readOnly`   |
+	 *
+	 * For SVG elements, writable DOM properties are set directly; anything else
+	 * (e.g. `viewBox`, `href`) falls back to `setAttribute` automatically.
 	 *
 	 * **Children** — pass a single `Node` or an array of `Node`s via the
 	 * `children` property; they are appended in order.
@@ -84,42 +91,82 @@ export function createElementFactory(constructElement: ElementCreator, signal: A
 	 *
 	 * @example
 	 * ```ts
-	 * const div = create('div', {
+	 * const div = element('div', {
 	 *   classes: 'card',
 	 *   aria: { label: 'Card', labelledBy: headingEl },
 	 *   children: [
-	 *     create('h2', { textContent: 'Title' }),
-	 *     create('p',  { textContent: 'Body'  }),
+	 *     element('h2', { textContent: 'Title' }),
+	 *     element('p',  { textContent: 'Body'  }),
 	 *   ],
+	 * })
+	 *
+	 * const icon = element('svg', {
+	 *   viewBox: '0 0 24 24',
+	 *   aria: { hidden: 'true' },
+	 *   children: element('svg:use', { href: spriteUrl }),
 	 * })
 	 * ```
 	 */
-	function createElement<KElement extends keyof HTMLElementTagNameMap>(tag: KElement, properties?: NoInfer<HtmlElementProperties<KElement>>): HTMLElementTagNameMap[KElement] {
-		const { aria, children, classes, on, ...assignableProperties } = (properties ?? {})
+	function createElement(tag: 'svg', properties?: SvgElementProperties<'svg'>): SVGSVGElement
+	function createElement<K extends Exclude<SvgTagName, 'svg'>>(tag: K, properties?: SvgElementProperties<K>): SvgTagElement<K>
+	function createElement<KElement extends keyof HTMLElementTagNameMap>(tag: KElement, properties?: NoInfer<HtmlElementProperties<KElement>>): HTMLElementTagNameMap[KElement]
+	function createElement(tag: string, properties?: Record<string, unknown>): Element {
+		if (tag === 'svg' || tag.startsWith('svg:')) {
+			const actualTag = tag === 'svg' ? 'svg' : tag.slice(4)
+			const { classes, children, aria, on, style, ...attributes } = properties ?? {}
+			const newElement = constructElement(actualTag, 'http://www.w3.org/2000/svg') as SVGElement
+
+			for (const [key, value] of Object.entries(attributes)) {
+				if (value === undefined || value === null) continue
+				if (isWritableDomProperty(newElement, key)) {
+					;(newElement as unknown as Record<string, unknown>)[key] = value
+				}
+				else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+					newElement.setAttribute(key, String(value))
+				}
+			}
+
+			const { className } = buildClassList(classes as CssClasses | undefined)
+			if (className) newElement.setAttribute('class', className)
+
+			if (style) Object.assign(newElement.style, style)
+			buildAriaProperties(aria as Aria | undefined, newElement)
+			buildOnHandlers(on as ElementOnHandlers<Element> | undefined, newElement, signal)
+
+			appendChildren(newElement, children as Array<Node | string> | Node | string | undefined)
+
+			return newElement
+		}
+
+		const { aria, children, classes, on, style, ...assignableProperties } = properties ?? {}
 		const definedProperties = Object.fromEntries(Object
 			.entries(assignableProperties)
 			.filter(([, v]) => v !== undefined && v !== null),
 		)
 		const newElement = Object.assign(
-			constructElement(tag) as HTMLElementTagNameMap[KElement],
+			constructElement(tag) as HTMLElement,
 			definedProperties,
-			buildClassList(classes),
+			buildClassList(classes as CssClasses | undefined),
 		)
 
-		buildAriaProperties(aria, newElement)
-		buildOnHandlers(on, newElement, signal)
+		if (style) Object.assign(newElement.style, style)
+		buildAriaProperties(aria as Aria | undefined, newElement)
+		buildOnHandlers(on as ElementOnHandlers<HTMLElement> | undefined, newElement, signal)
+		appendChildren(newElement, children as Array<Node | string> | Node | string | undefined)
 
-		if (Array.isArray(children)) {
-			for (const child of children) {
-				newElement.append(child)
-			}
-		}
-		else if (children) {
-			newElement.append(children)
-		}
-
-		return newElement as HTMLElementTagNameMap[KElement]
+		return newElement
 	}
 
-	return createElement.bind(undefined!)
+	return createElement as unknown as ElementCreatorFunction
+}
+
+function appendChildren(element: Element, children: Array<Node | string> | Node | string | undefined): void {
+	if (Array.isArray(children)) {
+		for (const child of children) {
+			element.append(child)
+		}
+	}
+	else if (children) {
+		element.append(children)
+	}
 }

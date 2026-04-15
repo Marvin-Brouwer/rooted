@@ -12,11 +12,11 @@ export const Categories = component({
 	styles,
 	async onMount({ append, element, create }) {
 		append(
+			gate(CategoryRoute, tokens => create(Category, { slug: tokens.slug })),
+
 			element('h1', { textContent: 'Categories' }),
 			element('p', { classes: styles.subtitle, textContent: 'Browse recipes by category.' }),
 			element('div', { classes: styles.categoryGrid, children: await mapCategories(element, create) }),
-
-			gate(CategoryRoute, tokens => create(Category, { slug: tokens.slug })),
 		)
 	},
 })

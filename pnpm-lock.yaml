@@ -98,6 +98,9 @@ importers:
       '@rooted/router':
         specifier: workspace:^
         version: link:../../packages/router
+      '@rooted/storage':
+        specifier: workspace:^
+        version: link:../../packages/storage
       '@rooted/store':
         specifier: workspace:^
         version: link:../../packages/store

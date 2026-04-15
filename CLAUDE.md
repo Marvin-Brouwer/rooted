@@ -10,12 +10,20 @@ When writing TSDOC on functionality, follow these rules:
 - Copy the style of other comments
 - Include usage examples when relevant
 
+## Quality Control
+
+When running eslint always run `pnpm eslint` from the repository root, other configurations don't work.  
+It is important to only fix linting issues in files that are modified or added in the current branch.
+
+Always make sure everything builds `pnpm build:dev` and always test your work `pnpm test`,  
+both commands are run from the repository root.
+
 ## Commit messages
 
 Keep commit message headers (the first line) under 80 characters.
 Always use [Conventional Commits](https://www.conventionalcommits.org/) format for commits:
 
-```
+```txt
 <type>(<scope>): <short description>
 ```
 
@@ -24,7 +32,7 @@ Scope is optional but encouraged — use the package name or area (e.g. `router`
 
 Examples:
 
-```
+```txt
 feat(router): add support for optional route segments
 fix(components): correct SSR hydration mismatch
 ci(release): switch to OIDC trusted publishing
@@ -35,7 +43,7 @@ docs: add guide for publishing new @rooted/* packages
 
 Always use [Conventional Commits](https://www.conventionalcommits.org/) format for PR titles:
 
-```
+```txt
 <type>(<scope>): <short description>
 ```
 
@@ -44,7 +52,7 @@ When working on a github issue, the scope should be the issue number (e.g `feat(
 
 Examples:
 
-```
+```txt
 feat(#24): add support for optional route segments
 fix(#65): correct SSR hydration mismatch
 ci(#22): switch to OIDC trusted publishing

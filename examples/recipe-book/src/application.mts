@@ -6,6 +6,7 @@ import { createStore } from '@rooted/store'
 import { ContentBanner } from './_layout/content-banner.mts'
 import { Doormat } from './_layout/doormat.mts'
 import { appRoutes } from './_routes.g.mts'
+import { Announcer } from './_shared/a11y/announcer.mts'
 import styles from './application.css'
 import { HomePage } from './navigation/home.mts'
 import { NavigationMenu } from './navigation/navigation-menu.mts'
@@ -59,6 +60,7 @@ export const Application = component({
 					element('footer', {
 						children: [create(Doormat)],
 					}),
+					create(Announcer),
 				],
 			}),
 		)
