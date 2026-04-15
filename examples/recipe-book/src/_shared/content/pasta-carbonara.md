@@ -14,7 +14,7 @@ description: A classic Roman pasta with crispy guanciale, eggs, and Pecorino Rom
 
 - `[200 g]` spaghetti or rigatoni
 - `[100 g]` guanciale (or pancetta), diced
-- `[3]` large eggs (2 whole + 1 yolk)
+- `[3]` large eggs (`[2]` whole + `[1]` yolk)
 - `[50 g]` Pecorino Romano, finely grated
 - `[50 g]` Parmigiano-Reggiano, finely grated
 - Freshly cracked black pepper
