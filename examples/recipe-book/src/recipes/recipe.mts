@@ -10,8 +10,8 @@ import { RecipeIngredientsRoute, RecipeInstructionsRoute } from './_routes.mts'
 import { IngredientsList } from './ingredients-list.mts'
 import { Measurement } from './measurements.mts'
 import { RecipeTabs } from './recipe-tabs.mts'
-import { ServingStepper } from './serving-stepper.mts'
 import styles from './recipe.css'
+import { ServingStepper } from './serving-stepper.mts'
 
 export type RecipeOptions = {
 	id: number
@@ -59,10 +59,7 @@ export const Recipe = component<RecipeOptions>({
 				classes: 'recipe-header',
 				children: [
 					element('h1', { textContent: recipe.title }),
-					element('ul', {
-						classes: styles.recipeMeta,
-						children: meta(element, recipe),
-					}),
+					meta(element, recipe),
 				],
 			}),
 
@@ -88,11 +85,47 @@ export const Recipe = component<RecipeOptions>({
 })
 
 function meta(element: ComponentContext['element'], recipe: DataRecipe) {
-	return [
-		element('li', { classes: 'meta-badge', textContent: recipe.category }),
-		element('li', { classes: 'meta-badge', textContent: `${recipe.servings} serving${recipe.servings === 1 ? '' : 's'}` }),
-		element('li', { classes: 'meta-badge', textContent: `Prep ${recipe.prepTime} min` }),
-		element('li', { classes: 'meta-badge', textContent: `Cook ${recipe.cookTime} min` }),
-		element('li', { classes: 'meta-badge', textContent: recipe.difficulty }),
-	]
+	return element('ul', {
+		classes: styles.recipeMeta,
+		aria: {
+			label: 'Recipe properties',
+		},
+		children: [
+			element('li', {
+				classes: 'meta-badge',
+				textContent: recipe.category,
+				aria: {
+					label: `Category: ${recipe.category}`,
+				},
+			}),
+			element('li', {
+				classes: 'meta-badge',
+				textContent: `${recipe.servings} serving${recipe.servings === 1 ? '' : 's'}`,
+				aria: {
+					label: `Serves ${recipe.servings}`,
+				},
+			}),
+			element('li', {
+				classes: 'meta-badge',
+				textContent: `Prep ${recipe.prepTime} min`,
+				aria: {
+					label: `Preparation time: ${recipe.prepTime} minutes`,
+				},
+			}),
+			element('li', {
+				classes: 'meta-badge',
+				textContent: `Cook ${recipe.cookTime} min`,
+				aria: {
+					label: `Cooking time: ${recipe.cookTime} minutes`,
+				},
+			}),
+			element('li', {
+				classes: 'meta-badge',
+				textContent: recipe.difficulty,
+				aria: {
+					label: `Difficulty: ${recipe.difficulty}`,
+				},
+			}),
+		],
+	})
 }
