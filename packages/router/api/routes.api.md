@@ -42,6 +42,7 @@ export function route<const T extends RouteParameter[]>(strings: TemplateStrings
 // @public
 export type RouteBuilder<T extends RouteParameter[]> = (definition: {
     resolve: RouteResolver<T>;
+    seo?: RouteSeoMetadata;
 }) => ExtractParent<T> extends never ? Route<{
     parameters: FilterOutParent<T>;
 }> : Route<{
@@ -72,6 +73,7 @@ export type RouteMetadata<T extends {
     readonly hasErrors?: true;
     readonly routeParts: Array<string | RouteParameter>;
     readonly staticRoute: false | string;
+    readonly seo?: RouteSeoMetadata;
 };
 
 // @public (undocumented)
@@ -79,6 +81,17 @@ export type RouteParameter = Parameter | Route<any>;
 
 // @public (undocumented)
 export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10> = D extends 0 ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> : [TRoute[typeof routeMetadata]['parentType']] extends [never] ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> : TRoute[typeof routeMetadata]['parentType'] extends Route<any> ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetadata]['parentType'], RecursionCounter[D]> : Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>>;
+
+// @public
+export type RouteSeoMetadata = {
+    title?: string;
+    description?: string;
+    noIndex?: boolean;
+    excludeFromSitemap?: boolean;
+    image?: string;
+    changefreq?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    priority?: number;
+};
 
 // @public
 export function token<K extends string = string, T extends ParameterType = ParameterType>(name: K, type: T): Parameter<K, ParameterToTokenType<T>>;
