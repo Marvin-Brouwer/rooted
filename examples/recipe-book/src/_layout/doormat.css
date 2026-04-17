@@ -11,6 +11,32 @@
 	padding: 0 2rem;
 }
 
+.scroll-top {
+	display: block;
+	margin-left: auto;
+	margin-bottom: 1.5rem;
+	background: none;
+	border: none;
+	padding: 0;
+	font: inherit;
+	font-size: 0.875rem;
+	color: var(--color-text-muted-inverted);
+	cursor: pointer;
+	text-underline-offset: 2px;
+}
+
+.scroll-top:hover {
+	color: var(--color-surface);
+	text-decoration: underline;
+}
+
+.scroll-top:focus-visible {
+	outline: 2px solid var(--color-surface);
+	outline-offset: 2px;
+	border-radius: 2px;
+	color: var(--color-surface);
+}
+
 .tagline {
 	color: var(--color-surface);
 	font-size: 0.9rem;

@@ -32,6 +32,7 @@ export function formatStackFrame(frame: string | undefined): string | undefined 
  */
 export function appendSourceLocation() {
 	// Stack: Error -> appendSourceLocation -> component() -> call site
+	// eslint-disable-next-line unicorn/error-message
 	const frames = new Error().stack?.split('\n') ?? []
 	const selfIndex = frames.findIndex(f => f.includes('appendSourceLocation'))
 	const definitionStackFrame = selfIndex === -1 ? undefined : frames[selfIndex + 2]

@@ -1,18 +1,24 @@
 import { component } from '@rooted/components'
+import { type Store } from '@rooted/store'
 
 import styles from './navigation-progress.css'
 
+export type NavigationState = 'idle' | 'navigating'
+
 const supportsPerformanceObserver = typeof PerformanceObserver !== 'undefined'
+const supportsConnectionInfo = navigator.connection
 
 export type NavigationProgressOptions = {
 	href: string
-	state: { done: boolean }
+	state: Store<NavigationState>
 }
 export const NavigationProgress = component<NavigationProgressOptions>({
 	name: 'navigation-progress',
 	styles,
-	onMount({ append, element, options, signal }) {
+	onMount({ append, element, options, signal, create }) {
 		const { href, state } = options
+
+		const isNavigating = () => state.value === 'navigating'
 
 		const [announcer, progress] = append(
 			element('div', {
@@ -35,16 +41,16 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 				},
 				on: {
 					transitionend({ currentTarget }) {
-						if (!state.done) return
+						if (isNavigating()) return
 						currentTarget.parentElement?.remove()
 					},
 					webkittransitionend({ currentTarget }) {
-						if (!state.done) return
+						if (isNavigating()) return
 						currentTarget.parentElement?.remove()
 					},
 				},
 				max: 100,
-				value: state.done ? 100 : 0,
+				value: isNavigating() ? 0 : 100,
 			}),
 		)
 
@@ -60,7 +66,7 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 		function handleUpdate() {
 			// Force reflow so the opacity transition fires from 0 → 1
 			progress.getBoundingClientRect()
-			if (!state.done) return
+			if (isNavigating()) return
 
 			progress.value = 100
 			announcer.textContent = `Finished loading ${href}\u2026`
@@ -80,22 +86,25 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 			signal.addEventListener('abort', () => clearInterval(id))
 		}
 
-		// Fallback for cached navigations: PerformanceObserver never fires when no
-		// resources are loaded, so poll state.done directly to ensure the bar always completes.
-		const completionId = setInterval(() => {
-			if (!state.done) return
-			clearInterval(completionId)
+		// Complete when state transitions back to idle — covers cached navigations
+		// where PerformanceObserver never fires.
+		state.on('update', signal, () => {
+			if (isNavigating()) return
 			handleUpdate()
-		}, 50)
-		signal.addEventListener('abort', () => clearInterval(completionId))
+		})
+
+		append(create(NavigationSpinner, { state }))
 	},
 })
 
-
-export const NavigationSpinner = component({
+export type NavigationSpinnerOptions = {
+	state: Store<NavigationState>
+}
+export const NavigationSpinner = component<NavigationSpinnerOptions>({
 	name: 'navigation-progress-spinner',
 	styles,
-	onMount({ replace, element, signal }) {
+	onMount({ replace, element, signal, options }) {
+		const { state } = options
 		const dialog = replace(element('dialog', {
 			classes: styles.spinnerOverlay,
 			children: [
@@ -116,16 +125,22 @@ export const NavigationSpinner = component({
 		}))
 
 		// Show immediately if connection is already degraded
-		if (!signal.aborted && navigator.connection != null && navigator.connection.effectiveType !== '4g')
+		if (!signal.aborted && supportsConnectionInfo && navigator.connection!.effectiveType !== '4g')
 			dialog.show()
 
 		// Also show on mid-navigation network degradation.
 		// Never auto-close on improvement — avoid flashing on flaky connections.
-		// When routing ends the signal aborts, resetting state for the next navigation.
 		navigator.connection?.addEventListener('change', () => {
 			if (signal.aborted || dialog.open) return
 			if (navigator.connection?.effectiveType !== '4g') dialog.show()
 		}, { signal })
+
+		// Close immediately when navigation ends — don't wait for the progress bar
+		// transition, otherwise the spinner flashes on fast cached navigations.
+		state.on('update', signal, () => {
+			if (state.value === 'navigating') return
+			dialog.close()
+		})
 
 		signal.addEventListener('abort', () => dialog.close())
 	},

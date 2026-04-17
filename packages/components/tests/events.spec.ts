@@ -51,8 +51,8 @@ describe('EventHandler<tag, event> — forwarding pattern', () => {
 		const button = createButton(
 			{
 				on: {
-					click(e: TargetedEvent<MouseEvent, HTMLButtonElement>) {
-						capturedTarget = e.currentTarget
+					click(event: TargetedEvent<MouseEvent, HTMLButtonElement>) {
+						capturedTarget = event.currentTarget
 					},
 				},
 			},
@@ -104,10 +104,10 @@ describe('EventHandler<tag, event> — type-level guarantees', () => {
 		let capturedTarget: HTMLInputElement | null = null
 		const input = element('input', {
 			on: {
-				input(e) {
-					// e.currentTarget must be HTMLInputElement — access its .value
-					capturedTarget = e.currentTarget
-					void e.currentTarget.value
+				input(event) {
+					// event.currentTarget must be HTMLInputElement — access its .value
+					capturedTarget = event.currentTarget
+					void event.currentTarget.value
 				},
 			},
 		})
@@ -123,9 +123,9 @@ describe('EventHandler<tag, event> — type-level guarantees', () => {
 		let capturedTarget: HTMLFormElement | null = null
 		const form = element('form', {
 			on: {
-				submit(e) {
-					e.preventDefault()
-					capturedTarget = e.currentTarget
+				submit(event) {
+					event.preventDefault()
+					capturedTarget = event.currentTarget
 				},
 			},
 		})

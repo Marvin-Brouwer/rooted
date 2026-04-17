@@ -15,6 +15,14 @@ export default defineConfig({
 				replacement: fileURLToPath(new URL('packages/util/src/_module/util.mts', import.meta.url)),
 			},
 			{
+				find: '@rooted/store',
+				replacement: fileURLToPath(new URL('packages/store/src/_module/store.mts', import.meta.url)),
+			},
+			{
+				find: '@rooted/storage/web',
+				replacement: fileURLToPath(new URL('packages/storage/src/_module/web.mts', import.meta.url)),
+			},
+			{
 				find: '@rooted/events',
 				replacement: fileURLToPath(new URL('packages/events/src/_module/events.mts', import.meta.url)),
 			},

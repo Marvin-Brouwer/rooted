@@ -1,0 +1,25 @@
+diff --git a/index.js b/index.js
+index 19c9f7057e83e61d5f173209037d1b6669247d10..baded63c0143533445e1f32845485a31698b835c 100644
+--- a/index.js
++++ b/index.js
+@@ -205,7 +205,19 @@ async function run(context, plugins) {
+     logger.warn(`Skip ${nextRelease.gitTag} tag creation in dry-run mode`);
+   } else {
+     // Create the tag before calling the publish plugins as some require the tag to exists
+-    await tag(nextRelease.gitTag, nextRelease.gitHead, { cwd, env });
++    // Patch: squash-merging a prerelease branch orphans the original commits, which
++    // means the git notes (channel metadata) no longer resolve against a reachable
++    // commit. semantic-release then miscalculates the next version and tries to
++    // recreate an already-existing tag. Warn and skip instead of crashing the release.
++    try {
++      await tag(nextRelease.gitTag, nextRelease.gitHead, { cwd, env });
++    } catch (error) {
++      if (error.stderr?.includes("already exists")) {
++        logger.warn(`Tag ${nextRelease.gitTag} already exists, skipping tag creation`);
++      } else {
++        throw error;
++      }
++    }
+     await addNote({ channels: [nextRelease.channel] }, nextRelease.gitTag, { cwd, env });
+     await push(options.repositoryUrl, { cwd, env });
+     await pushNotes(options.repositoryUrl, nextRelease.gitTag, { cwd, env });

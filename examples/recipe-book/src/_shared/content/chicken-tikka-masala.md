@@ -13,27 +13,29 @@ description: Tender marinated chicken in a rich, spiced tomato-cream sauce — a
 ## Ingredients
 
 ### Marinade
-- 700g boneless chicken thighs, cut into chunks
-- 150g plain yoghurt
-- 2 tsp garam masala
-- 1 tsp turmeric
-- 1 tsp cumin
-- 1 tsp chilli powder
-- 2 cloves garlic, grated
-- 1 tbsp fresh ginger, grated
+
+- `[700 g]` boneless chicken thighs, cut into chunks
+- `[150 g]` plain yoghurt
+- `[2 tsp]` garam masala
+- `[1 tsp]` turmeric
+- `[1 tsp]` cumin
+- `[1 tsp]` chilli powder
+- `[2]` cloves garlic, grated
+- `[1 tbsp]` fresh ginger, grated
 - Salt to taste
 
 ### Sauce
-- 2 tbsp vegetable oil
-- 1 large onion, finely diced
-- 4 cloves garlic, minced
-- 2cm fresh ginger, grated
-- 1 tsp cumin seeds
-- 2 tsp garam masala
-- 1 tsp ground coriander
-- 1 tsp smoked paprika
-- 1 can (400g) crushed tomatoes
-- 150ml double cream
+
+- `[2 tbsp]` vegetable oil
+- `[1]` large onion, finely diced
+- `[4]` cloves garlic, minced
+- `[2 cm]` fresh ginger, grated
+- `[1 tsp]` cumin seeds
+- `[2 tsp]` garam masala
+- `[1 tsp]` ground coriander
+- `[1 tsp]` smoked paprika
+- `[1]` can (400g) crushed tomatoes
+- `[150 ml]` double cream
 - Fresh coriander to serve
 
 ## Instructions
