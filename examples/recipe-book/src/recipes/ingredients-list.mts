@@ -116,7 +116,7 @@ function renderGroup(
 	return element('section', {
 		classes: styles.group,
 		children: [
-			element('h3', {
+			element('h2', {
 				classes: styles.groupHeading,
 				textContent: group.heading,
 			}),
