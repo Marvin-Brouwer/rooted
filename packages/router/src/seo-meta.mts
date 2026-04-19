@@ -97,9 +97,7 @@ function setMetaByProperty(property: string, content: string | undefined, elemen
 		return
 	}
 	if (!tag) {
-		// `property` is an OG attribute, not a standard DOM property, so setAttribute is needed
-		tag = elementFactory('meta', { content })
-		tag.setAttribute('property', property)
+		tag = elementFactory('meta', { property, content })
 		document.head.append(tag)
 		return
 	}
