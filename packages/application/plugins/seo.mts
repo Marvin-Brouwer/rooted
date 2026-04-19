@@ -5,6 +5,7 @@ import { promisify } from 'node:util'
 
 import { glob } from 'tinyglobby'
 
+import type { RobotsOptions } from './robots.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { RouteSeoMetadata } from '@rooted/router/routes'
 import type { Plugin, ResolvedConfig } from 'vite'
@@ -39,6 +40,12 @@ export type SeoOptions = {
 	 * Only applied when the route has a `seo.title`.
 	 */
 	titleSuffix?: string
+	/**
+	 * Options for the generated `robots.txt`. Set to `false` to disable
+	 * robots.txt generation entirely.
+	 * @default undefined — generates a default robots.txt
+	 */
+	robots?: RobotsOptions | false
 }
 
 /**

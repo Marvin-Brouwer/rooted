@@ -120,7 +120,7 @@ export type RouteSeoMetadata = {
     noIndex?: boolean;
     excludeFromSitemap?: boolean;
     image?: string;
-    changefreq?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
     priority?: number;
 };
 
