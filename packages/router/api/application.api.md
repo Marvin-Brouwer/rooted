@@ -110,6 +110,7 @@ export type RouterOptions = {
         navigate?: NavigateHandler;
         error?: ErrorHandler;
     };
+    seo?: RouterSeoOptions;
 };
 
 // @public
