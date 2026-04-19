@@ -1,10 +1,12 @@
 import { access, constants, readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 
+import type { SeoPluginApi } from '../seo.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
+const SEO_PLUGIN_NAME = 'rooted:seo'
 
 /**
  * GitHub Pages adapter plugin.
@@ -14,6 +16,9 @@ const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
  *   serves the SPA for any URL that doesn't match a real file.
  * - For every static route discovered by {@link generateRouteManifest}, writes
  *   a `{route}/index.html` so direct URL loads land on the correct page.
+ * - When the SEO plugin is present, injects per-page meta tags into each
+ *   written `index.html` copy and injects the JSON-LD `WebSite` schema plus
+ *   canonical tag into the root `index.html`.
  *
  * Set `webManifest.url` in {@link rootedManifest} to configure the deployment
  * base path (e.g. `homepage` from `package.json`). That URL's pathname becomes
@@ -40,6 +45,7 @@ const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
 export function githubPagesAdapter(): Plugin {
 	let config: ResolvedConfig
 	let manifestApi: RouteManifestApi | undefined
+	let seoApi: SeoPluginApi | undefined
 
 	return {
 		name: 'rooted:github-pages',
@@ -49,6 +55,8 @@ export function githubPagesAdapter(): Plugin {
 			config = resolved
 			const manifestPlugin = resolved.plugins.find(p => p.name === MANIFEST_PLUGIN_NAME)
 			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
+			const seoPlugin = resolved.plugins.find(p => p.name === SEO_PLUGIN_NAME)
+			seoApi = (seoPlugin as { api?: SeoPluginApi } | undefined)?.api
 		},
 
 		async closeBundle() {
@@ -62,10 +70,17 @@ export function githubPagesAdapter(): Plugin {
 			await writeFile(path.join(outputDirectory, '.nojekyll'), 'disable jekyll in this github pages directory', 'utf8')
 			await writeFile(path.join(outputDirectory, '404.html'), indexHtml, 'utf8')
 
+			// Inject root-level SEO (JSON-LD, canonical, og:url/type/image) into index.html
+			const rootHtml = seoApi ? seoApi.injectRootHtml(indexHtml) : indexHtml
+			if (rootHtml !== indexHtml) {
+				await writeFile(indexHtmlPath, rootHtml, 'utf8')
+			}
+
 			for (const route of manifestApi?.routes ?? []) {
 				if (!Object.hasOwn(route, 'getMetadata')) continue
 
-				const staticPath = route.getMetadata().staticRoute
+				const metadata = route.getMetadata()
+				const staticPath = metadata.staticRoute
 				if (staticPath === false) continue
 
 				const segments = staticPath.split('/').filter(Boolean)
@@ -73,7 +88,11 @@ export function githubPagesAdapter(): Plugin {
 
 				const routeDirectory = path.join(outputDirectory, ...segments)
 				await mkdir(routeDirectory, { recursive: true })
-				await writeFile(path.join(routeDirectory, 'index.html'), indexHtml, 'utf8')
+
+				const html = seoApi
+					? seoApi.injectRouteHtml(indexHtml, metadata.seo, staticPath)
+					: indexHtml
+				await writeFile(path.join(routeDirectory, 'index.html'), html, 'utf8')
 			}
 		},
 	}

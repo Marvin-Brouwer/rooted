@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process'
-import { readFile, stat, writeFile } from 'node:fs/promises'
+import { stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { promisify } from 'node:util'
 
@@ -42,13 +42,51 @@ export type SeoOptions = {
 }
 
 /**
+ * Inter-plugin API exposed by the SEO plugin.
+ *
+ * Adapters and other Vite plugins retrieve this via:
+ * ```ts
+ * const seoPlugin = config.plugins.find(p => p.name === 'rooted:seo')
+ * const seoApi = (seoPlugin as { api?: SeoPluginApi } | undefined)?.api
+ * ```
+ *
+ * HTML injection is the adapter's responsibility because only the adapter
+ * knows when and how HTML is written (static copy, server response, etc.).
+ */
+export type SeoPluginApi = {
+	/**
+	 * Injects per-page meta tags into an HTML string for a static route.
+	 *
+	 * Inserts `<title>`, `<meta name="description">`, `<link rel="canonical">`,
+	 * `<meta name="robots">` (when `noIndex` is true), and Open Graph tags.
+	 * Tags that already exist in the HTML are left unchanged.
+	 *
+	 * @param html - The source HTML string to transform.
+	 * @param seo - The SEO metadata from `route.getMetadata().seo`, or `undefined`.
+	 * @param staticPath - The route's static path (e.g. `/categories/`), used to
+	 *   build the canonical URL.
+	 */
+	injectRouteHtml(html: string, seo: RouteSeoMetadata | undefined, staticPath: string): string
+	/**
+	 * Injects root-level SEO into the home `index.html`.
+	 *
+	 * Adds a JSON-LD `WebSite` schema block, a `<link rel="canonical">` for the
+	 * root URL, and an `og:url` / `og:image` / `og:type` block.
+	 *
+	 * @param html - The source HTML string to transform.
+	 */
+	injectRootHtml(html: string): string
+}
+
+/**
  * SEO plugin — generates a `sitemap.xml` from all static routes discovered by
  * {@link generateRouteManifest}, plus a root entry whose `lastmod` is the
  * newest git commit date across the configured home route files.
  *
- * Also injects per-page meta tags (`<title>`, description, canonical,
- * Open Graph) into each static route's `index.html` copy, and adds a
- * JSON-LD `WebSite` schema block to the root `index.html`.
+ * HTML meta tag injection is intentionally NOT done here. Instead, the plugin
+ * exposes `api.injectRouteHtml` and `api.injectRootHtml` so that each adapter
+ * can call them at the point where it writes HTML — whether that is a static
+ * file copy (like {@link githubPagesAdapter}) or a server-generated response.
  *
  * Runs only during production builds. If no static routes are found at all,
  * nothing is written.
@@ -67,9 +105,31 @@ export function seoPlugin(
 	let config: ResolvedConfig
 	let manifestApi: RouteManifestApi | undefined
 
+	const defaultOgImage = options?.defaultOgImage
+		?? (deploymentUrl ? new URL('pwa-512x512.png', deploymentUrl).href : undefined)
+	const titleSuffix = options?.titleSuffix
+
+	function toLocation(staticPath: string): string {
+		return deploymentUrl
+			? new URL(staticPath.slice(1), deploymentUrl).href
+			: config.base + staticPath.slice(1)
+	}
+
 	return {
 		name: 'rooted:seo',
 		apply: 'build',
+
+		api: {
+			injectRouteHtml(html: string, seo: RouteSeoMetadata | undefined, staticPath: string): string {
+				return injectMetaTags(html, seo, toLocation(staticPath), defaultOgImage, titleSuffix)
+			},
+			injectRootHtml(html: string): string {
+				let result = injectRootJsonLd(html, webManifest, deploymentUrl)
+				result = injectCanonical(result, toLocation('/'))
+				result = injectOgTags(result, undefined, toLocation('/'), defaultOgImage)
+				return result
+			},
+		} satisfies SeoPluginApi,
 
 		configResolved(resolved) {
 			config = resolved
@@ -78,12 +138,6 @@ export function seoPlugin(
 		},
 
 		async closeBundle() {
-			function toLocation(staticPath: string): string {
-				return deploymentUrl
-					? new URL(staticPath.slice(1), deploymentUrl).href
-					: config.base + staticPath.slice(1)
-			}
-
 			const outputDirectory = config.build.outDir
 
 			// Pass 1: find the newest git date among home/navigation files
@@ -130,47 +184,6 @@ export function seoPlugin(
 				].join('\n')
 
 				await writeFile(path.join(outputDirectory, 'sitemap.xml'), xml, 'utf8')
-			}
-
-			// Pass 4: inject meta tags into static route index.html copies
-			const defaultOgImage = options?.defaultOgImage
-				?? (deploymentUrl ? new URL('pwa-512x512.png', deploymentUrl).href : undefined)
-			const titleSuffix = options?.titleSuffix
-
-			// Inject into root index.html (JSON-LD WebSite schema + canonical)
-			const rootHtmlPath = path.join(outputDirectory, 'index.html')
-			try {
-				let rootHtml = await readFile(rootHtmlPath, 'utf8')
-				rootHtml = injectRootJsonLd(rootHtml, webManifest, deploymentUrl)
-				rootHtml = injectCanonical(rootHtml, toLocation('/'))
-				rootHtml = injectOgTags(rootHtml, undefined, toLocation('/'), defaultOgImage)
-				await writeFile(rootHtmlPath, rootHtml, 'utf8')
-			}
-			catch {
-				// root index.html may not exist in some build environments
-			}
-
-			// Inject into each static route's index.html copy
-			if (manifestApi) {
-				for (const route of manifestApi.routes) {
-					if (!Object.hasOwn(route, 'getMetadata')) continue
-					const metadata = route.getMetadata()
-					const staticPath = metadata.staticRoute
-					if (staticPath === false || staticPath === '/') continue
-
-					const segments = staticPath.split('/').filter(Boolean)
-					const htmlPath = path.join(outputDirectory, ...segments, 'index.html')
-
-					try {
-						let html = await readFile(htmlPath, 'utf8')
-						const canonicalUrl = toLocation(staticPath)
-						html = injectMetaTags(html, metadata.seo, canonicalUrl, defaultOgImage, titleSuffix)
-						await writeFile(htmlPath, html, 'utf8')
-					}
-					catch {
-						// file may not exist if githubPagesAdapter wasn't used
-					}
-				}
 			}
 		},
 	}
