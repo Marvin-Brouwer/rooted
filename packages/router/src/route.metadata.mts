@@ -37,7 +37,7 @@ export type RouteSeoMetadata = {
 	 */
 	image?: string
 	/** Sitemap `changefreq` field. */
-	changefreq?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'
+	changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'
 	/** Sitemap `priority` field (0.0–1.0). */
 	priority?: number
 }

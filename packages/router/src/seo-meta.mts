@@ -48,7 +48,7 @@ export function applyRouteSeoMeta(
 	route: Route<any>,
 	currentPath: string,
 	options: RouterSeoOptions | undefined,
-	elementFactory: ElementFactory,
+	element: ElementFactory,
 ): void {
 	if (!isClient()) return
 
@@ -61,53 +61,53 @@ export function applyRouteSeoMeta(
 			: seo.title
 	}
 
-	setMetaByName('description', seo.description, elementFactory)
-	setMetaByName('robots', seo.noIndex ? 'noindex' : undefined, elementFactory)
+	setMetaByName('description', seo.description, element)
+	setMetaByName('robots', seo.noIndex ? 'noindex' : undefined, element)
 
 	const base = options?.deploymentUrl ?? location.origin
 	const canonicalUrl = new URL(currentPath, base).href
-	setLinkCanonical(canonicalUrl, elementFactory)
+	setLinkCanonical(canonicalUrl, element)
 
-	setMetaByProperty('og:title', seo.title, elementFactory)
-	setMetaByProperty('og:description', seo.description, elementFactory)
-	setMetaByProperty('og:url', canonicalUrl, elementFactory)
+	setMetaByProperty('og:title', seo.title, element)
+	setMetaByProperty('og:description', seo.description, element)
+	setMetaByProperty('og:url', canonicalUrl, element)
 
 	const ogImage = seo.image ?? options?.defaultOgImage
-	if (ogImage) setMetaByProperty('og:image', ogImage, elementFactory)
+	if (ogImage) setMetaByProperty('og:image', ogImage, element)
 }
 
-function setMetaByName(name: string, content: string | undefined, elementFactory: ElementFactory): void {
+function setMetaByName(name: string, content: string | undefined, element: ElementFactory): void {
 	let tag = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`)
 	if (!content) {
 		tag?.remove()
 		return
 	}
 	if (!tag) {
-		tag = elementFactory('meta', { name, content })
+		tag = element('meta', { name, content })
 		document.head.append(tag)
 		return
 	}
 	tag.content = content
 }
 
-function setMetaByProperty(property: string, content: string | undefined, elementFactory: ElementFactory): void {
+function setMetaByProperty(property: string, content: string | undefined, element: ElementFactory): void {
 	let tag = document.head.querySelector<HTMLMetaElement>(`meta[property="${property}"]`)
 	if (!content) {
 		tag?.remove()
 		return
 	}
 	if (!tag) {
-		tag = elementFactory('meta', { property, content })
+		tag = element('meta', { property, content })
 		document.head.append(tag)
 		return
 	}
 	tag.content = content
 }
 
-function setLinkCanonical(href: string, elementFactory: ElementFactory): void {
+function setLinkCanonical(href: string, element: ElementFactory): void {
 	let tag = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
 	if (!tag) {
-		tag = elementFactory('link', { rel: 'canonical', href })
+		tag = element('link', { rel: 'canonical', href })
 		document.head.append(tag)
 		return
 	}
