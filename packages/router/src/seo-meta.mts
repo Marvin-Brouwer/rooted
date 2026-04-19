@@ -1,6 +1,7 @@
 import { isClient } from '@rooted/util'
 
 import type { Route } from './route.mts'
+import type { ElementFactory } from '@rooted/components/elements'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -47,6 +48,7 @@ export function applyRouteSeoMeta(
 	route: Route<any>,
 	currentPath: string,
 	options: RouterSeoOptions | undefined,
+	elementFactory: ElementFactory,
 ): void {
 	if (!isClient()) return
 
@@ -59,55 +61,57 @@ export function applyRouteSeoMeta(
 			: seo.title
 	}
 
-	setMetaByName('description', seo.description)
-	setMetaByName('robots', seo.noIndex ? 'noindex' : undefined)
+	setMetaByName('description', seo.description, elementFactory)
+	setMetaByName('robots', seo.noIndex ? 'noindex' : undefined, elementFactory)
 
 	const base = options?.deploymentUrl ?? location.origin
 	const canonicalUrl = new URL(currentPath, base).href
-	setLinkCanonical(canonicalUrl)
+	setLinkCanonical(canonicalUrl, elementFactory)
 
-	setMetaByProperty('og:title', seo.title)
-	setMetaByProperty('og:description', seo.description)
-	setMetaByProperty('og:url', canonicalUrl)
+	setMetaByProperty('og:title', seo.title, elementFactory)
+	setMetaByProperty('og:description', seo.description, elementFactory)
+	setMetaByProperty('og:url', canonicalUrl, elementFactory)
 
 	const ogImage = seo.image ?? options?.defaultOgImage
-	if (ogImage) setMetaByProperty('og:image', ogImage)
+	if (ogImage) setMetaByProperty('og:image', ogImage, elementFactory)
 }
 
-function setMetaByName(name: string, content: string | undefined): void {
+function setMetaByName(name: string, content: string | undefined, elementFactory: ElementFactory): void {
 	let tag = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`)
 	if (!content) {
 		tag?.remove()
 		return
 	}
 	if (!tag) {
-		tag = document.createElement('meta')
-		tag.name = name
+		tag = elementFactory('meta', { name, content })
 		document.head.append(tag)
+		return
 	}
 	tag.content = content
 }
 
-function setMetaByProperty(property: string, content: string | undefined): void {
+function setMetaByProperty(property: string, content: string | undefined, elementFactory: ElementFactory): void {
 	let tag = document.head.querySelector<HTMLMetaElement>(`meta[property="${property}"]`)
 	if (!content) {
 		tag?.remove()
 		return
 	}
 	if (!tag) {
-		tag = document.createElement('meta')
+		// `property` is an OG attribute, not a standard DOM property, so setAttribute is needed
+		tag = elementFactory('meta', { content })
 		tag.setAttribute('property', property)
 		document.head.append(tag)
+		return
 	}
 	tag.content = content
 }
 
-function setLinkCanonical(href: string): void {
+function setLinkCanonical(href: string, elementFactory: ElementFactory): void {
 	let tag = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
 	if (!tag) {
-		tag = document.createElement('link')
-		tag.rel = 'canonical'
+		tag = elementFactory('link', { rel: 'canonical', href })
 		document.head.append(tag)
+		return
 	}
 	tag.href = href
 }

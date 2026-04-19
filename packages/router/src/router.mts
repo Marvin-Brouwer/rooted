@@ -134,7 +134,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 	return component<RouterOptions>({
 		name: '@rooted/router',
-		async onMount({ replace, create, on, options }) {
+		async onMount({ replace, create, on, options, element: elementFactory }) {
 			const {
 				viewTransition = false,
 				scrollBehavior: {
@@ -195,7 +195,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 						applyTransition(() => renderRoute())
 					}
 					else {
-						applyRouteSeoMeta(matchRouteResult.route, target.pathOnly, seoOptions)
+						applyRouteSeoMeta(matchRouteResult.route, target.pathOnly, seoOptions, elementFactory)
 						applyTransition(() => renderRoute(matchRouteResult.element))
 					}
 				}
