@@ -1,6 +1,8 @@
 import { access, constants, readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 
+import { createStaticRenderer, injectSnapshot } from '../static-renderer.mts'
+
 import type { SeoApi } from '../seo-api.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Plugin, ResolvedConfig } from 'vite'
@@ -19,6 +21,9 @@ const SEO_PLUGIN_NAME = 'rooted:seo'
  * - When the SEO plugin is present, injects per-page meta tags into each
  *   written `index.html` copy and injects the JSON-LD `WebSite` schema plus
  *   canonical tag into the root `index.html`.
+ * - Pre-renders each static route's structural HTML into its `index.html` using
+ *   a happy-dom window so crawlers and first paint see real content instead of
+ *   an empty shell. The browser still boots the JS normally on top.
  *
  * Set `webManifest.url` in {@link rootedManifest} to configure the deployment
  * base path (e.g. `homepage` from `package.json`). That URL's pathname becomes
@@ -68,6 +73,8 @@ export function githubPagesAdapter(): Plugin {
 			const indexHtml = await readFile(indexHtmlPath, 'utf8')
 
 			await writeFile(path.join(outputDirectory, '.nojekyll'), 'disable jekyll in this github pages directory', 'utf8')
+			// 404.html handles dynamic routes — leave it as a plain shell so the JS router
+			// can handle any URL. Never inject pre-rendered content here.
 			await writeFile(path.join(outputDirectory, '404.html'), indexHtml, 'utf8')
 
 			// Inject root-level SEO (JSON-LD, canonical, og:url/type/image) into index.html
@@ -75,6 +82,8 @@ export function githubPagesAdapter(): Plugin {
 			if (rootHtml !== indexHtml) {
 				await writeFile(indexHtmlPath, rootHtml, 'utf8')
 			}
+
+			const staticRoutes: Array<{ staticPath: string, routeDirectory: string }> = []
 
 			for (const route of manifestApi?.routes ?? []) {
 				if (!Object.hasOwn(route, 'getMetadata')) continue
@@ -93,6 +102,26 @@ export function githubPagesAdapter(): Plugin {
 					? seoApi.injectRouteHtml(indexHtml, metadata.seo, staticPath)
 					: indexHtml
 				await writeFile(path.join(routeDirectory, 'index.html'), html, 'utf8')
+				staticRoutes.push({ staticPath, routeDirectory })
+			}
+
+			// SSG pre-render pass — boot the app once in happy-dom, navigate to each
+			// static route, and inject the resulting body HTML into the shell files
+			const renderer = await createStaticRenderer(config, outputDirectory)
+				.catch((error: unknown) => {
+					config.logger.warn(`[static-renderer] Setup error: ${String(error)}`)
+				})
+
+			if (renderer) {
+				for (const { staticPath, routeDirectory } of staticRoutes) {
+					const snapshot = await renderer.render(staticPath)
+					if (!snapshot) continue
+
+					const htmlPath = path.join(routeDirectory, 'index.html')
+					const html = await readFile(htmlPath, 'utf8')
+					await writeFile(htmlPath, injectSnapshot(html, snapshot), 'utf8')
+				}
+				await renderer.dispose()
 			}
 		},
 	}
