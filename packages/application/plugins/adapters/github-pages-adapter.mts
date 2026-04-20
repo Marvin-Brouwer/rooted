@@ -1,7 +1,7 @@
 import { access, constants, readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { SeoPluginApi } from '../seo.mts'
+import type { SeoApi } from '../seo-api.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Plugin, ResolvedConfig } from 'vite'
 
@@ -45,7 +45,7 @@ const SEO_PLUGIN_NAME = 'rooted:seo'
 export function githubPagesAdapter(): Plugin {
 	let config: ResolvedConfig
 	let manifestApi: RouteManifestApi | undefined
-	let seoApi: SeoPluginApi | undefined
+	let seoApi: SeoApi | undefined
 
 	return {
 		name: 'rooted:github-pages',
@@ -56,7 +56,7 @@ export function githubPagesAdapter(): Plugin {
 			const manifestPlugin = resolved.plugins.find(p => p.name === MANIFEST_PLUGIN_NAME)
 			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
 			const seoPlugin = resolved.plugins.find(p => p.name === SEO_PLUGIN_NAME)
-			seoApi = (seoPlugin as { api?: SeoPluginApi } | undefined)?.api
+			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 		},
 
 		async closeBundle() {

@@ -7,9 +7,16 @@
 import { ArrayElement } from '@rooted/util';
 import { BuildEnvironmentOptions } from 'vite';
 import { ManifestOptions } from 'vite-plugin-pwa';
+import { RouteSeoMetadata } from '@rooted/router/routes';
 import { UserConfig } from 'vite';
 import * as vite from 'vite';
 import { VitePWAOptions } from 'vite-plugin-pwa';
+
+// @public
+export type AdditionalSitemap = {
+    name: string;
+    entries: SitemapEntry[];
+};
 
 // @public (undocumented)
 export type CodeSplittingGroups = NonNullable<CodeSplittingOptions['groups']>;
@@ -40,6 +47,27 @@ export type RootedApplicationManifest = {
 
 // @public (undocumented)
 export function rootedManifest(manifest: RootedApplicationManifest): vite.UserConfigFnObject;
+
+// @public
+export type SeoApi = {
+    addSitemap(sitemap: AdditionalSitemap): void;
+    getSitemapUrl(): string | undefined;
+    injectRouteHtml(html: string, seo: RouteSeoMetadata | undefined, staticPath: string): string;
+    injectRootHtml(html: string): string;
+};
+
+// @public
+export type SitemapEntry = {
+    loc: string;
+    lastmod?: string;
+    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    priority?: number;
+    images?: Array<{
+        loc: string;
+        title?: string;
+        caption?: string;
+    }>;
+};
 
 // (No @packageDocumentation comment for this package)
 

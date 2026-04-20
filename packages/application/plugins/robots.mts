@@ -1,7 +1,10 @@
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import type { SeoApi } from './seo-api.mts'
 import type { Plugin, ResolvedConfig } from 'vite'
+
+const SEO_PLUGIN_NAME = 'rooted:seo'
 
 /**
  * Options for the generated `robots.txt`.
@@ -38,7 +41,8 @@ const DEFAULT_AI_CRAWLERS = [
  * By default produces:
  * - `User-agent: * / Allow: /` for all crawlers
  * - Individual `Allow: /` entries for common AI crawlers
- * - A `Sitemap:` line when `deploymentUrl` is configured
+ * - A `Sitemap:` line pointing to `sitemap-index.xml` (when additional sitemaps
+ *   are registered) or `sitemap.xml`, when a deployment URL is configured
  *
  * Pass `robots: false` in the `seo` manifest options to disable this plugin.
  *
@@ -50,6 +54,7 @@ export function robotsPlugin(
 	options: RobotsOptions | undefined,
 ): Plugin {
 	let config: ResolvedConfig
+	let seoApi: SeoApi | undefined
 
 	return {
 		name: 'rooted:robots',
@@ -57,6 +62,8 @@ export function robotsPlugin(
 
 		configResolved(resolved) {
 			config = resolved
+			const seoPlugin = resolved.plugins.find(p => p.name === SEO_PLUGIN_NAME)
+			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 		},
 
 		async closeBundle() {
@@ -73,13 +80,16 @@ export function robotsPlugin(
 				'',
 			])
 
+			const sitemapUrl = seoApi?.getSitemapUrl()
+				?? (deploymentUrl ? new URL('sitemap.xml', deploymentUrl).href : undefined)
+
 			const content = [
 				'User-agent: *',
 				'Allow: /',
 				'',
 				'# AI crawlers',
 				...aiCrawlerLines,
-				...(deploymentUrl ? [`Sitemap: ${new URL('sitemap.xml', deploymentUrl).href}`] : []),
+				...(sitemapUrl ? [`Sitemap: ${sitemapUrl}`] : []),
 				...(options?.append ? ['', options.append] : []),
 			].join('\n')
 

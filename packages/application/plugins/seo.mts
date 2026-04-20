@@ -6,6 +6,7 @@ import { promisify } from 'node:util'
 import { glob } from 'tinyglobby'
 
 import type { RobotsOptions } from './robots.mts'
+import type { AdditionalSitemap, SeoApi, SitemapEntry } from './seo-api.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { RouteSeoMetadata } from '@rooted/router/routes'
 import type { Plugin, ResolvedConfig } from 'vite'
@@ -49,51 +50,15 @@ export type SeoOptions = {
 }
 
 /**
- * Inter-plugin API exposed by the SEO plugin.
- *
- * Adapters and other Vite plugins retrieve this via:
- * ```ts
- * const seoPlugin = config.plugins.find(p => p.name === 'rooted:seo')
- * const seoApi = (seoPlugin as { api?: SeoPluginApi } | undefined)?.api
- * ```
- *
- * HTML injection is the adapter's responsibility because only the adapter
- * knows when and how HTML is written (static copy, server response, etc.).
- */
-export type SeoPluginApi = {
-	/**
-	 * Injects per-page meta tags into an HTML string for a static route.
-	 *
-	 * Inserts `<title>`, `<meta name="description">`, `<link rel="canonical">`,
-	 * `<meta name="robots">` (when `noIndex` is true), and Open Graph tags.
-	 * Tags that already exist in the HTML are left unchanged.
-	 *
-	 * @param html - The source HTML string to transform.
-	 * @param seo - The SEO metadata from `route.getMetadata().seo`, or `undefined`.
-	 * @param staticPath - The route's static path (e.g. `/categories/`), used to
-	 *   build the canonical URL.
-	 */
-	injectRouteHtml(html: string, seo: RouteSeoMetadata | undefined, staticPath: string): string
-	/**
-	 * Injects root-level SEO into the home `index.html`.
-	 *
-	 * Adds a JSON-LD `WebSite` schema block, a `<link rel="canonical">` for the
-	 * root URL, and an `og:url` / `og:image` / `og:type` block.
-	 *
-	 * @param html - The source HTML string to transform.
-	 */
-	injectRootHtml(html: string): string
-}
-
-/**
- * SEO plugin — generates a `sitemap.xml` from all static routes discovered by
+ * SEO plugin — generates `sitemap.xml` (and a `sitemap-index.xml` when additional
+ * sitemaps are registered) from all static routes discovered by
  * {@link generateRouteManifest}, plus a root entry whose `lastmod` is the
  * newest git commit date across the configured home route files.
  *
- * HTML meta tag injection is intentionally NOT done here. Instead, the plugin
- * exposes `api.injectRouteHtml` and `api.injectRootHtml` so that each adapter
- * can call them at the point where it writes HTML — whether that is a static
- * file copy (like {@link githubPagesAdapter}) or a server-generated response.
+ * HTML meta tag injection is the adapter's responsibility. The plugin exposes
+ * {@link SeoApi} (`plugin.api`) so adapters and other plugins can:
+ * - inject meta tags via `injectRouteHtml` / `injectRootHtml`
+ * - register additional sitemaps via `addSitemap`
  *
  * Runs only during production builds. If no static routes are found at all,
  * nothing is written.
@@ -112,6 +77,8 @@ export function seoPlugin(
 	let config: ResolvedConfig
 	let manifestApi: RouteManifestApi | undefined
 
+	const additionalSitemaps = new Map<string, AdditionalSitemap>()
+
 	const defaultOgImage = options?.defaultOgImage
 		?? (deploymentUrl ? new URL('pwa-512x512.png', deploymentUrl).href : undefined)
 	const titleSuffix = options?.titleSuffix
@@ -127,6 +94,14 @@ export function seoPlugin(
 		apply: 'build',
 
 		api: {
+			addSitemap(sitemap: AdditionalSitemap): void {
+				additionalSitemaps.set(sitemap.name, sitemap)
+			},
+			getSitemapUrl(): string | undefined {
+				if (!deploymentUrl) return undefined
+				const file = additionalSitemaps.size > 0 ? 'sitemap-index.xml' : 'sitemap.xml'
+				return new URL(file, deploymentUrl).href
+			},
 			injectRouteHtml(html: string, seo: RouteSeoMetadata | undefined, staticPath: string): string {
 				return injectMetaTags(html, seo, toLocation(staticPath), defaultOgImage, titleSuffix)
 			},
@@ -136,7 +111,7 @@ export function seoPlugin(
 				result = injectOgTags(result, undefined, toLocation('/'), defaultOgImage)
 				return result
 			},
-		} satisfies SeoPluginApi,
+		} satisfies SeoApi,
 
 		configResolved(resolved) {
 			config = resolved
@@ -146,6 +121,7 @@ export function seoPlugin(
 
 		async closeBundle() {
 			const outputDirectory = config.build.outDir
+			const today = new Date().toISOString().slice(0, 10)
 
 			// Pass 1: find the newest git date among home/navigation files
 			const homeGlobs = options?.homeRouteFiles ?? DEFAULT_HOME_ROUTE_FILES
@@ -153,8 +129,7 @@ export function seoPlugin(
 			const homeDates = await Promise.all(homeFiles.map((f: string) => gitLastModified(f, config.root)))
 			const homeLastModified = homeDates.toSorted().at(-1)
 
-			// Pass 2: build the full list of { loc, lastmod } entries
-			type SitemapEntry = { loc: string, lastmod: string }
+			// Pass 2: build the full list of sitemap entries for static routes
 			const entries = new Map<string, SitemapEntry>()
 
 			if (homeLastModified !== undefined) {
@@ -175,25 +150,102 @@ export function seoPlugin(
 
 					const sourceFile = manifestApi.routeSourceFiles.get(route)
 					const lastmod = await gitLastModified(sourceFile, config.root)
-					entries.set(loc, { loc, lastmod })
+					entries.set(loc, {
+						loc,
+						lastmod,
+						changeFrequency: metadata.seo?.changeFrequency,
+						priority: metadata.seo?.priority,
+					})
 				}
 			}
 
 			if (entries.size > 0) {
-				// Pass 3: construct the sitemap XML and write the asset
-				const xml = [
-					`<?xml version="1.0" encoding="UTF-8"?>`,
-					`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-					...[...entries.values()].map(({ loc, lastmod }) =>
-						`\t<url>\n\t\t<loc>${loc}</loc>\n\t\t<lastmod>${lastmod}</lastmod>\n\t</url>`,
-					),
-					`</urlset>`,
-				].join('\n')
+				// Pass 3: write sitemap.xml
+				await writeFile(
+					path.join(outputDirectory, 'sitemap.xml'),
+					buildSitemapXml([...entries.values()]),
+					'utf8',
+				)
+			}
 
-				await writeFile(path.join(outputDirectory, 'sitemap.xml'), xml, 'utf8')
+			// Pass 4: write additional sitemaps + sitemap-index when extras are registered
+			if (additionalSitemaps.size > 0) {
+				for (const sitemap of additionalSitemaps.values()) {
+					await writeFile(
+						path.join(outputDirectory, `sitemap-${sitemap.name}.xml`),
+						buildSitemapXml(sitemap.entries),
+						'utf8',
+					)
+				}
+
+				const indexEntries = [
+					...(entries.size > 0
+						? [{ loc: toLocation('/sitemap.xml'), lastmod: [...entries.values()].map(entry => entry.lastmod ?? today).toSorted().at(-1) ?? today }]
+						: []
+					),
+					...[...additionalSitemaps.values()].map(sitemap => ({
+						loc: toLocation(`/sitemap-${sitemap.name}.xml`),
+						lastmod: sitemap.entries.map(entry => entry.lastmod ?? today).toSorted().at(-1) ?? today,
+					})),
+				]
+
+				await writeFile(
+					path.join(outputDirectory, 'sitemap-index.xml'),
+					buildSitemapIndexXml(indexEntries),
+					'utf8',
+				)
 			}
 		},
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Sitemap XML builders
+// ---------------------------------------------------------------------------
+
+function buildSitemapXml(entries: SitemapEntry[]): string {
+	const hasImages = entries.some(entry => entry.images && entry.images.length > 0)
+	const namespace = hasImages
+		? `xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"`
+		: `xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"`
+
+	return [
+		`<?xml version="1.0" encoding="UTF-8"?>`,
+		`<urlset ${namespace}>`,
+		...entries.map(entry => buildUrlElement(entry)),
+		`</urlset>`,
+	].join('\n')
+}
+
+function buildUrlElement({ loc, lastmod, changeFrequency, priority, images }: SitemapEntry): string {
+	const imageLines = images?.flatMap(({ loc: imageLoc, title, caption }) => [
+		`\t\t<image:image>`,
+		`\t\t\t<image:loc>${imageLoc}</image:loc>`,
+		...(title ? [`\t\t\t<image:title>${escapeHtml(title)}</image:title>`] : []),
+		...(caption ? [`\t\t\t<image:caption>${escapeHtml(caption)}</image:caption>`] : []),
+		`\t\t</image:image>`,
+	]) ?? []
+
+	return [
+		`\t<url>`,
+		`\t\t<loc>${loc}</loc>`,
+		...(lastmod ? [`\t\t<lastmod>${lastmod}</lastmod>`] : []),
+		...(changeFrequency ? [`\t\t<changefreq>${changeFrequency}</changefreq>`] : []),
+		...(priority === undefined ? [] : [`\t\t<priority>${priority.toFixed(1)}</priority>`]),
+		...imageLines,
+		`\t</url>`,
+	].join('\n')
+}
+
+function buildSitemapIndexXml(sitemaps: Array<{ loc: string, lastmod: string }>): string {
+	return [
+		`<?xml version="1.0" encoding="UTF-8"?>`,
+		`<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+		...sitemaps.map(({ loc, lastmod }) =>
+			`\t<sitemap>\n\t\t<loc>${loc}</loc>\n\t\t<lastmod>${lastmod}</lastmod>\n\t</sitemap>`,
+		),
+		`</sitemapindex>`,
+	].join('\n')
 }
 
 // ---------------------------------------------------------------------------
