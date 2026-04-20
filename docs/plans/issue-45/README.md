@@ -11,6 +11,7 @@ Each stage is independently shippable. Stages are implemented one at a time, in 
 | 05 | [05-sitemap-index.md](./05-sitemap-index.md) | — | not started |
 | 06 | [06-media-sitemap.md](./06-media-sitemap.md) | 05 | not started |
 | 07 | [07-llms-txt.md](./07-llms-txt.md) | 02 | not started |
+| 08 | [08-ssg-happy-dom-rendering.md](./08-ssg-happy-dom-rendering.md) | 03 | not started |
 
 ## Overall acceptance criteria (end of stage 07)
 
