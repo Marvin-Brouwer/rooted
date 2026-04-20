@@ -29,6 +29,22 @@ export type DetectorOptions = {
     importCycle?: ImportCycleOptions;
 };
 
+// @public
+export type LlmsTxtOptions = {
+    intro?: string;
+    sections?: LlmsTxtSection[];
+};
+
+// @public
+export type LlmsTxtSection = {
+    title: string;
+    entries: Array<{
+        title: string;
+        url: string;
+        description?: string;
+    }>;
+};
+
 // @public (undocumented)
 export type RootedApplicationManifest = {
     resolve?: UserConfig['resolve'];

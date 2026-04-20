@@ -5,6 +5,7 @@ import { promisify } from 'node:util'
 
 import { glob } from 'tinyglobby'
 
+import type { LlmsTxtOptions } from './llms-txt.mts'
 import type { RobotsOptions } from './robots.mts'
 import type { AdditionalSitemap, SeoApi, SitemapEntry } from './seo-api.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
@@ -47,6 +48,12 @@ export type SeoOptions = {
 	 * @default undefined — generates a default robots.txt
 	 */
 	robots?: RobotsOptions | false
+	/**
+	 * Options for the generated `llms.txt`. Set to `false` to disable
+	 * `llms.txt` generation entirely.
+	 * @default undefined — generates a default llms.txt from named static routes
+	 */
+	llmsTxt?: LlmsTxtOptions | false
 }
 
 /**

@@ -10,6 +10,7 @@ import { ManifestOptions, type VitePWAOptions } from 'vite-plugin-pwa'
 type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
+import { llmsTxtPlugin } from '../plugins/llms-txt.mts'
 import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
 import { pwaPreset } from '../plugins/pwa-preset.mts'
 import { robotsPlugin } from '../plugins/robots.mts'
@@ -150,6 +151,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 				pwaAssetsPlugin(!!manifest.icon || skipPwaGenerator, manifest.webManifest.url),
 				seoPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo),
 				manifest.seo?.robots !== false && robotsPlugin(manifest.webManifest.url, manifest.seo?.robots),
+				manifest.seo?.llmsTxt !== false && llmsTxtPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo?.llmsTxt || undefined),
 			],
 		}
 	}
