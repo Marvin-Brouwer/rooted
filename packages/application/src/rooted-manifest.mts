@@ -147,7 +147,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 					},
 				),
 				pwaPreset({ manifest, skipPwaGenerator, minify, autoIcon, runtimeCaching: manifest.runtimeCaching }),
-				pwaAssetsPlugin(!!manifest.icon || skipPwaGenerator),
+				pwaAssetsPlugin(!!manifest.icon || skipPwaGenerator, manifest.webManifest.url),
 				seoPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo),
 				manifest.seo?.robots !== false && robotsPlugin(manifest.webManifest.url, manifest.seo?.robots),
 			],

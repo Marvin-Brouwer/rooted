@@ -2,9 +2,11 @@ import fs from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import type { SeoApi } from './seo-api.mts'
 import type { PluginOption, ResolvedConfig } from 'vite'
 
 const DEFAULT_ICON_PATH = 'public/icon.svg'
+const SEO_PLUGIN_NAME = 'rooted:seo'
 
 /**
  * Generates PWA icon assets from the project's `public/icon.svg` using the
@@ -19,11 +21,15 @@ const DEFAULT_ICON_PATH = 'public/icon.svg'
  * Assets are written to `public/` and are skipped when they already exist on
  * disk (`overrideAssets: false`).
  *
+ * When a deployment URL is configured and the SEO plugin is present, registers
+ * the generated icons as a `sitemap-icons.xml` entry via `SeoApi.addSitemap`.
+ *
  * @internal Automatically included by {@link rootedManifest}. Only runs during
  * production builds when no `icon` is set in the manifest options.
  */
-export function pwaAssetsPlugin(skip: boolean): PluginOption {
+export function pwaAssetsPlugin(skip: boolean, deploymentUrl: string | undefined): PluginOption {
 	let viteConfig: ResolvedConfig
+	let seoApi: SeoApi | undefined
 
 	return {
 		name: 'rooted:pwa-assets',
@@ -31,6 +37,8 @@ export function pwaAssetsPlugin(skip: boolean): PluginOption {
 
 		configResolved(config) {
 			viteConfig = config
+			const seoPlugin = config.plugins.find(p => p.name === SEO_PLUGIN_NAME)
+			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 		},
 
 		async buildStart() {
@@ -69,6 +77,21 @@ export function pwaAssetsPlugin(skip: boolean): PluginOption {
 
 			await generateAssets(inst, false, path.dirname(svgPath), (message, ignored) => {
 				if (!ignored) viteConfig.logger.info(message)
+			})
+
+			if (!seoApi) return
+
+			const toAbsolute = (filename: string) =>
+				deploymentUrl ? new URL(filename, deploymentUrl).href : `${viteConfig.base}${filename}`
+			const today = new Date().toISOString().slice(0, 10)
+
+			seoApi.addSitemap({
+				name: 'icons',
+				entries: [
+					{ loc: toAbsolute('pwa-512x512.png'), lastmod: today },
+					{ loc: toAbsolute('pwa-192x192.png'), lastmod: today },
+					{ loc: toAbsolute('apple-touch-icon-180x180.png'), lastmod: today },
+				],
 			})
 		},
 	}

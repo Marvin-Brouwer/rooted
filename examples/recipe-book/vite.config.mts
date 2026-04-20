@@ -52,7 +52,7 @@ export default rootedManifest({
 
 	plugins: [
 		varlockVitePlugin(),
-		responsiveImages({ accessKey: ENV.UNSPLASH_ACCESS_KEY }),
+		responsiveImages({ accessKey: ENV.UNSPLASH_ACCESS_KEY, deploymentUrl: packageJson.homepage }),
 		markdownPlugin(),
 		generateRouteManifest({
 			glob: './src/**/_routes.mts',
