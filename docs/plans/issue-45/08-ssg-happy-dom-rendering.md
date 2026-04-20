@@ -42,13 +42,13 @@ For each static route:
      so the router initialises for that route
   5. await one macrotask tick  (setTimeout 0 — gives dynamic imports time to resolve)
   6. snapshot = document.body.innerHTML   ← capture BEFORE cancellation
-  7. Signal the global cancellation token
-  8. window.dispatchEvent(new Event('beforeunload'))
+  7. window.dispatchEvent(new Event('beforeunload'))
      ← triggers the framework's own teardown: router unmounts,
-        signals unsubscribe, pending work stops
-  9. Inject snapshot into the route's index.html
+        signals unsubscribe, pending work stops; pending fetch stubs
+        resolve/reject as part of this chain (see "IO stubbing")
+  8. Inject snapshot into the route's index.html
      (replace the empty app container element, e.g. <div id="app"></div>)
- 10. Tear down / discard the happy-dom instance
+  9. Tear down / discard the happy-dom instance
 ```
 
 ### Why one macrotask tick
@@ -62,8 +62,8 @@ components need more time, this can be increased to a small fixed timeout (e.g.
 
 ### Snapshot timing
 
-The snapshot **must** be taken before the cancellation token is signalled.
-Cancellation triggers unmounting which may synchronously mutate the DOM
+The snapshot **must** be taken before `beforeunload` is dispatched.
+Teardown triggers unmounting which may synchronously mutate the DOM
 (removing nodes, clearing content). Once the snapshot string is captured it is
 detached from the live DOM and unaffected by teardown.
 
@@ -71,26 +71,40 @@ detached from the live DOM and unaffected by teardown.
 
 ## IO stubbing
 
-### fetch — never-resolving promise
+### fetch — resolves after teardown
 
 ```ts
-window.fetch = () => new Promise(() => { /* intentionally never resolves */ })
+const pendingIO: Array<() => void> = []
+
+window.fetch = () => new Promise((_resolve, reject) => {
+    pendingIO.push(() => reject(new DOMException('AbortError', 'AbortError')))
+})
+
+// called after snapshot is taken, during the beforeunload teardown chain:
+function drainPendingIO() {
+    for (const cancel of pendingIO) cancel()
+    pendingIO.length = 0
+}
 ```
 
 Returning a fake `200` response forces every caller to handle a response that
 does not match its expected shape, producing null-dereference errors downstream.
 
-A never-resolving promise suspends execution cleanly at the `await fetch(…)` line.
-Everything built synchronously before that point is already in the DOM. When the
-cancellation token fires the pending promise is simply abandoned — no errors, no
-partial state. This works transparently for `fetch` inside `Promise.all`,
-chained `.then()`, etc.
+A promise that hangs until teardown suspends execution cleanly at the
+`await fetch(…)` line — everything built before that point is already in the DOM.
+Once `beforeunload` fires and `drainPendingIO()` is called, all pending fetches
+reject with an `AbortError`, which is the browser-standard signal for a cancelled
+request. Any `.catch` handlers in the component code that check for `AbortError`
+will behave correctly; any that don't are already handling cancellation incorrectly
+in the real browser too.
+
+This works transparently for `fetch` inside `Promise.all`, chained `.then()`, etc.
 
 ### Other async IO
 
 Any other browser IO that does not make sense at build time (e.g. `XMLHttpRequest`,
-`navigator.sendBeacon`, `Cache API`) should follow the same pattern: return a
-never-resolving promise or a no-op, never a fake success value.
+`navigator.sendBeacon`, `Cache API`) should follow the same pattern: pend until
+teardown, then reject with `AbortError`. Never return a fake success value.
 
 ---
 
@@ -233,6 +247,22 @@ The adapter needs a stable element to inject the snapshot into. Options:
 
 The explicit placeholder is preferable — it survives template changes and makes
 the injection point unambiguous.
+
+---
+
+## 404.html and dynamic routes
+
+GitHub Pages serves `404.html` for any URL that does not match a real file on
+disk. The `githubPagesAdapter` already writes `404.html` as a copy of
+`index.html`, and this is how dynamic routes work — GitHub Pages falls through
+to `404.html`, the SPA shell loads, and the router handles the actual URL.
+
+**`404.html` must not receive pre-rendered content.** There is no single route
+to render into it — it is the entry point for every dynamic URL. Injecting a
+snapshot from any particular route would produce incorrect content for all others.
+
+The pre-rendering pass therefore skips `404.html` entirely. It remains a plain
+copy of the SPA shell, identical to today's behaviour.
 
 ---
 
