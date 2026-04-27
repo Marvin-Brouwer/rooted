@@ -16,7 +16,7 @@
 		"release": "multi-semantic-release --ignore-private-packages"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "^20.5.0",
+		"@commitlint/cli": "^20.5.2",
 		"@commitlint/config-conventional": "^20.5.0",
 		"@eslint/js": "^10.0.1",
 		"@rooted/development": "workspace:*",
