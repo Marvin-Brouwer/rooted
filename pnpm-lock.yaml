@@ -113,7 +113,7 @@ importers:
         version: 7.0.2
       '@varlock/vite-integration':
         specifier: ^0.2.10
-        version: 0.2.10(varlock@0.9.0)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.2)(tsx@4.21.0))
+        version: 0.2.10(varlock@0.9.1)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.2)(tsx@4.21.0))
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -127,8 +127,8 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
       varlock:
-        specifier: ^0.9.0
-        version: 0.9.0
+        specifier: ^0.9.1
+        version: 0.9.1
       vite:
         specifier: ^8.0.9
         version: 8.0.9(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.2)(tsx@4.21.0)
@@ -5354,8 +5354,8 @@ packages:
     resolution: {integrity: sha512-hVDIBwsRruT73PbK7uP5ebUt+ezEtCmzZz3F59BSr2F6OVFnJ/6h8liuvdLrQ88Xmnk6/+xGGuq+pG9WwTuy3A==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  varlock@0.9.0:
-    resolution: {integrity: sha512-Lau2o5t9Y99MsHvWhlr3jvCOQUyCjUud8/QfjOOw+acuGgLUX3ZXRlp6M8a6kiFfVoQ8Jrc/4mOGFn8ZwWwfBQ==}
+  varlock@0.9.1:
+    resolution: {integrity: sha512-AMF41b5Pqo7rOOBK5mXuR+Jv++R/jeq9T9KdWCiYXD4ARZKH6MWbe0N/2JKpSPPDpiCWD2tlRLDPfh/gHAavkg==}
     engines: {bun: '>=1.3.3', node: '>=22'}
     hasBin: true
 
@@ -7540,9 +7540,9 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@varlock/vite-integration@0.2.10(varlock@0.9.0)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.2)(tsx@4.21.0))':
+  '@varlock/vite-integration@0.2.10(varlock@0.9.1)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.2)(tsx@4.21.0))':
     dependencies:
-      varlock: 0.9.0
+      varlock: 0.9.1
       vite: 8.0.9(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.2)(tsx@4.21.0)
 
   '@vite-pwa/assets-generator@1.0.2':
@@ -10791,7 +10791,7 @@ snapshots:
 
   validate-npm-package-name@7.0.2: {}
 
-  varlock@0.9.0: {}
+  varlock@0.9.1: {}
 
   vite-bundle-analyzer@1.3.7: {}
 
