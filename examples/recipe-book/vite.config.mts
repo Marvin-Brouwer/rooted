@@ -50,6 +50,12 @@ export default rootedManifest({
 		display: 'standalone',
 	},
 
+	seo: {
+		llmsTxt: {
+			intro: 'Recipe Book is a demo application built with the @rooted framework. It showcases client-side routing, lazy-loaded components, and responsive image handling.',
+		},
+	},
+
 	plugins: [
 		varlockVitePlugin(),
 		responsiveImages({ accessKey: ENV.UNSPLASH_ACCESS_KEY, deploymentUrl: packageJson.homepage }),
