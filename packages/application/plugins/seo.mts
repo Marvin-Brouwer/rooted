@@ -5,6 +5,9 @@ import { promisify } from 'node:util'
 
 import { glob } from 'tinyglobby'
 
+import { injectCanonical, injectMetaTags, injectOgTags, injectRootJsonLd } from './seo-html.mts'
+import { buildSitemapIndexXml, buildSitemapXml } from './seo-sitemap.mts'
+
 import type { LlmsTxtOptions } from './llms-txt.mts'
 import type { RobotsOptions } from './robots.mts'
 import type { AdditionalSitemap, SeoApi, SitemapEntry } from './seo-api.mts'
@@ -130,44 +133,14 @@ export function seoPlugin(
 			const outputDirectory = config.build.outDir
 			const today = new Date().toISOString().slice(0, 10)
 
-			// Pass 1: find the newest git date among home/navigation files
 			const homeGlobs = options?.homeRouteFiles ?? DEFAULT_HOME_ROUTE_FILES
 			const homeFiles = await glob(homeGlobs, { cwd: config.root, absolute: true })
 			const homeDates = await Promise.all(homeFiles.map((f: string) => gitLastModified(f, config.root)))
 			const homeLastModified = homeDates.toSorted().at(-1)
 
-			// Pass 2: build the full list of sitemap entries for static routes
-			const entries = new Map<string, SitemapEntry>()
-
-			if (homeLastModified !== undefined) {
-				const loc = toLocation('/')
-				entries.set(loc, { loc, lastmod: homeLastModified })
-			}
-
-			if (manifestApi) {
-				for (const route of manifestApi.routes) {
-					if (!Object.hasOwn(route, 'getMetadata')) continue
-					const metadata = route.getMetadata()
-					const staticPath = metadata.staticRoute
-					if (staticPath === false) continue
-					if (metadata.seo?.excludeFromSitemap) continue
-
-					const loc = toLocation(staticPath)
-					if (entries.has(loc)) continue
-
-					const sourceFile = manifestApi.routeSourceFiles.get(route)
-					const lastmod = await gitLastModified(sourceFile, config.root)
-					entries.set(loc, {
-						loc,
-						lastmod,
-						changeFrequency: metadata.seo?.changeFrequency,
-						priority: metadata.seo?.priority,
-					})
-				}
-			}
+			const entries = await buildSitemapEntries(manifestApi, homeLastModified, toLocation, config.root)
 
 			if (entries.size > 0) {
-				// Pass 3: write sitemap.xml
 				await writeFile(
 					path.join(outputDirectory, 'sitemap.xml'),
 					buildSitemapXml([...entries.values()]),
@@ -175,188 +148,83 @@ export function seoPlugin(
 				)
 			}
 
-			// Pass 4: write additional sitemaps + sitemap-index when extras are registered
 			if (additionalSitemaps.size > 0) {
-				for (const sitemap of additionalSitemaps.values()) {
-					await writeFile(
-						path.join(outputDirectory, `sitemap-${sitemap.name}.xml`),
-						buildSitemapXml(sitemap.entries),
-						'utf8',
-					)
-				}
-
-				const indexEntries = [
-					...(entries.size > 0
-						? [{ loc: toLocation('/sitemap.xml'), lastmod: [...entries.values()].map(entry => entry.lastmod ?? today).toSorted().at(-1) ?? today }]
-						: []
-					),
-					...[...additionalSitemaps.values()].map(sitemap => ({
-						loc: toLocation(`/sitemap-${sitemap.name}.xml`),
-						lastmod: sitemap.entries.map(entry => entry.lastmod ?? today).toSorted().at(-1) ?? today,
-					})),
-				]
-
-				await writeFile(
-					path.join(outputDirectory, 'sitemap-index.xml'),
-					buildSitemapIndexXml(indexEntries),
-					'utf8',
-				)
+				await writeAdditionalSitemaps(outputDirectory, additionalSitemaps, entries, toLocation, today)
 			}
 		},
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Sitemap XML builders
-// ---------------------------------------------------------------------------
+async function buildSitemapEntries(
+	manifestApi: RouteManifestApi | undefined,
+	homeLastModified: string | undefined,
+	toLocation: (path: string) => string,
+	root: string,
+): Promise<Map<string, SitemapEntry>> {
+	const entries = new Map<string, SitemapEntry>()
 
-function buildSitemapXml(entries: SitemapEntry[]): string {
-	const hasImages = entries.some(entry => entry.images && entry.images.length > 0)
-	const namespace = hasImages
-		? `xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"`
-		: `xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"`
+	if (homeLastModified !== undefined) {
+		const loc = toLocation('/')
+		entries.set(loc, { loc, lastmod: homeLastModified })
+	}
 
-	return [
-		`<?xml version="1.0" encoding="UTF-8"?>`,
-		`<urlset ${namespace}>`,
-		...entries.map(entry => buildUrlElement(entry)),
-		`</urlset>`,
-	].join('\n')
+	if (manifestApi) {
+		for (const route of manifestApi.routes) {
+			if (!Object.hasOwn(route, 'getMetadata')) continue
+			const metadata = route.getMetadata()
+			const staticPath = metadata.staticRoute
+			if (staticPath === false) continue
+			if (metadata.seo?.excludeFromSitemap) continue
+
+			const loc = toLocation(staticPath)
+			if (entries.has(loc)) continue
+
+			const sourceFile = manifestApi.routeSourceFiles.get(route)
+			const lastmod = await gitLastModified(sourceFile, root)
+			entries.set(loc, {
+				loc,
+				lastmod,
+				changeFrequency: metadata.seo?.changeFrequency,
+				priority: metadata.seo?.priority,
+			})
+		}
+	}
+
+	return entries
 }
 
-function buildUrlElement({ loc, lastmod, changeFrequency, priority, images }: SitemapEntry): string {
-	const imageLines = images?.flatMap(({ loc: imageLoc, title, caption }) => [
-		`\t\t<image:image>`,
-		`\t\t\t<image:loc>${imageLoc}</image:loc>`,
-		...(title ? [`\t\t\t<image:title>${escapeHtml(title)}</image:title>`] : []),
-		...(caption ? [`\t\t\t<image:caption>${escapeHtml(caption)}</image:caption>`] : []),
-		`\t\t</image:image>`,
-	]) ?? []
+async function writeAdditionalSitemaps(
+	outputDirectory: string,
+	additionalSitemaps: Map<string, AdditionalSitemap>,
+	entries: Map<string, SitemapEntry>,
+	toLocation: (path: string) => string,
+	today: string,
+): Promise<void> {
+	for (const sitemap of additionalSitemaps.values()) {
+		await writeFile(
+			path.join(outputDirectory, `sitemap-${sitemap.name}.xml`),
+			buildSitemapXml(sitemap.entries),
+			'utf8',
+		)
+	}
 
-	return [
-		`\t<url>`,
-		`\t\t<loc>${loc}</loc>`,
-		...(lastmod ? [`\t\t<lastmod>${lastmod}</lastmod>`] : []),
-		...(changeFrequency ? [`\t\t<changefreq>${changeFrequency}</changefreq>`] : []),
-		...(priority === undefined ? [] : [`\t\t<priority>${priority.toFixed(1)}</priority>`]),
-		...imageLines,
-		`\t</url>`,
-	].join('\n')
-}
-
-function buildSitemapIndexXml(sitemaps: Array<{ loc: string, lastmod: string }>): string {
-	return [
-		`<?xml version="1.0" encoding="UTF-8"?>`,
-		`<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-		...sitemaps.map(({ loc, lastmod }) =>
-			`\t<sitemap>\n\t\t<loc>${loc}</loc>\n\t\t<lastmod>${lastmod}</lastmod>\n\t</sitemap>`,
+	const indexEntries = [
+		...(entries.size > 0
+			? [{ loc: toLocation('/sitemap.xml'), lastmod: [...entries.values()].map(entry => entry.lastmod ?? today).toSorted().at(-1) ?? today }]
+			: []
 		),
-		`</sitemapindex>`,
-	].join('\n')
+		...[...additionalSitemaps.values()].map(sitemap => ({
+			loc: toLocation(`/sitemap-${sitemap.name}.xml`),
+			lastmod: sitemap.entries.map(entry => entry.lastmod ?? today).toSorted().at(-1) ?? today,
+		})),
+	]
+
+	await writeFile(
+		path.join(outputDirectory, 'sitemap-index.xml'),
+		buildSitemapIndexXml(indexEntries),
+		'utf8',
+	)
 }
-
-// ---------------------------------------------------------------------------
-// HTML injection helpers
-// ---------------------------------------------------------------------------
-
-function injectMetaTags(
-	html: string,
-	seo: RouteSeoMetadata | undefined,
-	canonicalUrl: string,
-	defaultOgImage: string | undefined,
-	titleSuffix: string | undefined,
-): string {
-	if (seo?.title) {
-		const fullTitle = titleSuffix ? `${seo.title}${titleSuffix}` : seo.title
-		html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtml(fullTitle)}</title>`)
-	}
-
-	if (seo?.description) {
-		html = replaceOrInsertMeta(html, 'name', 'description', seo.description)
-	}
-
-	if (seo?.noIndex) {
-		html = insertBeforeHead(html, `\t<meta name="robots" content="noindex" />`)
-	}
-
-	html = injectCanonical(html, canonicalUrl)
-	html = injectOgTags(html, seo, canonicalUrl, defaultOgImage)
-
-	return html
-}
-
-function injectCanonical(html: string, canonicalUrl: string): string {
-	if (/<link[^>]+rel=["']canonical["']/i.test(html)) return html
-	return insertBeforeHead(html, `\t<link rel="canonical" href="${escapeAttribute(canonicalUrl)}" />`)
-}
-
-function injectOgTags(
-	html: string,
-	seo: RouteSeoMetadata | undefined,
-	canonicalUrl: string,
-	defaultOgImage: string | undefined,
-): string {
-	const ogImage = seo?.image ?? defaultOgImage
-	const tags: string[] = []
-
-	if (seo?.title && !hasMeta(html, 'property', 'og:title'))
-		tags.push(`\t<meta property="og:title" content="${escapeAttribute(seo.title)}" />`)
-	if (seo?.description && !hasMeta(html, 'property', 'og:description'))
-		tags.push(`\t<meta property="og:description" content="${escapeAttribute(seo.description)}" />`)
-	if (!hasMeta(html, 'property', 'og:url'))
-		tags.push(`\t<meta property="og:url" content="${escapeAttribute(canonicalUrl)}" />`)
-	if (ogImage && !hasMeta(html, 'property', 'og:image'))
-		tags.push(`\t<meta property="og:image" content="${escapeAttribute(ogImage)}" />`)
-	if (!hasMeta(html, 'property', 'og:type'))
-		tags.push(`\t<meta property="og:type" content="website" />`)
-
-	if (tags.length === 0) return html
-	return insertBeforeHead(html, tags.join('\n'))
-}
-
-function injectRootJsonLd(
-	html: string,
-	webManifest: Partial<ManifestOptions> & { name?: string, description?: string },
-	deploymentUrl: string | undefined,
-): string {
-	if (html.includes('application/ld+json')) return html
-
-	const schema: Record<string, string> = {
-		'@context': 'https://schema.org',
-		'@type': 'WebSite',
-	}
-	if (webManifest.name) schema['name'] = webManifest.name
-	if (webManifest.description) schema['description'] = webManifest.description
-	if (deploymentUrl) schema['url'] = deploymentUrl
-
-	const jsonLd = JSON.stringify(schema, undefined, '\t\t')
-	return insertBeforeHead(html, `\t<script type="application/ld+json">\n\t${jsonLd}\n\t</script>`)
-}
-
-function replaceOrInsertMeta(html: string, attribute: string, value: string, content: string): string {
-	const pattern = new RegExp(`<meta[^>]+${attribute}=["']${value}["'][^>]*>`, 'i')
-	const replacement = `<meta ${attribute}="${value}" content="${escapeAttribute(content)}" />`
-	if (pattern.test(html)) return html.replace(pattern, replacement)
-	return insertBeforeHead(html, `\t${replacement}`)
-}
-
-function hasMeta(html: string, attribute: string, value: string): boolean {
-	return new RegExp(`<meta[^>]+${attribute}=["']${value}["']`, 'i').test(html)
-}
-
-function insertBeforeHead(html: string, snippet: string): string {
-	return html.replace('</head>', `${snippet}\n</head>`)
-}
-
-function escapeHtml(text: string): string {
-	return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
-}
-
-function escapeAttribute(text: string): string {
-	return text.replaceAll('&', '&amp;').replaceAll('"', '&quot;')
-}
-
-// ---------------------------------------------------------------------------
 
 async function gitLastModified(filePath: string | undefined, cwd: string): Promise<string> {
 	if (filePath) {
