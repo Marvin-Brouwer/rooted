@@ -17,3 +17,10 @@ export const RecipeRoute = route`/recipe/${token('id', Number)}/`({
 		return create(Recipe, { id: tokens.id })
 	},
 })
+
+export const RecipeInstructionsRoute = route`/${RecipeRoute}/instructions/`({
+	resolve: RecipeRoute.resolve,
+})
+export const RecipeIngredientsRoute = route`/${RecipeRoute}/ingredients/`({
+	resolve: RecipeRoute.resolve,
+})

@@ -10,4 +10,9 @@ export const SearchRoute = route`/search/${wildcard('query')}/`({
 		const { SearchPage } = await import('./search.mts')
 		return create(SearchPage)
 	},
+	seo: {
+		title: 'Search recipes',
+		description: 'Find recipes by keyword, category, or ingredient.',
+		excludeFromSitemap: true,
+	},
 })

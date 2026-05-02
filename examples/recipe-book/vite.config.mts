@@ -11,6 +11,7 @@ import { normalizePath } from 'vite'
 import packageJson from './package.json' with { type: 'json' }
 import { markdownPlugin } from './plugins/markdown.mts'
 import { responsiveImages } from './plugins/responsive-images.mts'
+import { seo } from './src/seo.mts'
 
 const rootedDirectory = normalizePath(path.join(path.dirname(fileURLToPath(import.meta.resolve('@rooted/router'))), '../../'))
 
@@ -44,15 +45,17 @@ export default rootedManifest({
 		url: packageJson.homepage,
 		name: 'Rooted Recipe Book',
 		short_name: 'Recipe Book',
-		description: 'A vertical-slice example app for @rooted/components',
+		description: 'An example app for the @rooted/* framework',
 		theme_color: '#ffffff',
 		background_color: '#faf7f2',
 		display: 'standalone',
 	},
 
+	seo,
+
 	plugins: [
 		varlockVitePlugin(),
-		responsiveImages({ accessKey: ENV.UNSPLASH_ACCESS_KEY }),
+		responsiveImages({ accessKey: ENV.UNSPLASH_ACCESS_KEY, deploymentUrl: packageJson.homepage }),
 		markdownPlugin(),
 		generateRouteManifest({
 			glob: './src/**/_routes.mts',

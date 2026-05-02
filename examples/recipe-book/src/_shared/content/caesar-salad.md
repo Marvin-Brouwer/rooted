@@ -13,25 +13,28 @@ description: Crisp romaine lettuce with a punchy anchovy dressing, shaved Parmes
 ## Ingredients
 
 ### Dressing
-- 2 anchovy fillets, finely minced (or 1 tsp anchovy paste)
-- 1 clove garlic, minced to a paste
-- 1 tsp Dijon mustard
-- 2 tsp Worcestershire sauce
-- 2 tbsp fresh lemon juice
-- 1 large egg yolk
-- 120ml extra-virgin olive oil
-- 30g Parmigiano-Reggiano, finely grated
+
+- `[2]` anchovy fillets, finely minced (or 1 tsp anchovy paste)
+- `[1]` clove garlic, minced to a paste
+- `[1 tsp]` Dijon mustard
+- `[2 tsp]` Worcestershire sauce
+- `[2 tbsp]` fresh lemon juice
+- `[1]` large egg yolk
+- `[120 ml]` extra-virgin olive oil
+- `[30 g]` Parmigiano-Reggiano, finely grated
 - Salt and black pepper to taste
 
 ### Salad
-- 2 heads romaine lettuce, washed and torn
-- 80g Parmesan, shaved with a peeler
+
+- `[2]` heads romaine lettuce, washed and torn
+- `[80 g]` Parmesan, shaved with a peeler
 - Freshly ground black pepper
 
 ### Croutons
-- 4 thick slices sourdough or ciabatta, torn into chunks
-- 3 tbsp olive oil
-- 1 clove garlic, halved
+
+- `[4]` thick slices sourdough or ciabatta, torn into chunks
+- `[3 tbsp]` olive oil
+- `[1]` clove garlic, halved
 - Flaky salt
 
 ## Instructions

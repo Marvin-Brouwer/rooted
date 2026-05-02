@@ -33,18 +33,26 @@ export const Doormat = component({
 									' \u2014 a minimal TypeScript library for native web components.',
 								],
 							}),
+							element('button', {
+								type: 'button',
+								classes: styles.scrollTop,
+								textContent: 'Back to top',
+								on: {
+									click: () => globalThis.scrollTo({ top: 0, behavior: 'smooth' }),
+								},
+							}),
 							element('hr', { classes: styles.rule }),
 							element('div', {
 								classes: styles.columns,
 								children: [
-									element('h4', {
+									element('p', {
 										classes: [
 											styles.label,
 											styles.applicationLabel,
 										],
 										textContent: 'Application',
 									}),
-									element('h4', {
+									element('p', {
 										classes: [
 											styles.label,
 											styles.frameworkLabel,

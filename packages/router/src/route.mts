@@ -1,6 +1,6 @@
 import { devHelper } from './dev-helper.mts'
 import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.mts'
-import { routeMetadata, type RouteMetadata, isRoute } from './route.metadata.mts'
+import { routeMetadata, type RouteMetadata, isRoute, type RouteSeoMetadata } from './route.metadata.mts'
 import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter } from './route.tokens.mts'
 
 import type { createComponent } from '@rooted/components/elements'
@@ -76,10 +76,10 @@ export type RouteResolver<T extends readonly RouteParameter[]>
 		Element | undefined | Promise<Element | undefined>
 
 /**
- * Curried builder returned by {@link route}. Call it with `{ resolve }` to
- * produce a fully typed {@link Route}.
+ * Curried builder returned by {@link route}. Call it with `{ resolve }` (and
+ * optionally `seo`) to produce a fully typed {@link Route}.
  */
-export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: RouteResolver<T> }) =>
+export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: RouteResolver<T>, seo?: RouteSeoMetadata }) =>
 	// This is typed with an anonymous object on purpose.
 	// It serves as a debug view as well as type information
 	ExtractParent<T> extends never
@@ -284,7 +284,7 @@ export function route<const T extends RouteParameter[]>(
 	const parent = values.length > 0 && isRoute(values[0]) ? values[0] : undefined
 	const routeParts = zipTemplateParts(strings, values)
 
-	return (({ resolve }) => {
+	return (({ resolve, seo }) => {
 		const lastValue = values.at(-1)
 		const hasWildcard = !!lastValue && isWildcardParameter(lastValue as Parameter)
 		const match = routeMatcher<T>(routeParts)
@@ -297,6 +297,7 @@ export function route<const T extends RouteParameter[]>(
 				hasWildcard,
 				routeParts,
 				get staticRoute() { return computeStaticRoute(strings, values) },
+				seo,
 			} satisfies RouteMetadata<any>,
 			getMetadata() { return this[routeMetadata] },
 			resolve,
