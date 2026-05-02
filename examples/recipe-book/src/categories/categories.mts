@@ -42,11 +42,7 @@ async function mapCategories(element: ComponentContext['element'], create: Compo
 			},
 			href: href.for(CategoryRoute, category),
 			children: [
-				element('div', {
-					role: 'heading',
-					aria: {
-						level: '2',
-					},
+				element('h2', {
 					classes: styles.categoryName,
 					textContent: category.label,
 				}),

@@ -45,14 +45,14 @@ export const Doormat = component({
 							element('div', {
 								classes: styles.columns,
 								children: [
-									element('h4', {
+									element('p', {
 										classes: [
 											styles.label,
 											styles.applicationLabel,
 										],
 										textContent: 'Application',
 									}),
-									element('h4', {
+									element('p', {
 										classes: [
 											styles.label,
 											styles.frameworkLabel,

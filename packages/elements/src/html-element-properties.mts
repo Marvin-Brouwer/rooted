@@ -16,6 +16,8 @@ type SanitizedHtmlProperties<TElement extends HTMLElement> = Omit<
 type HtmlElementPropertiesMapped<TElement extends HTMLElement>
 	= Partial<SanitizedHtmlProperties<TElement>>
 	& {
+		// allows non-DOM attributes (data-*, aria-*, custom attributes like og property) as string/number fallbacks
+		[key: string]: unknown
 		children?: Array<Node | string> | Node | string
 		classes?: CssClasses
 		style?: InlineStyle

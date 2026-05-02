@@ -69,6 +69,7 @@ export function route<const T extends RouteParameter[]>(strings: TemplateStrings
 // @public
 export type RouteBuilder<T extends RouteParameter[]> = (definition: {
     resolve: RouteResolver<T>;
+    seo?: RouteSeoMetadata;
 }) => ExtractParent<T> extends never ? Route<{
     parameters: FilterOutParent<T>;
 }> : Route<{
@@ -109,6 +110,18 @@ export type RouterOptions = {
         navigate?: NavigateHandler;
         error?: ErrorHandler;
     };
+    seo?: RouterSeoOptions;
+};
+
+// @public
+export type RouteSeoMetadata = {
+    title?: string;
+    description?: string;
+    noIndex?: boolean;
+    excludeFromSitemap?: boolean;
+    image?: string;
+    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    priority?: number;
 };
 
 // @public
