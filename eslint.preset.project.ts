@@ -9,6 +9,11 @@ export const projectConfig = defineConfig([
 	}),
 	{
 		rules: {
+			'unicorn/text-encoding-identifier-case': 'off',
+		},
+	},
+	{
+		rules: {
 			// eslint-import-resolver-typescript can't resolve https:// URL import specifiers
 			// (e.g. Vite virtual modules declared via `declare module 'https://...'`).
 			'import-x/no-unresolved': ['error', { ignore: ['^https://'] }],
@@ -26,6 +31,8 @@ export const projectConfig = defineConfig([
 					'dev-helper': true,
 					'vite-env': true,
 					'vite-env.d': true,
+					'env.d': true,
+					'env.d.ts': true,
 				},
 			}],
 		},

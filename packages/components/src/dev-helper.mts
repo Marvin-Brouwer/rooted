@@ -1,4 +1,4 @@
-/// <reference path="../node_modules/vite/types/import-meta.d.ts" />
+/// <reference types="vite/types/import-meta.d.ts" />
 
 import { appendSourceLocation, isDevelopment } from '@rooted/util/dev'
 

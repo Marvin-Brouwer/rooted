@@ -7,7 +7,7 @@ import * as href from './href.mts'
 import { NavigateEvent } from './navigate-event.mts'
 import { RouteMatch } from './route.match.mts'
 import { isRoute, routeMetadata } from './route.metadata.mts'
-import { AnyRoute, Route, route } from './route.mts'
+import { AnyRoute, route } from './route.mts'
 import { getSavedScrollPosition } from './scroll.mts'
 import { applyRouteSeoMeta, type RouterSeoOptions } from './seo-meta.mts'
 

@@ -3,6 +3,7 @@ import { Config, defineConfig, globalIgnores } from 'eslint/config'
 import unicorn from 'eslint-plugin-unicorn'
 import globals from 'globals'
 
+import { lintCustom } from './eslint.preset.custom.ts'
 import { lintImports } from './eslint.preset.import.ts'
 import { lintJs, lintTs } from './eslint.preset.lang.ts'
 import { lintPackageJson } from './eslint.preset.packagejson.ts'
@@ -24,6 +25,7 @@ export default defineConfig([
 	lintTs,
 	stylistic.configs.recommended,
 	unicorn.configs.recommended,
+	lintCustom,
 	lintImports,
 	lintPackageJson,
 	projectConfig,

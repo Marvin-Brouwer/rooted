@@ -92,9 +92,10 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 	const api: RouteManifestApi = { routes: [], routeManifestPath: options.routeManifestPath, routeSourceFiles: new Map() }
 
 	async function generate() {
-		const files = (await glob(options.glob, { cwd: config.root, absolute: false })).toSorted()
+		const unsortedFiles = await glob(options.glob, { cwd: config.root, absolute: false })
+		const files = unsortedFiles.toSorted()
 		const rootPath = resolve(config.root, options.routeManifestPath)
-		const rootDir = dirname(rootPath)
+		const rootDirectory = dirname(rootPath)
 
 		api.routeManifestPath = rootPath
 
@@ -120,8 +121,8 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 			`import type { Route } from '@rooted/router/routes'`,
 			'',
 			...files.map((file) => {
-				const rel = relative(rootDir, resolve(config.root, file))
-				const importPath = rel.startsWith('.') ? rel : `./${rel}`
+				const relativePath = relative(rootDirectory, resolve(config.root, file))
+				const importPath = relativePath.startsWith('.') ? relativePath : `./${relativePath}`
 				return `/** @__PURE__ */ import * as gate_${getFileId(file)} from '${importPath.split('\\').join('/')}'`
 			}),
 			'',
@@ -160,7 +161,7 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 		]
 
 		const generatedManifest = lines.join('\n')
-		await mkdir(rootDir, { recursive: true })
+		await mkdir(rootDirectory, { recursive: true })
 
 		const originalManifest = await readExistingManifest(rootPath)
 		if (originalManifest === generatedManifest) {
@@ -200,17 +201,17 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 
 		configureServer(server) {
 			const onAddOrUnlink = async (filePath: string) => {
-				const rel = relative(config.root, filePath).split('\\').join('/')
+				const relativePath = relative(config.root, filePath).split('\\').join('/')
 				const matched = await glob(options.glob, { cwd: config.root })
-				if (!matched.includes(rel) && !filePath.endsWith('/_gate.mts')) return
+				if (!matched.includes(relativePath) && !filePath.endsWith('/_gate.mts')) return
 				await generate()
 				const rootPath = resolve(config.root, options.routeManifestPath)
 				const module_ = server.moduleGraph.getModuleById(rootPath)
 				if (module_) server.moduleGraph.invalidateModule(module_)
 				server.hot.send({ type: 'full-reload' })
 			}
-			server.watcher.on('add', onAddOrUnlink)
-			server.watcher.on('unlink', onAddOrUnlink)
+			server.watcher.on('add', path => void onAddOrUnlink(path))
+			server.watcher.on('unlink', path => void onAddOrUnlink(path))
 		},
 	}
 }
@@ -230,7 +231,7 @@ const getFileId = (path: string) => createHash('md5').update(path).digest('hex')
 
 async function readExistingManifest(rootPath: string) {
 	try {
-		return await readFile(rootPath, 'utf-8')
+		return await readFile(rootPath, 'utf8')
 	}
 	catch {
 		return

@@ -3,7 +3,7 @@ import { tupleResult } from '@rooted/util'
 import { isParameterToken, isWildcardParameter, type RouteParameter, type TokenMatchResult } from './route.tokens.mts'
 
 import type { Path, Url } from './href.mts'
-import type { AnyRoute, PathParameterDictionary, Route, RouteParameterDictionary } from './route.mts'
+import type { AnyRoute, PathParameterDictionary, RouteParameterDictionary } from './route.mts'
 
 /**
  * Result of {@link Route.match}.

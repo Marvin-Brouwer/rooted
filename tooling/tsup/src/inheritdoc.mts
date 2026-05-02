@@ -24,7 +24,7 @@ function getState(tsconfigPath: string): State {
 	const cached = stateCache.get(key)
 	if (cached) return cached
 
-	const configFile = ts.readConfigFile(key, ts.sys.readFile)
+	const configFile = ts.readConfigFile(key, ts.sys.readFile.bind(ts))
 	if (configFile.error) throw new Error(
 		ts.flattenDiagnosticMessageText(configFile.error.messageText, '\n'),
 	)
@@ -47,9 +47,9 @@ function getState(tsconfigPath: string): State {
 // ── Type lookup ─────────────────────────────────────────────────────────────
 
 // Keyed as `${resolvedTsconfig}:${className}['${memberName}']`
-const jsDocumentCache = new Map<string, string | null>()
+const jsDocumentCache = new Map<string, string | undefined>()
 
-function resolveJsDocument(tsconfigPath: string, className: string, memberName: string): string | null {
+function resolveJsDocument(tsconfigPath: string, className: string, memberName: string): string | undefined {
 	const key = `${resolve(tsconfigPath)}:${className}['${memberName}']`
 	if (jsDocumentCache.has(key)) return jsDocumentCache.get(key)!
 
@@ -58,7 +58,7 @@ function resolveJsDocument(tsconfigPath: string, className: string, memberName: 
 	return result
 }
 
-function _resolveJsDocument(tsconfigPath: string, className: string, memberName: string): string | null {
+function _resolveJsDocument(tsconfigPath: string, className: string, memberName: string): string | undefined {
 	const { checker, program } = getState(tsconfigPath)
 
 	// Find the named interface/class declaration across all source files in the program
@@ -76,41 +76,47 @@ function _resolveJsDocument(tsconfigPath: string, className: string, memberName:
 		}
 	}
 
-	if (!classSym) return null
+	if (!classSym) return undefined
 
 	// getProperty follows the full type hierarchy (inheritance + mixins)
 	const type = checker.getDeclaredTypeOfSymbol(classSym)
 	const property = type.getProperty(memberName)
-	if (!property) return null
+	if (!property) return undefined
 
 	for (const decl of property.getDeclarations() ?? []) {
 		const document = extractJsDocument(decl)
 		if (document) return document
 	}
 
-	return null
+	return undefined
 }
 
-function resolveTopLevelJsDocument(tsconfigPath: string, name: string): string | null {
+function resolveTopLevelJsDocument(tsconfigPath: string, name: string): string | undefined {
 	const key = `${resolve(tsconfigPath)}:typeof ${name}`
 	if (jsDocumentCache.has(key)) return jsDocumentCache.get(key)!
 
 	const { program } = getState(tsconfigPath)
-	let result: string | null = null
+	let result: string | undefined = undefined
 
 	outer: for (const sf of program.getSourceFiles()) {
 		for (const stmt of sf.statements) {
 			if (ts.isFunctionDeclaration(stmt) && stmt.name?.text === name) {
 				// Try each overload — JSDoc is usually on the first, but check all
 				const document = extractJsDocument(stmt)
-				if (document) { result = document; break outer }
+				if (document) {
+					result = document
+					break outer
+				}
 				// No `break` — continue scanning for the next overload
 			}
 			else if (ts.isVariableStatement(stmt)) {
 				for (const decl of stmt.declarationList.declarations) {
 					if (ts.isIdentifier(decl.name) && decl.name.text === name) {
 						const document = extractJsDocument(stmt)
-						if (document) { result = document; break outer }
+						if (document) {
+							result = document
+							break outer
+						}
 					}
 				}
 			}
@@ -121,14 +127,14 @@ function resolveTopLevelJsDocument(tsconfigPath: string, name: string): string |
 	return result
 }
 
-function extractJsDocument(node: ts.Node): string | null {
+function extractJsDocument(node: ts.Node): string | undefined {
 	const sf = node.getSourceFile()
 	const text = sf.getFullText()
 	// getStart(sf, true) includes JSDoc; getStart(sf, false) excludes it
 	const withDocument = node.getStart(sf, true)
 	const withoutDocument = node.getStart(sf, false)
 	const leading = text.slice(withDocument, withoutDocument).trim()
-	if (!leading.startsWith('/**')) return null
+	if (!leading.startsWith('/**')) return undefined
 	return leading
 }
 
@@ -154,7 +160,7 @@ function jsDocumentInner(raw: string): string {
 }
 
 async function processFile(tsconfigPath: string, filePath: string): Promise<void> {
-	let content = await readFile(filePath, 'utf-8')
+	let content = await readFile(filePath, 'utf8')
 	let changed = false
 
 	content = content.replaceAll(/( *)\/\*\*([\s\S]*?)\*\//g, (block, indent: string, inner: string) => {
@@ -183,7 +189,7 @@ async function processFile(tsconfigPath: string, filePath: string): Promise<void
 	})
 
 	if (changed) {
-		await writeFile(filePath, content, 'utf-8')
+		await writeFile(filePath, content, 'utf8')
 		process.stdout.write(`[tsup:inheritdoc] resolved ${filePath}\n`)
 	}
 }
@@ -213,11 +219,11 @@ const DTS_RE = /\.d\.[mc]?ts$/
 // tsup writes intermediate rollup input files prefixed with `_tsup-`; ignore them
 const TEMP_RE = /^_tsup-/
 
-async function findDtsFiles(outDir: string): Promise<string[]> {
-	const entries = await readdir(outDir, { recursive: true }).catch(() => [] as string[])
+async function findDtsFiles(outDirectory: string): Promise<string[]> {
+	const entries = await readdir(outDirectory, { recursive: true }).catch(() => [] as string[])
 	return (entries)
 		.filter(f => DTS_RE.test(f) && !TEMP_RE.test(basename(f)))
-		.map(f => join(outDir, f))
+		.map(f => join(outDirectory, f))
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────
@@ -246,13 +252,13 @@ export function inheritdocPlugin(): Plugin {
 			if (!this.options.dts && !this.options.experimentalDts) return
 
 			const tsconfig = this.options.tsconfig ?? 'tsconfig.json'
-			const outDir = this.options.outDir ?? 'dist'
+			const outDirectory = this.options.outDir ?? 'dist'
 
 			// DTS runs in a parallel worker — no plugin hooks fire after it completes.
 			// `beforeExit` fires once the event loop drains, which is after both the
 			// esbuild task and the DTS worker task have finished.
 			process.once('beforeExit', () => {
-				void findDtsFiles(outDir).then(files =>
+				void findDtsFiles(outDirectory).then(files =>
 					Promise.all(files.map(f => processFile(tsconfig, f))),
 				)
 			})

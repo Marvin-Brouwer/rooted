@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs'
+import { readFile, readdir } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -10,11 +10,13 @@ export async function extractApi(packageRoot: string) {
 
 	// Chunk files produced by tsup have a hash suffix (e.g. routes-Gxo28CuX.d.mts)
 	const chunkPattern = /-[\dA-Za-z]{8}\.d\.mts$/
-	const modules = readdirSync(join(packageRoot, 'dist'))
+	const moduleFiles = await readdir(join(packageRoot, 'dist'))
+	const modules = moduleFiles
 		.filter(f => f.endsWith('.d.mts') && !chunkPattern.test(f))
 		.map(f => basename(f, '.d.mts'))
 
-	const { $schema: _, ...baseConfig } = JSON.parse(readFileSync(configFilePath, 'utf8')) as Record<string, unknown> & { $schema?: unknown, apiReport?: Record<string, unknown> }
+	const configFile = await readFile(configFilePath, 'utf8')
+	const { $schema: _, ...baseConfig } = JSON.parse(configFile) as Record<string, unknown> & { $schema?: unknown, apiReport?: Record<string, unknown> }
 
 	let allSucceeded = true
 	for (const moduleName of modules) {

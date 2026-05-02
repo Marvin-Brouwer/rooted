@@ -15,13 +15,13 @@
 	],
 	"prettier.enable": false,
 	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": "explicit",
+		"source.fixAll.eslint": "always",
 	},
 	"[typescript][typescriptreact][javascript][javascriptreact][json][jsonc][yaml][github-actions-workflow]": {
 		"editor.defaultFormatter": "dbaeumer.vscode-eslint",
 		"editor.formatOnSave": true,
 		"editor.codeActionsOnSave": {
-			"source.fixAll.eslint": "explicit"
+			"source.fixAll.eslint": "always"
 		},
 	},
 	"typescript.preferences.importModuleSpecifierEnding": "auto",
