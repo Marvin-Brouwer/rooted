@@ -10,6 +10,10 @@ export const CategoriesRoute = route`/categories/`({
 		const { Categories } = await import('./categories.mts')
 		return create(Categories)
 	},
+	seo: {
+		title: 'Browse categories',
+		description: 'Browse all recipe categories — Italian, Indian, Mexican, desserts and more.',
+	},
 })
 
 /**

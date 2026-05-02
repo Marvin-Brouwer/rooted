@@ -139,15 +139,20 @@ export function createElementFactory(constructElement: ElementCreator, signal: A
 		}
 
 		const { aria, children, classes, on, style, ...assignableProperties } = properties ?? {}
-		const definedProperties = Object.fromEntries(Object
-			.entries(assignableProperties)
-			.filter(([, v]) => v !== undefined && v !== null),
-		)
-		const newElement = Object.assign(
-			constructElement(tag) as HTMLElement,
-			definedProperties,
-			buildClassList(classes as CssClasses | undefined),
-		)
+		const newElement = constructElement(tag) as HTMLElement
+
+		const { className } = buildClassList(classes as CssClasses | undefined)
+		if (className) newElement.className = className
+
+		for (const [key, value] of Object.entries(assignableProperties)) {
+			if (value === undefined || value === null) continue
+			if (isWritableDomProperty(newElement, key)) {
+				;(newElement as unknown as Record<string, unknown>)[key] = value
+			}
+			else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+				newElement.setAttribute(key, String(value))
+			}
+		}
 
 		if (style) Object.assign(newElement.style, style)
 		buildAriaProperties(aria as Aria | undefined, newElement)

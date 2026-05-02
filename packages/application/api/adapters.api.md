@@ -5,9 +5,40 @@
 ```ts
 
 import { Plugin as Plugin_2 } from 'vite';
+import { ResolvedConfig } from 'vite';
+import { RouteManifestApi } from '@rooted/router/manifest';
+import { RouteSeoMetadata } from '@rooted/router/routes';
+
+// @public
+export type AdapterContext = {
+    outputDirectory: string;
+    indexHtml: string;
+    config: ResolvedConfig;
+    manifestApi: RouteManifestApi | undefined;
+    seoApi: SeoApi | undefined;
+};
 
 // @public
 export function githubPagesAdapter(): Plugin_2;
+
+// @public
+export function routedAdapter(definition: RoutedAdapterDefinition): Plugin_2;
+
+// @public
+export type RoutedAdapterDefinition = {
+    name: string;
+    setup?(context: AdapterContext): Promise<void> | void;
+};
+
+// @public
+export function staticAdapter(definition: StaticAdapterDefinition): Plugin_2;
+
+// @public
+export type StaticAdapterDefinition = {
+    name: string;
+    fallbackFileName?: string;
+    setup?(context: AdapterContext): Promise<void> | void;
+};
 
 // (No @packageDocumentation comment for this package)
 

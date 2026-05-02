@@ -3,4 +3,5 @@
  * @module
  */
 
+export * from '../adapters/adapter.mts'
 export * from '../adapters/github-pages-adapter.mts'

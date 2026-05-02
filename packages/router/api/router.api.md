@@ -103,6 +103,14 @@ export type RouterOptions = {
         navigate?: NavigateHandler;
         error?: ErrorHandler;
     };
+    seo?: RouterSeoOptions;
+};
+
+// @public
+export type RouterSeoOptions = {
+    deploymentUrl?: string;
+    defaultOgImage?: string;
+    titleSuffix?: string;
 };
 
 // @public

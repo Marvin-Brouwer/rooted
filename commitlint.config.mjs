@@ -10,6 +10,6 @@ export default {
 			'always',
 			['feat', 'fix', 'docs', 'test', 'chore', 'ci', 'perf', 'revert'],
 		],
-		'header-max-length': [2, 'always', 80],
+		'header-max-length': [0],
 	},
 }

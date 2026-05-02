@@ -10,5 +10,6 @@ export { token, wildcard, type Parameter, type RouteParameter, type ParameterTyp
 export type { RouteMatch, MatchRouteOptions } from '../route.match.mts'
 
 export { route, type Route, type RouteBuilder, type RouteParameterDictionary } from '../route.mts'
+export type { RouteSeoMetadata } from '../route.metadata.mts'
 
 export { NavigateEvent, NavigationErrorEvent, type NavigateHandler, type ErrorHandler } from '../navigate-event.mts'

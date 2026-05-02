@@ -35,7 +35,7 @@ async function grid(element: ComponentContext['element'], create: ComponentConte
 
 function card(element: ComponentContext['element'], recipe: RecipeData): Node[] {
 	return [
-		element('div', { role: 'heading', aria: { level: '2' }, classes: styles.cardTitle, textContent: recipe.title }),
+		element('h2', { classes: styles.cardTitle, textContent: recipe.title }),
 		element('p', { classes: styles.cardDescription, textContent: recipe.description }),
 		element('div', {
 			classes: styles.cardMeta,

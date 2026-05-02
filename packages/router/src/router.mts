@@ -9,6 +9,7 @@ import { RouteMatch } from './route.match.mts'
 import { isRoute, routeMetadata } from './route.metadata.mts'
 import { Route, route } from './route.mts'
 import { getSavedScrollPosition } from './scroll.mts'
+import { applyRouteSeoMeta, type RouterSeoOptions } from './seo-meta.mts'
 
 import type { ErrorHandler, NavigateHandler } from './navigate-event.mts'
 
@@ -83,6 +84,8 @@ export type RouterOptions = {
 		navigate?: NavigateHandler
 		error?: ErrorHandler
 	}
+	/** Runtime SEO meta tag injection options. */
+	seo?: RouterSeoOptions
 }
 
 /**
@@ -131,7 +134,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 	return component<RouterOptions>({
 		name: '@rooted/router',
-		async onMount({ replace, create, on, options }) {
+		async onMount({ replace, create, on, options, element }) {
 			const {
 				viewTransition = false,
 				scrollBehavior: {
@@ -140,6 +143,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 					target: scrollTarget,
 				} = {},
 				on: handlers,
+				seo: seoOptions,
 			} = options ?? {}
 
 			let lastPath: string | undefined
@@ -191,6 +195,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 						applyTransition(() => renderRoute())
 					}
 					else {
+						applyRouteSeoMeta(matchRouteResult.route, target.pathOnly, seoOptions, element)
 						applyTransition(() => renderRoute(matchRouteResult.element))
 					}
 				}

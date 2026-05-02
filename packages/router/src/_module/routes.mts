@@ -9,4 +9,4 @@ export { token, wildcard, type Parameter, type RouteParameter, type ParameterTyp
 export type { RouteMatch, MatchRouteOptions } from '../route.match.mts'
 
 export { route, type Route, type RouteBuilder, type RouteParameterDictionary } from '../route.mts'
-export type { RouteMetadata } from '../route.metadata.mts'
+export type { RouteMetadata, RouteSeoMetadata } from '../route.metadata.mts'
