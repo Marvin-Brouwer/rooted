@@ -13,27 +13,30 @@ description: Tender shredded chicken rolled in corn tortillas, smothered in a sm
 ## Ingredients
 
 ### Filling
-- 500g cooked chicken, shredded (rotisserie works perfectly)
-- 1 small white onion, finely diced
-- 2 cloves garlic, minced
-- 1 tsp cumin
-- 0.5 tsp smoked paprika
+
+- `[500 g]` cooked chicken, shredded (rotisserie works perfectly)
+- `[1]` small white onion, finely diced
+- `[2]` cloves garlic, minced
+- `[1 tsp]` cumin
+- `[0.5 tsp]` smoked paprika
 - Salt and pepper to taste
 
 ### Red Sauce
-- 2 tbsp neutral oil
-- 2 tbsp plain flour
-- 2 tbsp mild chilli powder
-- 1 tsp ground cumin
-- 0.5 tsp garlic powder
-- 0.5 tsp dried oregano
-- 400ml chicken stock
-- 200ml tomato passata
+
+- `[2 tbsp]` neutral oil
+- `[2 tbsp]` plain flour
+- `[2 tbsp]` mild chilli powder
+- `[1 tsp]` ground cumin
+- `[0.5 tsp]` garlic powder
+- `[0.5 tsp]` dried oregano
+- `[400 ml]` chicken stock
+- `[200 ml]` tomato passata
 - Salt to taste
 
 ### Assembly
-- 8 small corn tortillas
-- 200g mature cheddar or Monterey Jack, grated
+
+- `[8]` small corn tortillas
+- `[200 g]` mature cheddar or Monterey Jack, grated
 - Sour cream, fresh coriander, and sliced spring onion to serve
 
 ## Instructions

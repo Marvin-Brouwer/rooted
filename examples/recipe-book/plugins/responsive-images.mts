@@ -2,12 +2,14 @@ import { createReadStream } from 'node:fs'
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import type { SeoApi } from '@rooted/application'
 import type { Logger, Plugin, ResolvedConfig } from 'vite'
 
 const UNSPLASH_URL_RE = /^https:\/\/unsplash\.com\/photos\/([\w-]+)/
 const UNSPLASH_ID_RE = /([A-Za-z0-9_-]{11})$/
 const VIRTUAL_PREFIX = '\0ri:'
 const MIDDLEWARE_PATH = '/__ri__/'
+const SEO_PLUGIN_NAME = 'rooted:seo'
 
 const DEFAULT_WIDTHS = [400, 800, 1200, 1920]
 
@@ -43,22 +45,33 @@ type Metadata = {
 
 export type ResponsiveImagesOptions = {
 	accessKey: string | undefined
+	/** Deployment URL used to build absolute image sitemap entries. */
+	deploymentUrl?: string
 }
 
-export function responsiveImages({ accessKey }: ResponsiveImagesOptions): Plugin {
+export function responsiveImages({ accessKey, deploymentUrl }: ResponsiveImagesOptions): Plugin {
 	let cacheDirectory: string
 	let isDevelopment = false
 	let logger: Logger
 	let licenseWritten = false
+	let viteConfig: ResolvedConfig
+	let seoApi: SeoApi | undefined
+
+	// reference ID → output file name (filled during generateBundle)
+	const emittedReferences: string[] = []
 
 	return {
 		name: 'recipe-book:responsive-images',
 		enforce: 'pre',
 
 		configResolved(config: ResolvedConfig) {
+			viteConfig = config
 			cacheDirectory = path.join(config.root, '.cache', 'responsive-images')
 			isDevelopment = config.command === 'serve'
 			logger = config.logger
+
+			const seoPlugin = config.plugins.find(p => p.name === SEO_PLUGIN_NAME)
+			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 
 			if (!accessKey) {
 				logger.warn('[responsive-images] UNSPLASH_ACCESS_KEY is not set — imports will use a transparent pixel placeholder')
@@ -171,10 +184,33 @@ export function responsiveImages({ accessKey }: ResponsiveImagesOptions): Plugin
 					name: `${photoId}-${width}.webp`,
 					source,
 				})
+				emittedReferences.push(reference)
 				return { url: `import.meta.ROLLUP_FILE_URL_${reference}`, width }
 			}))
 
 			return buildModule(images, urlPart, metadata.author)
+		},
+
+		generateBundle() {
+			if (!seoApi || emittedReferences.length === 0) return
+
+			const today = new Date().toISOString().slice(0, 10)
+			const seen = new Set<string>()
+			const entries = emittedReferences
+				.map(reference => this.getFileName(reference))
+				.filter((fileName) => {
+					if (seen.has(fileName)) return false
+					seen.add(fileName)
+					return true
+				})
+				.map((fileName) => {
+					const loc = deploymentUrl
+						? new URL(fileName, deploymentUrl).href
+						: `${viteConfig.base}${fileName}`
+					return { loc, lastmod: today }
+				})
+
+			seoApi.addSitemap({ name: 'images', entries })
 		},
 	}
 }

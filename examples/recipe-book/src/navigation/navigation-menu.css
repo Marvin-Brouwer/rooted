@@ -50,4 +50,21 @@ nav {
 	outline-offset: 2px;
 	border-radius: 2px;
 }
+
+
 .search-wrapper { width: 220px; }
+
+
+@media (max-width: 420px) {
+
+	nav {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		grid-template-rows: min-content min-content;
+		gap: .5rem 1.5rem;
+		grid-template-areas:
+			"title links"
+			"search search";
+	}
+	.search-wrapper { width: unset; grid-area: search; }
+}

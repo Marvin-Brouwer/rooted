@@ -95,7 +95,9 @@ export class GenericComponent extends RootedElement {
 		const base = this
 		const ownerDocument = this.ownerDocument
 
-		const createElement: ElementCreator = ownerDocument.createElement.bind(ownerDocument)
+		const createElement: ElementCreator = (tag: string, ns?: string) => ns
+			? ownerDocument.createElementNS(ns, tag)
+			: ownerDocument.createElement(tag)
 		const element = createElementFactory(createElement, this.abortController.signal)
 
 		function append<T extends Node | string | GenericComponent>(node: T): T

@@ -5,6 +5,44 @@ import type { Parameter, RouteParameter } from './route.tokens.mts'
 export const routeMetadata: unique symbol = Symbol.for('@rooted/route-metadata')
 
 /**
+ * Optional SEO metadata attached to a route via the `seo` field in {@link route}.
+ *
+ * Used at build time to inject per-page meta tags into static route copies of
+ * `index.html`, and at runtime to update `document.title` and Open Graph tags
+ * on navigation.
+ *
+ * @example
+ * ```ts
+ * export const SearchRoute = route`/search/`({
+ *   resolve: ({ create }) => create(SearchPage),
+ *   seo: {
+ *     title: 'Search recipes',
+ *     description: 'Find recipes by keyword, category, or ingredient.',
+ *   },
+ * })
+ * ```
+ */
+export type RouteSeoMetadata = {
+	/** Page title — overrides `<title>` and `og:title`. */
+	title?: string
+	/** Page description — overrides `<meta name="description">` and `og:description`. */
+	description?: string
+	/** When `true`, injects `<meta name="robots" content="noindex">`. Default: `false`. */
+	noIndex?: boolean
+	/** When `true`, omits this route from sitemap generation. Default: `false`. */
+	excludeFromSitemap?: boolean
+	/**
+	 * Override for `og:image`. Accepts an absolute URL or a root-relative path.
+	 * Falls back to the generated PWA icon (`pwa-512x512.png`) when omitted.
+	 */
+	image?: string
+	/** Sitemap `changefreq` field. */
+	changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'
+	/** Sitemap `priority` field (0.0–1.0). */
+	priority?: number
+}
+
+/**
  * Internal metadata bag stored on every {@link Route} under the {@link routeMetadata} symbol key.
  *
  * Do not access directly from application code — use {@link isRoute} to test whether a value is a
@@ -26,6 +64,8 @@ export type RouteMetadata<T extends { parameters: any, parent?: any }> = {
 	readonly routeParts: Array<string | RouteParameter>
 	/** Resolved static path string if this route has no dynamic segments, `false` otherwise. */
 	readonly staticRoute: false | string
+	/** Optional SEO metadata for this route. */
+	readonly seo?: RouteSeoMetadata
 }
 
 /** Returns `true` if `instance` is a {@link Route}. */

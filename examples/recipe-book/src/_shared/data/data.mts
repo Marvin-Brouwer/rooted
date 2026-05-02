@@ -1,12 +1,13 @@
-import tacosData from '../content/beef-tacos.md'
-import caesarData from '../content/caesar-salad.md'
-import enchiladasData from '../content/chicken-enchiladas.md'
-import tikkaData from '../content/chicken-tikka-masala.md'
-import lavaData from '../content/chocolate-lava-cake.md'
-import cremeBruleeData from '../content/creme-brulee.md'
-import pastaData from '../content/pasta-carbonara.md'
-import risottoData from '../content/risotto-milanese.md'
-import stickyToffeeData from '../content/sticky-toffee-pudding.md'
+/**
+ * A single group of ingredients on a recipe.
+ * `heading` holds the sub-section label when the recipe splits its ingredients
+ * into groups (like "Marinade" and "Sauce"). Flat recipes produce a single
+ * group with `heading` left undefined.
+ */
+export type IngredientGroup = {
+	heading?: string
+	items: string[]
+}
 
 export type RecipeData = {
 	id: number
@@ -19,20 +20,9 @@ export type RecipeData = {
 	difficulty: 'easy' | 'medium' | 'hard'
 	featured: boolean
 	description: string
-	html: string
+	ingredients: IngredientGroup[]
+	instructionsHtml: string
 }
-
-const recipes: RecipeData[] = [
-	{ id: 1, ...pastaData },
-	{ id: 2, ...tikkaData },
-	{ id: 3, ...lavaData },
-	{ id: 4, ...caesarData },
-	{ id: 5, ...tacosData },
-	{ id: 6, ...risottoData },
-	{ id: 7, ...enchiladasData },
-	{ id: 8, ...cremeBruleeData },
-	{ id: 9, ...stickyToffeeData },
-]
 
 export type CategoryData = {
 	slug: string
@@ -40,21 +30,94 @@ export type CategoryData = {
 	recipes: RecipeData[]
 }
 
-function toLabel(slug: string): string {
-	return slug.charAt(0).toUpperCase() + slug.slice(1)
+// ---------------------------------------------------------------------------
+// Registry — one entry per recipe file.
+// `featured` is mirrored from frontmatter so the home page can load only
+// featured recipes without touching the rest of the files.
+// ---------------------------------------------------------------------------
+
+type RawRecipe = Omit<RecipeData, 'id'>
+
+type RegistryEntry = {
+	id: number
+	featured: boolean
+	load: () => Promise<{ default: RawRecipe }>
 }
 
-const categories: CategoryData[] = [...new Set(recipes.map(r => r.category))]
-	.map(slug => ({
+const REGISTRY: RegistryEntry[] = [
+	{ id: 1, featured: true, load: () => import('../content/pasta-carbonara.md') },
+	{ id: 2, featured: true, load: () => import('../content/chicken-tikka-masala.md') },
+	{ id: 3, featured: true, load: () => import('../content/chocolate-lava-cake.md') },
+	{ id: 4, featured: false, load: () => import('../content/caesar-salad.md') },
+	{ id: 5, featured: false, load: () => import('../content/beef-tacos.md') },
+	{ id: 6, featured: false, load: () => import('../content/risotto-milanese.md') },
+	{ id: 7, featured: false, load: () => import('../content/chicken-enchiladas.md') },
+	{ id: 8, featured: false, load: () => import('../content/creme-brulee.md') },
+	{ id: 9, featured: true, load: () => import('../content/sticky-toffee-pudding.md') },
+]
+
+// ---------------------------------------------------------------------------
+// Cache
+// ---------------------------------------------------------------------------
+
+const recipeCache = new Map<number, RecipeData>()
+let categoriesCache: CategoryData[] | undefined
+
+async function loadById(id: number): Promise<RecipeData | undefined> {
+	if (recipeCache.has(id)) return recipeCache.get(id)
+	const entry = REGISTRY.find(r => r.id === id)
+	if (!entry) return undefined
+	const recipeContentModule = await entry.load()
+	const recipe: RecipeData = { id, ...recipeContentModule.default }
+	recipeCache.set(id, recipe)
+	return recipe
+}
+
+async function loadAll(): Promise<RecipeData[]> {
+	return Promise.all(REGISTRY.map(entry => loadById(entry.id))) as Promise<RecipeData[]>
+}
+
+async function loadCategories(): Promise<CategoryData[]> {
+	if (categoriesCache) return categoriesCache
+	const recipes = await loadAll()
+	categoriesCache = [...new Set(recipes.map(r => r.category))].map(slug => ({
 		slug,
-		label: toLabel(slug),
+		label: slug.charAt(0).toUpperCase() + slug.slice(1),
 		recipes: recipes.filter(r => r.category === slug),
 	}))
+	return categoriesCache
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
 /** Fake database for demo purposes */
 export const recipeData = {
-	getRecipeById(id: number) { return Promise.resolve(recipes.find(recipe => recipe.id === id)) },
-	listRecipes() { return Promise.resolve(recipes) },
-	findCategoryBySlug(slug: string) { return Promise.resolve(categories.find(category => category.slug === slug)) },
-	listCategories() { return Promise.resolve(categories) },
+	/** Loads a single recipe by id. Only that file is fetched. */
+	getRecipeById(id: number) { return loadById(id) },
+
+	/**
+	 * Loads only featured recipes. Non-featured files are not fetched.
+	 * Normally, you'd solve this with some kind of querying engine or a generator.
+	 * This is just to illustrate only loading what you need. See it as a stored procedure.
+	 */
+	listFeatured() {
+		return Promise.all(REGISTRY
+			.filter(recipe => recipe.featured)
+			.map(recipe => loadById(recipe.id)),
+		) as Promise<RecipeData[]>
+	},
+
+	/** Loads all recipes. Results are cached after the first call. */
+	listRecipes() { return loadAll() },
+
+	/** Returns all categories with their recipes. Triggers a full load if not cached. */
+	listCategories() { return loadCategories() },
+
+	/** Finds a category by slug. Triggers a full load if not cached. */
+	async findCategoryBySlug(slug: string) {
+		const cats = await loadCategories()
+		return cats.find(c => c.slug === slug)
+	},
 }
