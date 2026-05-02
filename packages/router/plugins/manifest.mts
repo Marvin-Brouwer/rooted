@@ -7,7 +7,7 @@ import { glob } from 'tinyglobby'
 
 import packageJson from '../package.json' with { type: 'json' }
 
-import type { Route } from '../src/route.mts'
+import type { AnyRoute, UnknownRoute } from '../src/route.mts'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 /**
@@ -15,10 +15,10 @@ import type { Plugin, ResolvedConfig } from 'vite'
  * Other plugins (e.g. adapters) can read `routes` after `buildStart` completes.
  */
 export type RouteManifestApi = {
-	routes: Route<any>[]
+	routes: AnyRoute[]
 	routeManifestPath: string
 	/** Maps each route object to the absolute path of the `_routes.mts` file it was defined in. */
-	routeSourceFiles: Map<Route<any>, string>
+	routeSourceFiles: Map<AnyRoute, string>
 }
 
 const pluginName = 'vite-plugin:generate-rooted-route-manifest'
@@ -167,21 +167,25 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 			console.debug('Code change did not require manifest update.')
 		}
 		else {
-			await writeFile(rootPath, generatedManifest, 'utf-8')
+			await writeFile(rootPath, generatedManifest, 'utf8')
 		}
 
 		// Load the written manifest via JITI to populate the shared route registry
 		const jiti = createJiti(config.root)
-		const module_ = await jiti.import(rootPath) as any
-		const exported = module_[options.routeExport ?? 'appRoutes']
+		const jitiModule: Record<string, unknown> = await jiti.import(rootPath)
+		const exported = jitiModule[options.routeExport ?? 'appRoutes']
 		if (exported && typeof exported === 'object') {
-			api.routes = Object.values(exported)
+			const exportedRoutes = Object.values(exported) as UnknownRoute[]
+			const exportedRouteMap = Object.entries(exported) as [string, UnknownRoute][]
+
+			api.routes = exportedRoutes
 			api.routeSourceFiles = new Map()
-			for (const [key, route] of Object.entries(exported)) {
+
+			for (const [key, route] of exportedRouteMap) {
 				// Key format: R{8-char-fileId}_{exportName} — extract the fileId to find the source file
 				const fileId = key.slice(1, 9)
 				const sourceFile = files.find(f => getFileId(f) === fileId)
-				if (sourceFile) api.routeSourceFiles.set(route as Route<any>, resolve(config.root, sourceFile))
+				if (sourceFile) api.routeSourceFiles.set(route, resolve(config.root, sourceFile))
 			}
 		}
 	}

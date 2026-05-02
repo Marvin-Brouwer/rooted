@@ -2,7 +2,7 @@ import { tupleResult, TupleResult } from '@rooted/util'
 
 import { isRoute } from './route.metadata.mts'
 
-import type { Route } from './route.mts'
+import type { AnyRoute } from './route.mts'
 
 /* eslint-disable @typescript-eslint/no-wrapper-object-types, @typescript-eslint/no-explicit-any */
 
@@ -20,7 +20,7 @@ export type ParameterTokenType
 	| Boolean
 	| Date
 	| Wildcard
-	| Route<any>
+	| AnyRoute
 
 type ParameterToTokenType<V extends ParameterType>
 	= V extends NumberConstructor ? number
@@ -28,7 +28,7 @@ type ParameterToTokenType<V extends ParameterType>
 	: V extends BooleanConstructor ? boolean
 	: V extends DateConstructor ? Date
 	: V extends Wildcard ? Wildcard
-	: V extends Route<any> ? V
+	: V extends AnyRoute ? V
 	: never
 
 /** Maps a {@link ParameterTokenType} to the TypeScript value type it produces at runtime. */
@@ -57,7 +57,7 @@ export type Parameter<K extends string = string, T extends ParameterTokenType = 
 	[tokenBrand]: true
 }
 
-export type RouteParameter = Parameter | Route<any>
+export type RouteParameter = Parameter | AnyRoute
 
 /**
  * Declares a typed path parameter for use inside a {@link route} template string.

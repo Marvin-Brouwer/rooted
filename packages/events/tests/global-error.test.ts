@@ -17,7 +17,7 @@ class FakeRejectionEvent extends Event {
 }
 
 function fakeRejection(reason: unknown, promise = Promise.resolve()) {
-	return new FakeRejectionEvent(reason, promise) as unknown as PromiseRejectionEvent
+	return new FakeRejectionEvent(reason, promise)
 }
 
 afterEach(() => vi.unstubAllGlobals())

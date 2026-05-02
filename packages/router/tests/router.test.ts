@@ -49,7 +49,7 @@ async function selectRoute(routes: Route<any>[], targetPath: string) {
 		if (r.kind !== 'matched') continue
 
 		if (!best || r.match.length > best.match.length) {
-			best = r as typeof best
+			best = r
 			continue
 		}
 		if (
@@ -57,7 +57,7 @@ async function selectRoute(routes: Route<any>[], targetPath: string) {
 			&& !r.route[routeMetadata].hasWildcard
 			&& best.route[routeMetadata].hasWildcard
 		) {
-			best = r as typeof best
+			best = r
 		}
 	}
 

@@ -162,4 +162,4 @@ export const sessionStorage: SessionStorage = Object.freeze({
 		const store = getNative()
 		return store === undefined ? 0 : store.length
 	},
-}) as unknown as SessionStorage
+})

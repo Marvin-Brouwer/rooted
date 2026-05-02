@@ -87,7 +87,7 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 		const cloned = this.#clone(this.#state)
 		return this.#isObject
 			? Object.freeze(cloned)
-			: cloned as Readonly<TState>
+			: cloned
 	}
 
 	update(setter: (currentValue: TState) => SetterResult<TState>): void {
@@ -158,5 +158,5 @@ export function createStore(initial: string): Store<string>
 export function createStore(initial: bigint): Store<bigint>
 export function createStore<T extends StateType | Array<StateType>>(initial: T): Store<T>
 export function createStore<T extends StateType | Array<StateType>>(initial?: T): Store<T | undefined> {
-	return new StoreImpl(initial) as Store<T | undefined>
+	return new StoreImpl(initial)
 }

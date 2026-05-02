@@ -185,7 +185,7 @@ function installStubs(window: Record<string, unknown>, pendingIO: Array<() => vo
 	window['scroll'] = () => {}
 	window['scrollBy'] = () => {}
 	// Returns a proxy so any CSS property access returns '' rather than throwing
-	window['getComputedStyle'] = () => new Proxy({} as Record<string, string>, {
+	window['getComputedStyle'] = () => new Proxy({}, {
 		get(_target, property) {
 			if (property === 'getPropertyValue') return () => ''
 			return ''

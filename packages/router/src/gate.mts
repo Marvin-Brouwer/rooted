@@ -1,7 +1,7 @@
 import { component, GenericComponent } from '@rooted/components'
 import { createComponent } from '@rooted/components/elements'
 
-import { Route, RouteParameterDictionary } from './route.mts'
+import { AnyRoute, RouteParameterDictionary } from './route.mts'
 
 /**
  * Creates a self-managing gate component that mounts and unmounts its content
@@ -79,10 +79,6 @@ const Gate = component<GateOptions<AnyRoute>>({
 		await checkGate()
 	},
 })
-
-/** @internal */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AnyRoute = Route<any>
 
 /**
  * A sync or async function passed to {@link gate} that receives the matched route

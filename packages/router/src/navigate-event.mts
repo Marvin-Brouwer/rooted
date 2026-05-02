@@ -1,6 +1,4 @@
-import type { Route } from './route.mts'
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { UnknownRoute } from './route.mts'
 
 /**
  * Fired by the router during a navigation lifecycle.
@@ -29,7 +27,7 @@ export class NavigationErrorEvent extends CustomEvent<Error> {
 
 	constructor(
 		error: Error,
-		public readonly route: Route<any>,
+		public readonly route: UnknownRoute,
 		public readonly href: string,
 	) {
 		super('router:error', { detail: error })

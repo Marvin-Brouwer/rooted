@@ -76,7 +76,7 @@ const requirePublishConfigRegistry: Rule.RuleModule = {
 					data: { value: registryValue ?? '' },
 				})
 			},
-		} as unknown as Rule.RuleListener
+		}
 	},
 }
 

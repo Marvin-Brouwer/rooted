@@ -102,5 +102,5 @@ export function create(
 		return element
 	}
 
-	return createElement<RootedElement>(component.tagName, (properties ?? {}) as HtmlComponentProperties<RootedElement>)
+	return createElement<RootedElement>(component.tagName, (properties ?? {}))
 }

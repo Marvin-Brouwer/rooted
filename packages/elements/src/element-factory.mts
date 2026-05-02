@@ -162,7 +162,7 @@ export function createElementFactory(constructElement: ElementCreator, signal: A
 		return newElement
 	}
 
-	return createElement as unknown as ElementCreatorFunction
+	return createElement
 }
 
 function appendChildren(element: Element, children: Array<Node | string> | Node | string | undefined): void {

@@ -1,9 +1,7 @@
 import { isClient } from '@rooted/util'
 
-import type { Route } from './route.mts'
+import type { AnyRoute } from './route.mts'
 import type { ElementFactory } from '@rooted/components/elements'
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Options for runtime SEO meta tag injection, passed via `seo` in
@@ -45,7 +43,7 @@ export type RouterSeoOptions = {
  * route has no `seo` metadata or when running outside a browser context.
  */
 export function applyRouteSeoMeta(
-	route: Route<any>,
+	route: AnyRoute,
 	currentPath: string,
 	options: RouterSeoOptions | undefined,
 	element: ElementFactory,
