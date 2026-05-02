@@ -72,6 +72,15 @@ export type SeoApi = {
     injectRootHtml(html: string): string;
 };
 
+// @public (undocumented)
+export type SeoOptions = {
+    homeRouteFiles?: string[];
+    defaultOgImage?: string;
+    titleSuffix?: string;
+    robots?: RobotsOptions | false;
+    llmsTxt?: LlmsTxtOptions | false;
+};
+
 // @public
 export type SitemapEntry = {
     loc: string;
