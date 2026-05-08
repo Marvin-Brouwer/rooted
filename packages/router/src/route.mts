@@ -102,7 +102,7 @@ export type RouteParameters<T extends Parameter[]> = {
  *
  * Any {@link Route} is applicable
  */
-export type AnyRoute = Route<any>
+export type AnyRoute = Route<any> & MatchableRoute
 
 /**
  * ## Unknown route
@@ -110,7 +110,32 @@ export type AnyRoute = Route<any>
  * {@link Route} of unknown type
  */
 // @ts-expect-error unknown doesn't match the type, but, is on purpose
-export type UnknownRoute = Route<unknown>
+export type UnknownRoute = Route<unknown> & MatchableRoute
+
+/**
+ * ## Empty route
+ *
+ * {@link Route} with no parameters
+ */
+export type EmptyRoute = Route<RouteParameters<never>> & MatchableRoute
+
+/**
+ * Minimal interface for any route that can be matched against the current URL.
+ *
+ * Use this when you only need to call `match()` and don't need the full typed
+ * {@link Route} generic. Casting through this interface avoids the complex
+ * conditional types on {@link AnyRoute} that TypeScript cannot evaluate at
+ * compile time due to the circular import between route.mts and route.match.mts.
+ *
+ * @example
+ * ```ts
+ * const result = await (route as unknown as MatchableRoute).match()
+ * if (result.success) { ... }
+ * ```
+ */
+export type MatchableRoute = {
+	match(): Promise<{ success: boolean }>
+}
 
 export type Route<T extends RouteParameters<Parameter[]>> = {
 	/** @internal Internal metadata bag — use {@link isRoute} to identify routes; do not access directly. */

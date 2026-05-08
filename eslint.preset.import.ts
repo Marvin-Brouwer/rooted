@@ -1,10 +1,10 @@
 import { defineConfig } from 'eslint/config'
-import importPlugin from 'eslint-plugin-import-x'
+import { flatConfigs } from 'eslint-plugin-import-x'
 import unusedImports from 'eslint-plugin-unused-imports'
 
 export const lintImports = defineConfig([
-	importPlugin.flatConfigs.recommended,
-	importPlugin.flatConfigs.typescript,
+	flatConfigs.recommended,
+	flatConfigs.typescript,
 	{
 		plugins: {
 			['unused-imports']: unusedImports,

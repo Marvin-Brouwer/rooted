@@ -30,7 +30,7 @@ async function selectRoute(routes: Route<any>[], targetPath: string) {
 		routes.map(async (r) => {
 			const match = await r.match({ target })
 			if (!match.success) return { kind: 'no-match' as const }
-			const element = await r.resolve({ create: mockCreate as unknown as typeof import('@rooted/components/elements').create, tokens: match.tokens })
+			const element = await r.resolve({ create: mockCreate as unknown as never, tokens: match.tokens })
 			if (!element) return { kind: 'suppressed' as const, length: match.length }
 			return { kind: 'matched' as const, route: r, match, element }
 		}),

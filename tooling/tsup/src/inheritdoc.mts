@@ -1,7 +1,7 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises'
-import { basename, dirname, join, resolve } from 'node:path'
+import path from 'node:path'
 
-import ts from 'typescript'
+import * as ts from 'typescript'
 
 import type { Plugin } from './tsup-plugin.mts'
 
@@ -20,7 +20,7 @@ type State = {
 const stateCache = new Map<string, State>()
 
 function getState(tsconfigPath: string): State {
-	const key = resolve(tsconfigPath)
+	const key = path.resolve(tsconfigPath)
 	const cached = stateCache.get(key)
 	if (cached) return cached
 
@@ -32,7 +32,7 @@ function getState(tsconfigPath: string): State {
 	const parsed = ts.parseJsonConfigFileContent(
 		configFile.config,
 		ts.sys,
-		dirname(key),
+		path.dirname(key),
 	)
 
 	const options: ts.CompilerOptions = { ...parsed.options, noEmit: true, skipLibCheck: true }
@@ -50,7 +50,7 @@ function getState(tsconfigPath: string): State {
 const jsDocumentCache = new Map<string, string | undefined>()
 
 function resolveJsDocument(tsconfigPath: string, className: string, memberName: string): string | undefined {
-	const key = `${resolve(tsconfigPath)}:${className}['${memberName}']`
+	const key = `${path.resolve(tsconfigPath)}:${className}['${memberName}']`
 	if (jsDocumentCache.has(key)) return jsDocumentCache.get(key)!
 
 	const result = _resolveJsDocument(tsconfigPath, className, memberName)
@@ -92,7 +92,7 @@ function _resolveJsDocument(tsconfigPath: string, className: string, memberName:
 }
 
 function resolveTopLevelJsDocument(tsconfigPath: string, name: string): string | undefined {
-	const key = `${resolve(tsconfigPath)}:typeof ${name}`
+	const key = `${path.resolve(tsconfigPath)}:typeof ${name}`
 	if (jsDocumentCache.has(key)) return jsDocumentCache.get(key)!
 
 	const { program } = getState(tsconfigPath)
@@ -222,8 +222,8 @@ const TEMP_RE = /^_tsup-/
 async function findDtsFiles(outDirectory: string): Promise<string[]> {
 	const entries = await readdir(outDirectory, { recursive: true }).catch(() => [] as string[])
 	return (entries)
-		.filter(f => DTS_RE.test(f) && !TEMP_RE.test(basename(f)))
-		.map(f => join(outDirectory, f))
+		.filter(f => DTS_RE.test(f) && !TEMP_RE.test(path.basename(f)))
+		.map(f => path.join(outDirectory, f))
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────

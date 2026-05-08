@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
-import { resolve, relative, dirname } from 'node:path'
+import path from 'node:path'
 
 import { createJiti } from 'jiti'
 import { glob } from 'tinyglobby'
@@ -94,8 +94,8 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 	async function generate() {
 		const unsortedFiles = await glob(options.glob, { cwd: config.root, absolute: false })
 		const files = unsortedFiles.toSorted()
-		const rootPath = resolve(config.root, options.routeManifestPath)
-		const rootDirectory = dirname(rootPath)
+		const rootPath = path.resolve(config.root, options.routeManifestPath)
+		const rootDirectory = path.dirname(rootPath)
 
 		api.routeManifestPath = rootPath
 
@@ -121,7 +121,7 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 			`import type { Route } from '@rooted/router/routes'`,
 			'',
 			...files.map((file) => {
-				const relativePath = relative(rootDirectory, resolve(config.root, file))
+				const relativePath = path.relative(rootDirectory, path.resolve(config.root, file))
 				const importPath = relativePath.startsWith('.') ? relativePath : `./${relativePath}`
 				return `/** @__PURE__ */ import * as gate_${getFileId(file)} from '${importPath.split('\\').join('/')}'`
 			}),
@@ -186,7 +186,7 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 				// Key format: R{8-char-fileId}_{exportName} — extract the fileId to find the source file
 				const fileId = key.slice(1, 9)
 				const sourceFile = files.find(f => getFileId(f) === fileId)
-				if (sourceFile) api.routeSourceFiles.set(route, resolve(config.root, sourceFile))
+				if (sourceFile) api.routeSourceFiles.set(route, path.resolve(config.root, sourceFile))
 			}
 		}
 	}
@@ -201,17 +201,17 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 
 		configureServer(server) {
 			const onAddOrUnlink = async (filePath: string) => {
-				const relativePath = relative(config.root, filePath).split('\\').join('/')
+				const relativePath = path.relative(config.root, filePath).split('\\').join('/')
 				const matched = await glob(options.glob, { cwd: config.root })
 				if (!matched.includes(relativePath) && !filePath.endsWith('/_gate.mts')) return
 				await generate()
-				const rootPath = resolve(config.root, options.routeManifestPath)
+				const rootPath = path.resolve(config.root, options.routeManifestPath)
 				const module_ = server.moduleGraph.getModuleById(rootPath)
 				if (module_) server.moduleGraph.invalidateModule(module_)
 				server.hot.send({ type: 'full-reload' })
 			}
-			server.watcher.on('add', path => void onAddOrUnlink(path))
-			server.watcher.on('unlink', path => void onAddOrUnlink(path))
+			server.watcher.on('add', watchPath => void onAddOrUnlink(watchPath))
+			server.watcher.on('unlink', watchPath => void onAddOrUnlink(watchPath))
 		},
 	}
 }

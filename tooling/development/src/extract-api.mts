@@ -1,19 +1,19 @@
 import { readFile, readdir } from 'node:fs/promises'
-import { basename, join } from 'node:path'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
 
 export async function extractApi(packageRoot: string) {
-	const configFilePath = join(packageRoot, 'api-extractor.json')
-	const packageJsonPath = join(packageRoot, 'package.json')
+	const configFilePath = path.join(packageRoot, 'api-extractor.json')
+	const packageJsonPath = path.join(packageRoot, 'package.json')
 
 	// Chunk files produced by tsup have a hash suffix (e.g. routes-Gxo28CuX.d.mts)
 	const chunkPattern = /-[\dA-Za-z]{8}\.d\.mts$/
-	const moduleFiles = await readdir(join(packageRoot, 'dist'))
+	const moduleFiles = await readdir(path.join(packageRoot, 'dist'))
 	const modules = moduleFiles
 		.filter(f => f.endsWith('.d.mts') && !chunkPattern.test(f))
-		.map(f => basename(f, '.d.mts'))
+		.map(f => path.basename(f, '.d.mts'))
 
 	const configFile = await readFile(configFilePath, 'utf8')
 	const { $schema: _, ...baseConfig } = JSON.parse(configFile) as Record<string, unknown> & { $schema?: unknown, apiReport?: Record<string, unknown> }

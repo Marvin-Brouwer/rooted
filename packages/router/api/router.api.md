@@ -11,7 +11,7 @@ import { GenericComponent } from '@rooted/components';
 import * as _rooted_components from '@rooted/components';
 import { TupleResult } from '@rooted/util';
 
-// @internal (undocumented)
+// @public
 export type AnyRoute = Route<any>;
 
 // @public
@@ -46,6 +46,13 @@ export type LinkOptions = {
 };
 
 // @public
+export type MatchableRoute = {
+    match(): Promise<{
+        success: boolean;
+    }>;
+};
+
+// @public
 export function navigate(href: string | Url | Path): void;
 
 // @public @deprecated (undocumented)
@@ -68,13 +75,13 @@ export type NavigateHandler = (event: NavigateEvent) => void;
 
 // @public
 export class NavigationErrorEvent extends CustomEvent<Error> {
-    constructor(error: Error, route: Route<any>, href: string);
+    constructor(error: Error, route: UnknownRoute, href: string);
     // (undocumented)
     errorHandled: boolean;
     // (undocumented)
     readonly href: string;
     // (undocumented)
-    readonly route: Route<any>;
+    readonly route: UnknownRoute;
 }
 
 // @public
@@ -112,6 +119,9 @@ export type RouterSeoOptions = {
     defaultOgImage?: string;
     titleSuffix?: string;
 };
+
+// @public
+export type UnknownRoute = Route<unknown>;
 
 // @public
 export class Url extends HrefBase {
