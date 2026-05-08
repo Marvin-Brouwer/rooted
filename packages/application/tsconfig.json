@@ -1,13 +1,9 @@
 {
-	"extends": "../../tsconfig.lib.json",
+	"extends": "../../.repo/config/ts/library.json",
 	"compilerOptions": {
-		"customConditions": ["source"],
 		"outDir": "./dist",
 		"rootDir": ".",
 		"types": ["node"]
 	},
-	"include": [
-		"src",
-		"plugins"
-	]
+	"include": ["src", "plugins"]
 }

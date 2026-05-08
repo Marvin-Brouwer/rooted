@@ -1,0 +1,17 @@
+{
+	"extends": "./base.json",
+	"compilerOptions": {
+		"customConditions": ["source"],
+		"declaration": true,
+		"declarationMap": true,
+		"emitDeclarationOnly": true,
+		"noEmit": false,
+		"lib": [
+			"DOM",
+			"ES2024.ArrayBuffer",
+			"ES2020",
+			"ES2017.TypedArrays",
+			"ES2024"
+		]
+	}
+}

@@ -1,26 +1,4 @@
 {
-	"extends": "../../tsconfig.json",
-	"compilerOptions": {
-		"allowSyntheticDefaultImports": true,
-		"allowImportingTsExtensions": true,
-		"noEmit": true,
-		"esModuleInterop": true,
-		"skipLibCheck": true,
-		"isolatedModules": true,
-		"strict": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"erasableSyntaxOnly": false,
-		"noFallthroughCasesInSwitch": true,
-		"noUncheckedSideEffectImports": true,
-		"lib": [
-			"ES2024"
-		],
-		"types": [
-			"node"
-		]
-	},
-	"include": [
-		"src/**/*.mts"
-	]
+	"extends": "../../.repo/config/ts/tool.json",
+	"include": ["src/**/*.mts"]
 }

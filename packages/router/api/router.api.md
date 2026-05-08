@@ -12,7 +12,10 @@ import * as _rooted_components from '@rooted/components';
 import { TupleResult } from '@rooted/util';
 
 // @public
-export type AnyRoute = Route<any>;
+export type AnyRoute = Route<any> & MatchableRoute;
+
+// @public
+export type EmptyRoute = Route<RouteParameters<never>> & MatchableRoute;
 
 // @public
 export type ErrorHandler = (event: NavigationErrorEvent) => void;
@@ -121,7 +124,7 @@ export type RouterSeoOptions = {
 };
 
 // @public
-export type UnknownRoute = Route<unknown>;
+export type UnknownRoute = Route<unknown> & MatchableRoute;
 
 // @public
 export class Url extends HrefBase {

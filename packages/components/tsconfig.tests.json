@@ -1,7 +1,6 @@
 {
-	"extends": "./tsconfig.json",
+	"extends": "../../.repo/config/ts/tests.json",
 	"compilerOptions": {
-		"noEmit": true,
 		"rootDir": "."
 	},
 	"include": ["src", "tests"]

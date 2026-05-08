@@ -1,15 +1,26 @@
 {
+	"extends": "./.repo/config/ts/base.json",
 	"compilerOptions": {
-		"target": "esnext",
-		"module": "esnext",
-		"moduleResolution": "bundler",
-		"moduleDetection": "force",
-		"ignoreDeprecations": "6.0",
-		"allowImportingTsExtensions": true,
-		"noEmit": true
+		"noEmit": true,
+		"lib": ["DOM", "ES2024"]
 	},
+	"include": [
+		"**/*.ts",
+		"**/*.mts",
+		"**/*.cts",
+		"**/*.tsx",
+		"**/*.js",
+		"**/*.mjs",
+		"**/*.cjs",
+		".repo/**/*.ts",
+		".repo/**/*.mts"
+	],
 	"exclude": [
 		"node_modules",
+		"**/node_modules",
+		"**/dist",
+		"docs",
+		"temp",
 		"packages/*/tests"
 	]
 }

@@ -1,1 +1,1 @@
-pnpm exec commitlint --edit "$1"
+pnpm exec commitlint --config ./.repo/config/conventions/commitlint.config.mjs --edit "$1"

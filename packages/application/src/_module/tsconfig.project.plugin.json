@@ -1,0 +1,23 @@
+/**
+ * Companion of tsconfig.project.json for plugin code.
+ * Use this from a vite-built example app to type-check `./plugins`:
+ * { "extends": "@rooted/application/tsconfig-plugin", "include": ["plugins"] }
+ */
+{
+	"compilerOptions": {
+		"target": "ES2020",
+		"module": "ESNext",
+		"lib": ["ES2024"],
+		"types": ["node"],
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"alwaysStrict": true,
+		"useDefineForClassFields": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"allowImportingTsExtensions": true
+	}
+}
