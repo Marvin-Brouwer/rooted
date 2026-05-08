@@ -27,6 +27,10 @@ export const lintImports = defineConfig([
 			'import-x/resolver': {
 				typescript: {
 					alwaysTryTypes: true,
+					// Prefer the `source` export condition for packages that declare
+					// it. Mirrors the customConditions in .repo/config/ts/library.json,
+					// so lint resolves through source files where available.
+					conditionNames: ['source', 'import', 'require', 'node', 'default'],
 				},
 				node: {
 					extensions: ['.js', '.jsx'],

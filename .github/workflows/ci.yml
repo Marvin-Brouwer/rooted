@@ -27,14 +27,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build
+        run: pnpm build:ci
+
       - name: Lint
         run: pnpm lint:nofix
 
       - name: Test
         run: pnpm test
-
-      - name: Build
-        run: pnpm build:ci
 
       - name: API diff
         run: pnpm exec rooted-pipeline api-diff
