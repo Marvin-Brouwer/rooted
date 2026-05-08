@@ -9,7 +9,7 @@
 
 ## When ready to release v1.0.0
 
-### 1. Update `.releaserc.json`
+### 1. Update `.repo/config/conventions/.releaserc.json`
 
 Change:
 ```json

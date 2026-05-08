@@ -24,6 +24,7 @@
 	"files": [
 		"dist",
 		"src/_module/tsconfig.project.json",
+		"src/_module/tsconfig.project.plugin.json",
 		"readme.md"
 	],
 	"engines": {
@@ -39,7 +40,8 @@
 			"import": "./dist/adapters.mjs",
 			"types": "./dist/adapters.d.mjs"
 		},
-		"./tsconfig": "./src/_module/tsconfig.project.json"
+		"./tsconfig": "./src/_module/tsconfig.project.json",
+		"./tsconfig-plugin": "./src/_module/tsconfig.project.plugin.json"
 	},
 	"peerDependencies": {
 		"@rooted/components": "workspace:^",

@@ -23,7 +23,7 @@ export type Parameter<K extends string = string, T extends ParameterTokenType = 
 };
 
 // @public (undocumented)
-export type ParameterTokenType = Number | String | Boolean | Date | Wildcard | Route<any>;
+export type ParameterTokenType = Number | String | Boolean | Date | Wildcard | AnyRoute;
 
 // @public
 export type ParameterType = NumberConstructor | StringConstructor | BooleanConstructor | DateConstructor | Wildcard;
@@ -51,7 +51,7 @@ export type RouteBuilder<T extends RouteParameter[]> = (definition: {
 }>;
 
 // @public
-export type RouteMatch<T extends Route<any>> = {
+export type RouteMatch<T extends AnyRoute> = {
     success: true;
     tokens: RouteParameterDictionary<T>;
     length: number;
@@ -77,10 +77,10 @@ export type RouteMetadata<T extends {
 };
 
 // @public (undocumented)
-export type RouteParameter = Parameter | Route<any>;
+export type RouteParameter = Parameter | AnyRoute;
 
 // @public (undocumented)
-export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10> = D extends 0 ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> : [TRoute[typeof routeMetadata]['parentType']] extends [never] ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> : TRoute[typeof routeMetadata]['parentType'] extends Route<any> ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetadata]['parentType'], RecursionCounter[D]> : Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>>;
+export type RouteParameterDictionary<TRoute extends AnyRoute, D extends number = 10> = D extends 0 ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> : [TRoute[typeof routeMetadata]['parentType']] extends [never] ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> : TRoute[typeof routeMetadata]['parentType'] extends AnyRoute ? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetadata]['parentType'], RecursionCounter[D]> : Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>>;
 
 // @public
 export type RouteSeoMetadata = {

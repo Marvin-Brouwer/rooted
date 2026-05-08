@@ -7,7 +7,7 @@ import * as href from './href.mts'
 import { NavigateEvent } from './navigate-event.mts'
 import { RouteMatch } from './route.match.mts'
 import { isRoute, routeMetadata } from './route.metadata.mts'
-import { Route, route } from './route.mts'
+import { AnyRoute, route } from './route.mts'
 import { getSavedScrollPosition } from './scroll.mts'
 import { applyRouteSeoMeta, type RouterSeoOptions } from './seo-meta.mts'
 
@@ -37,7 +37,7 @@ type RouterConfig = {
  * Non-route values produce `never`, causing a compile-time error when used
  * in a {@link RouterConfig}. This ensures only valid routes are registered.
  */
-export type RouterCompatibleRoute<G> = G extends Route<any> ? G : never
+export type RouterCompatibleRoute<G> = G extends AnyRoute ? G : never
 
 /**
  * The validated version of a {@link RouterConfig}.
@@ -125,7 +125,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 	const routes = [
 		route`/`({ resolve: ({ create }) => create(homeComponent) }),
 
-		...Object.values(userRoutes as Record<string, Route<any>>)
+		...Object.values(userRoutes as Record<string, AnyRoute>)
 			.filter(r => isRoute(r))
 			.filter(r => !r[routeMetadata].hasErrors),
 	]
@@ -220,17 +220,17 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 type SuccessRouteMatch = RouteMatch<any> & { success: true }
 type FilterRoutesResult
-	= { kind: 'match', route: Route<any>, match: SuccessRouteMatch, element: Element }
-	| { kind: 'error', error: Error, route: Route<any> }
+	= { kind: 'match', route: AnyRoute, match: SuccessRouteMatch, element: Element }
+	| { kind: 'error', error: Error, route: AnyRoute }
 	| undefined
 
 type FilterRouteResult
 	= { kind: 'no-match' }
 	| { kind: 'suppressed', patternLength: number }
 	| { kind: 'matched', match: SuccessRouteMatch, element: Element }
-	| { kind: 'error', error: Error, route: Route<any> }
+	| { kind: 'error', error: Error, route: AnyRoute }
 
-async function filterRoute(route: Route<any>, target: href.Path): Promise<FilterRouteResult> {
+async function filterRoute(route: AnyRoute, target: href.Path): Promise<FilterRouteResult> {
 	const patternMatch = await route.match({ target })
 	if (!patternMatch.success) return { kind: 'no-match' }
 
@@ -246,15 +246,15 @@ async function filterRoute(route: Route<any>, target: href.Path): Promise<Filter
 	}
 }
 
-async function matchRoute(target: href.Path, routes: Route<any>[]): Promise<FilterRoutesResult> {
+async function matchRoute(target: href.Path, routes: AnyRoute[]): Promise<FilterRoutesResult> {
 	// Find the best filtered route in parallel
 	const results = await Promise.all(routes.map(async route => ({
 		route,
 		result: await filterRoute(route, target),
 	})))
 
-	let best: { kind: 'match', route: Route<any>, match: SuccessRouteMatch, element: Element } | undefined
-	let errorResult: { kind: 'error', error: Error, route: Route<any> } | undefined
+	let best: { kind: 'match', route: AnyRoute, match: SuccessRouteMatch, element: Element } | undefined
+	let errorResult: { kind: 'error', error: Error, route: AnyRoute } | undefined
 	let highestSuppressedLength = -1
 
 	for (const { route, result } of results) {

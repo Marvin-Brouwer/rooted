@@ -10,10 +10,13 @@
 		"build:ci": "pnpm -r run build:ci",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"lint:nofix": "eslint --cache --stats -c \"./eslint.config.ts\" .",
-		"lint": "DEBUG=eslint:cli-engine eslint --cache --fix --stats --debug -c \"./eslint.config.ts\" .",
+		"lint:nofix": "eslint --cache --stats -c \"./.repo/config/eslint/eslint.config.ts\" .",
+		"lint": "DEBUG=eslint:cli-engine eslint --cache --fix --stats --debug -c \"./.repo/config/eslint/eslint.config.ts\" .",
 		"clean": "pnpm -r run clean",
 		"release": "multi-semantic-release --ignore-private-packages"
+	},
+	"release": {
+		"extends": "./.repo/config/conventions/.releaserc.json"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^20.5.2",

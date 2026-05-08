@@ -15,10 +15,11 @@ export type CoercedEnvSchema = {
   
 };
 
+type _CoercedEnvSchema_8c71ba22 = CoercedEnvSchema;
 
 declare module 'varlock/env' {
-  export interface TypedEnvSchema extends Readonly<CoercedEnvSchema> {}
-  export interface PublicTypedEnvSchema extends Readonly<Pick<CoercedEnvSchema, ''>> {}
+  export interface TypedEnvSchema extends Readonly<_CoercedEnvSchema_8c71ba22> {}
+  export interface PublicTypedEnvSchema extends Readonly<Pick<_CoercedEnvSchema_8c71ba22, ''>> {}
 }
 
 
@@ -28,16 +29,17 @@ export type EnvSchemaAsStrings = {
       : (CoercedEnvSchema[Property] extends boolean ? ('true' | 'false') : string)
 };
 
+type _EnvSchemaAsStrings_8c71ba22 = EnvSchemaAsStrings;
 declare global {
 
   // add types for global import.meta.env
-  interface ImportMetaEnv extends EnvSchemaAsStrings {}
+  interface ImportMetaEnv extends _EnvSchemaAsStrings_8c71ba22 {}
   interface ImportMeta {
     readonly env: ImportMetaEnv;
   }
 
   // add types for global process.env
   namespace NodeJS {
-    interface ProcessEnv extends EnvSchemaAsStrings {}
+    interface ProcessEnv extends _EnvSchemaAsStrings_8c71ba22 {}
   }
 }

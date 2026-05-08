@@ -1,11 +1,4 @@
 {
-	"extends": "@rooted/application/tsconfig",
-	"compilerOptions": {
-		"lib": [
-			"ES2024"
-		]
-	},
-	"include": [
-		"plugins"
-	]
+	"extends": "@rooted/application/tsconfig-plugin",
+	"include": ["plugins"]
 }

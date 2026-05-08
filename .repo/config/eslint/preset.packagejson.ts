@@ -10,7 +10,7 @@ const FALLBACK_REGISTRY = 'https://registry.npmjs.org/'
 
 function readRegistryFromNpmrc(): string {
 	try {
-		const content = readFileSync(path.resolve(import.meta.dirname, '.npmrc'), 'utf8')
+		const content = readFileSync(path.resolve(import.meta.dirname, '../../..', '.npmrc'), 'utf8')
 		const match = /^registry\s*=\s*(.+)$/m.exec(content)
 		return match?.[1]?.trim() ?? FALLBACK_REGISTRY
 	}
@@ -76,7 +76,7 @@ const requirePublishConfigRegistry: Rule.RuleModule = {
 					data: { value: registryValue ?? '' },
 				})
 			},
-		} as unknown as Rule.RuleListener
+		}
 	},
 }
 

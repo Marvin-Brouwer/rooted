@@ -1,24 +1,17 @@
 {
-	"extends": "./tsconfig.json",
 	"compilerOptions": {
+		"target": "esnext",
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"moduleDetection": "force",
+		"ignoreDeprecations": "6.0",
+		"allowImportingTsExtensions": true,
 		"allowSyntheticDefaultImports": true,
-		"useDefineForClassFields": true,
 		"esModuleInterop": true,
 		"isolatedModules": true,
 		"allowJs": true,
-		"lib": [
-			"ES2024.ArrayBuffer",
-			"ES2017.TypedArrays",
-			"ES2024",
-			"DOM"
-		],
-		"types": [
-			"node"
-		],
-		"allowImportingTsExtensions": true,
-		"verbatimModuleSyntax": true,
-		"noEmit": true,
-		/* Linting */
+		"skipLibCheck": true,
+		"useDefineForClassFields": true,
 		"strict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
@@ -27,9 +20,7 @@
 		"noUncheckedSideEffectImports": true
 	},
 	"exclude": [
-		"node_modules"
-	],
-	"include": [
-		"packages/*/tests"
+		"node_modules",
+		"dist"
 	]
 }

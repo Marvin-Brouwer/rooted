@@ -196,7 +196,7 @@ export const cookieStorage: CookieStorage = Object.freeze({
 	getItem,
 	setItem,
 	get,
-	set: set as CookieStorage['set'],
+	set: set,
 	removeItem,
 	names,
 	all,

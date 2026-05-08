@@ -1,6 +1,6 @@
 import { buildPathForRoute } from './href.route.mts'
 
-import type { PathParameterDictionary, Route, RouteParameterDictionary } from './route.mts'
+import type { AnyRoute, PathParameterDictionary, RouteParameterDictionary } from './route.mts'
 
 class HrefBase {
 	constructor(
@@ -144,19 +144,20 @@ export function forAny(href: Path): Path
  *
  * @see {@link RouteParameterDictionary}
  */
-export function forAny<TRoute extends Route<any>>(
+export function forAny<TRoute extends AnyRoute>(
 	...arguments_: keyof RouteParameterDictionary<TRoute> extends never
 		? [route: TRoute, parameters?: RouteParameterDictionary<TRoute>]
 		: [route: TRoute, parameters: RouteParameterDictionary<TRoute>]
 ): Path
 /** @__PURE__ */
-export function forAny(target: Route<any> | URL | Location | Url | Path, dictionary?: NoInfer<PathParameterDictionary<any>>): HrefBase {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function forAny(target: AnyRoute | URL | Location | Url | Path, dictionary?: NoInfer<PathParameterDictionary<any>>): HrefBase {
 	if (target instanceof URL) return Url.fromUrl(target)
 	if (target instanceof Url) return target
 	if (target instanceof Path) return target
 	if (typeof Location !== 'undefined' && target instanceof Location) return Url.fromLocation(target)
 
-	const routePath = buildPathForRoute(target as Route<any>, dictionary!)
+	const routePath = buildPathForRoute(target as AnyRoute, dictionary!)
 	return Path.fromString(appBase.length > 1 ? appBase.slice(0, -1) + routePath : routePath)
 }
 

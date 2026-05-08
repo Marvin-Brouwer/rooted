@@ -8,7 +8,7 @@ export type RootedElementConstructor = CustomElementConstructor & {
 	tagName: string
 }
 
-const validTagName = /^[a-z][a-z0-9\-]*$/
+const validTagName = /^[a-z][a-z0-9\\-]*$/
 
 /**
  * Abstract base class for native custom elements in a rooted application.

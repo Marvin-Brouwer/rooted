@@ -1,6 +1,6 @@
 import { component } from '@rooted/components'
 import { TargetedEvent } from '@rooted/components/events'
-import { AnyRoute, href, navigate } from '@rooted/router'
+import { navigate, type Path, type EmptyRoute } from '@rooted/router'
 import { sessionStorage } from '@rooted/storage/web'
 
 import styles from './recipe-tabs.css'
@@ -15,8 +15,8 @@ export type RecipeTab = {
 	id: string
 	label: string
 	panel: Node
-	// TODO EmptyRoute
-	route: AnyRoute
+	route: EmptyRoute
+	href: Path
 }
 
 export type RecipeTabsOptions = {
@@ -70,7 +70,7 @@ export const RecipeTabs = component<RecipeTabsOptions>({
 				button.tabIndex = selected ? 0 : -1
 				panels[index].hidden = !selected
 			}
-			navigate(href.for(newTab.route, { id: options.recipeId }))
+			navigate(newTab.href)
 			if (focus) buttons[nextIndex]?.focus()
 		}
 

@@ -1,4 +1,4 @@
-import type { Route, RouteParameters } from './route.mts'
+import type { AnyRoute, Route, RouteParameters, UnknownRoute } from './route.mts'
 import type { Parameter, RouteParameter } from './route.tokens.mts'
 
 /** Symbol key for the {@link RouteMetadata} bag attached to every {@link Route}. */
@@ -70,11 +70,10 @@ export type RouteMetadata<T extends { parameters: any, parent?: any }> = {
 
 /** Returns `true` if `instance` is a {@link Route}. */
 export function isRoute<T extends RouteParameters<Parameter[]>>(instance: Route<T>): instance is Route<T>
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isRoute<T>(instance: T): instance is Extract<T, Route<any>>
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isRoute<T extends Route<any>>(instance: T): instance is T
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isRoute(instance: unknown): instance is Route<any> {
+export function isRoute<T>(instance: T): instance is Extract<T, AnyRoute>
+export function isRoute<T>(instance: T): instance is Extract<T, UnknownRoute>
+export function isRoute<T extends AnyRoute>(instance: T): instance is T
+export function isRoute<T extends UnknownRoute>(instance: T): instance is T
+export function isRoute(instance: unknown): instance is UnknownRoute {
 	return typeof instance === 'object' && instance !== null && routeMetadata in instance
 }

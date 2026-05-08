@@ -1,41 +1,10 @@
 import { defineConfig } from 'eslint/config'
-import importPlugin from 'eslint-plugin-import-x'
+import { flatConfigs } from 'eslint-plugin-import-x'
 import unusedImports from 'eslint-plugin-unused-imports'
 
-import type { Rule } from 'eslint'
-
-type NodeWithSource = { source?: (Rule.Node & { raw?: string }) | null }
-
-const mjsToMts: Rule.RuleModule = {
-	meta: {
-		type: 'suggestion',
-		fixable: 'code',
-		messages: {
-			rewrite: 'Use .mts extension instead of .mjs',
-		},
-	},
-	create(context: Rule.RuleContext): Rule.RuleListener {
-		function check(node: NodeWithSource): void {
-			const raw = node.source?.raw
-			if (!raw?.endsWith('.mjs\'') && !raw?.endsWith('.mjs"')) return
-			context.report({
-				node: node.source,
-				messageId: 'rewrite',
-				fix: (fixer: Rule.RuleFixer) =>
-					fixer.replaceText(node.source, raw.replace(/\.mjs(['"])$/, '.mts$1')),
-			})
-		}
-		return {
-			ImportDeclaration: check,
-			ExportNamedDeclaration: check,
-			ExportAllDeclaration: check,
-		} as unknown as Rule.RuleListener
-	},
-}
-
 export const lintImports = defineConfig([
-	importPlugin.flatConfigs.recommended,
-	importPlugin.flatConfigs.typescript,
+	flatConfigs.recommended,
+	flatConfigs.typescript,
 	{
 		plugins: {
 			['unused-imports']: unusedImports,
@@ -51,15 +20,6 @@ export const lintImports = defineConfig([
 		},
 	},
 	{
-		files: ['**/*.{mts,cts}'],
-		plugins: {
-			['local']: { rules: { 'mjs-to-mts': mjsToMts } },
-		},
-		rules: {
-			'local/mjs-to-mts': 'error',
-		},
-	},
-	{
 		settings: {
 			'import-x/parsers': {
 				'@typescript-eslint/parser': ['.ts', '.tsx', '.mts', '.cts', '.d.ts'],
@@ -67,6 +27,10 @@ export const lintImports = defineConfig([
 			'import-x/resolver': {
 				typescript: {
 					alwaysTryTypes: true,
+					// Prefer the `source` export condition for packages that declare
+					// it. Mirrors the customConditions in .repo/config/ts/library.json,
+					// so lint resolves through source files where available.
+					conditionNames: ['source', 'import', 'require', 'node', 'default'],
 				},
 				node: {
 					extensions: ['.js', '.jsx'],

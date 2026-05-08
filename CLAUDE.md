@@ -15,6 +15,8 @@ When writing TSDOC on functionality, follow these rules:
 When running eslint always run `pnpm eslint` from the repository root, other configurations don't work.  
 It is important to only fix linting issues in files that are modified or added in the current branch.
 
+After every completed code change, `pnpm lint` must return with no errors or warnings.
+
 Always make sure everything builds `pnpm build:dev` and always test your work `pnpm test`,  
 both commands are run from the repository root.
 

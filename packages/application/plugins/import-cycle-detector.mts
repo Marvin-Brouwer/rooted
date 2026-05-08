@@ -115,8 +115,16 @@ function hasTopLevelAwait(code: string): boolean {
 			continue
 		}
 
-		if (c === '{') { depth++; index++; continue }
-		if (c === '}') { depth--; index++; continue }
+		if (c === '{') {
+			depth++
+			index++
+			continue
+		}
+		if (c === '}') {
+			depth--
+			index++
+			continue
+		}
 
 		// `await import(` at module scope — the only form that can trigger a dynamic import deadlock
 		if (depth === 0 && code.startsWith('await import(', index)) return true

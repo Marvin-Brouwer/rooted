@@ -3,7 +3,7 @@ import { tupleResult } from '@rooted/util'
 import { isRoute, routeMetadata } from './route.metadata.mts'
 import * as tokens from './route.tokens.mts'
 
-import type { Route, RouteParameterDictionary } from './route.mts'
+import type { AnyRoute, RouteParameterDictionary } from './route.mts'
 import type { TokenMatchResult } from './route.tokens.mts'
 
 /**
@@ -11,8 +11,7 @@ import type { TokenMatchResult } from './route.tokens.mts'
  * Each token value is fed back through its own matcher for validation.
  * Throws if any token value is invalid or an unrecognized part is encountered.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, parameters: RouteParameterDictionary<TRoute>) {
+export function buildPathForRoute<TRoute extends AnyRoute>(route: TRoute, parameters: RouteParameterDictionary<TRoute>): string {
 	function buildUrl() {
 		let url = ''
 
@@ -26,18 +25,18 @@ export function buildPathForRoute<TRoute extends Route<any>>(route: TRoute, para
 				continue
 			}
 			if (tokens.isWildcardParameter(part)) {
-				url += parameters[part.key as keyof typeof parameters]
+				url += (parameters as Record<string, string>)[part.key]
 				continue
 			}
 			if (tokens.isParameterToken(part)) {
 				// Feed through the matcher again to validate the value
-				const result = part.match(parameters[part.key as keyof typeof parameters] as any) as TokenMatchResult<any>
+				const result = part.match(parameters[part.key as keyof typeof parameters]) as TokenMatchResult<string>
 				if (tupleResult.isError(result)) return result
 				url += tupleResult.value(result)
 				continue
 			}
 
-			return tupleResult.error(Object.assign(new Error(`Unrecognized route part '${part}'`), { part }))
+			return tupleResult.error(Object.assign(new Error(`Unrecognized route part '${String(part)}'`), { part }))
 		}
 
 		return tupleResult.success(url)

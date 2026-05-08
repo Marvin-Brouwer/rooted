@@ -20,6 +20,8 @@ function success<T>(value: T): SuccessTuple<T> {
 /** Creates an {@link ErrorTuple} wrapping the given error (coerced to `Error` if needed). */
 function error(error: unknown): ErrorTuple
 function error(error: Error): ErrorTuple
+// This is for explicit overload consistency
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 function error(error: Error | unknown): ErrorTuple {
 	return [false, never, error instanceof Error ? error : new Error(String(error))]
 }
@@ -32,7 +34,7 @@ function isError<T>(value: TupleResult<T>): value is ErrorTuple {
 	return value.length == 3 && value[0] === false
 }
 /** Extracts the payload from a {@link TupleResult}: the value on success, or the `Error` on failure. */
-function value<T>(tupleResult: ErrorTuple): Error
+function value<_T>(tupleResult: ErrorTuple): Error
 function value<T>(tupleResult: SuccessTuple<T>): T
 function value<T>([success, value, error]: TupleResult<T>): T | Error {
 	if (!success) return error

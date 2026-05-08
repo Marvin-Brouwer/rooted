@@ -3,7 +3,7 @@ import { tupleResult } from '@rooted/util'
 import { isParameterToken, isWildcardParameter, type RouteParameter, type TokenMatchResult } from './route.tokens.mts'
 
 import type { Path, Url } from './href.mts'
-import type { PathParameterDictionary, Route, RouteParameterDictionary } from './route.mts'
+import type { AnyRoute, PathParameterDictionary, RouteParameterDictionary } from './route.mts'
 
 /**
  * Result of {@link Route.match}.
@@ -12,8 +12,8 @@ import type { PathParameterDictionary, Route, RouteParameterDictionary } from '.
  * `length` is the number of characters consumed from the path (used by the
  * router to select the best match). On failure, only `success: false` is present.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type RouteMatch<T extends Route<any>> = {
+
+export type RouteMatch<T extends AnyRoute> = {
 	success: true
 	tokens: RouteParameterDictionary<T>
 	length: number
@@ -102,8 +102,7 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 		return href.current()
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async function match(options?: MatchRouteOptions): Promise<RouteMatch<Route<any>>> {
+	async function match(options?: MatchRouteOptions): Promise<RouteMatch<AnyRoute>> {
 		href ??= await import('./href.mts')
 		const path = getPath(options?.target)
 		const checkInclusive = options?.checkInclusive ?? true

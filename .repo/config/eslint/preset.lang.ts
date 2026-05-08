@@ -1,6 +1,10 @@
+import path from 'node:path'
+
 import js from '@eslint/js'
 import { defineConfig } from 'eslint/config'
 import tseslint from 'typescript-eslint'
+
+const repoRoot = path.resolve(import.meta.dirname, '../../..')
 
 const jsFiles = ['**/*.{js,mjs,cjs,jsx}']
 export const lintJs = defineConfig([
@@ -36,7 +40,7 @@ export const lintTs = defineConfig([
 					allowDefaultProject: ['packages/*/tests/*.ts'],
 					maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 30,
 				},
-				tsconfigRootDir: import.meta.dirname,
+				tsconfigRootDir: repoRoot,
 			},
 		},
 		rules: {

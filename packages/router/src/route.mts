@@ -20,7 +20,7 @@ export type FilterOutParent<T extends readonly RouteParameter[]>
 
 export type ExtractParent<T extends readonly RouteParameter[]>
 	= T extends readonly [infer H, ...infer R extends readonly RouteParameter[]]
-	? H extends Route<any>
+	? H extends AnyRoute
 	? H
 	: ExtractParent<R>
 	: never
@@ -44,12 +44,12 @@ export type PathParameterDictionary<T extends readonly RouteParameter[]> = Conve
  */
 // Type hack to prevent infinite recursion
 type RecursionCounter = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-export type RouteParameterDictionary<TRoute extends Route<any>, D extends number = 10>
+export type RouteParameterDictionary<TRoute extends AnyRoute, D extends number = 10>
 	= D extends 0
 	? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>>
 	: [TRoute[typeof routeMetadata]['parentType']] extends [never]
 	? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>>
-	: TRoute[typeof routeMetadata]['parentType'] extends Route<any>
+	: TRoute[typeof routeMetadata]['parentType'] extends AnyRoute
 	? Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>> & RouteParameterDictionary<TRoute[typeof routeMetadata]['parentType'], RecursionCounter[D]>
 	: Required<ConvertPathParameters<TRoute[typeof routeMetadata]['tokenTypes']>>
 
@@ -95,6 +95,46 @@ export type RouteParameters<T extends Parameter[]> = {
 	parameters: FilterOutParent<T>
 	// eslint-disable-next-line  @typescript-eslint/no-redundant-type-constituents
 	parent?: ExtractParent<T> | any
+}
+
+/**
+ * ## Any route
+ *
+ * Any {@link Route} is applicable
+ */
+export type AnyRoute = Route<any> & MatchableRoute
+
+/**
+ * ## Unknown route
+ *
+ * {@link Route} of unknown type
+ */
+// @ts-expect-error unknown doesn't match the type, but, is on purpose
+export type UnknownRoute = Route<unknown> & MatchableRoute
+
+/**
+ * ## Empty route
+ *
+ * {@link Route} with no parameters
+ */
+export type EmptyRoute = Route<RouteParameters<never>> & MatchableRoute
+
+/**
+ * Minimal interface for any route that can be matched against the current URL.
+ *
+ * Use this when you only need to call `match()` and don't need the full typed
+ * {@link Route} generic. Casting through this interface avoids the complex
+ * conditional types on {@link AnyRoute} that TypeScript cannot evaluate at
+ * compile time due to the circular import between route.mts and route.match.mts.
+ *
+ * @example
+ * ```ts
+ * const result = await (route as unknown as MatchableRoute).match()
+ * if (result.success) { ... }
+ * ```
+ */
+export type MatchableRoute = {
+	match(): Promise<{ success: boolean }>
 }
 
 export type Route<T extends RouteParameters<Parameter[]>> = {

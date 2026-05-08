@@ -1,5 +1,8 @@
 {
 	"eslint.useFlatConfig": true,
+	"eslint.options": {
+		"overrideConfigFile": "./.repo/config/eslint/eslint.config.ts"
+	},
 	"eslint.workingDirectory": [
 		{
 			"mode": "auto"
@@ -15,13 +18,13 @@
 	],
 	"prettier.enable": false,
 	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": "explicit",
+		"source.fixAll.eslint": "always",
 	},
 	"[typescript][typescriptreact][javascript][javascriptreact][json][jsonc][yaml][github-actions-workflow]": {
 		"editor.defaultFormatter": "dbaeumer.vscode-eslint",
 		"editor.formatOnSave": true,
 		"editor.codeActionsOnSave": {
-			"source.fixAll.eslint": "explicit"
+			"source.fixAll.eslint": "always"
 		},
 	},
 	"typescript.preferences.importModuleSpecifierEnding": "auto",
@@ -43,8 +46,7 @@
 		"*.jsx": "${capture}.js",
 		"*.tsx": "${capture}.ts",
 		"tsconfig.json": "tsconfig.*.json",
-		"package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb, bun.lock",
-		"eslint.config.ts": "eslint.preset.*.ts"
+		"package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb, bun.lock"
 	},
 	// These options search the repo recursively and slow down
 	// the build task menu. We define our own in tasks.json.

@@ -107,7 +107,7 @@ export class GenericComponent extends RootedElement {
 			const realNodes = nodes.map((nodeOrString) => {
 				return typeof nodeOrString === 'string'
 					? document.createTextNode(nodeOrString)
-					: nodeOrString as Node
+					: nodeOrString
 			})
 
 			base.append(...realNodes)
@@ -124,7 +124,7 @@ export class GenericComponent extends RootedElement {
 			const realNodes = nodes.map((nodeOrString) => {
 				return typeof nodeOrString === 'string'
 					? document.createTextNode(nodeOrString)
-					: nodeOrString as Node
+					: nodeOrString
 			})
 
 			base.prepend(...realNodes)
@@ -141,7 +141,7 @@ export class GenericComponent extends RootedElement {
 			const realNodes = nodes.map((nodeOrString) => {
 				return typeof nodeOrString === 'string'
 					? document.createTextNode(nodeOrString)
-					: nodeOrString as Node
+					: nodeOrString
 			})
 
 			if ((nodes.length > 0 || base.children.length > 0))
@@ -159,7 +159,7 @@ export class GenericComponent extends RootedElement {
 			const realNodes = nodes.map((nodeOrString) => {
 				return typeof nodeOrString === 'string'
 					? document.createTextNode(nodeOrString)
-					: nodeOrString as Node
+					: nodeOrString
 			})
 
 			for (const node of realNodes)
