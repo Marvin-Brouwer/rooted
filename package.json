@@ -15,9 +15,6 @@
 		"clean": "pnpm -r run clean",
 		"release": "multi-semantic-release --ignore-private-packages"
 	},
-	"release": {
-		"extends": "./.repo/config/conventions/.releaserc.json"
-	},
 	"devDependencies": {
 		"@commitlint/cli": "^20.5.2",
 		"@commitlint/config-conventional": "^20.5.0",
