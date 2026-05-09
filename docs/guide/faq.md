@@ -4,11 +4,28 @@ Things people get stuck on. The fixes are short on purpose. If something needs m
 
 ## My styles are leaking into other components
 
-Two likely causes.
+Rooted scopes styles by prefixing every selector with an attribute selector (`[r="<id>"] .your-class`). That's a descendant combinator, so a rule like `h1 { ... }` in component A becomes `[r="abc"] h1` and will match any `h1` inside that component, including `h1` elements inside nested child components.
 
-**You are on an older browser.** Rooted uses CSS `@scope` for isolation. On browsers without `@scope` it falls back to nesting plus an attribute selector. The fallback works, but it isn't a hard boundary. A broad selector like `p { ... }` can match descendants of nested components. Use `:scope > p` if you need the boundary.
+There's one likely cause:
 
-**You wrote a global rule by accident.** Anything in the component's `.css` file should reference `:scope` or a class. Bare element selectors without `:scope` do match across the boundary even on modern browsers, because `@scope` only constrains where rules apply, not what they match.
+**You're using a broad element selector that matches deeper than you intended.** Narrow it with a class name or a direct child combinator:
+
+```css
+/* matches any h1 anywhere inside this component, including nested ones */
+h1 { margin: 0 }
+
+/* only direct h1 children of the component root */
+[r] > h1 { margin: 0 }
+
+/* better: use a class */
+.recipe-title { margin: 0 }
+```
+
+To escape the component boundary intentionally, use the `:global()` escape hatch:
+
+```css
+:global(h1) { /* targets all h1 on the page, no scoping */ }
+```
 
 See [Styling](./styling.md) for the full layering.
 

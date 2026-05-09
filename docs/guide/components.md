@@ -35,7 +35,7 @@ export const Example = component({
 
 `append`, `prepend`, and `replace` accept three kinds of inputs:
 
-- A string (becomes a text node, or maps to a tag name when used with `element`).
+- A string (becomes a text node).
 - A `Node` produced by `element(...)`.
 - A component value created by `component(...)` (mounted automatically).
 
@@ -64,7 +64,7 @@ For the difference between `element` and writing your own custom element from sc
 
 ## Class names
 
-Class names use the `classes` prop, not `class` or `className`. It accepts a string, a list of strings, or a CSS module value. CSS module imports return scoped names so styles do not leak.
+Class names use the `classes` prop, not `class` or `className`. It accepts a string, a list of strings, or a CSS module value. CSS module imports give you the original class name, and the CSS loader ensures those class names only match inside this component's subtree.
 
 ```ts
 element('p', { classes: [styles.message, 'highlight'] })

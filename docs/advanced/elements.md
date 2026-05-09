@@ -85,7 +85,7 @@ A bare `RootedElement` gives you none of these for free. You write the plumbing 
 
 ## Shadow DOM
 
-Rooted does not put your component in a shadow root. Styles are scoped through CSS `@scope`, not Shadow DOM, so the rest of the page can still reach the element with normal selectors.
+Rooted does not put your component in a shadow root. Styles are scoped through attribute-selector prefixing, not Shadow DOM, so the rest of the page can still reach the element with normal selectors.
 
 If you specifically want a shadow root (for slot composition, or to isolate from inherited form-state propagation), reach for `RootedElement` and call `attachShadow` in `onMount`:
 

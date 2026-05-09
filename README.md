@@ -27,7 +27,6 @@ export const Greeting = component({
 - [Quick start](#quick-start)
 - [Packages](#packages)
 - [Documentation](#documentation)
-- [Browser support](#browser-support)
 - [Development](#development)
 
 ---
@@ -181,20 +180,6 @@ The docs are split by audience. Pick the one that matches what you're doing.
 | Contributing changes back | [`docs/contributing/`](./docs/contributing) |
 
 Architectural decisions live in [`docs/adr/`](./docs/adr). Open ideas and sketches live in [`docs/ideas/`](./docs/ideas).
-
----
-
-## Browser support
-
-Rooted uses CSS `@scope` for style isolation, which requires:
-
-| Browser | Minimum version |
-|---------|----------------|
-| Chrome  | 118            |
-| Firefox | 128            |
-| Safari  | 17.4           |
-
-On older browsers the CSS nesting fallback kicks in. It works, but it can let style leak in deeply nested cases.
 
 ---
 

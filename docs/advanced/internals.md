@@ -25,13 +25,11 @@ If a stylesheet manages to override it (a bare `:where(rooted-component)` or sim
 
 ## Style scoping
 
-Each component's CSS goes through the rooted CSS loader plugin at build time. The plugin produces a stable scope ID for the file (a seeded FNV-1a hash of the file contents) and emits two outputs: a CSS module that maps your local class names to scoped names, and a stylesheet wrapped in either `@scope` or CSS nesting.
+Each component's CSS goes through the rooted CSS loader plugin at build time. The plugin produces a stable scope ID (a seeded FNV-1a hash of the file path) and prefixes every qualified rule selector with `[r="<scope-id>"]`. The output is a flat, standard CSS file.
 
-At runtime the wrapper element gets `r="<scope-id>"` so the matching selectors apply to its subtree only.
+At runtime the wrapper element gets `r="<scope-id>"` on it, so only its subtree matches the scoped selectors.
 
-The two output forms exist because `@scope` only landed in browsers in
-2024. On older browsers the output uses CSS nesting plus the attribute
-selector to approximate the same boundary. The fallback is good enough for almost everything but it isn't a hard wall the way `@scope` is. A broad selector can still match descendants of nested components. Use `:scope > p` if you need the boundary to hold.
+For example, a component's `.title { ... }` becomes `[r="abc123"] .title { ... }` in the stylesheet, and the host element is `<r-- r="abc123">`. Attribute selectors are supported in all current browsers.
 
 ## The signal lifecycle
 

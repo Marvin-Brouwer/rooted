@@ -112,14 +112,9 @@ export const Recipe = component({
 })
 ```
 
-The CSS file uses `:scope` to refer to the host element of the component. Class names are isolated.
+Class names are scoped to this component. A `.title` here won't collide with a `.title` in another component.
 
 ```css
-:scope {
-  display: block;
-  padding: var(--space-m);
-}
-
 .title {
   font-size: 1.5rem;
   margin: 0 0 var(--space-s);
@@ -130,13 +125,19 @@ The CSS file uses `:scope` to refer to the host element of the component. Class 
 }
 ```
 
-CSS modules give you `styles.title` as a scoped class name. There is no chance of `.title` conflicting with another component's `.title`.
+CSS modules give you `styles.title` as a scoped class name.
 
 ### How scoping works
 
-Modern browsers (Chrome 118+, Firefox 128+, Safari 17.4+) support CSS `@scope`. Rooted wraps every component's CSS in an `@scope` block tied to the host element.
+The rooted CSS loader plugin assigns each `.css` file a stable ID (a seeded hash of the file path). Every qualified rule selector in the file gets prefixed with `[r="<hash>"]`. At runtime the component's wrapper element has that attribute set, so only its subtree matches.
 
-On older browsers it falls back to CSS nesting plus a unique attribute selector. Both approaches keep selectors inside their component, but the fallback is subject to normal cascade rules: a broad selector like `p { ... }` can still match descendants of nested components. Use `:scope > p` if you need a hard boundary.
+A `.title` rule in your component becomes `[r="abc123"] .title` in the output. Attribute selectors work in all current browsers.
+
+A plain element selector like `h1 { ... }` is also scoped, so it only affects `h1` elements inside this component. That's usually what you want. If you need a rule to escape the component boundary, use the `:global()` escape hatch:
+
+```css
+:global(h1) { /* targets any h1 on the page, not scoped */ }
+```
 
 For the gritty details, see [advanced/internals](../advanced/internals.md).
 
