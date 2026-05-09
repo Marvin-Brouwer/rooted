@@ -111,11 +111,21 @@ const Application = component({
   styles,
   onMount({ append, element, create }) {
     append(
-      element('div', { id: 'app', children: [
-        element('header', { children: create(NavigationMenu) }),
-        element('main', { id: 'main-content', children: create(Router) }),
-        element('footer', { children: create(Doormat) }),
-      ] }),
+      element('div', {
+        id: 'app',
+        children: [
+          element('header', { 
+						children: create(NavigationMenu) 
+					}),
+          element('main', { 
+						id: 'main-content', 
+						children: create(Router) 
+					}),
+          element('footer', { 
+						children: create(Doormat) 
+					}),
+        ],
+      }),
     )
   },
 })

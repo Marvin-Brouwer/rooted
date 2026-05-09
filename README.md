@@ -129,10 +129,14 @@ const Router = router({
   ...appRoutes,
 })
 
-application(component({
-  name: 'app',
-  onMount({ append }) { append(Router) },
-}))
+application(
+  component({
+    name: 'app',
+    onMount({ append }) { 
+			append(Router) 
+		},
+  })
+)
 ```
 
 See the [`recipe-book` example](./examples/recipe-book) for a full vertical-slice app.

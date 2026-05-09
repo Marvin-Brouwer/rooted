@@ -18,15 +18,17 @@ export const Counter = component({
     let count = 0
 
     const label = append(element('span', { textContent: '0' }))
-    append(element('button', {
-      textContent: 'Increment',
-      on: {
-        click() {
-          count += 1
-          label.textContent = String(count)
+    append(
+      element('button', {
+        textContent: 'Increment',
+        on: {
+          click() {
+            count += 1
+            label.textContent = String(count)
+          },
         },
-      },
-    }))
+      })
+    )
   },
 })
 ```

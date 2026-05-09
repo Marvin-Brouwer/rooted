@@ -152,12 +152,14 @@ const Router = router({
   ...appRoutes,
 })
 
-application(component({
-  name: 'app',
-  onMount({ append }) {
-    append(Router)
-  },
-}))
+application(
+  component({
+    name: 'app',
+    onMount({ append }) {
+      append(Router)
+    },
+  })
+)
 ```
 
 For the full router story, see [Routing](./routing.md).
