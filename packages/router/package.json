@@ -63,7 +63,7 @@
 		"extract-api": "rooted-development extract-api"
 	},
 	"dependencies": {
-		"jiti": "^2.0.0",
+		"jiti": "^2.7.0",
 		"tinyglobby": "^0.2.16"
 	},
 	"peerDependencies": {
@@ -76,8 +76,8 @@
 		"@rooted/components": "workspace:^",
 		"@rooted/development": "workspace:*",
 		"@rooted/tsup": "workspace:^",
-		"@types/node": "^25.6.0",
-		"tsx": "^4.19.0",
-		"vite": "^8.0.10"
+		"@types/node": "^25.6.2",
+		"tsx": "^4.21.0",
+		"vite": "^8.0.11"
 	}
 }

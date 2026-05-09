@@ -3,6 +3,11 @@ packages:
   - tooling/*
   - examples/*
 
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+
 onlyBuiltDependencies:
   - "@vscode/vsce-sign"
   - "esbuild"
