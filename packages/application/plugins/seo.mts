@@ -48,19 +48,19 @@ export type SeoOptions = {
 	/**
 	 * Options for the generated `robots.txt`. Set to `false` to disable
 	 * robots.txt generation entirely.
-	 * @default undefined — generates a default robots.txt
+	 * @default undefined - generates a default robots.txt
 	 */
 	robots?: RobotsOptions | false
 	/**
 	 * Options for the generated `llms.txt`. Set to `false` to disable
 	 * `llms.txt` generation entirely.
-	 * @default undefined — generates a default llms.txt from named static routes
+	 * @default undefined - generates a default llms.txt from named static routes
 	 */
 	llmsTxt?: LlmsTxtOptions | false
 }
 
 /**
- * SEO plugin — generates `sitemap.xml` (and a `sitemap-index.xml` when additional
+ * SEO plugin. Generates `sitemap.xml` (and a `sitemap-index.xml` when additional
  * sitemaps are registered) from all static routes discovered by
  * {@link generateRouteManifest}, plus a root entry whose `lastmod` is the
  * newest git commit date across the configured home route files.
@@ -237,7 +237,7 @@ async function gitLastModified(filePath: string | undefined, cwd: string): Promi
 			if (iso) return new Date(iso).toISOString().slice(0, 10)
 		}
 		catch {
-			// not a git repo or file untracked — fall through to stat
+			// not a git repo or file untracked, fall through to stat
 		}
 	}
 

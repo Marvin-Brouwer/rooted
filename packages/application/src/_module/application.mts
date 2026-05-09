@@ -1,5 +1,10 @@
 /**
- * Rooted application project configuration
+ * Build-time configuration and SEO tooling for rooted apps. Use
+ * `rootedManifest({...})` as the default export of `vite.config.mts`.
+ *
+ *
+ * - [SEO guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/seo.md)
+ *
  * @module
  */
 

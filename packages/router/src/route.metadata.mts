@@ -23,9 +23,9 @@ export const routeMetadata: unique symbol = Symbol.for('@rooted/route-metadata')
  * ```
  */
 export type RouteSeoMetadata = {
-	/** Page title — overrides `<title>` and `og:title`. */
+	/** Page title. Overrides `<title>` and `og:title`. */
 	title?: string
-	/** Page description — overrides `<meta name="description">` and `og:description`. */
+	/** Page description. Overrides `<meta name="description">` and `og:description`. */
 	description?: string
 	/** When `true`, injects `<meta name="robots" content="noindex">`. Default: `false`. */
 	noIndex?: boolean
@@ -45,8 +45,9 @@ export type RouteSeoMetadata = {
 /**
  * Internal metadata bag stored on every {@link Route} under the {@link routeMetadata} symbol key.
  *
- * Do not access directly from application code — use {@link isRoute} to test whether a value is a
- * route, and access `route[routeMetaData]` only within router internals.
+ * Do not access directly from application code. Use {@link isRoute} to test
+ * whether a value is a route, and access `route[routeMetaData]` only within
+ * router internals.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RouteMetadata<T extends { parameters: any, parent?: any }> = {

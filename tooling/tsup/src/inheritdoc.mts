@@ -101,13 +101,13 @@ function resolveTopLevelJsDocument(tsconfigPath: string, name: string): string |
 	outer: for (const sf of program.getSourceFiles()) {
 		for (const stmt of sf.statements) {
 			if (ts.isFunctionDeclaration(stmt) && stmt.name?.text === name) {
-				// Try each overload — JSDoc is usually on the first, but check all
+				// Try each overload. JSDoc is usually on the first, but check all.
 				const document = extractJsDocument(stmt)
 				if (document) {
 					result = document
 					break outer
 				}
-				// No `break` — continue scanning for the next overload
+				// No `break`: continue scanning for the next overload.
 			}
 			else if (ts.isVariableStatement(stmt)) {
 				for (const decl of stmt.declarationList.declarations) {
@@ -254,7 +254,7 @@ export function inheritdocPlugin(): Plugin {
 			const tsconfig = this.options.tsconfig ?? 'tsconfig.json'
 			const outDirectory = this.options.outDir ?? 'dist'
 
-			// DTS runs in a parallel worker — no plugin hooks fire after it completes.
+			// DTS runs in a parallel worker; no plugin hooks fire after it completes.
 			// `beforeExit` fires once the event loop drains, which is after both the
 			// esbuild task and the DTS worker task have finished.
 			process.once('beforeExit', () => {

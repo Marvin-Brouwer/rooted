@@ -11,16 +11,27 @@ type RootSelector = {
 	element: Element
 }
 
+/** Options for {@link application}. */
 export type ApplicationOptions = RootSelector
 
 /**
- * ## Initialize a new `application`
+ * Mounts a component as the application root. Replaces the root element on the
+ * page with the mounted component.
  *
- * By default expects an element of id `app` in the document body.
- * Use `options.selector` to specify a different CSS selector,
- * or `options.element` to pass an element directly.
+ * By default looks for an element with id `app`. Pass `options.selector` for a
+ * different CSS selector, or `options.element` to hand in an element directly.
  *
- * The application will replace the root element.
+ * Throws when the root element isn't found.
+ *
+ * @example
+ * ```ts
+ * import { application } from '@rooted/components/application'
+ * import { App } from './app.mts'
+ *
+ * application(App)                          // default: replaces #app
+ * application(App, { selector: '#root' })   // custom selector
+ * application(App, { element: someNode })   // explicit element
+ * ```
  */
 export function application<T extends Component>(component: T, options?: ApplicationOptions) {
 	const appRoot = options && 'element' in options && options.element

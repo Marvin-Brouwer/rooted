@@ -18,14 +18,14 @@ export type ImportCycleOptions = {
  * Detects potential top-level `await` deadlocks caused by bundler code-splitting.
  *
  * A deadlock occurs when chunk A has a top-level `await import('./B')` and chunk B
- * statically imports chunk A (directly or transitively) — both wait on each other
- * indefinitely and the module never evaluates.
+ * statically imports chunk A (directly or transitively). Both wait on each
+ * other indefinitely and the module never evaluates.
  *
  * This is a bundler artifact: the source may not have a cycle at all, but after
  * code-splitting, a dynamic import shim chunk can re-import from its parent chunk.
  *
  * Runs only during builds (`generateBundle` is never called in dev mode).
- * Uses only the in-memory bundle — no filesystem reads.
+ * Uses only the in-memory bundle. No filesystem reads.
  */
 export function importCycleDetector(options?: ImportCycleOptions): Plugin {
 	const when = options?.when ?? 'development'
@@ -56,7 +56,7 @@ export function importCycleDetector(options?: ImportCycleOptions): Plugin {
 			// For each chunk that has dynamic imports and contains `await`,
 			// check whether any dynamic target can reach this chunk via static imports.
 			// The `await` pre-filter avoids cycle checks on chunks where no deadlock
-			// is possible — dynamic imports inside non-async functions are safe.
+			// is possible. Dynamic imports inside non-async functions are safe.
 			for (const [fileName, chunk] of Object.entries(bundle)) {
 				if (chunk.type !== 'chunk') continue
 				if (chunk.dynamicImports.length === 0) continue
@@ -79,7 +79,7 @@ export function importCycleDetector(options?: ImportCycleOptions): Plugin {
 
 /**
  * Returns `true` only if `code` contains an `await` expression at module
- * scope — outside all function, object, and class bodies.
+ * scope, outside all function, object, and class bodies.
  * Skips string literals and comments to avoid false matches.
  */
 function hasTopLevelAwait(code: string): boolean {
@@ -126,7 +126,7 @@ function hasTopLevelAwait(code: string): boolean {
 			continue
 		}
 
-		// `await import(` at module scope — the only form that can trigger a dynamic import deadlock
+		// `await import(` at module scope. The only form that can trigger a dynamic import deadlock.
 		if (depth === 0 && code.startsWith('await import(', index)) return true
 
 		index++

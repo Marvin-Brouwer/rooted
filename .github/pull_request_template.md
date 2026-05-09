@@ -1,13 +1,20 @@
-<!-- Please refer to your issue number here, if applicable: -->
-# Pull request for: <!--Issue number-->
+<!-- 
+	Please provide a short summary: what changed and why. 
+	Three sentences is plenty.
+  What the diff already shows doesn't belong here. 
 
-<!-- Summary here
-     Have a look at: https://github.blog/2015-01-21-how-to-write-the-perfect-pull-request/ -->
+	Please make sure you've read, and understood, these:
+	- Contribution guide: ../CONTRIBUTING.md
+	- PR guide: ../docs/contributing/pull-requests.md
+-->
 
-## Definition Of Done  
+<!-- Pull request for ... -->
 
-<!-- Please do not forget to check these tasks:
-     You can check them if not applicable. -->
+## Definition Of Done
+
+<!-- Tick items that apply. Items that don't apply also get ticked.
+     The list is for the reviewer's benefit, not for compliance.
+     See: docs/contributing/pull-requests.md -->
 
 - [ ] Meets acceptance criteria of story / Fixed bug
 - [ ] Added new tests

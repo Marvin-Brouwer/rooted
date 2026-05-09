@@ -1,31 +1,14 @@
 import { jsonStringify, safeJsonParse } from '../../serializer.mts'
 
 /**
- * Typed wrapper around {@link globalThis.Storage} for the browser's
- * `localStorage`.
+ * Typed wrapper around the browser's `localStorage`. Adds typed `get<T>` /
+ * `set<T>` (JSON-encoded), a `keys()` helper, and `undefined` (instead of
+ * `null`) for missing values. SSR-safe: when `localStorage` isn't there,
+ * reads return `undefined` and writes are no-ops.
  *
- * Picks `length`, `clear`, `setItem`, and `removeItem` straight from the
- * native {@link globalThis.Storage} interface so they keep their native
- * signatures. On top of that it adds:
- * - `getItem` that returns `string | undefined` instead of
- *   `string | null`, so callers don't have to distinguish between
- *   "stored as null" and "not present",
- * - `key` that returns `string | undefined` for the same reason,
- * - typed `get<T>` / `set<T>` that run values through `JSON.stringify`
- *   and `JSON.parse` for you,
- * - `keys()` for a plain array of keys without having to walk
- *   `key(index)` yourself.
- *
- * Typed reads are safe against prototype pollution. The parsed JSON is
- * passed through a reviver that drops `__proto__`, `constructor`, and
- * `prototype` keys at any depth, so a hostile value written to storage
- * (for example from DevTools or another tab) cannot walk onto
- * `Object.prototype`.
- *
- * Safe to import under SSR. When `globalThis.localStorage` is not
- * available reads return `undefined` / empty collections, `length`
- * reads as `0`, and writes become no-ops, so nothing throws at import
- * time or during the first render on the server.
+ * Typed reads run through a JSON reviver that drops `__proto__`,
+ * `constructor`, and `prototype` keys at any depth, so a hostile value
+ * written by DevTools or another tab can't walk onto `Object.prototype`.
  *
  * @example
  * ```ts
@@ -41,30 +24,25 @@ import { jsonStringify, safeJsonParse } from '../../serializer.mts'
  * ```
  */
 export type LocalStorage = Pick<globalThis.Storage, 'length' | 'clear' | 'setItem' | 'removeItem'> & {
-	/**
-	 * Read a value as its raw string. Returns `undefined` when the key
-	 * is not set.
-	 */
+	/** Read the raw string value. Returns `undefined` when the key isn't set. */
 	getItem(key: string): string | undefined
 	/**
-	 * Return the key at `index` in insertion order, or `undefined` when
-	 * `index` is out of range. Thin wrapper over
-	 * {@link globalThis.Storage.key} that normalises the native `null`
-	 * to `undefined`.
+	 * Return the key at `index` in insertion order. Returns `undefined` when
+	 * `index` is out of range (instead of the native `null`).
 	 */
 	key(index: number): string | undefined
 	/**
-	 * Typed read. Strings come back as-is, everything else is parsed
-	 * from JSON through a prototype-pollution-safe reviver. Returns
+	 * Read and JSON-parse a stored value. Strings come back as-is; everything
+	 * else is parsed through a prototype-pollution-safe reviver. Returns
 	 * `undefined` when the key is missing.
 	 */
 	get<T = unknown>(key: string): T | undefined
 	/**
-	 * Typed write. Strings pass through unchanged so values written by
-	 * `setItem` round-trip, everything else is JSON-encoded.
+	 * Write a value. Strings pass through unchanged so values written by
+	 * `setItem` round-trip; everything else is JSON-encoded.
 	 */
 	set<T>(key: string, value: T): void
-	/** Every key currently stored. Empty array under SSR. */
+	/** All keys currently stored. Empty array under SSR. */
 	keys(): string[]
 }
 
@@ -138,16 +116,8 @@ function keys(): string[] {
 }
 
 /**
- * The singleton {@link LocalStorage} instance. Frozen so callers can't
- * monkey-patch individual methods.
- *
- * @example
- * ```ts
- * import { localStorage } from '@rooted/storage/web'
- *
- * localStorage.setItem('token', 'abc123')
- * localStorage.getItem('token') // 'abc123'
- * ```
+ * The {@link LocalStorage} singleton. Frozen so individual methods can't be
+ * monkey-patched.
  */
 export const localStorage: LocalStorage = Object.freeze({
 	clear,

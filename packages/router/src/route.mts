@@ -63,8 +63,9 @@ export type RouteParameterDictionary<TRoute extends AnyRoute, D extends number =
  * resolve: ({ create, tokens }) => create(MyComponent, { id: tokens.id })
  * ```
  *
- * Returning `undefined` signals a 404 — the route is treated as a non-match
- * and prevents shorter parent routes from matching as a fallback (suppression).
+ * Returning `undefined` signals a 404. The route is treated as a non-match,
+ * and shorter parent routes are blocked from matching as a fallback
+ * (suppression).
  *
  * An `async` resolver enables bundle-splitting: the imported module is loaded
  * lazily on first navigation to the route.
@@ -138,7 +139,7 @@ export type MatchableRoute = {
 }
 
 export type Route<T extends RouteParameters<Parameter[]>> = {
-	/** @internal Internal metadata bag — use {@link isRoute} to identify routes; do not access directly. */
+	/** @internal Internal metadata bag. Use {@link isRoute} to identify routes; do not access directly. */
 	readonly [routeMetadata]: RouteMetadata<T>
 	getMetadata(): Readonly<RouteMetadata<T>>
 	/**
@@ -157,7 +158,7 @@ export type Route<T extends RouteParameters<Parameter[]>> = {
 	 * `Location`. Set `options.checkInclusive` to `false` to allow prefix-only
 	 * matching (the router uses this internally when evaluating parent routes).
 	 *
-	 * @returns A {@link RouteMatch} — check `match.success` before reading `match.tokens`.
+	 * @returns A {@link RouteMatch}. Check `match.success` before reading `match.tokens`.
 	 *
 	 * @see {@link MatchRouteOptions}
 	 * @see {@link RouteMatch}
@@ -167,7 +168,7 @@ export type Route<T extends RouteParameters<Parameter[]>> = {
 
 function computeStaticRoute(strings: TemplateStringsArray, values: readonly RouteParameter[]): false | string {
 	if (values.length === 0) {
-		return strings[0] // no gaps — strings[0] is the entire path
+		return strings[0] // no gaps; strings[0] is the entire path
 	}
 
 	// Fail fast: if parent route is dynamic, this route can't be static either
@@ -215,7 +216,7 @@ function validatePattern(strings: TemplateStringsArray, values: readonly RoutePa
 			if (index !== 0)
 				errors.push(new Error(`Route interpolation must be at the start of the pattern: "${pattern}"`))
 			if (strings[0] !== '/')
-				errors.push(new Error(`Route interpolation must be surrounded by slashes — use route\`/\${ParentRoute}/...\`: "${pattern}"`))
+				errors.push(new Error(`Route interpolation must be surrounded by slashes. Use route\`/\${ParentRoute}/...\`: "${pattern}"`))
 			if (!strings[1]?.startsWith('/'))
 				errors.push(new Error(`Route interpolation must be followed by a slash: "${pattern}"`))
 		}
@@ -236,10 +237,10 @@ function zipTemplateParts<T extends RouteParameter>(strings: TemplateStringsArra
 	for (let index = 0; index < values.length; index++) {
 		let string_ = strings[index]
 		// The '/' immediately before a parent route is part of the route's own
-		// leading slash — strip it so the parent route can consume it itself.
+		// leading slash, so strip it and let the parent route consume it itself.
 		if (isRoute(values[index])) string_ = string_.endsWith('/') ? string_.slice(0, -1) : string_
 		// The '/' immediately after a parent route is part of the route's own
-		// trailing slash — strip it so the parent route's trailing slash is used.
+		// trailing slash, so strip it and let the parent route's trailing slash apply.
 		if (index > 0 && isRoute(values[index - 1])) string_ = string_.startsWith('/') ? string_.slice(1) : string_
 		parts.push(string_, values[index])
 	}
@@ -253,7 +254,7 @@ function zipTemplateParts<T extends RouteParameter>(strings: TemplateStringsArra
 }
 
 /**
- * Defines a route — a URL pattern bound to a component resolver.
+ * Defines a route. A route is a URL pattern bound to a component resolver.
  *
  * `route` is a tagged-template function. Write the URL pattern as a template
  * string and interpolate {@link token}s for typed parameters, a parent {@link Route}
@@ -267,7 +268,7 @@ function zipTemplateParts<T extends RouteParameter>(strings: TemplateStringsArra
  * Invalid patterns (missing leading/trailing slash, wildcard not at the end, etc.) are
  * logged as warnings in development and produce a route that never matches.
  *
- * @returns A {@link RouteBuilder} — call it with `{ resolve }` to produce a {@link Route}.
+ * @returns A {@link RouteBuilder}. Call it with `{ resolve }` to produce a {@link Route}.
  *
  * @example Basic route
  * ```ts

@@ -1,5 +1,11 @@
 /**
- * Html elements utility, for if you want to create your own outside of a rooted component
+ * HTML element helpers. Re-exports `@rooted/elements` and adds `createComponent`
+ * (the underlying factory used by the mount context's `create`). Use this when
+ * you want to build elements outside of a rooted component.
+ *
+ *
+ * - [Elements](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/elements.md)
+ *
  * @module
  */
 

@@ -1,8 +1,7 @@
 /**
- * Constructor shape expected by {@link RootedElement.register}.
- *
- * Any class that extends {@link RootedElement} automatically satisfies this
- * type as long as it declares a `static tagName` property.
+ * Constructor shape that {@link RootedElement.register} accepts. Any class
+ * that extends {@link RootedElement} satisfies this as long as it declares a
+ * `static tagName`.
  */
 export type RootedElementConstructor = CustomElementConstructor & {
 	tagName: string
@@ -11,18 +10,18 @@ export type RootedElementConstructor = CustomElementConstructor & {
 const validTagName = /^[a-z][a-z0-9\\-]*$/
 
 /**
- * Abstract base class for native custom elements in a rooted application.
+ * Abstract base for low-level custom elements. Reach for this when you want a
+ * specific tag name, attribute observation, or shadow DOM. For most components,
+ * use {@link Component} instead.
  *
- * Extend this class when you need to create a reusable, low-level HTML element
- * (rather than a higher-level functional {@link Component}). `RootedElement`
- * wraps the standard custom-element lifecycle to:
+ * `RootedElement` wraps the standard custom-element lifecycle to:
  *
- * - Guard against spurious `connectedCallback` / `disconnectedCallback` calls
- *   caused by DOM re-parenting (both callbacks are deferred with `queueMicrotask`
- *   and only fire when the element's connection state has actually changed).
- * - Enforce valid, hyphenated custom-element tag names at registration time.
+ * - Skip spurious `connectedCallback` / `disconnectedCallback` calls caused
+ *   by re-parenting. Both callbacks are deferred with `queueMicrotask` and
+ *   only fire when the element's connection state actually changed.
+ * - Validate that the tag name is hyphenated and lowercase before registration.
  *
- * @example Defining and registering a custom element
+ * @example
  * ```ts
  * import { RootedElement } from '@rooted/components/elements'
  *
@@ -40,31 +39,15 @@ const validTagName = /^[a-z][a-z0-9\\-]*$/
  *
  * RootedElement.register(MyCounter)
  * ```
- *
- * @example Using a custom element inside a component
- * ```ts
- * import { component } from '@rooted/components'
- * import { MyCounter } from './my-counter.mts'
- *
- * export const Page = component({
- *   name: 'page',
- *   onMount({ append }) {
- *     append(MyCounter, {})
- *   }
- * })
- * ```
  */
 export abstract class RootedElement extends HTMLElement {
 	static rootedElement = true
 
 	/**
-	 * Validates that `name` is a legal custom-element tag name.
+	 * Throws when `name` isn't a legal custom-element tag name. A legal name
+	 * matches `[a-z][a-z0-9\-]*` and contains at least one hyphen (a
+	 * requirement of the custom-elements spec).
 	 *
-	 * Throws if the name:
-	 * - Does not match `[a-z][a-z0-9\-]*`
-	 * - Does not contain at least one hyphen (required by the custom-elements spec)
-	 *
-	 * @param name - The tag name to validate.
 	 * @throws {Error} When the name is invalid.
 	 */
 	static validateTagName(name: string): void {
@@ -83,13 +66,9 @@ export abstract class RootedElement extends HTMLElement {
 	}
 
 	/**
-	 * Validates the element's `tagName` and registers it with
-	 * `customElements.define`.
+	 * Validates `element.tagName` and registers it with `customElements.define`.
+	 * Call once per element class, at module level after the class definition.
 	 *
-	 * Call this once per element class, typically at module level after the
-	 * class definition.
-	 *
-	 * @param element - The element class to register.
 	 * @throws {Error} When `element.tagName` is not a valid custom-element name.
 	 */
 	static register<TElement extends RootedElementConstructor>(element: TElement) {
@@ -98,27 +77,20 @@ export abstract class RootedElement extends HTMLElement {
 	}
 
 	/**
-	 * Called once after the element is connected to the document.
+	 * Called once after the element is connected to the document. Build child
+	 * nodes, attach listeners, start timers here.
 	 *
-	 * Implement your DOM setup logic here: create child nodes, attach event
-	 * listeners, start timers, etc.
-	 *
-	 * @remarks
-	 * Deferred via `queueMicrotask` and guarded so it only fires when the
-	 * element is truly connected — not when it is being re-parented.
+	 * Deferred via `queueMicrotask` and only fires when the element is truly
+	 * connected, not when it's being re-parented.
 	 */
 	protected abstract onMount(): void
 
 	/**
-	 * Called once after the element is disconnected from the document.
+	 * Called once after the element is disconnected. Override to clean up
+	 * anything started in {@link onMount}. Defaults to a no-op.
 	 *
-	 * Override to clean up resources created in {@link onMount} (event
-	 * listeners, subscriptions, timers, etc.). The default implementation is
-	 * a no-op.
-	 *
-	 * @remarks
-	 * Deferred via `queueMicrotask` and guarded so it only fires when the
-	 * element is truly disconnected — not when it is being re-parented.
+	 * Deferred via `queueMicrotask` and only fires when the element is truly
+	 * disconnected, not when it's being re-parented.
 	 */
 	protected onUnmount(): void {
 		// Do nothing by default

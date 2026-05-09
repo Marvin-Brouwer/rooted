@@ -2,7 +2,7 @@
 	"name": "@rooted/tsup",
 	"private": true,
 	"version": "0.1.0",
-	"description": "rooted — tsup plugins for the build pipeline",
+	"description": "Tsup plugins for the rooted build pipeline",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -26,7 +26,7 @@
 		"typescript": ">=5.0.0"
 	},
 	"devDependencies": {
-		"@types/node": "^25.6.0",
+		"@types/node": "^25.6.2",
 		"tsup": "^8.5.1"
 	}
 }

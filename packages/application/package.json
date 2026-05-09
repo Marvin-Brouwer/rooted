@@ -1,7 +1,7 @@
 {
 	"name": "@rooted/application",
 	"version": "1.0.0-alpha.0",
-	"description": "rooted — application configuration and adapters",
+	"description": "Build-time configuration and SEO tooling for the rooted framework",
 	"keywords": [
 		"web-components",
 		"typescript",
@@ -51,12 +51,12 @@
 	},
 	"dependencies": {
 		"@rooted/util": "workspace:^",
-		"@vite-pwa/assets-generator": "^1.0.0",
-		"happy-dom": "^20.8.9",
+		"@vite-pwa/assets-generator": "^1.0.2",
+		"happy-dom": "^20.9.0",
 		"tinyglobby": "^0.2.16",
-		"vite": "^8.0.10",
-		"vite-bundle-analyzer": "^1.3.7",
-		"vite-plugin-pwa": "^1.2.0"
+		"vite": "^8.0.11",
+		"vite-bundle-analyzer": "^1.3.8",
+		"vite-plugin-pwa": "^1.3.0"
 	},
 	"scripts": {
 		"build": "pnpm build:ci",
@@ -71,8 +71,8 @@
 		"@rooted/development": "workspace:*",
 		"@rooted/router": "workspace:^",
 		"@rooted/tsup": "workspace:^",
-		"@types/node": "^25.6.0",
-		"tsx": "^4.19.0",
+		"@types/node": "^25.6.2",
+		"tsx": "^4.21.0",
 		"typescript": "^6.0.3"
 	}
 }

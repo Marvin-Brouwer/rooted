@@ -1,7 +1,7 @@
 {
 	"name": "@rooted/store",
 	"version": "1.0.0-alpha.0",
-	"description": "rooted — store utilities",
+	"description": "A small synchronous shared-state container for the rooted framework",
 	"keywords": [
 		"web-components",
 		"store",

@@ -1,7 +1,11 @@
 /**
- * Rooted routing utility, simple and lean
+ * App-side router setup. The `router(...)` factory plus everything you need
+ * to declare routes (`route`, `token`, `wildcard`) and react to navigation
+ * events.
  *
- * For the application router setup use `@rooted/router/application`
+ *
+ * - [Routing guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/routing.md)
+ *
  * @module
  */
 

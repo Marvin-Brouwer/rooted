@@ -1,90 +1,98 @@
-# Recipe Book — Rooted Example App
+# Recipe Book
 
-A vertical-slice example application built with [`@rooted/components`](../../packages/components) and [`@rooted/router`](../../packages/router).
+A small recipe site built with rooted. It's the example app for the framework: a place to read real code, and the harness we use to catch regressions before we cut a release.
 
-## Why a Recipe Book?
+## What this app is
 
-A recipe book is a content-rich domain that maps naturally to every routing primitive that Rooted provides:
+A single-page app that browses a small set of recipes. You can list them by category, open one for ingredients and instructions, and search by keyword. Content is a handful of Markdown files in source control. There is no backend.
 
-| Rooted feature | How it's used |
-|---|---|
-| `route` + `resolve` | Every route uses the builder pattern: `route\`/path/\`({ resolve: ({ create, tokens }) => ... })` |
-| `gate` | `CategoryGate` renders the `Category` component inside the `Categories` shell |
-| `token('slug', String)` | Category URL slug: `/categories/italian/` |
-| `token('id', Number)` | Recipe ID: `/recipe/1/` |
-| `wildcard('query')` | Search: `/search/pasta/` |
-| Suppression | `CategoryRoute.resolve` returns `undefined` for unknown slugs → router shows `notFound` |
-| Scoped component styles | Each component declares its own CSS via `component({ styles })` |
-| `signal` cleanup | Navigation listeners are tied to the component lifetime |
-| `generateRouteManifest` | Vite plugin auto-discovers all `_routes.mts` files |
+## Why it exists
 
-The domain is realistic enough to show meaningful architecture without being complex enough to distract from the framework itself.
+Two reasons, both equally important.
 
-## Data approach
+**It's the user-facing reference.** Everything in the docs about how to structure a rooted app lands as code in this folder. When someone reads [`docs/guide/application-model.md`](../../docs/guide/application-model.md) and asks "okay, but what does that look like in practice", this is the answer.
 
-Mock recipe data lives in individual Markdown files under `src/recipes/content/`. Each file has YAML frontmatter (title, category, tags, timings, difficulty) and a Markdown body (ingredients + instructions).
+**It's the regression surface.** Every framework feature we ship is exercised here end-to-end: typed routes, dynamic tokens, wildcards, parent-child route composition, suppression for 404, lazy-loaded route components, view transitions, scroll restoration, per-route SEO, sitemap and llms.txt generation, the local-storage wrapper, and the shared store. When something breaks here, releases halt.
 
-These files are imported as raw strings using Vite's built-in `?raw` suffix — no extra Vite plugin needed:
+## Vertical slices
 
-```ts
-import pastaRaw from './content/pasta-carbonara.md?raw'
-```
+The app is organised one folder per feature. Each top-level folder under `src/` owns its own routes, components, styles, data, and content. Folders that start with `_` are conventions on top.
 
-`src/recipes/_data.mts` parses every file with [`gray-matter`](https://github.com/jonschlinkert/gray-matter) (frontmatter) and [`marked`](https://marked.js.org/) (Markdown → HTML string), then exports a typed `Recipe[]` array. Category data is derived from the same source in `src/categories/_data.mts`.
+- `_layout/` and `_shared/` carry cross-slice pieces (the header banner, the doormat, the live-region announcer, the recipe data layer). Things that don't belong to any one feature live here.
+- `_routes.mts` is the only filename the framework looks for. It exports the routes a slice owns. The Vite plugin discovers every `_routes.mts` at build time and writes `_routes.g.mts`, which the app entry imports as `appRoutes`.
+- `application.mts` is the app shell plus the `application(...)` bootstrap call. `application.css` is the shell's CSS.
+- `seo.mts` is the per-app SEO config (intro text and the llms.txt sections), passed into the build through `rootedManifest(...)` in `vite.config.mts`.
 
-The HTML body is rendered via `element.innerHTML` inside the recipe component — safe because the content comes from version-controlled Markdown files, not user input.
+Slice boundaries aren't enforced. Importing across slices is fine when it makes sense (the recipe page links to a category page, so `recipes/recipe.mts` imports `categories/_routes.mts`). The point is that when you delete a feature you delete one folder, and when you change a feature the things you need are next to each other.
 
-## File structure
+### What each slice illustrates
+
+- **`recipes/`** is the dynamic-route slice. Routes are typed with `token('id', Number)`, the recipe component is lazy-loaded, the ingredients and instructions panes use parent-child route composition (`route\`/${RecipeRoute}/instructions/\``), and a per-recipe servings store is backed by `localStorage`.
+- **`categories/`** is the parent-child slice. `CategoryRoute` composes onto `CategoriesRoute`, and its resolver returns `undefined` when the slug doesn't match a real category, which is rooted's "not found" pattern for dynamic children.
+- **`search/`** is the wildcard slice. `SearchRoute` uses `wildcard('query')` so anything after `/search/` flows into `tokens.query`, and the route is excluded from the sitemap because search results are not indexable pages.
+- **`content/`** holds the static text pages: accessibility, privacy, content notice, licenses. One slice, four routes, one component per route.
+- **`navigation/`** is the layout-and-navigation slice. The home page, the not-found page, the navigation menu, the navigation progress bar, and the hero image all live here. The home and not-found components are passed to the router as `home:` and `notFound:`.
+
+## File layout
 
 ```
 src/
-├── application.mts         # App entry: nav bar + router bootstrap
-├── style.css               # Global CSS custom properties and base reset
-├── navigate.mts            # SPA navigate() helper (pushState + popstate)
-│
-├── home/
-│   └── home.mts            # Featured recipes grid (passed as router home:)
-│
-├── categories/
-│   ├── _routes.mts          # CategoriesRoute, CategoryRoute, CategoryGate
-│   ├── categories.mts      # All-categories grid (shell for CategoryGate)
-│   ├── category.mts        # Category detail component
-│   └── _data.mts           # Category list derived from recipes
-│
-├── recipes/
-│   ├── _routes.mts          # RecipeRoute
-│   ├── recipe.mts          # Recipe detail component
-│   ├── _data.mts           # Parses .md files → Recipe[]
-│   └── content/            # One .md file per recipe
-│       ├── pasta-carbonara.md
-│       ├── chicken-tikka-masala.md
-│       ├── chocolate-lava-cake.md
-│       ├── caesar-salad.md
-│       └── beef-tacos.md
-│
-└── search/
-    ├── _routes.mts          # SearchRoute (wildcard)
-    └── search.mts          # Search results filtered from Recipe[]
+  application.mts           # app shell + application() bootstrap
+  application.css           # shell-level layout and view transitions
+  seo.mts                   # llms.txt sections, used by the build
+  _routes.g.mts             # generated by the Vite plugin
+  _layout/                  # cross-slice shell pieces (banner, doormat)
+  _shared/
+    a11y/                   # live-region announcer
+    content/                # markdown source files for the recipes
+    data/                   # recipe data registry (id + lazy import)
+  navigation/               # home, not-found, menu, progress, hero
+  recipes/                  # /recipe/:id/ + ingredients/instructions
+  categories/               # /categories/ and /categories/:slug/
+  search/                   # /search/:query/
+  content/                  # /accessibility/, /privacy/, etc.
 ```
 
-Each slice owns its own routes, components, and data. The router is assembled automatically by the `generateRouteManifest` Vite plugin, which discovers all `_routes.mts` files and generates `src/_routes.g.mts`.
+## Markdown content
 
-## Running the app
+The recipe content is a `.md` file per recipe under `_shared/content/`. The data layer in `_shared/data/data.mts` holds a small registry (`{ id, featured, load }`) where `load` is a dynamic `import()` of the markdown file. Each markdown import is lazy, so a recipe's content only ships when someone navigates to it.
 
-```bash
+The actual markdown-to-HTML conversion happens at build time in a small custom Vite plugin (`plugins/markdown.mts`). It uses [`gray-matter`](https://github.com/jonschlinkert/gray-matter) for frontmatter and [`marked`](https://marked.js.org/) for the body. The plugin is local to this example, not part of the framework.
+
+The recipe component renders the parsed HTML through `innerHTML`, which is safe because the source is version-controlled markdown rather than user input.
+
+## Running it
+
+```sh
 pnpm install
 pnpm dev
 ```
 
-Then open `http://localhost:5173` in your browser.
+Then open `http://localhost:5173`.
+
+To check the production build:
+
+```sh
+pnpm build
+pnpm preview
+```
 
 ## Routes
 
-| URL | What you see |
-|---|---|
-| `/` | Home page with featured recipes |
-| `/categories/` | All category cards |
-| `/categories/italian/` | Category detail with `CategoryGate` active |
-| `/recipe/1/` | Recipe detail |
-| `/search/pasta/` | Search results matching "pasta" |
-| `/categories/unknown/` | Falls through to `notFound` (suppression) |
+| URL | Slice | What it shows |
+|-----|-------|---------------|
+| `/` | navigation | Home with featured recipes. |
+| `/categories/` | categories | All category cards. |
+| `/categories/<slug>/` | categories | Recipes in one category. Returns 404 for unknown slugs. |
+| `/recipe/<id>/` | recipes | A single recipe. Defaults to instructions. |
+| `/recipe/<id>/ingredients/` | recipes | The ingredients pane of a recipe. |
+| `/recipe/<id>/instructions/` | recipes | The instructions pane of a recipe. |
+| `/search/<query>/` | search | Recipes matching the query. |
+| `/content-notice/`, `/accessibility/`, `/privacy/`, `/licenses/` | content | Static info pages. |
+| anything else | navigation | The not-found page. |
+
+## Where to read next
+
+- [`docs/guide/application-model.md`](../../docs/guide/application-model.md) explains the slice approach this app uses.
+- [`docs/guide/routing.md`](../../docs/guide/routing.md) covers the routing primitives the slices use.
+- [`docs/guide/seo.md`](../../docs/guide/seo.md) covers the `seo.mts` and `rootedManifest(...)` wiring.

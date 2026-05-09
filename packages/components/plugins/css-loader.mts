@@ -156,13 +156,13 @@ function scopeCSS(css: string, scopeId: string): string {
 			prelude += css[index++]
 		}
 
-		// Simple statement (no block) — emit as-is
+		// Simple statement (no block), emit as-is.
 		if (index >= css.length || css[index] === '}' || prelude.trimEnd().endsWith(';')) {
 			result += prelude
 			continue
 		}
 
-		// css[index] === '{' — consume and capture block content
+		// css[index] === '{', consume and capture block content.
 		index++ // skip '{'
 		const blockEnd = findBlockEnd(css, index)
 		const blockContent = css.slice(index, blockEnd)
@@ -172,7 +172,7 @@ function scopeCSS(css: string, scopeId: string): string {
 
 		if (/^@(-webkit-|-moz-|-ms-)?keyframes\b/.test(trimmedPrelude)
 			|| /^@font-face\b/i.test(trimmedPrelude)) {
-			// Pass through unchanged — selectors inside are percentages/from/to
+			// Pass through unchanged. Selectors inside are percentages or from/to.
 			result += trimmedPrelude + ' {' + blockContent + '}'
 		}
 		else if (trimmedPrelude.startsWith('@')) {
@@ -181,13 +181,13 @@ function scopeCSS(css: string, scopeId: string): string {
 			result += trimmedPrelude + ' {' + scopeCSS(blockContent, scopeId) + '}'
 		}
 		else {
-			// Qualified rule — prefix each selector in the list
+			// Qualified rule. Prefix each selector in the list.
 			const selectors = splitSelectors(trimmedPrelude)
 			const prefixed = selectors
 				.map((s) => {
 					const sel = s.trim()
 					if (!sel) return ''
-					// :global(selector) escape hatch — emit without prefix
+					// :global(selector) escape hatch, emit without prefix.
 					if (sel.startsWith(':global(') && sel.endsWith(')')) return sel.slice(8, -1)
 					return `${prefix} ${sel}`
 				})
@@ -266,7 +266,7 @@ export type CssLoaderOptions = {
  * Imports with a query suffix (`?inline`, `?raw`, etc.) are passed through
  * unchanged so Vite's built-in handlers continue to work.
  *
- * Returns two plugins — pass the array directly to Vite's `plugins` option;
+ * Returns two plugins. Pass the array directly to Vite's `plugins` option;
  * Vite flattens nested plugin arrays automatically.
  *
  * @example `vite.config.ts`
@@ -290,7 +290,7 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 	 *
 	 * `enforce: 'pre'` is required to win the resolveId race against vite:css.
 	 * The trade-off is that Rollup output hooks are NOT called for enforce:'pre'
-	 * plugins in Vite — the output plugin below handles those.
+	 * plugins in Vite, so the output plugin below handles those.
 	 */
 	const inputPlugin: Plugin = {
 		name: 'vite-plugin:rooted-css-loader',

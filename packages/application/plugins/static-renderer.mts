@@ -61,7 +61,7 @@ export async function createStaticRenderer(
 
 	const scriptMatch = SCRIPT_MODULE_RE.exec(indexHtml)
 	if (!scriptMatch) {
-		config.logger.warn('[static-renderer] No module script found in built index.html — skipping SSG pre-render')
+		config.logger.warn('[static-renderer] No module script found in built index.html. Skipping SSG pre-render.')
 		return undefined
 	}
 
@@ -89,12 +89,12 @@ export async function createStaticRenderer(
 	installGlobals(happyWindow as unknown as Record<string, unknown>)
 
 	try {
-		// The bundle reads DOM globals on import — they must be in place first
+		// The bundle reads DOM globals on import, so they must be in place first.
 		await import(pathToFileURL(bundlePath).href)
 	}
 	catch (error) {
 		restoreGlobals(savedGlobals)
-		config.logger.warn(`[static-renderer] Bundle load failed: ${String(error)} — skipping SSG pre-render`)
+		config.logger.warn(`[static-renderer] Bundle load failed: ${String(error)}. Skipping SSG pre-render.`)
 		return undefined
 	}
 
@@ -116,7 +116,7 @@ export async function createStaticRenderer(
 		},
 
 		async dispose(): Promise<void> {
-			// Drain pending IO — reject all pending fetch stubs with AbortError
+			// Drain pending IO. Reject all pending fetch stubs with AbortError.
 			for (const cancel of pendingIO) cancel()
 			pendingIO.length = 0
 
@@ -221,7 +221,7 @@ function installGlobals(window: Record<string, unknown>): void {
 		},
 	})
 
-	// Dynamic globals — defineProperty so the getter always returns the live window value
+	// Dynamic globals. Use defineProperty so the getter always returns the live window value.
 	// after history.pushState mutates location
 	for (const key of ['location', 'history', 'navigator', 'screen'] as const) {
 		Object.defineProperty(globalThis, key, {
@@ -230,7 +230,7 @@ function installGlobals(window: Record<string, unknown>): void {
 		})
 	}
 
-	// Static globals — constructor classes and document
+	// Static globals: constructor classes and document.
 	const globals = globalThis as unknown as Record<string, unknown>
 	for (const key of WINDOW_GLOBALS) {
 		globals[key] = window[key]

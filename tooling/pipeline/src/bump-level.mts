@@ -16,7 +16,7 @@ function getCommitsSinceLastTag(): string[] {
 			.filter(Boolean)
 	}
 	catch {
-		// No tags yet — treat all commits as candidates
+		// No tags yet, treat all commits as candidates.
 		return execSync('git log --format=%s', { encoding: 'utf8' })
 			.split('\n')
 			.map(line => line.trim())

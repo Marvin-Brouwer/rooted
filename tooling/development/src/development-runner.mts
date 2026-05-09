@@ -5,6 +5,11 @@ import { fileURLToPath } from 'node:url'
 
 import treeKill from 'tree-kill'
 
+/**
+ * Runs `pnpm -r build:dev` for the monorepo and returns the total tsup build
+ * time in milliseconds. Used by `pnpm dev` to estimate when the parallel
+ * watchers have settled.
+ */
 export function buildDevelopment(projectPath: string): Promise<number> {
 	return new Promise((resolve, reject) => {
 		const build = spawn('pnpm -r --stream run build:dev', {
@@ -33,12 +38,17 @@ export function buildDevelopment(projectPath: string): Promise<number> {
 	})
 }
 
+/**
+ * Starts the parallel watchers (`pnpm --parallel run watch`) and the example
+ * dev server (`pnpm dev`) in the chosen example folder. Wires up Ctrl-C so
+ * both processes get a chance to clean up.
+ */
 export async function runParallelDevelopment(projectPath: string, exampleFilter: string, elapsedBuildTime: number) {
 	console.log()
 	console.log(`pnpm --parallel --stream run watch`)
 	console.log()
 
-	// Tsup watchers — stdin ignored so they don't compete with the example
+	// Tsup watchers. Stdin ignored so they don't compete with the example.
 	const watches = spawn('pnpm --parallel --stream run watch', {
 		stdio: ['ignore', 'inherit', 'inherit'],
 		shell: true,
@@ -54,7 +64,7 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 	console.log()
 	console.log(`Running example project, pnpm dev ${path.relative(projectPath, targetPath)}`)
 
-	// Example dev server — inherits stdin so Vite's h/u/r/q all work
+	// Example dev server. Inherits stdin so Vite's h/u/r/q all work.
 	const example = spawn(`pnpm dev`, {
 		stdio: 'inherit',
 		cwd: targetPath,

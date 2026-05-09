@@ -4,6 +4,11 @@ import { fileURLToPath } from 'node:url'
 
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
 
+/**
+ * Runs API Extractor against every public-entry `.d.mts` file in `<packageRoot>/dist`.
+ * Reads the package's `api-extractor.json` for the base config. Returns
+ * a non-zero exit code when any module fails extraction.
+ */
 export async function extractApi(packageRoot: string) {
 	const configFilePath = path.join(packageRoot, 'api-extractor.json')
 	const packageJsonPath = path.join(packageRoot, 'package.json')

@@ -1,7 +1,7 @@
 {
 	"name": "@rooted/components",
 	"version": "1.0.0-alpha.0",
-	"description": "rooted — web components rooted very close to the original",
+	"description": "The component model for the rooted framework",
 	"keywords": [
 		"web-components",
 		"custom-elements",
@@ -74,9 +74,9 @@
 	"devDependencies": {
 		"@rooted/development": "workspace:*",
 		"@rooted/tsup": "workspace:^",
-		"@types/node": "^25.6.0",
-		"tsx": "^4.19.0",
+		"@types/node": "^25.6.2",
+		"tsx": "^4.21.0",
 		"esbuild": "^0.28.0",
-		"vite": "^8.0.10"
+		"vite": "^8.0.11"
 	}
 }

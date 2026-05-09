@@ -38,57 +38,18 @@ function createElement<TElement extends HTMLElement>(element: string, properties
 }
 
 /**
- * Creates a new DOM node — either a rooted {@link Component}, a native
- * {@link RootedElement} subclass, or a standard HTML element.
+ * Builds a node without mounting it. Pass a {@link Component} (made with the
+ * `component()` factory) or a {@link RootedElement} subclass. To build a
+ * standard HTML or SVG element, use the `element(...)` factory from the mount
+ * context instead.
  *
- * The node is **not** appended to the document; use
- * {@link ComponentContext.append} to create-and-append in one step.
+ * Use `create(...)` when you want a reference to the node before appending it.
+ * Use `append(...)` from the mount context to create and append in one step.
  *
- * **`classes`** — use the `classes` prop to set CSS classes on HTML elements.
- * Accepts a single class string or a {@link CssClasses} array; falsy entries
- * are filtered out automatically. Use {@link cssClass} for conditional classes:
+ * @example
  * ```ts
- * import { cssClass } from '@rooted/components'
- * append('button', { classes: ['btn', cssClass('btn--active', isActive)] })
- * ```
- *
- * **DOM property names** — other properties are set via `Object.assign` and
- * must use DOM property names, not HTML attribute names:
- * | HTML attribute | DOM property |
- * |---------------|--------------|
- * | `for`         | `htmlFor`    |
- * | `readonly`    | `readOnly`   |
- *
- * **Children** — pass a single `Node` or an array of `Node`s via the
- * `children` property; they are appended in order.
- *
- * **Event listeners** — use the `events` prop with descriptors created by the
- * `on` helper from {@link ComponentContext}. Listeners are automatically
- * removed when the component unmounts:
- * ```ts
- * create('button', {
- *   events: [on('click', e => { e.currentTarget.disabled = true })]
- * })
- * ```
- * You can also pass a single descriptor without an array. To pre-define
- * events outside of `onMount`, use {@link createEventBuilder} from
- * `@rooted/components/elements` with your own `AbortSignal`.
- *
- * @example Creating a component
- * ```ts
- * const el = create(MyComponent)
- * const elWithOptions = create(MyComponent, { label: 'hello' })
- * ```
- *
- * @example Creating an HTML element
- * ```ts
- * const div = create('div', {
- *   classes: 'card',
- *   children: [
- *     create('h2', { textContent: 'Title' }),
- *     create('p',  { textContent: 'Body'  }),
- *   ],
- * })
+ * const counter = create(Counter)
+ * const counterWithOptions = create(Counter, { label: 'hello' })
  * ```
  */
 export function create(component: Component): GenericComponent

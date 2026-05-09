@@ -53,41 +53,25 @@ export interface ElementCreatorFunction {
 export type ElementFactory = ElementCreatorFunction
 export function createElementFactory(constructElement: ElementCreator, signal: AbortSignal): ElementCreatorFunction {
 	/**
-	 * Creates a new HTML or SVG element. The element is **not** appended to the
-	 * document automatically.
+	 * Creates an HTML or SVG element. The element is NOT appended to the
+	 * document; pass it to `append`, `prepend`, or set it as `children` of
+	 * another element.
 	 *
-	 * **HTML elements** — pass any tag from `HTMLElementTagNameMap`:
-	 * ```ts
-	 * element('div', { classes: 'card', children: [...] })
-	 * ```
+	 * HTML tags use the regular `HTMLElementTagNameMap` keys. SVG tags use
+	 * `'svg'` for the root and `'svg:<name>'` for everything else (the prefix
+	 * keeps them from colliding with same-named HTML tags).
 	 *
-	 * **SVG elements** — use `'svg'` for the root element, or prefix other SVG
-	 * tags with `'svg:'` to avoid collisions with same-named HTML tags:
-	 * ```ts
-	 * element('svg', { viewBox: '0 0 24 24', children: element('svg:use', { href: url }) })
-	 * ```
-	 *
-	 * **`classes`** — accepts a single class string or a {@link CssClasses} array;
-	 * falsy entries are filtered out automatically.
-	 *
-	 * **DOM property names** — for HTML elements, other properties are set via
-	 * `Object.assign` and must use DOM property names, not HTML attribute names:
-	 * | HTML attribute | DOM property |
-	 * |----------------|--------------|
-	 * | `for`          | `htmlFor`    |
-	 * | `readonly`     | `readOnly`   |
-	 *
-	 * For SVG elements, writable DOM properties are set directly; anything else
-	 * (e.g. `viewBox`, `href`) falls back to `setAttribute` automatically.
-	 *
-	 * **Children** — pass a single `Node` or an array of `Node`s via the
-	 * `children` property; they are appended in order.
-	 *
-	 * **Event listeners** — use the `on` prop with an object of event handlers.
-	 * Listeners are automatically removed when the component unmounts.
-	 *
-	 * **ARIA** — use the `aria` prop for ARIA attributes. Accepts string IDs or
-	 * `Element` references for IDL reflection properties.
+	 * Properties:
+	 * - `classes`: a class string or a {@link CssClasses} array. Falsy
+	 *   entries are filtered out.
+	 * - `aria`: ARIA attributes. Accepts string IDs or `Element` references
+	 *   for IDL reflection properties (e.g. `aria-labelledby`).
+	 * - `on`: an object of event handlers. Each listener is removed when the
+	 *   component unmounts.
+	 *   `children`: a single `Node` or an array; appended in order.
+	 * - Other props are set as DOM properties (so `htmlFor` not `for`,
+	 *   `readOnly` not `readonly`). On SVG, anything that isn't a writable
+	 *   DOM property falls back to `setAttribute`.
 	 *
 	 * @example
 	 * ```ts

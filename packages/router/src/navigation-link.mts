@@ -35,9 +35,9 @@ export type LinkOptions = {
  * The click listener is removed automatically when the component unmounts
  * (bound to the component's lifetime signal).
  *
- * Because the wrapper element uses `display: contents`, `Link` is
- * layout-transparent — the inner `<a>` participates directly in the
- * parent's flex or grid context as if the wrapper were not there.
+ * Because the wrapper element uses `display: contents`, `Link` is layout
+ * transparent. The inner `<a>` participates directly in the parent's flex or
+ * grid context as if the wrapper weren't there.
  *
  * Import from `@rooted/router`:
  * ```ts

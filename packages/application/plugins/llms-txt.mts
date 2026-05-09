@@ -106,7 +106,7 @@ export function llmsTxtPlugin(
 						const staticPath = metadata.staticRoute
 						if (staticPath === false) continue
 						if (!metadata.seo?.title) {
-							config.logger.info(`[llms-txt] skipping route ${staticPath} — no seo.title`)
+							config.logger.info(`[llms-txt] skipping route ${staticPath}: no seo.title`)
 							continue
 						}
 

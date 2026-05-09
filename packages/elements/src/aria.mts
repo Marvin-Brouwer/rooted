@@ -4,7 +4,7 @@ type AriaStringProperties = {
 	[P in keyof ARIAMixin as ARIAMixin[P] extends string | null ? StripAria<string & P> : never]?: string | null
 }
 
-// Properties that only exist as Element[] in ARIAMixin — accepts a string ID or an Element directly
+// Properties that only exist as Element[] in ARIAMixin. Accepts a string ID or an Element directly.
 type AriaIdReferenceProperties = {
 	/** {@inheritdoc ARIAMixin['ariaActiveDescendantElement']} */
 	activeDescendant?: string | Element | null
@@ -24,6 +24,27 @@ type AriaIdReferenceProperties = {
 	owns?: string | Element | null
 }
 
+/**
+ * Shape of the `aria` prop on `element(...)`. Accepts every ARIA attribute
+ * defined on `ARIAMixin`, with the `aria` prefix stripped (so `aria-label`
+ * becomes `label`, `aria-describedby` becomes `describedBy`).
+ *
+ * For ID-reference attributes (`aria-labelledby`, `aria-controls`, etc.) the
+ * value can be a string ID or an `Element` reference. Element references are
+ * set via the IDL reflection property when supported, falling back to the
+ * attribute value otherwise.
+ *
+ * @example
+ * ```ts
+ * element('button', {
+ *   aria: {
+ *     label: 'Save',
+ *     describedBy: helpTextElement,
+ *     pressed: 'false',
+ *   },
+ * })
+ * ```
+ */
 export type Aria = AriaStringProperties & AriaIdReferenceProperties
 
 const ariaIdReferenceAttributes: Record<keyof AriaIdReferenceProperties, string> = {

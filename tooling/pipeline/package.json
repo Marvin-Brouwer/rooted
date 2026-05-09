@@ -2,7 +2,7 @@
 	"name": "@rooted/pipeline",
 	"private": true,
 	"version": "0.1.0",
-	"description": "rooted — CI/CD pipeline scripts",
+	"description": "CI/CD pipeline scripts for the rooted monorepo",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -19,8 +19,8 @@
 	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.58.7",
-		"@types/node": "^25.6.0",
-		"tsx": "^4.19.0",
+		"@types/node": "^25.6.2",
+		"tsx": "^4.21.0",
 		"typescript": "^6.0.3"
 	}
 }
