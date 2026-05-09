@@ -155,6 +155,20 @@ See the [`recipe-book` example](./examples/recipe-book) for a full vertical-slic
 
 ---
 
+## Bundle size
+
+Measured from the tree-shaken production build of the [recipe-book example app](./examples/recipe-book), the `@rooted/*` vendor chunk last came in at:
+
+| Format | Size |
+|--------|-------|
+| Raw    | ~26 KB |
+| Gzip   | ~12 KB |
+| Brotli | ~10 KB |
+
+These numbers go stale as the framework changes. The current report is at [marvin-brouwer.github.io/rooted/stats.html](https://marvin-brouwer.github.io/rooted/stats.html).
+
+---
+
 ## Documentation
 
 The docs are split by audience. Pick the one that matches what you're doing.
