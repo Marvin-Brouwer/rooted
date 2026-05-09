@@ -33,37 +33,33 @@ function createComponentStore() {
 }
 
 /**
- * ## The Generic component store
- *
- * This store is a weak map used to create instances of the Generic component, programmatically,
- * without having the properties accessible through the console window. \
- * We want this for security reasons, malicious users shouldn't be able to inspect internal runtime state.
- *
- * During dev mode, these properties are made accessible.
+ * @internal
+ * Weak map keyed by `GenericComponent` host elements. Holds the component
+ * constructor and options. Stored off-element so user-supplied options aren't
+ * reachable through DevTools in production. In dev mode the same data is also
+ * mirrored on the element for debugging.
  */
 export const componentStore = createComponentStore()
 
 /**
- * The internal custom element that wraps every functional {@link Component}.
+ * The custom element that wraps every {@link Component}. Tag name is `<r-->`
+ * in production and `<rooted-component>` in development.
  *
- * When you call `create(MyComponent)`, rooted creates an instance of
- * `GenericComponent` (tag name `<r-->` in production, `<rooted-component>`
- * in development) and stores the component constructor and options in a private
- * `WeakMap`. On `connectedCallback` the component's `onMount` is invoked with
- * a fully typed {@link ComponentContext}.
+ * When you call `create(MyComponent)`, rooted creates an instance of this
+ * class, stashes the component and its options in a private `WeakMap`, and on
+ * `connectedCallback` runs the component's `onMount` with a typed
+ * {@link ComponentContext}.
  *
- * You will encounter this type in TypeScript signatures — for example,
- * `create(MyComponent)` returns `GenericComponent` — but you should not
- * instantiate or subclass it directly. Always use {@link component} and
- * {@link create} instead.
+ * You'll see this type in signatures (`create(MyComponent)` returns
+ * `GenericComponent`), but don't instantiate or subclass it directly. Use
+ * {@link component} and {@link create}.
  *
- * In development the element also exposes `component`, `options`, and
- * `definedAt` as direct properties so they are visible in browser DevTools.
- * These properties are absent in production builds.
+ * In dev mode the element also exposes `component`, `options`, and `definedAt`
+ * as direct properties so they show up in DevTools. These are absent in
+ * production.
  *
  * @see {@link component}
  * @see {@link create}
- * @see {@link componentStore}
  */
 export class GenericComponent extends RootedElement {
 	public static tagName = isDevelopment() ? 'rooted-component' : 'r--'

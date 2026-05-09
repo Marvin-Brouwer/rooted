@@ -2,18 +2,18 @@ import { Path, Url } from './href.mts'
 
 /**
  * Performs client-side navigation by pushing to the browser history and
- * dispatching a `popstate` event so the router re-evaluates the current URL —
- * no full-page reload occurs.
+ * dispatching a `popstate` event so the router re-evaluates the current URL.
+ * No full-page reload occurs.
  *
- * Two overloads are supported:
+ * Two overloads:
  *
- * **URL navigation** — push a new path into history:
+ * **URL navigation.** Push a new path into history:
  * ```ts
  * navigate('/categories/italian/')
  * ```
  *
- * **State-only** — push arbitrary history state without changing the URL
- * (useful for modal/drawer state that does not need its own path):
+ * **State-only.** Push arbitrary history state without changing the URL.
+ * Useful for modal or drawer state that doesn't need its own path:
  * ```ts
  * navigate({ modal: 'confirm', id: 42 })
  * ```

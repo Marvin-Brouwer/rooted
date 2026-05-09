@@ -9,18 +9,15 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Page-level `AbortSignal` that fires when the page is permanently unloaded.
+ * @internal
+ * Aborts when the page is permanently unloaded. Uses `pagehide` (not `unload`
+ * or `beforeunload`) so it does NOT abort when the page enters the browser's
+ * back-forward cache. When `event.persisted` is `true` the page is frozen
+ * rather than destroyed, and component signals must remain active.
  *
- * Uses the `pagehide` event rather than `unload` or `beforeunload` so that
- * the signal does **not** abort when the page enters the browser's
- * back-forward cache (bfcache). When `event.persisted` is `true` the page
- * is frozen rather than destroyed, and it may be restored later — in that
- * case component signals must remain active.
+ * Every component's `AbortController` chains to this signal, so unmounting and
+ * page tear-down both clean up listeners with no user code.
  *
- * Every component's `AbortController` is chained to this signal: components
- * are cleaned up both when individually unmounted and when the page itself
- * is torn down, with no extra user code required.
- *
- * @internal Not part of the public API; consumed by `GenericComponent`.
+ * Consumed by `GenericComponent`. Not part of the public API.
  */
 export const pageSignal: AbortSignal = controller.signal

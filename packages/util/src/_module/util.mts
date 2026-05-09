@@ -1,5 +1,7 @@
 /**
- * Rooted general utilities
+ * Shared utilities for the rooted framework. Internal: not part of the
+ * public API. Consumed by the other `@rooted/*` packages.
+ *
  * @module
  */
 

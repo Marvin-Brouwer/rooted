@@ -17,7 +17,7 @@ class HrefBase {
 }
 
 /**
- * Represents a path-only URL (pathname, query string, and hash — no host or protocol).
+ * A path-only URL (pathname, query string, and hash). No host or protocol.
  *
  * Use {@link href.path} to construct one from a string, or {@link href.current} to get
  * the current browser path.

@@ -16,9 +16,9 @@ type SetterResult<TState> = TState extends object ? Partial<TState> | void : TSt
 /**
  * A synchronous shared state container for inter-component communication.
  *
- * Dispatches two event types that mirror native `input`/`change` semantics:
- * - `'update'` — fires on every {@link Store.update} call
- * - `'change'` — fires only when the state hash differs from the previous value
+ * Dispatches two event types that mirror native `input` and `change`:
+ * - `'update'` fires on every {@link Store.update} call.
+ * - `'change'` fires only when the state hash differs from the previous value.
  */
 export type Store<TState extends StateType | Array<StateType>> = {
 	/** A frozen snapshot of the current state. */
@@ -38,7 +38,7 @@ export type Store<TState extends StateType | Array<StateType>> = {
 	 * Subscribes to `'update'` events, which fire on **every** call to
 	 * {@link Store.update} regardless of whether the state changed.
 	 *
-	 * The `signal` is required and controls listener lifetime — pass the
+	 * The `signal` is required and controls listener lifetime. Pass the
 	 * component's `signal` to ensure cleanup on unmount.
 	 */
 	on(event: 'update', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void
@@ -46,7 +46,7 @@ export type Store<TState extends StateType | Array<StateType>> = {
 	 * Subscribes to `'change'` events, which fire only when the **state hash
 	 * differs** from the previous value (structural change detected).
 	 *
-	 * The `signal` is required and controls listener lifetime — pass the
+	 * The `signal` is required and controls listener lifetime. Pass the
 	 * component's `signal` to ensure cleanup on unmount.
 	 */
 	on(event: 'change', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void
@@ -64,7 +64,7 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 		this.#isObject = typeof initial === 'object' && initial !== null
 	}
 
-	// structuredClone throws on undefined, null, and objects with methods — guard here
+	// structuredClone throws on undefined, null, and objects with methods, so guard here.
 	#clone(value: TState): TState {
 		if (value === undefined) return undefined as TState
 		// eslint-disable-next-line unicorn/no-null
@@ -129,7 +129,7 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 /**
  * Creates a new {@link Store} with the given initial state.
  *
- * Primitive values are widened to their base type — `createStore(true)` returns
+ * Primitive values are widened to their base type. `createStore(true)` returns
  * `Store<boolean>`, not `Store<true>`. Use an explicit type parameter to narrow
  * further: `createStore<'idle' | 'navigating'>('idle')`.
  *
@@ -141,7 +141,7 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
  * // No initial value
  * const store = createStore<string>()          // Store<string | undefined>
  *
- * // Primitive state — widened automatically
+ * // Primitive state. Widened automatically.
  * const flag = createStore(true)               // Store<boolean>
  * const nav = createStore<'idle' | 'navigating'>('idle')  // Store<'idle' | 'navigating'>
  *

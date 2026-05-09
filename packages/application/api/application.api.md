@@ -18,13 +18,13 @@ export type AdditionalSitemap = {
     entries: SitemapEntry[];
 };
 
-// @public (undocumented)
+// @public
 export type CodeSplittingGroups = NonNullable<CodeSplittingOptions['groups']>;
 
-// @public (undocumented)
+// @public
 export type CodeSplittingOptions = NonNullable<Exclude<OutputOptions['codeSplitting'], boolean>>;
 
-// @public (undocumented)
+// @public
 export type DetectorOptions = {
     importCycle?: ImportCycleOptions;
 };
@@ -45,7 +45,7 @@ export type LlmsTxtSection = {
     }>;
 };
 
-// @public (undocumented)
+// @public
 export type RootedApplicationManifest = {
     resolve?: UserConfig['resolve'];
     plugins?: UserConfig['plugins'];
@@ -61,7 +61,7 @@ export type RootedApplicationManifest = {
     runtimeCaching?: RuntimeCaching[];
 };
 
-// @public (undocumented)
+// @public
 export function rootedManifest(manifest: RootedApplicationManifest): vite.UserConfigFnObject;
 
 // @public

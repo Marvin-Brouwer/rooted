@@ -4,13 +4,13 @@
 
 ```ts
 
-// @public
+// @internal
 export function appendSourceLocation(): string | undefined;
 
-// @public (undocumented)
+// @internal
 export function formatStackFrame(frame: string | undefined): string | undefined;
 
-// @public (undocumented)
+// @public
 export function isDevelopment(): boolean;
 
 // (No @packageDocumentation comment for this package)

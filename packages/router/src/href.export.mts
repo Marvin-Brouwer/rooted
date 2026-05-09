@@ -4,7 +4,7 @@ export type { Url, Path } from './href.mts'
 /**
  * Namespace for URL and path utilities.
  *
- * Always import and use as a namespace — `href.for(route, params)`, `href.path('/...')`, etc.
+ * Always import and use as a namespace: `href.for(route, params)`, `href.path('/...')`, etc.
  *
  * | Member | Description |
  * |--------|-------------|

@@ -12,7 +12,7 @@ const SEO_PLUGIN_NAME = 'rooted:seo'
  * Generates PWA icon assets from the project's `public/icon.svg` using the
  * `@vite-pwa/assets-generator` API when no explicit icon is configured.
  *
- * Uses the `minimal-2023` preset (without `favicon.ico` — SVG is used instead),
+ * Uses the `minimal-2023` preset (without `favicon.ico`; SVG is used instead),
  * which produces:
  * - `pwa-64x64.png`, `pwa-192x192.png`, `pwa-512x512.png` (transparent)
  * - `maskable-icon-512x512.png` (maskable)

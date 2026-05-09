@@ -1,7 +1,16 @@
+/**
+ * Returns `true` when running in a Vite dev build (`import.meta.env.DEV`).
+ * Used by rooted's dev-mode helpers, which are dropped in production.
+ */
 export function isDevelopment() {
 	return import.meta.env?.DEV ?? false
 }
 
+/**
+ * @internal
+ * Strips a stack frame down to a usable file:line:col by removing the
+ * `at `prefix, the page origin, and any query string Vite tacks on.
+ */
 export function formatStackFrame(frame: string | undefined): string | undefined {
 	if (!frame) return void 0
 
@@ -18,17 +27,17 @@ export function formatStackFrame(frame: string | undefined): string | undefined 
 }
 
 /**
- * Captures the call site of `component()` from the stack trace.
+ * @internal
+ * Captures the call site of `component()` from the stack trace, used in
+ * dev-mode warnings.
  *
- * @remarks
- * Locates the `appendSourceLocation` frame in the stack, then steps two
- * frames forward to skip past `component()` and land on the actual call site.
- * This is robust to different stack prefixes (e.g. the `Error` line being
- * absent in some runtimes).
+ * Locates the `appendSourceLocation` frame, then steps two frames forward to
+ * skip past `component()` and land on the actual call site. Robust to
+ * different stack prefixes (the `Error` line is absent in some runtimes).
  *
- * This will produce incorrect results if `component()` is called through
- * an additional wrapper (e.g. a `defineComponent` helper or build plugin),
- * as the call site frame will shift down by one per extra wrapper.
+ * Returns the wrong frame if `component()` is called through an extra
+ * wrapper (a `defineComponent` helper or a build plugin), since the call site
+ * shifts one frame deeper per wrapper.
  */
 export function appendSourceLocation() {
 	// Stack: Error -> appendSourceLocation -> component() -> call site

@@ -1,5 +1,10 @@
 /**
- * Storage utilities for web APIs
+ * Type-safe wrappers around the browser's `localStorage`, `sessionStorage`,
+ * and cookies. Synchronous, SSR-safe, no encryption.
+ *
+ *
+ * - [Storage guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/storage.md)
+ *
  * @module
  */
 

@@ -1,5 +1,10 @@
 /**
- * Various vite plugins for adapting the output to a certain host's server format.
+ * Vite plugins that adapt the build output to a specific host's expected
+ * format (GitHub Pages and friends).
+ *
+ *
+ * - [SEO guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/seo.md)
+ *
  * @module
  */
 

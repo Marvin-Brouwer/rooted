@@ -68,8 +68,8 @@ type ResolvedElement<T extends Element | ElementKeys>
  *
  * Accepts either an element class or a tag name string as the first type
  * parameter:
- * - `EventHandler<'button', 'click'>` — tag name form (recommended for options types)
- * - `EventHandler<HTMLButtonElement, 'click'>` — element class form
+ * - `EventHandler<'button', 'click'>`: tag name form (recommended for options types).
+ * - `EventHandler<HTMLButtonElement, 'click'>`: element class form.
  *
  * Both forms produce the same handler type. The handler may optionally accept
  * the typed event object, or take no arguments at all.
@@ -100,7 +100,7 @@ export type EventHandler<
  * element. Used as the type of the `on` prop in element factory calls.
  *
  * Handler values are contextually typed from the surrounding element's event
- * map — no explicit annotation needed.
+ * map; no explicit annotation needed.
  *
  * @example
  * ```ts

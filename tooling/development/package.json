@@ -2,7 +2,7 @@
 	"name": "@rooted/development",
 	"private": true,
 	"version": "0.1.0",
-	"description": "rooted — dev runner for the monorepo",
+	"description": "Dev runner for the rooted monorepo",
 	"license": "MIT",
 	"repository": {
 		"type": "git",

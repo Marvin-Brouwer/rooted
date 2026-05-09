@@ -4,11 +4,15 @@
 
 When writing TSDOC on functionality, follow these rules:
 
-- NEVER use mdash
-- ALWAYS use normal, simple and humble, human language
-  Nobody on this projects cares about sounding important.
-- Copy the style of other comments
-- Include usage examples when relevant
+
+- **No em-dash** (—). Use hyphens, commas, parentheses, or two sentences.
+- **Write the way a person would say it.** Plain words. Contractions are fine.
+- **No business speak.** No "leverage", "empower", "robust", "seamless", "delightful", "best-in-class". This project is not a big corporation, and the author is not American. Avoid the marketing register.
+- **Be honest. Don't oversell.** If a feature has trade-offs, name them. If something is small, say so. Don't dress up limitations as design choices.
+- **Include usage examples when relevant.**
+- **Don't add useless information**. TSDOC for the sake of TSDOC is not what we're looking for.
+
+Keep in mind, the target audience is developers that actually use this when coding.
 
 ## Quality Control
 
@@ -65,14 +69,24 @@ docs: add guide for publishing new @rooted/* packages
 
 Always run `pnpm eslint` from the repo root. Never use `npx eslint`.
 
-## Markdown line wrapping
+## Writing markdown
 
-When writing markdown (READMEs, docs, prose comments), keep each paragraph on a single line. Don't wrap to a virtual column width.
+These rules apply to all prose in the repo (READMEs, docs, comments, PR and commit bodies), not just markdown files.
+
+### Voice
+
+- **No em-dash** (—). Use hyphens, commas, parentheses, or two sentences.
+- **Write the way a person would say it.** Plain words. Contractions are fine.
+- **No business speak.** No "leverage", "empower", "robust", "seamless", "delightful", "best-in-class". This project is not a big corporation, and the author is not American. Avoid the marketing register.
+- **Be honest. Don't oversell.** If a feature has trade-offs, name them. If something is small, say so. Don't dress up limitations as design choices.
+
+### Line wrapping
+
+Keep each paragraph on a single line. Don't wrap to a virtual column width.
 
 - Paragraphs are separated by a double newline (one blank line).
 - For a hard line break inside a paragraph, end the line with a trailing backslash (` \`) and put the rest on the next line.
 - If a line becomes ridiculously long, only break after a punctuation mark (period, comma, semi-colon, colon). Never break mid-sentence or mid-word.
-
 
 ## Pull request summary
 

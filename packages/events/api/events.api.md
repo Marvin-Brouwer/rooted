@@ -28,15 +28,15 @@ export type EventBuilder = ReturnType<typeof createEventBuilder>;
 // @public
 export type EventHandler<TElementOrTag extends Element | ElementKeys, EventKey extends keyof ElementEventMap_2<ResolvedElement<TElementOrTag>>> = ((event: TargetedEvent<ElementEventMap_2<ResolvedElement<TElementOrTag>>[EventKey] & Event, ResolvedElement<TElementOrTag>>) => void | Promise<void>) | (() => void | Promise<void>);
 
-// @public (undocumented)
+// @public
 export type GlobalEventHandler<K extends keyof GlobalEventMap> = ((event: TargetedEvent<GlobalEventMap[K], Window>) => void | Promise<void>) | (() => void | Promise<void>);
 
-// @public (undocumented)
+// @public
 export type GlobalEventMap = {
     'unhandled-error': UnhandledErrorEvent;
 };
 
-// @public (undocumented)
+// @public
 export function isApplicationErrorError(event: ErrorEvent | PromiseRejectionEvent): boolean;
 
 // @public

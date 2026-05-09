@@ -4,8 +4,8 @@ import type { UnknownRoute } from './route.mts'
  * Fired by the router during a navigation lifecycle.
  *
  * Two lifecycle phases are emitted in order:
- * - `'start'` — navigation has begun
- * - `'end'`   — the new route has finished rendering
+ * - `'start'`: navigation has begun
+ * - `'end'`: the new route has finished rendering
  */
 export class NavigateEvent extends CustomEvent<never> {
 	constructor(

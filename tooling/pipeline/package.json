@@ -2,7 +2,7 @@
 	"name": "@rooted/pipeline",
 	"private": true,
 	"version": "0.1.0",
-	"description": "rooted — CI/CD pipeline scripts",
+	"description": "CI/CD pipeline scripts for the rooted monorepo",
 	"license": "MIT",
 	"repository": {
 		"type": "git",

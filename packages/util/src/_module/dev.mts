@@ -1,5 +1,7 @@
 /**
- * Rooted development utilities
+ * Dev-mode helpers (`isDevelopment`, stack-frame formatting). Internal:
+ * dropped in production builds.
+ *
  * @module
  */
 

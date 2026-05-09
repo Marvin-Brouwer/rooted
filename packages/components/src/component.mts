@@ -7,9 +7,11 @@ import { create } from './component-factory.mts'
 import { devHelper } from './dev-helper.mts'
 
 /**
- * ## `ComponentContext`
+ * The context passed to `onMount`. Has methods for building DOM, plus `signal`,
+ * `on`, and (when the component declares options) a typed `options` field.
  *
- * Properties for internal component logic
+ * @typeParam TOptions - The component's options type. Use `never` (the default) when
+ *   the component takes no options.
  */
 export type ComponentContext<TOptions extends object = never> = [TOptions] extends [never]
 	? BaseComponentContext
@@ -66,23 +68,22 @@ type BaseComponentContext = & {
 	}
 
 	/**
-	 * Lifetime signal for the component, aborts when unmounted \
-	 * automatically aborts when page unloads
+	 * Aborts when the component unmounts, or when the page unloads. Pass it to
+	 * `addEventListener` (and similar) so listeners clean up automatically.
 	 */
 	signal: AbortSignal
 
 	/**
-	 * Create and bind event listeners tied to the component lifetime signal.
-	 *
-	 * All listeners added through `on` are automatically removed when the
-	 * component unmounts (or the page unloads).
+	 * Bind page-level event listeners (`window`, `document`, or rooted's `'global'` channel)
+	 * tied to the component's lifetime. Listeners added through `on` are removed
+	 * automatically when the component unmounts or the page unloads.
 	 *
 	 * @see {@link EventBuilder} for the full list of call signatures.
 	 *
-	 * @example Global binding
+	 * @example
 	 * ```ts
-	 * on('window', 'popstate', e => { })
-	 * on('document', 'visibilitychange', e => { })
+	 * on('window', 'popstate', () => { })
+	 * on('document', 'visibilitychange', () => { })
 	 * ```
 	 */
 	on: EventBuilder
@@ -92,11 +93,9 @@ const componentBrand: unique symbol = Symbol('@rooted/component')
 export const definedAt: unique symbol = Symbol('@rooted/definedAt')
 
 /**
- * Type guard that tests whether `value` is a {@link Component} produced by
- * {@link component}.
+ * Returns `true` when `value` was produced by {@link component}.
  *
  * @param value - Any value to test.
- * @returns `true` if `value` carries the internal component brand symbol.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isComponent(value: unknown): value is Component<any> {
@@ -104,86 +103,63 @@ export function isComponent(value: unknown): value is Component<any> {
 }
 
 /**
- * A rooted component — a {@link ComponentConstructor} enriched with an internal
- * brand symbol so the runtime can identify it and wrap it in a `<r-->` custom
- * element.
- *
- * Create components with the {@link component} factory rather than
- * constructing this type directly.
+ * A {@link ComponentConstructor} that the runtime can identify and wrap in a
+ * `<r-->` custom element. Build these with the {@link component} factory.
  *
  * @typeParam TOptions - The options type the component expects when mounted.
- *   Use `never` (default) for components that take no external options.
+ *   Use `never` (default) for components that take no options.
  */
 export type Component<TOptions extends object = never> = ComponentConstructor<TOptions> & {
 	readonly [componentBrand]: TOptions
 }
 
 /**
- * ## `ComponentConstructor`
+ * The shape of a component. Pass one of these to {@link component} to get a
+ * mountable {@link Component}.
  *
- * Define a new component
- *
- * @example
- * ```ts
- * import styles from './example.css'
- *
- * export const Example = component({
- * 	name: 'example',
- * 	styles,
- * 	onMount({ append, create }) {
- * 		append(
- * 			create('p', {
- * 				classes: styles.message,
- * 				textContent: 'This is just an example'
- * 			})
- * 		)
- * 	}
- * })
- * ```
- *
- * @remarks
- * The onMount signature has a typed `this` in scope. \
- * This is by design, offering you the option to destructure the context
- * but also using `this` if necessary
+ * `onMount` is typed with `this` set to the {@link ComponentContext}, so you
+ * can either destructure the context argument or use `this`, whichever reads
+ * better for the component.
  */
 export type ComponentConstructor<TOptions extends object = never> = {
 	/**
-	 * Name of the component.
+	 * The component's tag suffix.
 	 *
-	 * Must be
-	 * - Html-valid, `[a-z][a-z0-9\-]*`
-	 * - Unique across the application. \
-	 *   Duplicate names will result in duplicate style injection.
+	 * Must be HTML-valid (`[a-z][a-z0-9\-]*`) and unique across the
+	 * application. Duplicate names cause duplicate style injection and a
+	 * dev-mode warning.
 	 */
 	name: string
 	/**
-	 * CSS for this component, provided as a {@link CssModule}
-	 * imported from a `.css` file via the rooted CSS loader Vite plugin.
+	 * CSS for this component. Import a `.css` file through the rooted CSS
+	 * loader Vite plugin and pass the result here.
 	 */
 	styles?: import('./component/css-artifacts.mts').CssModule
-	/** Custom component constructor */
+	/**
+	 * Build the component's DOM. Called once when the component mounts.
+	 * Receives a {@link ComponentContext}. May be `async`.
+	 */
 	onMount(context: ComponentContext<TOptions>): void | Promise<void>
 	[definedAt]?: string
 }
 
 /**
- * ## Create a new `component`
+ * Defines a new component. Returns a {@link Component} value you can pass to
+ * {@link create} or `append` to mount it.
  *
  * @example
  * ```ts
  * import styles from './example.css'
  *
  * export const Example = component({
- * 	name: 'example',
- * 	styles,
- * 	onMount({ append, create }) {
- * 		append(
- * 			create('p', {
- * 				classes: styles.message,
- * 				textContent: 'This is just an example'
- * 			})
- * 		)
- * 	}
+ *   name: 'example',
+ *   styles,
+ *   onMount({ append, element }) {
+ *     append(element('p', {
+ *       classes: styles.message,
+ *       textContent: 'This is just an example',
+ *     }))
+ *   },
  * })
  * ```
  */

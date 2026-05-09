@@ -36,7 +36,7 @@ type Options = {
 	glob: string
 	/**
 	 * Path (relative to the Vite project root) where the aggregator file is
-	 * written. This file is auto-generated — add it to `.gitignore`.
+	 * written. The file is auto-generated. Add it to `.gitignore`.
 	 *
 	 * @example `'./src/_routes.g.mts'`
 	 */
@@ -183,7 +183,7 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 			api.routeSourceFiles = new Map()
 
 			for (const [key, route] of exportedRouteMap) {
-				// Key format: R{8-char-fileId}_{exportName} — extract the fileId to find the source file
+				// Key format: R{8-char-fileId}_{exportName}. Extract the fileId to find the source file.
 				const fileId = key.slice(1, 9)
 				const sourceFile = files.find(f => getFileId(f) === fileId)
 				if (sourceFile) api.routeSourceFiles.set(route, path.resolve(config.root, sourceFile))

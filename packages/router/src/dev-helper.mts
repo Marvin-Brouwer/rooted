@@ -13,7 +13,7 @@ function validateDuplicateRoutes(config: Record<string, unknown>) {
 	for (const [key, value] of Object.entries(config)) {
 		if (!isRoute(value)) continue
 		if (seen.has(value))
-			console.warn(`[@rooted/router] Duplicate route at key "${key}" — ignored (first-wins)`)
+			console.warn(`[@rooted/router] Duplicate route at key "${key}". Ignored (first-wins).`)
 		seen.add(value)
 	}
 }

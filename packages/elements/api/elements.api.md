@@ -6,7 +6,7 @@
 
 import { ElementOnHandlers } from '@rooted/events';
 
-// @public (undocumented)
+// @public
 export type Aria = AriaStringProperties & AriaIdReferenceProperties;
 
 // @public (undocumented)
@@ -46,16 +46,16 @@ export interface ElementCreatorFunction {
 // @public (undocumented)
 export type ElementFactory = ElementCreatorFunction;
 
-// @public (undocumented)
+// @public
 export type HtmlElementProperties<KElement extends keyof HTMLElementTagNameMap> = HtmlElementPropertiesMapped<HTMLElementTagNameMap[KElement]>;
 
-// @public (undocumented)
+// @public
 export type SvgElementProperties<K extends SvgTagName> = SvgElementPropertiesMapped<SvgTagElement<K> & SVGElement>;
 
-// @public (undocumented)
+// @public
 export type SvgTagElement<T extends SvgTagName> = T extends 'svg' ? SVGSVGElement : T extends `svg:${infer K extends keyof SVGElementTagNameMap}` ? SVGElementTagNameMap[K] : never;
 
-// @public (undocumented)
+// @public
 export type SvgTagName = 'svg' | `svg:${Exclude<keyof SVGElementTagNameMap, 'svg'>}`;
 
 // (No @packageDocumentation comment for this package)

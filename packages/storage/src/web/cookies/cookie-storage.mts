@@ -32,26 +32,20 @@ export type CookieInit<T = unknown> = Omit<globalThis.CookieInit, 'value'> & {
 }
 
 /**
- * Synchronous, typed wrapper around `document.cookie`.
- *
- * The shape mirrors {@link globalThis.Storage} (so `getItem`, `setItem`,
- * `removeItem` all behave like they do on `localStorage`) and adds a few
- * things on top:
- * - typed `get<T>` / `set<T>` that run values through `JSON.stringify`
- *   and `JSON.parse` for you,
- * - a `set({ ... })` overload that forwards full cookie attributes
- *   (`domain`, `path`, `expires`, `sameSite`, ...) to the browser,
+ * Synchronous, typed wrapper around `document.cookie`. The basic shape
+ * mirrors `localStorage` (`getItem`, `setItem`, `removeItem`). On top of
+ * that:
+ * - typed `get<T>` / `set<T>` for JSON-encoded values,
+ * - a `set({ ... })` overload that forwards cookie attributes (`domain`,
+ *   `path`, `expires`, `sameSite`, ...) to the browser,
  * - `names()` and `all()` for bulk reads.
  *
- * Typed reads are safe against prototype pollution. The parsed JSON is
- * passed through a reviver that drops `__proto__`, `constructor`, and
- * `prototype` keys at any depth, so a hostile cookie value cannot walk
- * onto `Object.prototype`.
+ * Typed reads run through a JSON reviver that drops `__proto__`,
+ * `constructor`, and `prototype` keys at any depth, so a hostile cookie
+ * value can't walk onto `Object.prototype`.
  *
- * Safe to import under SSR. When `document` is not available reads
- * return `undefined` or empty collections and writes become no-ops, so
- * nothing throws at import time or during the first render on the
- * server.
+ * SSR-safe: when `document` isn't there, reads return `undefined` or empty
+ * collections and writes are no-ops.
  *
  * @example
  * ```ts
@@ -181,16 +175,8 @@ function all(): Map<string, string> {
 }
 
 /**
- * The singleton {@link CookieStorage} instance. Frozen so callers can't
- * monkey-patch individual methods.
- *
- * @example
- * ```ts
- * import { cookieStorage } from '@rooted/storage/web'
- *
- * cookieStorage.setItem('token', 'abc123')
- * cookieStorage.getItem('token') // 'abc123'
- * ```
+ * The {@link CookieStorage} singleton. Frozen so individual methods can't be
+ * monkey-patched.
  */
 export const cookieStorage: CookieStorage = Object.freeze({
 	getItem,

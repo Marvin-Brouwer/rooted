@@ -1,7 +1,11 @@
 /**
- * Rooted routing utility, simple and lean
+ * Route declarations. Use this from your `_routes.mts` files. Exports `route`,
+ * `token`, `wildcard`, and the supporting types.
  *
- * For the `_routes.mts` setup use `@rooted/router/routes`
+ *
+ * - [Routing guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/routing.md)
+ * - [Application model](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/application-model.md)
+ *
  * @module
  */
 

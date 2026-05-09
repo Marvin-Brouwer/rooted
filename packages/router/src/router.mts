@@ -18,9 +18,9 @@ import type { ErrorHandler, NavigateHandler } from './navigate-event.mts'
 /**
  * Configuration object passed to {@link router}.
  *
- * - `home` — component rendered at `/`.
- * - `notFound` — component rendered when no route matches the current URL.
- * - All other keys — {@link Route} values registered with the router. The key
+ * - `home`: component rendered at `/`.
+ * - `notFound`: component rendered when no route matches the current URL.
+ * - All other keys: {@link Route} values registered with the router. The key
  *   names are used only for duplicate-route detection in development; they have
  *   no effect at runtime.
  */
@@ -53,10 +53,10 @@ export type ValidatedRouterConfig<T extends RouterConfig> = {
 /**
  * Options passed to the router component at mount time.
  *
- * - `viewTransition` — wrap route renders in `document.startViewTransition`
+ * - `viewTransition`: wrap route renders in `document.startViewTransition`
  *   when available. Default: `false`.
- * - `scrollBehavior` — control scroll-to-top and scroll restoration behaviour.
- * - `on` — lifecycle event handlers.
+ * - `scrollBehavior`: control scroll-to-top and scroll restoration behaviour.
+ * - `on`: lifecycle event handlers.
  */
 export type RouterOptions = {
 	/** Wrap route renders in `document.startViewTransition` when available. Default: `false`. */
@@ -64,10 +64,10 @@ export type RouterOptions = {
 	scrollBehavior?: {
 		/**
 		 * When to scroll to the top of the page during a navigation.
-		 * - `'on:start'` — scroll before the route resolves
-		 * - `'on:end'` — scroll after the route renders
-		 * - `'on:start-and-end'` — scroll both before and after (default)
-		 * - `'skip'` — never scroll to top automatically
+		 * - `'on:start'`: scroll before the route resolves
+		 * - `'on:end'`: scroll after the route renders
+		 * - `'on:start-and-end'`: scroll both before and after (default)
+		 * - `'skip'`: never scroll to top automatically
 		 */
 		scrollToTop?: 'on:start' | 'on:end' | 'on:start-and-end' | 'skip'
 		/**
@@ -278,7 +278,7 @@ async function matchRoute(target: href.Path, routes: AnyRoute[]): Promise<Filter
 		}
 	}
 
-	// Suppression: a longer structural match was filtered — treat as no match
+	// Suppression: a longer structural match was filtered, treat as no match.
 	if (best && highestSuppressedLength > best.match.length) return undefined
 
 	// If we have a valid best match, return it

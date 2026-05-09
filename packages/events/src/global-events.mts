@@ -1,14 +1,27 @@
 import { TargetedEvent } from './event.mts'
 
+/**
+ * Event names rooted exposes on the `'global'` channel of the mount context's
+ * `on(target, key, handler)`. Currently only `'unhandled-error'`, which folds
+ * `window.error` and `window.unhandledrejection` into a single typed event.
+ */
 export type GlobalEventMap = {
 	'unhandled-error': UnhandledErrorEvent
 }
 
+/** Handler type for events on the `'global'` channel. */
 export type GlobalEventHandler<K extends keyof GlobalEventMap>
 	= ((event: TargetedEvent<GlobalEventMap[K], Window>) => void | Promise<void>)
 	| (() => void | Promise<void>)
 
 type StackFrame = { filename: string, lineno: number, colno: number }
+
+/**
+ * @internal
+ * Wraps a handler so it only fires for app-origin promise rejections (filters
+ * out cross-origin and extension noise). Used by the mount context's
+ * `on('global', 'unhandled-error', ...)` wiring.
+ */
 export function mapUnhandledRejection(handler: GlobalEventHandler<'unhandled-error'>) {
 	return (rejectionEvent: PromiseRejectionEvent) => {
 		if (!isApplicationErrorError(rejectionEvent)) return
@@ -16,6 +29,12 @@ export function mapUnhandledRejection(handler: GlobalEventHandler<'unhandled-err
 	}
 }
 
+/**
+ * @internal
+ * Wraps a handler so it only fires for app-origin synchronous errors (filters
+ * out cross-origin and extension noise). Used by the mount context's
+ * `on('global', 'unhandled-error', ...)` wiring.
+ */
 export function mapUnhandledError(handler: GlobalEventHandler<'unhandled-error'>) {
 	return (event: ErrorEvent) => {
 		if (!isApplicationErrorError(event)) return
@@ -39,11 +58,25 @@ function parseFirstStackFrame(stack: string | undefined): StackFrame | undefined
 }
 
 /**
- * An {@link ErrorEvent} subclass produced when an `unhandledrejection` event is
- * normalized into the unified `'unhandled-error'` event type.
+ * The event passed to a `'global'`, `'unhandled-error'` handler. A subclass of
+ * `ErrorEvent` so it's structurally compatible with anything that already
+ * accepts `ErrorEvent`.
  *
- * Structurally compatible with `ErrorEvent` (and thus `GlobalEventMap['unhandled-error']`).
- * Use `instanceof UnhandledErrorEvent` to access the original `.promise` property.
+ * Wraps both `window.error` (sync exceptions) and `window.unhandledrejection`
+ * (async rejections). Use `instanceof UnhandledErrorEvent` to access the
+ * original `.innerEvent` and (for rejections) `.promise`.
+ *
+ * @example
+ * ```ts
+ * onMount({ on }) {
+ *   on('global', 'unhandled-error', (event) => {
+ *     if (event instanceof UnhandledErrorEvent && event.promise) {
+ *       // came from a promise rejection
+ *     }
+ *     reportToTelemetry(event.error)
+ *   })
+ * }
+ * ```
  */
 export class UnhandledErrorEvent extends ErrorEvent {
 	public static forRejection(innerEvent: PromiseRejectionEvent) {
@@ -90,12 +123,25 @@ export class UnhandledErrorEvent extends ErrorEvent {
 	}
 }
 
+/**
+ * Returns `true` when the error originated from app code on the page's origin.
+ * Filters out two classes of noise:
+ *
+ * - Cross-origin errors (`'Script error.'` with `lineno === 0` and
+ *   `colno === 0`). Browsers strip the details, so there's nothing useful to
+ *   report.
+ * - Errors from browser extensions (`chrome-extension://`,
+ *   `moz-extension://`, `safari-extension://`, `about:srcdoc`).
+ *
+ * Used internally by the `'global'`, `'unhandled-error'` channel. If you need
+ * unfiltered events, listen on `window.error` directly.
+ */
 export function isApplicationErrorError(event: ErrorEvent | PromiseRejectionEvent): boolean {
 	const error: unknown = event instanceof ErrorEvent ? event.error : event.reason
 	if (!error) return false
 
 	// 'Script error.' and lineno/colno === 0 are browser-specific cross-origin signals
-	// that only apply to ErrorEvents — not meaningful for PromiseRejectionEvents.
+	// that only apply to ErrorEvents, not to PromiseRejectionEvents.
 	if (event instanceof ErrorEvent && (event.message === 'Script error.' || (event.lineno === 0 && event.colno === 0))) {
 		return false
 	}

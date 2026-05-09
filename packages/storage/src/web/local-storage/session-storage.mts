@@ -1,70 +1,40 @@
 import { jsonStringify, safeJsonParse } from '../../serializer.mts'
 
 /**
- * Typed wrapper around {@link globalThis.Storage} for the browser's
- * `sessionStorage`.
- *
- * Picks `length`, `clear`, `setItem`, and `removeItem` straight from the
- * native {@link globalThis.Storage} interface so they keep their native
- * signatures. On top of that it adds:
- * - `getItem` that returns `string | undefined` instead of
- *   `string | null`, so callers don't have to distinguish between
- *   "stored as null" and "not present",
- * - `key` that returns `string | undefined` for the same reason,
- * - typed `get<T>` / `set<T>` that run values through `JSON.stringify`
- *   and `JSON.parse` for you,
- * - `keys()` for a plain array of keys without having to walk
- *   `key(index)` yourself.
- *
- * Typed reads are safe against prototype pollution. The parsed JSON is
- * passed through a reviver that drops `__proto__`, `constructor`, and
- * `prototype` keys at any depth, so a hostile value written to storage
- * (for example from DevTools or another tab) cannot walk onto
- * `Object.prototype`.
- *
- * Safe to import under SSR. When `globalThis.sessionStorage` is not
- * available reads return `undefined` / empty collections, `length`
- * reads as `0`, and writes become no-ops, so nothing throws at import
- * time or during the first render on the server.
+ * Typed wrapper around the browser's `sessionStorage`. Same shape and same
+ * guarantees as {@link import('./local-storage.mts').LocalStorage}; the only
+ * difference is the underlying browser storage. Cleared when the tab closes.
  *
  * @example
  * ```ts
  * import { sessionStorage } from '@rooted/storage/web'
  *
- * sessionStorage.set('theme', 'dark')
- * sessionStorage.get<string>('theme') // 'dark'
+ * sessionStorage.set('draft', { title: 'WIP' })
+ * sessionStorage.get<{ title: string }>('draft') // { title: 'WIP' }
  *
- * sessionStorage.set<{ id: number }>('session', { id: 7 })
- * sessionStorage.get<{ id: number }>('session') // { id: 7 }
- *
- * sessionStorage.removeItem('session')
+ * sessionStorage.removeItem('draft')
  * ```
  */
 export type SessionStorage = Pick<globalThis.Storage, 'length' | 'clear' | 'setItem' | 'removeItem'> & {
-	/**
-	 * Read a value as its raw string. Returns `undefined` when the key
-	 * is not set.
-	 */
+	/** Read the raw string value. Returns `undefined` when the key isn't set. */
 	getItem(key: string): string | undefined
 	/**
-	 * Return the key at `index` in insertion order, or `undefined` when
-	 * `index` is out of range. Thin wrapper over
-	 * {@link globalThis.Storage.key} that normalises the native `null`
-	 * to `undefined`.
+	 * Return the key at `index` in insertion order. Returns `undefined` when
+	 * `index` is out of range (instead of the native `null`).
 	 */
 	key(index: number): string | undefined
 	/**
-	 * Typed read. Strings come back as-is, everything else is parsed
-	 * from JSON through a prototype-pollution-safe reviver. Returns
+	 * Read and JSON-parse a stored value. Strings come back as-is; everything
+	 * else is parsed through a prototype-pollution-safe reviver. Returns
 	 * `undefined` when the key is missing.
 	 */
 	get<T = unknown>(key: string): T | undefined
 	/**
-	 * Typed write. Strings pass through unchanged so values written by
-	 * `setItem` round-trip, everything else is JSON-encoded.
+	 * Write a value. Strings pass through unchanged so values written by
+	 * `setItem` round-trip; everything else is JSON-encoded.
 	 */
 	set<T>(key: string, value: T): void
-	/** Every key currently stored. Empty array under SSR. */
+	/** All keys currently stored. Empty array under SSR. */
 	keys(): string[]
 }
 
@@ -138,16 +108,8 @@ function keys(): string[] {
 }
 
 /**
- * The singleton {@link SessionStorage} instance. Frozen so callers can't
- * monkey-patch individual methods.
- *
- * @example
- * ```ts
- * import { sessionStorage } from '@rooted/storage/web'
- *
- * sessionStorage.setItem('token', 'abc123')
- * sessionStorage.getItem('token') // 'abc123'
- * ```
+ * The {@link SessionStorage} singleton. Frozen so individual methods can't
+ * be monkey-patched.
  */
 export const sessionStorage: SessionStorage = Object.freeze({
 	clear,
