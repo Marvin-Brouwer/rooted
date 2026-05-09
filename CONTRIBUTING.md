@@ -3,7 +3,6 @@
 Thank you for your interest in contributing! This document covers everything you
 need to get set up and submit a quality pull request.
 
----
 
 ## Contents
 
@@ -18,14 +17,12 @@ need to get set up and submit a quality pull request.
 - [Submitting a pull request](#submitting-a-pull-request)
 - [Reporting bugs](#reporting-bugs)
 
----
 
 ## Code of conduct
 
 Be respectful and constructive. Harassment, discrimination, or dismissive
 communication of any kind will not be tolerated.
 
----
 
 ## Getting started
 
@@ -52,7 +49,6 @@ pnpm test        # run the test suite
 pnpm build       # build all packages
 ```
 
----
 
 ## Project structure
 
@@ -71,7 +67,6 @@ rooted/
 Each package under `packages/` is a standalone npm package with its own
 `package.json`, `tsup.config.mts`, and `src/` directory.
 
----
 
 ## Development workflow
 
@@ -103,7 +98,6 @@ cd packages/router
 pnpm build
 ```
 
----
 
 ## Coding standards
 
@@ -160,7 +154,6 @@ additional exception, open an issue or PR for discussion before using it.
 - Keep functions small and focused; avoid deep nesting.
 - Prefer `const` and immutability; use `Object.freeze` for public API objects.
 
----
 
 ## Testing
 
@@ -185,7 +178,6 @@ pnpm test:watch    # re-run on change
 There is no enforced coverage threshold, but PRs that reduce meaningful coverage
 without justification will be asked to add tests.
 
----
 
 ## Commit messages
 
@@ -226,7 +218,6 @@ docs: add elements guide for RootedElement
 Keep the summary under 72 characters. Use the body to explain **why**, not
 **what** (the diff already shows what changed).
 
----
 
 ## Submitting a pull request
 
@@ -278,7 +269,6 @@ You can check them if not applicable.
 >
 > - Commit messages follow [Conventional Commits](#commit-messages)
 
----
 
 ## Reporting bugs
 

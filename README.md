@@ -18,7 +18,6 @@ export const Greeting = component({
 })
 ```
 
----
 
 ## Contents
 
@@ -29,7 +28,6 @@ export const Greeting = component({
 - [Documentation](#documentation)
 - [Development](#development)
 
----
 
 ## Requirements
 
@@ -39,7 +37,6 @@ export const Greeting = component({
 | pnpm   | ≥ 10.0.0 |
 | Vite   | ≥ 6.0.0 (for `@rooted/router/manifest`) |
 
----
 
 ## Installation
 
@@ -57,7 +54,6 @@ pnpm add @rooted/store @rooted/storage
 pnpm add -D @rooted/application
 ```
 
----
 
 ## Quick start
 
@@ -141,7 +137,6 @@ application(
 
 See the [`recipe-book` example](./examples/recipe-book) for a full vertical-slice app.
 
----
 
 ## Packages
 
@@ -156,7 +151,6 @@ See the [`recipe-book` example](./examples/recipe-book) for a full vertical-slic
 | [`@rooted/application`](./packages/application) | Build-time configuration, SEO plugins (sitemap, llms.txt, meta), and Vite adapters. |
 | [`@rooted/util`](./packages/util) | Shared utilities (seeded IDs, client-side checks, dev helpers). |
 
----
 
 ## Bundle size
 
@@ -170,7 +164,6 @@ Measured from the tree-shaken production build of the [recipe-book example app](
 
 These numbers go stale as the framework changes. The current report is at [marvin-brouwer.github.io/rooted/stats.html](https://marvin-brouwer.github.io/rooted/stats.html).
 
----
 
 ## Documentation
 
@@ -185,7 +178,6 @@ The docs are split by audience. Pick the one that matches what you're doing.
 
 Architectural decisions live in [`docs/adr/`](./docs/adr). Open ideas and sketches live in [`docs/ideas/`](./docs/ideas).
 
----
 
 ## Development
 
@@ -213,7 +205,6 @@ pnpm build
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full contribution guide.
 
----
 
 ## License
 
