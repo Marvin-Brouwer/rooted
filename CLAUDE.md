@@ -65,6 +65,15 @@ docs: add guide for publishing new @rooted/* packages
 
 Always run `pnpm eslint` from the repo root. Never use `npx eslint`.
 
+## Markdown line wrapping
+
+When writing markdown (READMEs, docs, prose comments), keep each paragraph on a single line. Don't wrap to a virtual column width.
+
+- Paragraphs are separated by a double newline (one blank line).
+- For a hard line break inside a paragraph, end the line with a trailing backslash (` \`) and put the rest on the next line.
+- If a line becomes ridiculously long, only break after a punctuation mark (period, comma, semi-colon, colon). Never break mid-sentence or mid-word.
+
+
 ## Pull request summary
 
 Always use the template found in: `.github/pull_request_template.md`.

@@ -1,7 +1,7 @@
 {
 	"name": "@rooted/components",
 	"version": "1.0.0-alpha.0",
-	"description": "rooted — web components rooted very close to the original",
+	"description": "The component model for the rooted framework",
 	"keywords": [
 		"web-components",
 		"custom-elements",

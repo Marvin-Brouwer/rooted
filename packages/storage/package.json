@@ -1,7 +1,7 @@
 {
 	"name": "@rooted/storage",
 	"version": "1.0.0-alpha.0",
-	"description": "rooted — storage utilities",
+	"description": "Type-safe wrappers around localStorage, sessionStorage, and cookies for the rooted framework",
 	"keywords": [
 		"web-components",
 		"storage",

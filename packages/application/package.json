@@ -1,7 +1,7 @@
 {
 	"name": "@rooted/application",
 	"version": "1.0.0-alpha.0",
-	"description": "rooted — application configuration and adapters",
+	"description": "Build-time configuration and SEO tooling for the rooted framework",
 	"keywords": [
 		"web-components",
 		"typescript",

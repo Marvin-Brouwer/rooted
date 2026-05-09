@@ -1,7 +1,7 @@
 {
 	"name": "@rooted/elements",
 	"version": "1.0.0-alpha.0",
-	"description": "rooted — html element utilities",
+	"description": "Typed HTML and SVG element factory for the rooted framework",
 	"keywords": [
 		"web-components",
 		"custom-elements",
