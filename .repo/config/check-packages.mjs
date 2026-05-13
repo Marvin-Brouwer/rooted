@@ -26,17 +26,17 @@ const packageFiles = await Array.fromAsync(glob('packages/*/package.json', { cwd
 
 let failed = false
 
-for (const relFile of packageFiles) {
-	const file = path.join(repoRoot, relFile)
-	const pkg = JSON.parse(readFileSync(file, 'utf8'))
-	if (pkg.private) continue
+for (const relativePath of packageFiles) {
+	const absolutePath = path.join(repoRoot, relativePath)
+	const packageJson = JSON.parse(readFileSync(absolutePath, 'utf8'))
+	if (packageJson.private) continue
 
-	const registry = pkg.publishConfig?.registry
+	const registry = packageJson.publishConfig?.registry
 	if (registry !== OFFICIAL_REGISTRY) {
-		const msg = registry === undefined
+		const message = registry === undefined
 			? `publishConfig must include "registry": "${OFFICIAL_REGISTRY}"`
 			: `publishConfig.registry must be "${OFFICIAL_REGISTRY}", got "${registry}"`
-		process.stderr.write(`${relFile}: ${msg}\n`)
+		process.stderr.write(`${relativePath}: ${message}\n`)
 		failed = true
 	}
 }

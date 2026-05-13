@@ -230,13 +230,13 @@ export function inheritdocPlugin(): Plugin {
 		tsdownConfig(_config) {
 			return {
 				hooks: {
-					'build:done': async (ctx) => {
-						if (ctx.options.dts === false) return
+					'build:done': async (context) => {
+						if (context.options.dts === false) return
 
-						const tsconfig = typeof ctx.options.tsconfig === 'string'
-							? ctx.options.tsconfig
+						const tsconfig = typeof context.options.tsconfig === 'string'
+							? context.options.tsconfig
 							: 'tsconfig.json'
-						const outDirectory = ctx.options.outDir ?? 'dist'
+						const outDirectory = context.options.outDir ?? 'dist'
 
 						const files = await findDtsFiles(outDirectory)
 						await Promise.all(files.map(f => processFile(tsconfig, f)))
