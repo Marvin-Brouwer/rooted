@@ -360,6 +360,7 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 			if (!/\.[cm]?[jt]sx?$/.test(importerBase)) return
 
 			const importerPath = importerBase.includes('\0')
+				// eslint-disable-next-line no-control-regex -- Vite uses null bytes for virtual module IDs
 				? importerBase.replace(/\0[^:]*:/, '')
 				: importerBase
 			const absolutePath = path.isAbsolute(source)

@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import * as ts from 'typescript'
 
-import type { Plugin } from './tsup-plugin.mts'
+import type { Plugin } from './tsdown-plugin.mts'
 
 // Matches either:
 //   {@inheritdoc ClassName['member']}  → m[1]=cls, m[2]=member
@@ -173,7 +173,7 @@ async function processFile(tsconfigPath: string, filePath: string): Promise<void
 			: resolveJsDocument(tsconfigPath, cls, member)
 		if (!resolved) {
 			const reference = identifier ? `typeof ${identifier}` : `${cls}['${member}']`
-			process.stderr.write(`[tsup:inheritdoc] warn: could not resolve {@inheritdoc ${reference}}\n`)
+			process.stderr.write(`[tsdown:inheritdoc] warn: could not resolve {@inheritdoc ${reference}}\n`)
 			return block
 		}
 
@@ -190,55 +190,34 @@ async function processFile(tsconfigPath: string, filePath: string): Promise<void
 
 	if (changed) {
 		await writeFile(filePath, content, 'utf8')
-		process.stdout.write(`[tsup:inheritdoc] resolved ${filePath}\n`)
+		process.stdout.write(`[tsdown:inheritdoc] resolved ${filePath}\n`)
 	}
 }
 
-// ── Public API ──────────────────────────────────────────────────────────────
-
-/**
- * tsup plugin that resolves `{@inheritdoc Type['member']}` tags in generated
- * declaration files by inlining the referenced JSDoc.
- *
- * Looks up `Type` by building a TypeScript program from the package's own
- * tsconfig, so any type visible in the project (including project-local types,
- * dependencies, and whatever libs the tsconfig includes) can be referenced.
- *
- * @example `tsup.config.mts`
- * ```ts
- * import { inheritdocPlugin } from '@rooted/tsup-plugins/inheritdoc'
- *
- * export default defineConfig({
- *   plugins: [inheritdocPlugin()],
- * })
- * ```
- */
-// ── DTS file waiting ─────────────────────────────────────────────────────────
+// ── DTS file discovery ───────────────────────────────────────────────────────
 
 const DTS_RE = /\.d\.[mc]?ts$/
-// tsup writes intermediate rollup input files prefixed with `_tsup-`; ignore them
-const TEMP_RE = /^_tsup-/
 
 async function findDtsFiles(outDirectory: string): Promise<string[]> {
 	const entries = await readdir(outDirectory, { recursive: true }).catch(() => [] as string[])
-	return (entries)
-		.filter(f => DTS_RE.test(f) && !TEMP_RE.test(path.basename(f)))
+	return entries
+		.filter(f => DTS_RE.test(f))
 		.map(f => path.join(outDirectory, f))
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
 /**
- * tsup plugin that resolves `{@inheritdoc Type['member']}` tags in generated
+ * tsdown plugin that resolves `{@inheritdoc Type['member']}` tags in generated
  * declaration files by inlining the referenced JSDoc.
  *
  * Looks up `Type` by building a TypeScript program from the package's own
  * tsconfig, so any type visible in the project (including project-local types,
  * dependencies, and whatever libs the tsconfig includes) can be referenced.
  *
- * @example `tsup.config.mts`
+ * @example `tsdown.config.mts`
  * ```ts
- * import { inheritdocPlugin } from '@rooted/tsup-plugins/inheritdoc'
+ * import { inheritdocPlugin } from '@rooted/tsdown'
  *
  * export default defineConfig({
  *   plugins: [inheritdocPlugin()],
@@ -247,21 +226,23 @@ async function findDtsFiles(outDirectory: string): Promise<string[]> {
  */
 export function inheritdocPlugin(): Plugin {
 	return {
-		name: 'tsup:inheritdoc',
-		buildEnd() {
-			if (!this.options.dts && !this.options.experimentalDts) return
+		name: 'tsdown:inheritdoc',
+		tsdownConfig(_config) {
+			return {
+				hooks: {
+					'build:done': async (ctx) => {
+						if (ctx.options.dts === false) return
 
-			const tsconfig = this.options.tsconfig ?? 'tsconfig.json'
-			const outDirectory = this.options.outDir ?? 'dist'
+						const tsconfig = typeof ctx.options.tsconfig === 'string'
+							? ctx.options.tsconfig
+							: 'tsconfig.json'
+						const outDirectory = ctx.options.outDir ?? 'dist'
 
-			// DTS runs in a parallel worker; no plugin hooks fire after it completes.
-			// `beforeExit` fires once the event loop drains, which is after both the
-			// esbuild task and the DTS worker task have finished.
-			process.once('beforeExit', () => {
-				void findDtsFiles(outDirectory).then(files =>
-					Promise.all(files.map(f => processFile(tsconfig, f))),
-				)
-			})
+						const files = await findDtsFiles(outDirectory)
+						await Promise.all(files.map(f => processFile(tsconfig, f)))
+					},
+				},
+			}
 		},
 	}
 }

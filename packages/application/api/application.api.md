@@ -4,12 +4,11 @@
 
 ```ts
 
+import * as _$vite from 'vite';
 import { ArrayElement } from '@rooted/util';
 import { BuildEnvironmentOptions } from 'vite';
 import { ManifestOptions } from 'vite-plugin-pwa';
-import { RouteSeoMetadata } from '@rooted/router/routes';
 import { UserConfig } from 'vite';
-import * as vite from 'vite';
 import { VitePWAOptions } from 'vite-plugin-pwa';
 
 // @public
@@ -53,7 +52,7 @@ export type RootedApplicationManifest = {
     detectors?: DetectorOptions;
     treeshaking?: TreeshakeOptions;
     webManifest: Partial<ManifestOptions> & {
-        id: ManifestOptions['id'];
+        id: ManifestOptions['id']; /** Deployment URL (e.g. `homepage` from `package.json`). The pathname is used as Vite's `base`. */
         url?: string;
     };
     icon?: string;
@@ -62,7 +61,7 @@ export type RootedApplicationManifest = {
 };
 
 // @public
-export function rootedManifest(manifest: RootedApplicationManifest): vite.UserConfigFnObject;
+export function rootedManifest(manifest: RootedApplicationManifest): _$vite.UserConfigFnObject;
 
 // @public
 export type SeoApi = {
@@ -83,10 +82,10 @@ export type SeoOptions = {
 
 // @public
 export type SitemapEntry = {
-    loc: string;
+    loc: string; /** Last modification date in `YYYY-MM-DD` format. */
     lastmod?: string;
-    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
-    priority?: number;
+    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'; /** Relative priority of this URL (0.0–1.0). Maps to the `<priority>` XML element. */
+    priority?: number; /** Image entries for image sitemaps (`xmlns:image` extension). */
     images?: Array<{
         loc: string;
         title?: string;

@@ -4,15 +4,15 @@
 
 ```ts
 
+import { createComponent } from '@rooted/components/elements';
 import { Plugin as Plugin_2 } from 'vite';
 import { ResolvedConfig } from 'vite';
-import { RouteManifestApi } from '@rooted/router/manifest';
-import { RouteSeoMetadata } from '@rooted/router/routes';
+import { TupleResult } from '@rooted/util';
 
 // @public
 export type AdapterContext = {
-    outputDirectory: string;
-    indexHtml: string;
+    outputDirectory: string; /** The contents of the built `index.html`. */
+    indexHtml: string; /** The Vite resolved config. */
     config: ResolvedConfig;
     manifestApi: RouteManifestApi | undefined;
     seoApi: SeoApi | undefined;

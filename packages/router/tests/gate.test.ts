@@ -1,5 +1,6 @@
-import { createComponent } from '@rooted/components/elements'
 import { describe, test, expect, vi } from 'vitest'
+
+import { createComponent } from '@rooted/components/elements'
 
 import { gate } from '../src/gate.mts'
 import { route } from '../src/route.mts'

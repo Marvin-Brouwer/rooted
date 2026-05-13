@@ -4,11 +4,11 @@
 
 ```ts
 
+import * as _$_rooted_components0 from '@rooted/components';
 import { Aria } from '@rooted/components/elements';
 import { createComponent } from '@rooted/components/elements';
 import { CssClasses } from '@rooted/components/elements';
 import { GenericComponent } from '@rooted/components';
-import * as _rooted_components from '@rooted/components';
 import { TupleResult } from '@rooted/util';
 
 // @public
@@ -36,14 +36,14 @@ export const href: {
 };
 
 // @public
-export const Link: _rooted_components.Component<LinkOptions>;
+export const Link: _$_rooted_components0.Component<LinkOptions>;
 
 // @public
 export type LinkOptions = {
-    href: string | Url | Path;
+    href: string | Url | Path; /** CSS class name applied to the rendered `<a>` element. */
     classes?: CssClasses;
     children?: string | Node | Node[];
-    target?: string;
+    target?: string; /** Maps to the `<a>` element's `rel` attribute. */
     rel?: string;
     aria?: Aria;
 };
@@ -112,7 +112,7 @@ export type RouterOptions = {
     on?: {
         navigate?: NavigateHandler;
         error?: ErrorHandler;
-    };
+    }; /** Runtime SEO meta tag injection options. */
     seo?: RouterSeoOptions;
 };
 

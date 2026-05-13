@@ -1,0 +1,62 @@
+{
+	"plugins": ["typescript", "unicorn"],
+	"jsPlugins": [
+		"./.repo/config/oxlint/plugin-local.mjs",
+		"eslint-plugin-perfectionist"
+	],
+	"env": {
+		"es2022": true,
+		"node": true,
+		"browser": true
+	},
+	"rules": {
+		"no-unused-vars": "off",
+		"@typescript-eslint/no-unused-vars": ["error", {
+			"argsIgnorePattern": "^_",
+			"varsIgnorePattern": "^_"
+		}],
+		"@typescript-eslint/switch-exhaustiveness-check": "error",
+		"local/mjs-to-mts": "error",
+		"local/utf-encoding": "error",
+		"perfectionist/sort-imports": ["error", {
+			"type": "alphabetical",
+			"order": "asc",
+			"newlinesBetween": 1,
+			"internalPattern": ["^@rooted/.+"],
+			"groups": [
+				"value-builtin",
+				"value-external",
+				"value-internal",
+				"value-parent",
+				"value-sibling",
+				"value-index",
+				"type-import"
+			]
+		}],
+		"unicorn/text-encoding-identifier-case": "off",
+		"unicorn/prefer-node-protocol": "error"
+	},
+	"overrides": [
+		{
+			"files": ["packages/*/tests/**/*.{ts,mts}"],
+			"rules": {
+				"@typescript-eslint/no-explicit-any": "off",
+				"unicorn/no-null": "off",
+				"unicorn/no-useless-undefined": "off",
+				"unicorn/consistent-function-scoping": "off",
+				"unicorn/no-await-expression-member": "off",
+				"@typescript-eslint/unbound-method": "off"
+			}
+		}
+	],
+	"ignorePatterns": [
+		"**/node_modules",
+		"**/dist",
+		"docs",
+		"temp",
+		"**/bin/**",
+		"**/*.d.ts",
+		"**/*.g.mts",
+		".repo/config/oxlint/plugin-local.mjs"
+	]
+}

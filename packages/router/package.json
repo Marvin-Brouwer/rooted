@@ -57,8 +57,8 @@
 	"scripts": {
 		"build": "pnpm build:ci",
 		"build:dev": "pnpm build:ci && rooted-development extract-api",
-		"build:ci": "tsup",
-		"watch": "tsup --watch --no-clean & rooted-development extract-api",
+		"build:ci": "tsdown",
+		"watch": "tsdown --watch & rooted-development extract-api",
 		"clean": "rm -rf dist",
 		"extract-api": "rooted-development extract-api"
 	},
@@ -75,7 +75,7 @@
 		"@rooted/util": "workspace:^",
 		"@rooted/components": "workspace:^",
 		"@rooted/development": "workspace:*",
-		"@rooted/tsup": "workspace:^",
+		"@rooted/tsdown": "workspace:^",
 		"@types/node": "^25.6.2",
 		"tsx": "^4.21.0",
 		"vite": "^8.0.12"

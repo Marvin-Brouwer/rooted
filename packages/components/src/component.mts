@@ -1,9 +1,9 @@
 import { ElementFactory } from '@rooted/elements'
 import { EventBuilder } from '@rooted/elements/events'
 
+import { create } from './component-factory.mts'
 import { GenericComponent } from './component/generic-component.mts'
 import { injectStyles } from './component/styles.mts'
-import { create } from './component-factory.mts'
 import { devHelper } from './dev-helper.mts'
 
 /**
