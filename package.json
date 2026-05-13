@@ -10,8 +10,8 @@
 		"build:ci": "pnpm -r run build:ci",
 		"test": "vp test",
 		"test:watch": "vp test --watch",
-		"lint:nofix": "oxlint -c .oxlintrc.json . && node .repo/config/check-packages.mjs",
-		"lint": "oxlint -c .oxlintrc.json --fix . && node .repo/config/check-packages.mjs",
+		"lint:nofix": "oxlint -c .repo/config/oxlint/oxlint.config.json . && node .repo/config/oxlint/check-packages.mjs",
+		"lint": "oxlint -c .repo/config/oxlint/oxlint.config.json --fix . && node .repo/config/oxlint/check-packages.mjs",
 		"clean": "pnpm -r run clean",
 		"release": "multi-semantic-release --ignore-private-packages",
 		"full-update": "pnpm update -r"

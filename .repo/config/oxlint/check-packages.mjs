@@ -6,7 +6,7 @@ import { glob } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 const FALLBACK_REGISTRY = 'https://registry.npmjs.org/'
 
 function readRegistry() {

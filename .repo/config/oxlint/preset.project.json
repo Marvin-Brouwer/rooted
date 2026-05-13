@@ -1,0 +1,6 @@
+{
+	"rules": {
+		"unicorn/text-encoding-identifier-case": "off",
+		"unicorn/prefer-node-protocol": "error"
+	}
+}
