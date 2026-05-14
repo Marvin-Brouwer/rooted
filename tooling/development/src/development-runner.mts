@@ -19,16 +19,15 @@ export function buildDevelopment(projectPath: string): Promise<number> {
 			env: { ...process.env, FORCE_COLOR: '1' },
 		})
 
-		// We only care about the tsup build time, the web project is elapsed time we don't need.
+		// We only care about the tsdown build time, the web project is elapsed time we don't need.
 		let totalBuildMs = 0
+		const errorLines: string[] = []
 		const rl = readline.createInterface({ input: build.stdout, crlfDelay: Infinity })
 		rl.on('line', (line: string) => {
-			const matchError = /Error/.exec(line)
-			if (matchError) {
-				rl.close()
-				reject(new Error(line));
-				return
-			}
+			// Collect lines that look like hard errors so we can surface them on failure.
+			// Don't reject here — let the exit code decide; many lines contain the word
+			// "Error" as part of normal output (API extractor warnings, pnpm status, etc).
+			if (/\berror\b/i.test(line) && !/warning/i.test(line)) errorLines.push(line)
 			const match = /Build complete in (\d+)ms/.exec(line)
 			if (match) totalBuildMs += Number(match[1])
 		})
@@ -39,7 +38,10 @@ export function buildDevelopment(projectPath: string): Promise<number> {
 		build.on('close', (code) => {
 			rl.close()
 			if (code === 0) resolve(totalBuildMs)
-			else reject(new Error(`build:dev failed with exit code ${code}`))
+			else {
+				const context = errorLines.length > 0 ? `\n${errorLines.join('\n')}` : ''
+				reject(new Error(`build:dev failed with exit code ${code}${context}`))
+			}
 		})
 	})
 }
@@ -127,8 +129,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 		await runParallelDevelopment(projectPath, exampleFilter, elapsedTime)
 	}
 	catch(error) {
-		process.stderr.write("Something went wrong");
-		process.stderr.write(error!.toString());
-		process.exitCode = -1;
+		process.stderr.write(`\nSomething went wrong:\n${(error as Error).message}\n`)
+		process.exitCode = 1
 	}
 }
