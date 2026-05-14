@@ -112,6 +112,16 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 	}
 
 	process.on('SIGINT', () => shutdown(0))
+	process.on('SIGTERM', () => shutdown(0))
+	process.on('uncaughtException', (error: Error) => {
+		process.stderr.write(`\nUncaught exception: ${error.message}\n`)
+		shutdown(1)
+	})
+	process.on('unhandledRejection', (reason: unknown) => {
+		const message = reason instanceof Error ? reason.message : String(reason)
+		process.stderr.write(`\nUnhandled rejection: ${message}\n`)
+		shutdown(1)
+	})
 	example.on('close', (code: number | null) => shutdown(code ?? 0))
 	watches.on('close', (code: number | null) => shutdown(code ?? 0))
 }
