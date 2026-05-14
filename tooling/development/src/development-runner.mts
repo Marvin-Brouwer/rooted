@@ -71,10 +71,14 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 	console.log()
 
 	// tsdown watchers. Stdin ignored so they don't compete with the example.
+	// Stdout/stderr piped (not inherited) so we can unpipe on shutdown and silence
+	// pnpm's "Command failed with signal" noise before killing the process.
 	const watches = spawn('pnpm --parallel --stream run watch', {
-		stdio: ['ignore', 'inherit', 'inherit'],
+		stdio: ['ignore', 'pipe', 'pipe'],
 		shell: true,
 	})
+	watches.stdout!.pipe(process.stdout)
+	watches.stderr!.pipe(process.stderr)
 
 	// Wait for tsdown to settle, but cancel immediately if aborted.
 	await new Promise<void>((resolve) => {
@@ -111,6 +115,8 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 		if (!abortController.signal.aborted) abortController.abort()
 
 		console.log('Killing process...')
+		watches.stdout?.unpipe(process.stdout)
+		watches.stderr?.unpipe(process.stderr)
 		example.kill('SIGINT')
 
 		if (exitCode !== 0) {
