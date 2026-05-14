@@ -5,10 +5,11 @@ import * as ts from 'typescript'
 
 import type { Plugin } from './tsdown-plugin.mts'
 
-// Matches either:
+// Matches any of:
 //   {@inheritdoc ClassName['member']}  → m[1]=cls, m[2]=member
 //   {@inheritdoc typeof identifier}    → m[3]=identifier
-const INHERITDOC_RE = /\{@inheritdoc\s+(?:([\w$]+)\[['"]([^'"]+)['"]\]|typeof\s+([\w$]+))\}/
+//   {@inheritdoc TypeName}             → m[4]=typeName
+const INHERITDOC_RE = /\{@inheritdoc\s+(?:([\w$]+)\[['"]([^'"]+)['"]\]|typeof\s+([\w$]+)|([\w$]+))\}/
 
 // ── TypeScript program ──────────────────────────────────────────────────────
 
@@ -127,6 +128,41 @@ function resolveTopLevelJsDocument(tsconfigPath: string, name: string): string |
 	return result
 }
 
+function resolveTopLevelTypeDocument(tsconfigPath: string, name: string): string | undefined {
+	const key = `${path.resolve(tsconfigPath)}:${name}`
+	if (jsDocumentCache.has(key)) return jsDocumentCache.get(key)!
+
+	const { checker, program } = getState(tsconfigPath)
+	let result: string | undefined = undefined
+
+	outer: for (const sf of program.getSourceFiles()) {
+		for (const stmt of sf.statements) {
+			if (
+				(ts.isInterfaceDeclaration(stmt) || ts.isClassDeclaration(stmt))
+				&& stmt.name?.text === name
+			) {
+				result = extractJsDocument(stmt)
+				if (result) break outer
+			}
+			else if (ts.isTypeAliasDeclaration(stmt) && stmt.name.text === name) {
+				result = extractJsDocument(stmt)
+				if (result) break outer
+				// No JSDoc on the alias itself: follow a simple type reference to find docs on the target.
+				if (ts.isTypeReferenceNode(stmt.type)) {
+					const sym = checker.getSymbolAtLocation(stmt.type.typeName)
+					for (const decl of sym?.getDeclarations() ?? []) {
+						result = extractJsDocument(decl)
+						if (result) break outer
+					}
+				}
+			}
+		}
+	}
+
+	jsDocumentCache.set(key, result)
+	return result
+}
+
 function extractJsDocument(node: ts.Node): string | undefined {
 	const sf = node.getSourceFile()
 	const text = sf.getFullText()
@@ -167,12 +203,14 @@ async function processFile(tsconfigPath: string, filePath: string): Promise<void
 		const m = inner.match(INHERITDOC_RE)
 		if (!m) return block
 
-		const [tag, cls, member, identifier] = m
+		const [tag, cls, member, identifier, typeName] = m
 		const resolved = identifier
 			? resolveTopLevelJsDocument(tsconfigPath, identifier)
-			: resolveJsDocument(tsconfigPath, cls, member)
+			: typeName
+				? resolveTopLevelTypeDocument(tsconfigPath, typeName)
+				: resolveJsDocument(tsconfigPath, cls, member)
 		if (!resolved) {
-			const reference = identifier ? `typeof ${identifier}` : `${cls}['${member}']`
+			const reference = identifier ? `typeof ${identifier}` : typeName ?? `${cls}['${member}']`
 			process.stderr.write(`[tsdown:inheritdoc] warn: could not resolve {@inheritdoc ${reference}}\n`)
 			return block
 		}
