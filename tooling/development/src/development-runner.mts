@@ -6,11 +6,12 @@ import { fileURLToPath } from 'node:url'
 import treeKill from 'tree-kill'
 
 /**
- * Runs `pnpm -r build:dev` for the monorepo and returns the total tsup build
+ * Runs `pnpm -r build:dev` for the monorepo and returns the total tsdown build
  * time in milliseconds. Used by `pnpm dev` to estimate when the parallel
- * watchers have settled.
+ * watchers have settled. Respects the abort signal — kills the build and rejects
+ * if the signal fires.
  */
-export function buildDevelopment(projectPath: string): Promise<number> {
+export function buildDevelopment(projectPath: string, signal: AbortSignal): Promise<number> {
 	return new Promise((resolve, reject) => {
 		const build = spawn('pnpm -r --stream run build:dev', {
 			stdio: ['ignore', 'pipe', 'inherit'],
@@ -26,7 +27,7 @@ export function buildDevelopment(projectPath: string): Promise<number> {
 		rl.on('line', (line: string) => {
 			// Strip ANSI escape codes before matching — tsdown wraps some text in colour
 			// codes that can split "Build complete in" across escape sequences.
-			const plain = line.replace(/\x1b\[\d+(?:;\d+)*m/g, '')
+			const plain = line.replace(/\[\d+(?:;\d+)*m/g, '')
 			// Collect lines that look like hard errors so we can surface them on failure.
 			// Don't reject here — let the exit code decide; many lines contain the word
 			// "Error" as part of normal output (API extractor warnings, pnpm status, etc).
@@ -38,8 +39,17 @@ export function buildDevelopment(projectPath: string): Promise<number> {
 		// Forward build output to the terminal
 		build.stdout.pipe(process.stdout)
 
-		build.on('close', (code) => {
+		const onAbort = () => {
 			rl.close()
+			if (build.pid !== undefined) treeKill(build.pid)
+			reject(new Error('Build aborted'))
+		}
+		signal.addEventListener('abort', onAbort, { once: true })
+
+		build.on('close', (code) => {
+			signal.removeEventListener('abort', onAbort)
+			rl.close()
+			if (signal.aborted) return
 			if (code === 0) resolve(totalBuildMs)
 			else {
 				const context = errorLines.length > 0 ? `\n${errorLines.join('\n')}` : ''
@@ -51,10 +61,11 @@ export function buildDevelopment(projectPath: string): Promise<number> {
 
 /**
  * Starts the parallel watchers (`pnpm --parallel run watch`) and the example
- * dev server (`pnpm dev`) in the chosen example folder. Wires up Ctrl-C so
- * both processes get a chance to clean up.
+ * dev server (`pnpm dev`) in the chosen example folder. Wires up the shared
+ * AbortController so any signal (SIGINT, SIGTERM, uncaughtException) flows
+ * through a single shutdown path.
  */
-export async function runParallelDevelopment(projectPath: string, exampleFilter: string, elapsedBuildTime: number) {
+export async function runParallelDevelopment(projectPath: string, exampleFilter: string, elapsedBuildTime: number, abortController: AbortController) {
 	console.log()
 	console.log(`pnpm --parallel --stream run watch`)
 	console.log()
@@ -65,10 +76,19 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 		shell: true,
 	})
 
-	// Wait for tsup to settle
-	await new Promise(resolve => setTimeout(resolve, elapsedBuildTime))
-	// Tiny bit of buffer for DTS
-	await new Promise(resolve => setTimeout(resolve, 200))
+	// Wait for tsdown to settle, but cancel immediately if aborted.
+	await new Promise<void>((resolve) => {
+		const timer = setTimeout(resolve, elapsedBuildTime + 200)
+		abortController.signal.addEventListener('abort', () => {
+			clearTimeout(timer)
+			resolve()
+		}, { once: true })
+	})
+
+	if (abortController.signal.aborted) {
+		if (watches.pid !== undefined) treeKill(watches.pid)
+		return
+	}
 
 	const targetPath = path.resolve(projectPath, exampleFilter)
 
@@ -82,11 +102,13 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 		shell: true,
 	})
 
-	const abortController = new AbortController()
+	let isShuttingDown = false
 
 	const shutdown = (exitCode: number) => {
-		if (abortController.signal.aborted) return
-		abortController.abort()
+		if (isShuttingDown) return
+		isShuttingDown = true
+
+		if (!abortController.signal.aborted) abortController.abort()
 
 		console.log('Killing process...')
 		if (watches.pid !== undefined) treeKill(watches.pid)
@@ -111,32 +133,41 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 		})
 	}
 
-	process.on('SIGINT', () => shutdown(0))
-	process.on('SIGTERM', () => shutdown(0))
-	process.on('uncaughtException', (error: Error) => {
-		process.stderr.write(`\nUncaught exception: ${error.message}\n`)
-		shutdown(1)
-	})
-	process.on('unhandledRejection', (reason: unknown) => {
-		const message = reason instanceof Error ? reason.message : String(reason)
-		process.stderr.write(`\nUnhandled rejection: ${message}\n`)
-		shutdown(1)
-	})
+	// External abort (SIGINT/SIGTERM/uncaughtException from the entry point).
+	abortController.signal.addEventListener('abort', () => shutdown(process.exitCode ?? 0), { once: true })
 	example.on('close', (code: number | null) => shutdown(code ?? 0))
 	watches.on('close', (code: number | null) => shutdown(code ?? 0))
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	try{
+	const abortController = new AbortController()
+
+	process.on('SIGINT', () => abortController.abort())
+	process.on('SIGTERM', () => abortController.abort())
+	process.on('uncaughtException', (error: Error) => {
+		process.stderr.write(`\nUncaught exception: ${error.message}\n`)
+		process.exitCode = 1
+		abortController.abort()
+	})
+	process.on('unhandledRejection', (reason: unknown) => {
+		const message = reason instanceof Error ? reason.message : String(reason)
+		process.stderr.write(`\nUnhandled rejection: ${message}\n`)
+		process.exitCode = 1
+		abortController.abort()
+	})
+
+	try {
 		const exampleFilter = process.argv[2]
 		if (!exampleFilter) throw new Error('Usage: dev-runner <example-filter-path>')
 		const projectPath = process.cwd()
 
-		const elapsedTime = await buildDevelopment(projectPath)
-		await runParallelDevelopment(projectPath, exampleFilter, elapsedTime)
+		const elapsedTime = await buildDevelopment(projectPath, abortController.signal)
+		await runParallelDevelopment(projectPath, exampleFilter, elapsedTime, abortController)
 	}
-	catch(error) {
-		process.stderr.write(`\nSomething went wrong:\n${(error as Error).message}\n`)
-		process.exitCode = 1
+	catch (error) {
+		if (!abortController.signal.aborted) {
+			process.stderr.write(`\nSomething went wrong:\n${(error as Error).message}\n`)
+			process.exitCode = 1
+		}
 	}
 }
