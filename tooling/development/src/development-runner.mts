@@ -24,11 +24,14 @@ export function buildDevelopment(projectPath: string): Promise<number> {
 		const errorLines: string[] = []
 		const rl = readline.createInterface({ input: build.stdout, crlfDelay: Infinity })
 		rl.on('line', (line: string) => {
+			// Strip ANSI escape codes before matching — tsdown wraps some text in colour
+			// codes that can split "Build complete in" across escape sequences.
+			const plain = line.replace(/\x1b\[\d+(?:;\d+)*m/g, '')
 			// Collect lines that look like hard errors so we can surface them on failure.
 			// Don't reject here — let the exit code decide; many lines contain the word
 			// "Error" as part of normal output (API extractor warnings, pnpm status, etc).
-			if (/\berror\b/i.test(line) && !/warning/i.test(line)) errorLines.push(line)
-			const match = /Build complete in (\d+)ms/.exec(line)
+			if (/\berror\b/i.test(plain) && !/warning/i.test(plain)) errorLines.push(line)
+			const match = /Build complete in (\d+)ms/.exec(plain)
 			if (match) totalBuildMs += Number(match[1])
 		})
 
