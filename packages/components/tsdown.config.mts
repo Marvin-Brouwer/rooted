@@ -11,6 +11,7 @@ export default defineConfig([
 		dts: true,
 		clean: true,
 		sourcemap: 'inline',
+		onSuccess: 'rooted-development extract-api',
 		plugins: [inheritdocPlugin()],
 	},
 	{
