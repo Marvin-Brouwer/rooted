@@ -111,23 +111,24 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 		if (!abortController.signal.aborted) abortController.abort()
 
 		console.log('Killing process...')
-		if (watches.pid !== undefined) treeKill(watches.pid)
 		if (example.pid !== undefined) treeKill(example.pid)
 
 		if (exitCode !== 0) {
-			// Dev server errored: exit immediately — no point waiting for watches.
+			// Dev server errored: force-kill immediately and exit.
+			if (watches.pid !== undefined) treeKill(watches.pid)
 			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(exitCode)
 			return
 		}
 
-		// Clean exit (Vite's q/r handlers): wait for watches to shut down gracefully.
-		const timer = setTimeout(() => {
-			// eslint-disable-next-line unicorn/no-process-exit
-			process.exit(exitCode)
-		}, 3000)
+		// Clean exit (Vite's q/r handlers): send SIGINT so tsdown can flush cleanly,
+		// then force-kill after 2 s if it hasn't exited yet.
+		if (watches.pid !== undefined) treeKill(watches.pid, 'SIGINT')
+		const forceKill = setTimeout(() => {
+			if (watches.pid !== undefined) treeKill(watches.pid)
+		}, 2000)
 		watches.once('close', () => {
-			clearTimeout(timer)
+			clearTimeout(forceKill)
 			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(exitCode)
 		})
