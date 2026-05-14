@@ -44,7 +44,7 @@
 		"build": "pnpm build:ci",
 		"build:dev": "pnpm build:ci && rooted-development extract-api",
 		"build:ci": "tsdown",
-		"watch": "tsdown --watch & rooted-development extract-api",
+		"watch": "tsdown --watch",
 		"clean": "rm -rf dist",
 		"extract-api": "rooted-development extract-api"
 	},
