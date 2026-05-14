@@ -114,13 +114,13 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 
 		if (!abortController.signal.aborted) abortController.abort()
 
-		console.log('Killing process...')
 		watches.stdout?.unpipe(process.stdout)
 		watches.stderr?.unpipe(process.stderr)
 		example.kill('SIGINT')
 
 		if (exitCode !== 0) {
 			// Dev server errored: force-kill immediately and exit.
+			console.log('Killing process...')
 			if (watches.pid !== undefined) treeKill(watches.pid)
 			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(exitCode)
@@ -129,8 +129,10 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 
 		// Clean exit (Vite's q/r handlers): send SIGINT directly to the pnpm process
 		// so it can propagate cleanly to tsdown, then treeKill after 2 s if still running.
+		console.log('Stopping watchers...')
 		if (watches.pid !== undefined) watches.kill('SIGINT')
 		const forceKill = setTimeout(() => {
+			console.log('Killing process...')
 			if (watches.pid !== undefined) treeKill(watches.pid)
 		}, 2000)
 		watches.once('close', () => {
