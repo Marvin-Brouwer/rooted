@@ -121,9 +121,9 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 			return
 		}
 
-		// Clean exit (Vite's q/r handlers): send SIGINT so tsdown can flush cleanly,
-		// then force-kill after 2 s if it hasn't exited yet.
-		if (watches.pid !== undefined) treeKill(watches.pid, 'SIGINT')
+		// Clean exit (Vite's q/r handlers): send SIGINT directly to the pnpm process
+		// so it can propagate cleanly to tsdown, then treeKill after 2 s if still running.
+		if (watches.pid !== undefined) process.kill(watches.pid, 'SIGINT')
 		const forceKill = setTimeout(() => {
 			if (watches.pid !== undefined) treeKill(watches.pid)
 		}, 2000)
