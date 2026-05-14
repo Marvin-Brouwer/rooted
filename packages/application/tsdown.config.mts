@@ -6,6 +6,10 @@ export default defineConfig([
 		format: ['esm'],
 		platform: 'browser',
 		treeshake: { moduleSideEffects: 'no-external' },
+		// node: builtins are imported by Vite-plugin helpers (rootedManifest etc.)
+		// that only run at build time in Node.js, never in the browser.
+		// Rolldown warns about them in browser mode unless explicitly marked external.
+		deps: { neverBundle: [/^node:/] },
 		dts: true,
 		clean: true,
 		sourcemap: 'inline',

@@ -19,7 +19,7 @@ export default defineConfig([
 		platform: 'node',
 		treeshake: { moduleSideEffects: 'no-external' },
 		tsconfig: 'tsconfig.plugin.json',
-		external: ['esbuild'],
+		deps: { neverBundle: ['esbuild'] },
 		dts: true,
 		clean: true,
 		sourcemap: 'inline',
