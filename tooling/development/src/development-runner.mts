@@ -23,6 +23,12 @@ export function buildDevelopment(projectPath: string): Promise<number> {
 		let totalBuildMs = 0
 		const rl = readline.createInterface({ input: build.stdout, crlfDelay: Infinity })
 		rl.on('line', (line: string) => {
+			const matchError = /Error/.exec(line)
+			if (matchError) {
+				rl.close()
+				reject(new Error(line));
+				return
+			}
 			const match = /Build complete in (\d+)ms/.exec(line)
 			if (match) totalBuildMs += Number(match[1])
 		})
@@ -112,10 +118,17 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	const exampleFilter = process.argv[2]
-	if (!exampleFilter) throw new Error('Usage: dev-runner <example-filter-path>')
-	const projectPath = process.cwd()
+	try{
+		const exampleFilter = process.argv[2]
+		if (!exampleFilter) throw new Error('Usage: dev-runner <example-filter-path>')
+		const projectPath = process.cwd()
 
-	const elapsedTime = await buildDevelopment(projectPath)
-	await runParallelDevelopment(projectPath, exampleFilter, elapsedTime)
+		const elapsedTime = await buildDevelopment(projectPath)
+		await runParallelDevelopment(projectPath, exampleFilter, elapsedTime)
+	}
+	catch(error) {
+		process.stderr.write("Something went wrong");
+		process.stderr.write(error!.toString());
+		process.exitCode = -1;
+	}
 }
