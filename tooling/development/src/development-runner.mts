@@ -59,7 +59,7 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 	console.log(`pnpm --parallel --stream run watch`)
 	console.log()
 
-	// Tsup watchers. Stdin ignored so they don't compete with the example.
+	// tsdown watchers. Stdin ignored so they don't compete with the example.
 	const watches = spawn('pnpm --parallel --stream run watch', {
 		stdio: ['ignore', 'inherit', 'inherit'],
 		shell: true,
@@ -82,51 +82,38 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 		shell: true,
 	})
 
-	let shuttingDown = false
+	const abortController = new AbortController()
 
-	const kill = () => {
+	const shutdown = (exitCode: number) => {
+		if (abortController.signal.aborted) return
+		abortController.abort()
+
 		console.log('Killing process...')
 		if (watches.pid !== undefined) treeKill(watches.pid)
 		if (example.pid !== undefined) treeKill(example.pid)
-	}
 
-	process.on('SIGINT', () => {
-		shuttingDown = true
-		kill()
-	})
-
-	// When the example exits (including Vite's own q handler), kill the watchers
-	example.on('close', (code: number | null) => {
-		if (!shuttingDown) {
-			shuttingDown = true
-			kill()
-		}
-		const exitCode = code ?? 0
 		if (exitCode !== 0) {
 			// Dev server errored: exit immediately — no point waiting for watches.
 			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(exitCode)
 			return
 		}
+
 		// Clean exit (Vite's q/r handlers): wait for watches to shut down gracefully.
-		watches.on('close', () => {
-			// eslint-disable-next-line unicorn/no-process-exit
-			process.exit(exitCode)
-		})
-		// Fallback: exit after 3s if watches don't acknowledge the kill
-		setTimeout(() => {
+		const timer = setTimeout(() => {
 			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(exitCode)
 		}, 3000)
-	})
-
-	// If the watchers crash on their own, propagate the exit
-	watches.on('close', (code: number | null) => {
-		if (!shuttingDown) {
+		watches.once('close', () => {
+			clearTimeout(timer)
 			// eslint-disable-next-line unicorn/no-process-exit
-			process.exit(code ?? 0)
-		}
-	})
+			process.exit(exitCode)
+		})
+	}
+
+	process.on('SIGINT', () => shutdown(0))
+	example.on('close', (code: number | null) => shutdown(code ?? 0))
+	watches.on('close', (code: number | null) => shutdown(code ?? 0))
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
