@@ -23,7 +23,7 @@ export function buildDevelopment(projectPath: string): Promise<number> {
 		let totalBuildMs = 0
 		const rl = readline.createInterface({ input: build.stdout, crlfDelay: Infinity })
 		rl.on('line', (line: string) => {
-			const match = /Build success in (\d+)ms/.exec(line)
+			const match = /Build complete in (\d+)ms/.exec(line)
 			if (match) totalBuildMs += Number(match[1])
 		})
 
