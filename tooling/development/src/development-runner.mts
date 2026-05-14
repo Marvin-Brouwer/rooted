@@ -101,15 +101,22 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 			shuttingDown = true
 			kill()
 		}
-		// Exit once the watch processes have also closed
+		const exitCode = code ?? 0
+		if (exitCode !== 0) {
+			// Dev server errored: exit immediately — no point waiting for watches.
+			// eslint-disable-next-line unicorn/no-process-exit
+			process.exit(exitCode)
+			return
+		}
+		// Clean exit (Vite's q/r handlers): wait for watches to shut down gracefully.
 		watches.on('close', () => {
 			// eslint-disable-next-line unicorn/no-process-exit
-			process.exit(code ?? 0)
+			process.exit(exitCode)
 		})
 		// Fallback: exit after 3s if watches don't acknowledge the kill
 		setTimeout(() => {
 			// eslint-disable-next-line unicorn/no-process-exit
-			process.exit(code ?? 0)
+			process.exit(exitCode)
 		}, 3000)
 	})
 
