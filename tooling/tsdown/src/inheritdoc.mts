@@ -81,10 +81,10 @@ function _resolveJsDocument(tsconfigPath: string, className: string, memberName:
 
 	// getProperty follows the full type hierarchy (inheritance + mixins)
 	const type = checker.getDeclaredTypeOfSymbol(classSym)
-	const property = type.getProperty(memberName)
-	if (!property) return undefined
+	const memberSym = type.getProperty(memberName)
+	if (!memberSym) return undefined
 
-	for (const decl of property.getDeclarations() ?? []) {
+	for (const decl of memberSym.getDeclarations() ?? []) {
 		const document = extractJsDocument(decl)
 		if (document) return document
 	}
@@ -176,6 +176,28 @@ function extractJsDocument(node: ts.Node): string | undefined {
 
 // ── d.ts post-processing ────────────────────────────────────────────────────
 
+// tsdown sometimes places the closing */ and the next property on the same line,
+// and similarly puts the opening /** of the next comment on the same line as the
+// preceding property. Fix both before running any further replacements.
+function normalizeInlineComments(content: string): string {
+	// Fix: */ immediately followed by non-whitespace (property on same line as closing */)
+	// "   */create: foo;" → "   */\n  create: foo;"  (indent = closing indent minus one space)
+	content = content.replace(/^( +)\*\/([^\n\s])/gm, (_m, indent: string, ch: string) =>
+		`${indent}*/\n${indent.slice(0, -1)}${ch}`,
+	)
+	// Fix: property ; followed by /** (or a complete /** ... */) on the same line
+	// "  foo: Bar; /**" → "  foo: Bar;\n\n  /**"
+	content = content.replace(/^( *)(.*); (\/\*\*[^\n]*)$/gm, (_m, indent: string, declaration: string, open: string) =>
+		`${indent}${declaration};\n\n${indent}${open}`,
+	)
+	// Fix: inline single-line JSDoc immediately followed by a property on the same line
+	// "  /** foo */bar: baz;" → "  /** foo */\n  bar: baz;"
+	content = content.replace(/^(( *)\/\*\*.*?\*\/)([^\n\s])/gm, (_m, comment: string, indent: string, ch: string) =>
+		`${comment}\n${indent}${ch}`,
+	)
+	return content
+}
+
 function applyIndent(jsDocument: string, indent: string): string {
 	return jsDocument
 		.split('\n')
@@ -198,6 +220,12 @@ function jsDocumentInner(raw: string): string {
 async function processFile(tsconfigPath: string, filePath: string): Promise<void> {
 	let content = await readFile(filePath, 'utf8')
 	let changed = false
+
+	const normalized = normalizeInlineComments(content)
+	if (normalized !== content) {
+		content = normalized
+		changed = true
+	}
 
 	content = content.replaceAll(/( *)\/\*\*([\s\S]*?)\*\//g, (block, indent: string, inner: string) => {
 		const m = inner.match(INHERITDOC_RE)

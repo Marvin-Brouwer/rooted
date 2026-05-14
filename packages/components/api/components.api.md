@@ -33,7 +33,8 @@ export type ComponentContext<TOptions extends object = never> = [TOptions] exten
 
 // @public
 export type CssArtifacts = {
-    readonly href: string; /** The `r` attribute value used to scope CSS to this component's element. */
+    readonly href: string;
+
     readonly scopeId: string;
 };
 
