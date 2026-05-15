@@ -1,5 +1,6 @@
-import { component } from '@rooted/components'
 import { sourceSet, source, author } from 'https://unsplash.com/photos/cooked-food-R02KgL5Ti3Y'
+
+import { component } from '@rooted/components'
 
 import { SearchBar } from '../search/search-bar.mts'
 

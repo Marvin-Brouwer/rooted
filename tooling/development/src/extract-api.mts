@@ -13,8 +13,8 @@ export async function extractApi(packageRoot: string) {
 	const configFilePath = path.join(packageRoot, 'api-extractor.json')
 	const packageJsonPath = path.join(packageRoot, 'package.json')
 
-	// Chunk files produced by tsup have a hash suffix (e.g. routes-Gxo28CuX.d.mts)
-	const chunkPattern = /-[\dA-Za-z]{8}\.d\.mts$/
+	// Chunk files produced by rolldown have a hash suffix (e.g. routes-Gxo28CuX.d.mts or generic-component-Da20_kqi.d.mts)
+	const chunkPattern = /-\w{8}\.d\.mts$/
 	const moduleFiles = await readdir(path.join(packageRoot, 'dist'))
 	const modules = moduleFiles
 		.filter(f => f.endsWith('.d.mts') && !chunkPattern.test(f))

@@ -8,10 +8,10 @@
 		"build": "pnpm -r --stream run build",
 		"build:dev": "pnpm -r --stream run build:dev",
 		"build:ci": "pnpm -r run build:ci",
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"lint:nofix": "eslint --cache --stats -c \"./.repo/config/eslint/eslint.config.ts\" .",
-		"lint": "DEBUG=eslint:cli-engine eslint --cache --fix --stats --debug -c \"./.repo/config/eslint/eslint.config.ts\" .",
+		"test": "vp test",
+		"test:watch": "vp test --watch",
+		"lint:nofix": "oxlint -c .repo/config/oxlint/oxlint.config.json . && node .repo/config/oxlint/check-packages.mjs",
+		"lint": "oxlint -c .repo/config/oxlint/oxlint.config.json --fix . && node .repo/config/oxlint/check-packages.mjs",
 		"clean": "pnpm -r run clean",
 		"release": "multi-semantic-release --ignore-private-packages",
 		"full-update": "pnpm update -r"
@@ -19,27 +19,18 @@
 	"devDependencies": {
 		"@commitlint/cli": "^21.0.0",
 		"@commitlint/config-conventional": "^21.0.0",
-		"@eslint/js": "^10.0.1",
 		"@rooted/development": "workspace:*",
 		"@rooted/pipeline": "workspace:*",
-		"@stylistic/eslint-plugin": "^5.10.0",
-		"@types/micromatch": "^4.0.10",
 		"@types/unist": "^3.0.3",
-		"@typescript-eslint/eslint-plugin": "^8.59.2",
-		"@typescript-eslint/parser": "^8.59.2",
-		"eslint": "^10.3.0",
-		"eslint-import-resolver-typescript": "^4.4.4",
-		"eslint-plugin-import-x": "^4.16.2",
-		"eslint-plugin-package-json": "^0.91.2",
+		"eslint-plugin-perfectionist": "^5.9.0",
 		"eslint-plugin-unicorn": "^64.0.0",
-		"eslint-plugin-unused-imports": "^4.4.1",
-		"globals": "^17.6.0",
 		"happy-dom": "^20.9.0",
 		"husky": "^9.1.7",
 		"multi-semantic-release": "^3.1.0",
-		"tsup": "^8.5.1",
+		"oxlint": "^1.64.0",
+		"tsdown": "^0.22.0",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.59.2",
+		"vite-plus": "^0.1.21",
 		"vitest": "^4.1.5"
 	},
 	"engines": {
@@ -50,8 +41,7 @@
 	"pnpm": {
 		"peerDependencyRules": {
 			"allowedVersions": {
-				"vite-plugin-pwa>vite": "8",
-				"eslint-plugin-import>eslint": "10"
+				"vite-plugin-pwa>vite": "8"
 			}
 		},
 		"overrides": {

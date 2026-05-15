@@ -64,15 +64,15 @@ export type RouteMetadata<T extends {
     parameters: any;
     parent?: any;
 }> = {
-    readonly tokenTypes: T['parameters'];
+    readonly tokenTypes: T['parameters']; /** The parent route, if this route is nested. */
     readonly parentType: T extends {
         parent: infer P;
-    } ? P : never;
-    readonly hasParameterTokens: boolean;
-    readonly hasWildcard: boolean;
-    readonly hasErrors?: true;
-    readonly routeParts: Array<string | RouteParameter>;
-    readonly staticRoute: false | string;
+    } ? P : never; /** `true` if this route's pattern includes any parameters. */
+    readonly hasParameterTokens: boolean; /** `true` if this route's pattern ends with a wildcard parameter. */
+    readonly hasWildcard: boolean; /** Present and `true` when the route pattern has validation errors. */
+    readonly hasErrors?: true; /** The split-up parts of the route pattern. */
+    readonly routeParts: Array<string | RouteParameter>; /** Resolved static path string if this route has no dynamic segments, `false` otherwise. */
+    readonly staticRoute: false | string; /** Optional SEO metadata for this route. */
     readonly seo?: RouteSeoMetadata;
 };
 
@@ -84,12 +84,12 @@ export type RouteParameterDictionary<TRoute extends AnyRoute, D extends number =
 
 // @public
 export type RouteSeoMetadata = {
-    title?: string;
-    description?: string;
-    noIndex?: boolean;
+    title?: string; /** Page description. Overrides `<meta name="description">` and `og:description`. */
+    description?: string; /** When `true`, injects `<meta name="robots" content="noindex">`. Default: `false`. */
+    noIndex?: boolean; /** When `true`, omits this route from sitemap generation. Default: `false`. */
     excludeFromSitemap?: boolean;
-    image?: string;
-    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    image?: string; /** Sitemap `changefreq` field. */
+    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'; /** Sitemap `priority` field (0.0–1.0). */
     priority?: number;
 };
 

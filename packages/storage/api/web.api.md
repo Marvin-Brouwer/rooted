@@ -21,8 +21,8 @@ export type CookieStorage = {
     get<T = unknown>(name: string): T | undefined;
     set<T>(name: string, value: T): void;
     set<T>(init: CookieInit_2<T>): void;
-    removeItem(name: string, options?: Pick<CookieInit_2, 'domain' | 'path'>): void;
-    names(): string[];
+    removeItem(name: string, options?: Pick<CookieInit_2, 'domain' | 'path'>): void; /** Every cookie name currently visible to `document.cookie`. */
+    names(): string[]; /** Every cookie as a `Map<name, rawValue>`. */
     all(): Map<string, string>;
 };
 
@@ -34,7 +34,7 @@ export type LocalStorage = Pick<globalThis.Storage, 'length' | 'clear' | 'setIte
     getItem(key: string): string | undefined;
     key(index: number): string | undefined;
     get<T = unknown>(key: string): T | undefined;
-    set<T>(key: string, value: T): void;
+    set<T>(key: string, value: T): void; /** All keys currently stored. Empty array under SSR. */
     keys(): string[];
 };
 
@@ -47,7 +47,7 @@ export type SessionStorage = Pick<globalThis.Storage, 'length' | 'clear' | 'setI
     getItem(key: string): string | undefined;
     key(index: number): string | undefined;
     get<T = unknown>(key: string): T | undefined;
-    set<T>(key: string, value: T): void;
+    set<T>(key: string, value: T): void; /** All keys currently stored. Empty array under SSR. */
     keys(): string[];
 };
 

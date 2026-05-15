@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsdown'
 
 export default defineConfig({
 	entry: ['src/_module/*.mts'],
@@ -8,4 +8,5 @@ export default defineConfig({
 	dts: true,
 	clean: true,
 	sourcemap: 'inline',
+	onSuccess: 'rooted-development extract-api',
 })

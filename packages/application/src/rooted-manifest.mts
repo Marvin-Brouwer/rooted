@@ -1,11 +1,12 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 
-import { cssLoader } from '@rooted/components/css-loader'
-import { ArrayElement } from '@rooted/util'
 import { defineConfig } from 'vite'
 import { analyzer } from 'vite-bundle-analyzer'
 import { ManifestOptions, type VitePWAOptions } from 'vite-plugin-pwa'
+
+import { cssLoader } from '@rooted/components/css-loader'
+import { ArrayElement } from '@rooted/util'
 
 type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 

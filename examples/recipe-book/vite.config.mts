@@ -1,12 +1,13 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { CodeSplittingGroups, rootedManifest } from '@rooted/application'
-import { githubPagesAdapter } from '@rooted/application/adapters'
-import { generateRouteManifest } from '@rooted/router/manifest'
 import { varlockVitePlugin } from '@varlock/vite-integration'
 import { ENV } from 'varlock/env'
 import { normalizePath } from 'vite'
+
+import { CodeSplittingGroups, rootedManifest } from '@rooted/application'
+import { githubPagesAdapter } from '@rooted/application/adapters'
+import { generateRouteManifest } from '@rooted/router/manifest'
 
 import packageJson from './package.json' with { type: 'json' }
 import { markdownPlugin } from './plugins/markdown.mts'

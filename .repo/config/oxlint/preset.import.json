@@ -1,0 +1,19 @@
+{
+	"rules": {
+		"perfectionist/sort-imports": ["error", {
+			"type": "alphabetical",
+			"order": "asc",
+			"newlinesBetween": 1,
+			"internalPattern": ["^@rooted/.+"],
+			"groups": [
+				"value-builtin",
+				"value-external",
+				"value-internal",
+				"value-parent",
+				"value-sibling",
+				"value-index",
+				"type-import"
+			]
+		}]
+	}
+}

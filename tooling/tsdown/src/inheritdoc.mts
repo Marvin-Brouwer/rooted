@@ -3,12 +3,13 @@ import path from 'node:path'
 
 import * as ts from 'typescript'
 
-import type { Plugin } from './tsup-plugin.mts'
+import type { Plugin } from './tsdown-plugin.mts'
 
-// Matches either:
+// Matches any of:
 //   {@inheritdoc ClassName['member']}  → m[1]=cls, m[2]=member
 //   {@inheritdoc typeof identifier}    → m[3]=identifier
-const INHERITDOC_RE = /\{@inheritdoc\s+(?:([\w$]+)\[['"]([^'"]+)['"]\]|typeof\s+([\w$]+))\}/
+//   {@inheritdoc TypeName}             → m[4]=typeName
+const INHERITDOC_RE = /\{@inheritdoc\s+(?:([\w$]+)\[['"]([^'"]+)['"]\]|typeof\s+([\w$]+)|([\w$]+))\}/
 
 // ── TypeScript program ──────────────────────────────────────────────────────
 
@@ -80,10 +81,10 @@ function _resolveJsDocument(tsconfigPath: string, className: string, memberName:
 
 	// getProperty follows the full type hierarchy (inheritance + mixins)
 	const type = checker.getDeclaredTypeOfSymbol(classSym)
-	const property = type.getProperty(memberName)
-	if (!property) return undefined
+	const memberSym = type.getProperty(memberName)
+	if (!memberSym) return undefined
 
-	for (const decl of property.getDeclarations() ?? []) {
+	for (const decl of memberSym.getDeclarations() ?? []) {
 		const document = extractJsDocument(decl)
 		if (document) return document
 	}
@@ -127,6 +128,41 @@ function resolveTopLevelJsDocument(tsconfigPath: string, name: string): string |
 	return result
 }
 
+function resolveTopLevelTypeDocument(tsconfigPath: string, name: string): string | undefined {
+	const key = `${path.resolve(tsconfigPath)}:${name}`
+	if (jsDocumentCache.has(key)) return jsDocumentCache.get(key)!
+
+	const { checker, program } = getState(tsconfigPath)
+	let result: string | undefined = undefined
+
+	outer: for (const sf of program.getSourceFiles()) {
+		for (const stmt of sf.statements) {
+			if (
+				(ts.isInterfaceDeclaration(stmt) || ts.isClassDeclaration(stmt))
+				&& stmt.name?.text === name
+			) {
+				result = extractJsDocument(stmt)
+				if (result) break outer
+			}
+			else if (ts.isTypeAliasDeclaration(stmt) && stmt.name.text === name) {
+				result = extractJsDocument(stmt)
+				if (result) break outer
+				// No JSDoc on the alias itself: follow a simple type reference to find docs on the target.
+				if (ts.isTypeReferenceNode(stmt.type)) {
+					const sym = checker.getSymbolAtLocation(stmt.type.typeName)
+					for (const decl of sym?.getDeclarations() ?? []) {
+						result = extractJsDocument(decl)
+						if (result) break outer
+					}
+				}
+			}
+		}
+	}
+
+	jsDocumentCache.set(key, result)
+	return result
+}
+
 function extractJsDocument(node: ts.Node): string | undefined {
 	const sf = node.getSourceFile()
 	const text = sf.getFullText()
@@ -139,6 +175,28 @@ function extractJsDocument(node: ts.Node): string | undefined {
 }
 
 // ── d.ts post-processing ────────────────────────────────────────────────────
+
+// tsdown sometimes places the closing */ and the next property on the same line,
+// and similarly puts the opening /** of the next comment on the same line as the
+// preceding property. Fix both before running any further replacements.
+function normalizeInlineComments(content: string): string {
+	// Fix: */ immediately followed by non-whitespace (property on same line as closing */)
+	// "   */create: foo;" → "   */\n  create: foo;"  (indent = closing indent minus one space)
+	content = content.replace(/^( +)\*\/([^\n\s])/gm, (_m, indent: string, ch: string) =>
+		`${indent}*/\n${indent.slice(0, -1)}${ch}`,
+	)
+	// Fix: property ; followed by /** (or a complete /** ... */) on the same line
+	// "  foo: Bar; /**" → "  foo: Bar;\n\n  /**"
+	content = content.replace(/^( *)(.*); (\/\*\*[^\n]*)$/gm, (_m, indent: string, declaration: string, open: string) =>
+		`${indent}${declaration};\n\n${indent}${open}`,
+	)
+	// Fix: inline single-line JSDoc immediately followed by a property on the same line
+	// "  /** foo */bar: baz;" → "  /** foo */\n  bar: baz;"
+	content = content.replace(/^(( *)\/\*\*.*?\*\/)([^\n\s])/gm, (_m, comment: string, indent: string, ch: string) =>
+		`${comment}\n${indent}${ch}`,
+	)
+	return content
+}
 
 function applyIndent(jsDocument: string, indent: string): string {
 	return jsDocument
@@ -163,17 +221,25 @@ async function processFile(tsconfigPath: string, filePath: string): Promise<void
 	let content = await readFile(filePath, 'utf8')
 	let changed = false
 
+	const normalized = normalizeInlineComments(content)
+	if (normalized !== content) {
+		content = normalized
+		changed = true
+	}
+
 	content = content.replaceAll(/( *)\/\*\*([\s\S]*?)\*\//g, (block, indent: string, inner: string) => {
 		const m = inner.match(INHERITDOC_RE)
 		if (!m) return block
 
-		const [tag, cls, member, identifier] = m
+		const [tag, cls, member, identifier, typeName] = m
 		const resolved = identifier
 			? resolveTopLevelJsDocument(tsconfigPath, identifier)
-			: resolveJsDocument(tsconfigPath, cls, member)
+			: typeName
+				? resolveTopLevelTypeDocument(tsconfigPath, typeName)
+				: resolveJsDocument(tsconfigPath, cls, member)
 		if (!resolved) {
-			const reference = identifier ? `typeof ${identifier}` : `${cls}['${member}']`
-			process.stderr.write(`[tsup:inheritdoc] warn: could not resolve {@inheritdoc ${reference}}\n`)
+			const reference = identifier ? `typeof ${identifier}` : typeName ?? `${cls}['${member}']`
+			process.stderr.write(`[tsdown:inheritdoc] warn: could not resolve {@inheritdoc ${reference}}\n`)
 			return block
 		}
 
@@ -190,55 +256,34 @@ async function processFile(tsconfigPath: string, filePath: string): Promise<void
 
 	if (changed) {
 		await writeFile(filePath, content, 'utf8')
-		process.stdout.write(`[tsup:inheritdoc] resolved ${filePath}\n`)
+		process.stdout.write(`[tsdown:inheritdoc] resolved ${filePath}\n`)
 	}
 }
 
-// ── Public API ──────────────────────────────────────────────────────────────
-
-/**
- * tsup plugin that resolves `{@inheritdoc Type['member']}` tags in generated
- * declaration files by inlining the referenced JSDoc.
- *
- * Looks up `Type` by building a TypeScript program from the package's own
- * tsconfig, so any type visible in the project (including project-local types,
- * dependencies, and whatever libs the tsconfig includes) can be referenced.
- *
- * @example `tsup.config.mts`
- * ```ts
- * import { inheritdocPlugin } from '@rooted/tsup-plugins/inheritdoc'
- *
- * export default defineConfig({
- *   plugins: [inheritdocPlugin()],
- * })
- * ```
- */
-// ── DTS file waiting ─────────────────────────────────────────────────────────
+// ── DTS file discovery ───────────────────────────────────────────────────────
 
 const DTS_RE = /\.d\.[mc]?ts$/
-// tsup writes intermediate rollup input files prefixed with `_tsup-`; ignore them
-const TEMP_RE = /^_tsup-/
 
 async function findDtsFiles(outDirectory: string): Promise<string[]> {
 	const entries = await readdir(outDirectory, { recursive: true }).catch(() => [] as string[])
-	return (entries)
-		.filter(f => DTS_RE.test(f) && !TEMP_RE.test(path.basename(f)))
+	return entries
+		.filter(f => DTS_RE.test(f))
 		.map(f => path.join(outDirectory, f))
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
 /**
- * tsup plugin that resolves `{@inheritdoc Type['member']}` tags in generated
+ * tsdown plugin that resolves `{@inheritdoc Type['member']}` tags in generated
  * declaration files by inlining the referenced JSDoc.
  *
  * Looks up `Type` by building a TypeScript program from the package's own
  * tsconfig, so any type visible in the project (including project-local types,
  * dependencies, and whatever libs the tsconfig includes) can be referenced.
  *
- * @example `tsup.config.mts`
+ * @example `tsdown.config.mts`
  * ```ts
- * import { inheritdocPlugin } from '@rooted/tsup-plugins/inheritdoc'
+ * import { inheritdocPlugin } from '@rooted/tsdown'
  *
  * export default defineConfig({
  *   plugins: [inheritdocPlugin()],
@@ -247,21 +292,23 @@ async function findDtsFiles(outDirectory: string): Promise<string[]> {
  */
 export function inheritdocPlugin(): Plugin {
 	return {
-		name: 'tsup:inheritdoc',
-		buildEnd() {
-			if (!this.options.dts && !this.options.experimentalDts) return
+		name: 'tsdown:inheritdoc',
+		tsdownConfig(_config) {
+			return {
+				hooks: {
+					'build:done': async (context) => {
+						if (context.options.dts === false) return
 
-			const tsconfig = this.options.tsconfig ?? 'tsconfig.json'
-			const outDirectory = this.options.outDir ?? 'dist'
+						const tsconfig = typeof context.options.tsconfig === 'string'
+							? context.options.tsconfig
+							: 'tsconfig.json'
+						const outDirectory = context.options.outDir ?? 'dist'
 
-			// DTS runs in a parallel worker; no plugin hooks fire after it completes.
-			// `beforeExit` fires once the event loop drains, which is after both the
-			// esbuild task and the DTS worker task have finished.
-			process.once('beforeExit', () => {
-				void findDtsFiles(outDirectory).then(files =>
-					Promise.all(files.map(f => processFile(tsconfig, f))),
-				)
-			})
+						const files = await findDtsFiles(outDirectory)
+						await Promise.all(files.map(f => processFile(tsconfig, f)))
+					},
+				},
+			}
 		},
 	}
 }

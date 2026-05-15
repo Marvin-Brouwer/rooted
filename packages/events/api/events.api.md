@@ -18,9 +18,7 @@ export type ElementKeys = keyof HTMLElementTagNameMap | keyof SVGElementTagNameM
 export type ElementMap<K extends ElementKeys> = K extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[K] : K extends keyof SVGElementTagNameMap ? SVGElementTagNameMap[K] : Element;
 
 // @public
-export type ElementOnHandlers<TElement extends Element> = {
-    [K in keyof ElementEventMap_2<TElement> & string]?: ((event: TargetedEvent<ElementEventMap_2<TElement>[K] & Event, TElement>) => void | Promise<void>) | (() => void | Promise<void>);
-};
+export type ElementOnHandlers<TElement extends Element> = { [K in keyof ElementEventMap_2<TElement> & string]?: ((event: TargetedEvent<ElementEventMap_2<TElement>[K] & Event, TElement>) => void | Promise<void>) | (() => void | Promise<void>) };
 
 // @public (undocumented)
 export type EventBuilder = ReturnType<typeof createEventBuilder>;

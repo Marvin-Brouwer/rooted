@@ -1,36 +1,35 @@
-import { defineConfig } from 'eslint/config'
+// Custom Oxlint JS plugin containing project-specific rules.
+// Loaded via jsPlugins in .oxlintrc.json.
 
-import type { Rule } from 'eslint'
-
-type NodeWithSource = { source?: (Rule.Node & { raw?: string }) | null }
-
-const mjsToMts: Rule.RuleModule = {
+/** @type {import('eslint').Rule.RuleModule} */
+const mjsToMts = {
 	meta: {
 		type: 'suggestion',
 		fixable: 'code',
 		schema: [],
 		messages: { rewrite: 'Use .mts extension instead of .mjs.' },
 	},
-	create(context: Rule.RuleContext): Rule.RuleListener {
-		function check(node: NodeWithSource): void {
+	create(context) {
+		function check(node) {
 			const raw = node.source?.raw
 			if (!raw?.endsWith('.mjs\'') && !raw?.endsWith('.mjs"')) return
 			context.report({
 				node: node.source,
 				messageId: 'rewrite',
-				fix: (fixer: Rule.RuleFixer) =>
-					fixer.replaceText(node.source!, raw.replace(/\.mjs(['"])$/, '.mts$1')),
+				fix: (fixer) =>
+					fixer.replaceText(node.source, raw.replace(/\.mjs(['"])$/, '.mts$1')),
 			})
 		}
 		return {
 			ImportDeclaration: check,
 			ExportNamedDeclaration: check,
 			ExportAllDeclaration: check,
-		} as unknown as Rule.RuleListener
+		}
 	},
 }
 
-const utf8Encoding: Rule.RuleModule = {
+/** @type {import('eslint').Rule.RuleModule} */
+const utf8Encoding = {
 	meta: {
 		type: 'suggestion',
 		fixable: 'code',
@@ -55,15 +54,10 @@ const utf8Encoding: Rule.RuleModule = {
 	},
 }
 
-export const lintCustom = defineConfig([
-	{
-		files: ['**/*.{mts,cts}'],
-		plugins: {
-			local: { rules: { 'mjs-to-mts': mjsToMts, 'utf-encoding': utf8Encoding } },
-		},
-		rules: {
-			'local/mjs-to-mts': 'error',
-			'local/utf-encoding': 'error',
-		},
+export default {
+	meta: { name: 'local', version: '0.0.1' },
+	rules: {
+		'mjs-to-mts': mjsToMts,
+		'utf-encoding': utf8Encoding,
 	},
-])
+}

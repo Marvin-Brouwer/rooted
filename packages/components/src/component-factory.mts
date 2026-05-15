@@ -1,5 +1,5 @@
-import { componentStore, GenericComponent } from './component/generic-component.mts'
 import { isComponent } from './component.mts'
+import { componentStore, GenericComponent } from './component/generic-component.mts'
 import { RootedElement, RootedElementConstructor } from './rooted-element.mts'
 
 import type { Component } from './component.mts'

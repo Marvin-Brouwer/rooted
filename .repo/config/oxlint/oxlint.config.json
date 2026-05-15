@@ -1,0 +1,43 @@
+{
+	"plugins": ["typescript", "unicorn"],
+	"jsPlugins": [
+		"./plugin-local.mjs",
+		"eslint-plugin-perfectionist",
+		{ "name": "unicorn-js", "specifier": "eslint-plugin-unicorn" }
+	],
+	"env": {
+		"es2022": true,
+		"node": true,
+		"browser": true
+	},
+	"extends": [
+		"./preset.lang.json",
+		"./preset.import.json",
+		"./preset.custom.json",
+		"./preset.project.json"
+	],
+	"overrides": [
+		{
+			"files": ["packages/*/tests/**/*.{ts,mts}"],
+			"rules": {
+				"@typescript-eslint/no-explicit-any": "off",
+				"unicorn/no-null": "off",
+				"unicorn/no-useless-undefined": "off",
+				"unicorn/consistent-function-scoping": "off",
+				"unicorn/no-await-expression-member": "off",
+				"@typescript-eslint/unbound-method": "off"
+			}
+		}
+	],
+	"ignorePatterns": [
+		"**/node_modules",
+		"**/dist",
+		".direnv",
+		"docs",
+		"temp",
+		"**/bin/**",
+		"**/*.d.ts",
+		"**/*.g.mts",
+		".repo/config/oxlint/plugin-local.mjs"
+	]
+}

@@ -8,15 +8,6 @@ import { ElementFactory } from '@rooted/elements';
 import { EventBuilder } from '@rooted/elements/events';
 
 // @public
-export function c(component: Component): GenericComponent;
-
-// @public (undocumented)
-export function c<TOptions extends object>(component: Component<TOptions>, ...arguments_: object extends TOptions ? [options?: TOptions] : [options: TOptions]): GenericComponent;
-
-// @public (undocumented)
-export function c<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProperties<TComponent>>): TComponent;
-
-// @public
 export type Component<TOptions extends object = never> = ComponentConstructor<TOptions> & {
     readonly [componentBrand]: TOptions;
 };
@@ -43,6 +34,7 @@ export type ComponentContext<TOptions extends object = never> = [TOptions] exten
 // @public
 export type CssArtifacts = {
     readonly href: string;
+
     readonly scopeId: string;
 };
 
