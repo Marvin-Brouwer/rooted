@@ -28,7 +28,10 @@ import type { Plugin } from 'vite'
  *     generateRouteManifest({ glob: './src/**\/_routes.mts', root: './src/_routes.g.mts' }),
  *     githubPagesAdapter(),
  *   ],
- *   webManifest: { id: 'my-app', url: packageJson.homepage },
+ *   webManifest: {
+ *     id: 'my-app',
+ *     url: packageJson.homepage
+ *   },
  * })
  * ```
  */
