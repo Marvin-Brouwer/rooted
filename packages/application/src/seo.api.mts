@@ -1,1 +1,1 @@
-export type { AdditionalSitemap, SeoApi, SitemapEntry } from '../plugins/seo-api.mts'
+export type { AdditionalSitemap, SeoApi, SitemapEntry } from '@rooted/adapter'

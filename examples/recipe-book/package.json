@@ -20,6 +20,7 @@
 		"@rooted/store": "workspace:^"
 	},
 	"devDependencies": {
+		"@rooted-adapters/github-pages": "workspace:^",
 		"@rooted/application": "workspace:^",
 		"@varlock/vite-integration": "^1.1.1",
 		"varlock": "^1.1.0",

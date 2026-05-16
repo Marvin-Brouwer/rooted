@@ -1,9 +1,9 @@
 import { access, constants, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { createStaticRenderer, injectSnapshot } from '../static-renderer.mts'
+import { createStaticRenderer, injectSnapshot } from './static-renderer.mts'
 
-import type { SeoApi } from '../seo-api.mts'
+import type { SeoApi } from './seo-api.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Plugin, ResolvedConfig } from 'vite'
 
@@ -143,12 +143,16 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 				await writeFile(path.join(outputDirectory, fallbackFileName), indexHtml, 'utf8')
 			}
 			else {
-				// Write a routing manifest so the server knows which paths have pre-rendered
-				// HTML, the base path, and which file to use as the SPA catch-all fallback.
-				const staticRoutePaths = collectStaticRoutePaths(manifestApi)
+				// Write 404.html as the SPA shell fallback -- same as staticAdapter, captured
+				// before root SEO is applied to index.html so crawlers don't get root-page
+				// metadata for dynamic or unknown routes.
+				await writeFile(path.join(outputDirectory, '404.html'), indexHtml, 'utf8')
+				// Write a routing manifest so the server knows which dynamic route patterns
+				// exist, the base path, and which file to serve as the SPA catch-all fallback.
+				const dynamicRoutePatterns = collectDynamicRoutePatterns(manifestApi)
 				await writeFile(
 					path.join(outputDirectory, 'routes.json'),
-					JSON.stringify({ base: config.base, staticRoutes: staticRoutePaths, fallback: 'index.html' }, undefined, 2),
+					JSON.stringify({ base: config.base, dynamicRoutes: dynamicRoutePatterns, fallback: '404.html' }, undefined, 2),
 					'utf8',
 				)
 			}
@@ -205,17 +209,35 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 	}
 }
 
-function collectStaticRoutePaths(manifestApi: RouteManifestApi | undefined): string[] {
-	const paths: string[] = []
+function collectDynamicRoutePatterns(manifestApi: RouteManifestApi | undefined): string[] {
+	const patterns: string[] = []
 	for (const route of manifestApi?.routes ?? []) {
 		if (!Object.hasOwn(route, 'getMetadata')) continue
-		const staticPath = route.getMetadata().staticRoute
-		if (staticPath === false) continue
-		const segments = staticPath.split('/').filter(Boolean)
-		if (segments.length === 0) continue
-		paths.push(staticPath)
+		const metadata = route.getMetadata()
+		if (metadata.staticRoute !== false) continue
+		if (metadata.hasErrors) continue
+		patterns.push(buildRoutePattern(route))
 	}
-	return paths
+	return patterns
+}
+
+// Builds a URL pattern string from a route's parts using :key for parameters.
+// Wildcard tokens also use :key -- the catch-all handler covers segments they miss.
+// Builds a URL pattern string from a route's parts using :key for parameters.
+// Wildcard tokens also use :key -- the catch-all handler covers segments they miss.
+function buildRoutePattern(route: RouteManifestApi['routes'][number]): string {
+	let pattern = ''
+	for (const part of route.getMetadata().routeParts) {
+		if (typeof part === 'string') {
+			pattern += part
+		} else if (Object.hasOwn(part, 'getMetadata')) {
+			pattern += buildRoutePattern(part as RouteManifestApi['routes'][number])
+		} else {
+			// Parameter token -- always has a `key` property
+			pattern += `:${(part as { key: string }).key}`
+		}
+	}
+	return pattern
 }
 
 async function checkFileExists(filePath: string): Promise<boolean> {

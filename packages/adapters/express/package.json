@@ -1,0 +1,62 @@
+{
+	"name": "@rooted-adapters/express",
+	"version": "1.0.0-alpha.0",
+	"description": "Adapter for server-side hosting with Express",
+	"keywords": [
+		"web-components",
+		"typescript",
+		"rooted"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "packages/adapters/express"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
+	"sideEffects": false,
+	"publishConfig": {
+		"registry": "https://registry.npmjs.org/",
+		"access": "public",
+		"provenance": true
+	},
+	"files": [
+		"dist",
+		"readme.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"types": "./dist/index.d.mts"
+		}
+	},
+	"peerDependencies": {
+		"@rooted/adapter": "workspace:^",
+		"express": ">= 5.0.0",
+		"vite": ">= 8.0.1"
+	},
+	"peerDependenciesMeta": {
+		"express": { "optional": false }
+	},
+	"devDependencies": {
+		"@rooted/adapter": "workspace:^",
+		"@rooted/development": "workspace:*",
+		"@rooted/tsdown": "workspace:^",
+		"@types/node": "^25.6.2",
+		"tsx": "^4.21.0",
+		"typescript": "^6.0.3",
+		"vite": "^8.0.12"
+	},
+	"scripts": {
+		"build": "pnpm build:ci",
+		"build:dev": "pnpm build:ci",
+		"build:ci": "tsdown",
+		"watch": "tsdown --watch --no-clean",
+		"clean": "rm -rf dist"
+	}
+}
