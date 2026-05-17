@@ -29,23 +29,22 @@ export default rootedManifest({
 
 ## Adding middleware
 
-If you need to register Express middleware (proxies, auth, rate-limiting) alongside the rooted handlers, create a folder of `.mjs` files and point `middlewarePath` at it:
+If you need to register Express middleware (proxies, auth, rate-limiting), point `middlewarePath` at a folder of `.mjs` files. Use the `createMiddleware` helper so editors pick up the Express instance type:
 
 ```ts
 expressAdapter({ middlewarePath: './src/server-middleware' })
 ```
 
-Each file in the folder must export a default function that receives the Express instance:
-
 ```js
 // src/server-middleware/01-api-proxy.mjs
+import { createMiddleware } from '@rooted-adapters/express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 
-export default function (app) {
+export default createMiddleware((app) => {
   app.use('/api', createProxyMiddleware({ target: process.env.API_URL }))
-}
+})
 ```
 
-Files are loaded in lexicographic order before the rooted static-file and route handlers, so `/api/*` requests reach your middleware before rooted's not-found handler can catch them. Numeric prefixes (`01-`, `02-`) control load order when you have multiple files.
+Full details in [advanced/server-middleware](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/server-middleware.md).
 
 More in the [adapters guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/adapters.md).

@@ -130,45 +130,7 @@ pnpm add express
 
 The routed adapter approach works for any Node.js host: Railway, Render, fly.io, Heroku, a VPS, or anything that can run `node dist/server.mjs`. No host-specific adapter is needed for these -- just use Fastify or Express.
 
-### Adding plugins or proxies
-
-If you need to register Fastify plugins or Express middleware alongside the rooted handlers (for example, an API proxy or an auth layer), create a folder of `.mjs` files and point `middlewarePath` at it in the adapter options:
-
-```ts
-// vite.config.mts
-fastifyAdapter({ middlewarePath: './src/server-middleware' })
-// or
-expressAdapter({ middlewarePath: './src/server-middleware' })
-```
-
-Each file in the folder must export a default function that receives the app instance. It runs before the rooted static-file and route handlers, so `/api/*` requests reach your plugin before rooted's fallback handler can intercept them.
-
-**Fastify example** -- register a proxy to a backend API:
-
-```js
-// src/server-middleware/01-api-proxy.mjs
-import fastifyHttpProxy from '@fastify/http-proxy'
-
-export default async function (app) {
-  await app.register(fastifyHttpProxy, {
-    upstream: process.env.API_URL,
-    prefix: '/api',
-  })
-}
-```
-
-**Express example** -- same idea with `http-proxy-middleware`:
-
-```js
-// src/server-middleware/01-api-proxy.mjs
-import { createProxyMiddleware } from 'http-proxy-middleware'
-
-export default function (app) {
-  app.use('/api', createProxyMiddleware({ target: process.env.API_URL }))
-}
-```
-
-Files are loaded in lexicographic order. Use numeric prefixes (`01-`, `02-`) to control load order when you have multiple files. The adapter copies the folder to `dist/middleware/` at build time, so the files ship with your server.
+If you need to register Fastify plugins or Express middleware (proxies, auth, rate-limiting) alongside the rooted handlers, see [advanced/server-middleware](../advanced/server-middleware.md).
 
 ## CI/CD pipelines
 

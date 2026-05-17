@@ -4,7 +4,34 @@ import path from 'node:path'
 import { routedAdapter } from '@rooted/adapter'
 
 import type { AdapterRoutes } from '@rooted/adapter'
+import type { Express } from 'express'
 import type { Plugin } from 'vite'
+
+/**
+ * An Express middleware function for use with {@link ExpressAdapterOptions.middlewarePath}.
+ * Receives the Express instance and may register middleware or routes on it.
+ */
+export type ExpressMiddleware = (app: Express) => Promise<void> | void
+
+/**
+ * Identity helper that types a middleware function for the express adapter.
+ * Use it as the default export of a `.mjs` file under your `middlewarePath` folder
+ * so editors pick up the Express instance type without extra annotations.
+ *
+ * @example
+ * ```js
+ * // src/server-middleware/01-api-proxy.mjs
+ * import { createMiddleware } from '@rooted-adapters/express'
+ * import { createProxyMiddleware } from 'http-proxy-middleware'
+ *
+ * export default createMiddleware((app) => {
+ *   app.use('/api', createProxyMiddleware({ target: process.env.API_URL }))
+ * })
+ * ```
+ */
+export function createMiddleware(handler: ExpressMiddleware): ExpressMiddleware {
+	return handler
+}
 
 /**
  * Options for {@link expressAdapter}.
