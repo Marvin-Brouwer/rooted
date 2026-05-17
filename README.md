@@ -13,7 +13,11 @@ export const Greeting = component({
   name: 'greeting',
   styles,
   onMount({ append, element }) {
-    append(element('p', { textContent: 'Hello from rooted!' }))
+    append(
+      element('p', {
+        textContent: 'Hello from rooted!',
+      })
+    )
   },
 })
 ```
@@ -68,17 +72,26 @@ import { component } from '@rooted/components'
 export const Counter = component({
   name: 'counter',
   styles,
-  onMount({ append, element, signal }) {
+  onMount({ append, element }) {
     let count = 0
 
-    const label = append(element('span', { textContent: '0' }))
+    const label = append(
+      element('span', {
+        textContent: '0',
+      })
+    )
 
-    const button = append(element('button', { textContent: 'Increment' }))
-    button.addEventListener('click', () => {
-      count++
-      label.textContent = String(count)
-    }, { signal })
-    // The listener is removed automatically when the component unmounts.
+    append(
+      element('button', {
+        textContent: 'Increment',
+        on: {
+          click() {
+            count++
+            label.textContent = String(count)
+          },
+        },
+      })
+    )
   },
 })
 ```
@@ -94,7 +107,11 @@ import { Counter } from './counter.mts'
 const Application = component({
   name: 'app',
   onMount({ append, element }) {
-    append(element('h1', { textContent: 'My App' }))
+    append(
+      element('h1', {
+        textContent: 'My App',
+      })
+    )
     append(Counter)
   },
 })
@@ -129,9 +146,9 @@ const Router = router({
 application(
   component({
     name: 'app',
-    onMount({ append }) { 
-			append(Router) 
-		},
+    onMount({ append }) {
+      append(Router)
+    },
   })
 )
 ```
@@ -192,6 +209,10 @@ Measured from the tree-shaken production build of the [recipe-book example app](
 
 These numbers go stale as the framework changes. The current report is at [marvin-brouwer.github.io/rooted/stats.html](https://marvin-brouwer.github.io/rooted/stats.html).
 
+
+## Demo
+
+A live example app (a recipe book) is hosted at [lively-sky-0adfd8510.7.azurestaticapps.net](https://lively-sky-0adfd8510.7.azurestaticapps.net/). The source is in [`examples/recipe-book/`](./examples/recipe-book).
 
 ## Documentation
 

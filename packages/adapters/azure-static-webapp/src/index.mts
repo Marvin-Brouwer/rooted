@@ -23,8 +23,8 @@ export type AzureStaticWebappAdapterOptions = {
  * Writes `staticwebapp.config.json` to the output directory with routing rules
  * built from the route manifest and/or manual `routes` option:
  * - Pre-rendered routes get explicit `200` entries so Azure serves their HTML directly.
- * - Parameterized routes get wildcard rewrite entries (`:param` becomes `*`).
- * - Everything else falls through to `navigationFallback` pointing at `404.html`.
+ * - Everything else returns a `404` response that serves `404.html`, matching the
+ *   standard SPA behaviour: the shell loads and the client-side router takes over.
  *
  * @example `vite.config.ts`
  * ```ts
@@ -53,14 +53,11 @@ export function azureStaticWebappAdapter(options?: AzureStaticWebappAdapterOptio
 					statusCode: 200 as const,
 				}))
 
-			const dynamicRoutes: AzureRoute[] = resolvedRoutes.dynamicPatterns
-				.map(p => ({ route: toWildcard(p).replace(/\/$/, '') + '/*', rewrite: '/404.html' }))
-
 			const config: AzureStaticWebAppConfig = {
-				routes: [...staticRoutes, ...dynamicRoutes],
-				navigationFallback: {
-					rewrite: '/404.html',
-					exclude: ['/assets/*', '/*.{js,css,png,jpg,svg,ico,woff2,webmanifest}'],
+				routes: staticRoutes,
+				trailingSlash: 'always',
+				responseOverrides: {
+					404: { rewrite: '/404.html', statusCode: 404 },
 				},
 			}
 
@@ -73,16 +70,10 @@ export function azureStaticWebappAdapter(options?: AzureStaticWebappAdapterOptio
 	})
 }
 
-type AzureRoute =
-	| { route: string; serve: string; statusCode: 200 }
-	| { route: string; rewrite: string }
+type AzureRoute = { route: string; serve: string; statusCode: 200 }
 
 type AzureStaticWebAppConfig = {
 	routes: AzureRoute[]
-	navigationFallback: { rewrite: string; exclude: string[] }
-}
-
-// Converts :param tokens to Azure wildcard (*) segments.
-function toWildcard(pattern: string): string {
-	return pattern.replace(/:[\w]+/g, '*')
+	trailingSlash: 'always'
+	responseOverrides: { 404: { rewrite: string; statusCode: 404 } }
 }

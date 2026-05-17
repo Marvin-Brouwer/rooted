@@ -6,9 +6,8 @@ on:
     branches:
       - main
     paths:
-      # Only publish when the example changes
-      - demo/**
-      - .github/workflows/publish-pages.yml
+      - docs/**
+      - .github/workflows/publish-gh-pages.yml
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -48,17 +47,16 @@ jobs:
           cache-dependency-path: "pnpm-lock.yaml"
           check-latest: true
       - name: Install dependencies
-        run: pnpm install
-      - name: Build all
-        run: pnpm build
-        working-directory: "."
+        run: pnpm install --frozen-lockfile
+      - name: Build docs
+        run: pnpm docs:build
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v6
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: ./examples/recipe-book/dist
+          path: ./docs/.vitepress/dist
   deploy:
     permissions:
       pages: write

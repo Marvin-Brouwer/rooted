@@ -71,9 +71,9 @@ New functionality:
     use as much of the apis the browser has to offer.
 - extendable eventing, offer a type to extend the `on` function
 - better default functions
-  - after(miliseconds, callback) = setTimeOut with auto cleanup based on abortSignal
-  - every(miliseconds, callback) = setInterval with auto cleanup based on abortSignal
-  - query<keyof HTMLTagList>(queryString) = document.querySelector + rooted()
+  - `after(miliseconds, callback)` = setTimeOut with auto cleanup based on abortSignal
+  - `every(miliseconds, callback)` = setInterval with auto cleanup based on abortSignal
+  - `query<keyof HTMLTagList>(queryString)` = document.querySelector + rooted()
 
 What remains:
 

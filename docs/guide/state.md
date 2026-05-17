@@ -93,18 +93,28 @@ export const counter = createStore({ count: 0 })
 
 export const IncrementButton = component({
   name: 'increment-button',
-  onMount({ append, element, signal }) {
-    const button = append(element('button', { textContent: 'Increment' }))
-    button.addEventListener('click', () => {
-      counter.update(state => { state.count += 1 })
-    }, { signal })
+  onMount({ append, element }) {
+    append(
+      element('button', {
+        textContent: 'Increment',
+        on: {
+          click() {
+            counter.update(state => { state.count += 1 })
+          },
+        },
+      })
+    )
   },
 })
 
 export const CounterDisplay = component({
   name: 'counter-display',
   onMount({ append, element, signal }) {
-    const label = append(element('span', { textContent: String(counter.value.count) }))
+    const label = append(
+      element('span', {
+        textContent: String(counter.value.count),
+      })
+    )
     counter.on('change', signal, ({ detail }) => {
       label.textContent = String(detail.state.count)
     })
