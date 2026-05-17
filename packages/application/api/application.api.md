@@ -5,17 +5,16 @@
 ```ts
 
 import * as _$vite from 'vite';
+import { AdditionalSitemap } from '@rooted/adapter';
 import { ArrayElement } from '@rooted/util';
 import { BuildEnvironmentOptions } from 'vite';
 import { ManifestOptions } from 'vite-plugin-pwa';
+import { SeoApi } from '@rooted/adapter';
+import { SitemapEntry } from '@rooted/adapter';
 import { UserConfig } from 'vite';
 import { VitePWAOptions } from 'vite-plugin-pwa';
 
-// @public
-export type AdditionalSitemap = {
-    name: string;
-    entries: SitemapEntry[];
-};
+export { AdditionalSitemap }
 
 // @public
 export type CodeSplittingGroups = NonNullable<CodeSplittingOptions['groups']>;
@@ -63,13 +62,7 @@ export type RootedApplicationManifest = {
 // @public
 export function rootedManifest(manifest: RootedApplicationManifest): _$vite.UserConfigFnObject;
 
-// @public
-export type SeoApi = {
-    addSitemap(sitemap: AdditionalSitemap): void;
-    getSitemapUrl(): string | undefined;
-    injectRouteHtml(html: string, seo: RouteSeoMetadata | undefined, staticPath: string): string;
-    injectRootHtml(html: string): string;
-};
+export { SeoApi }
 
 // @public (undocumented)
 export type SeoOptions = {
@@ -80,18 +73,7 @@ export type SeoOptions = {
     llmsTxt?: LlmsTxtOptions | false;
 };
 
-// @public
-export type SitemapEntry = {
-    loc: string; /** Last modification date in `YYYY-MM-DD` format. */
-    lastmod?: string;
-    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'; /** Relative priority of this URL (0.0–1.0). Maps to the `<priority>` XML element. */
-    priority?: number; /** Image entries for image sitemaps (`xmlns:image` extension). */
-    images?: Array<{
-        loc: string;
-        title?: string;
-        caption?: string;
-    }>;
-};
+export { SitemapEntry }
 
 // (No @packageDocumentation comment for this package)
 

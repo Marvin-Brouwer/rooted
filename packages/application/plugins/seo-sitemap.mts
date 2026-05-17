@@ -1,4 +1,4 @@
-import type { SitemapEntry } from './seo-api.mts'
+import type { SitemapEntry } from '@rooted/adapter'
 
 export function buildSitemapXml(entries: SitemapEntry[]): string {
 	const hasImages = entries.some(entry => entry.images && entry.images.length > 0)

@@ -25,6 +25,7 @@ export const Greeting = component({
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [Packages](#packages)
+- [Adapters](#adapters)
 - [Documentation](#documentation)
 - [Development](#development)
 
@@ -148,8 +149,35 @@ See the [`recipe-book` example](./examples/recipe-book) for a full vertical-slic
 | [`@rooted/events`](./packages/events) | Typed event helpers and global error utilities. |
 | [`@rooted/store`](./packages/store) | A small synchronous store with `update` and `change` events. Not reactive. |
 | [`@rooted/storage`](./packages/storage) | Typed wrappers around `localStorage`, `sessionStorage`, and cookies. |
-| [`@rooted/application`](./packages/application) | Build-time configuration, SEO plugins (sitemap, llms.txt, meta), and Vite adapters. |
+| [`@rooted/application`](./packages/application) | Build-time configuration and SEO plugins (sitemap, llms.txt, per-route meta). |
 | [`@rooted/util`](./packages/util) | Shared utilities (seeded IDs, client-side checks, dev helpers). |
+
+
+## Adapters
+
+Deployment adapters live in separate `@rooted-adapters/*` packages. Install the one that matches your host and add it to `plugins` in `vite.config.mts`.
+
+| Host | Package |
+|------|---------|
+| GitHub Pages | [`@rooted-adapters/github-pages`](./packages/adapters/github-pages) |
+| GitLab Pages | [`@rooted-adapters/gitlab-pages`](./packages/adapters/gitlab-pages) |
+| Codeberg Pages | [`@rooted-adapters/codeberg-pages`](./packages/adapters/codeberg-pages) |
+| Netlify | [`@rooted-adapters/netlify-hosting`](./packages/adapters/netlify-hosting) |
+| Cloudflare Pages | [`@rooted-adapters/cloudflare-pages`](./packages/adapters/cloudflare-pages) |
+| Vercel (static) | [`@rooted-adapters/vercel-static`](./packages/adapters/vercel-static) |
+| Azure Static Web Apps | [`@rooted-adapters/azure-static-webapp`](./packages/adapters/azure-static-webapp) |
+| Firebase Hosting | [`@rooted-adapters/firebase-hosting`](./packages/adapters/firebase-hosting) |
+| AWS S3 (+ DigitalOcean Spaces, STACKIT, OVH) | [`@rooted-adapters/aws-s3`](./packages/adapters/aws-s3) |
+| Google Cloud Storage | [`@rooted-adapters/gcp-cloud-storage`](./packages/adapters/gcp-cloud-storage) |
+| Azure Blob Storage | [`@rooted-adapters/azure-blob`](./packages/adapters/azure-blob) |
+| Cloudflare R2 | [`@rooted-adapters/cloudflare-r2`](./packages/adapters/cloudflare-r2) |
+| Scaleway Object Storage | [`@rooted-adapters/scaleway-object-storage`](./packages/adapters/scaleway-object-storage) |
+| Generic static / object storage | [`@rooted-adapters/static-site`](./packages/adapters/static-site) |
+| Generic git pages | [`@rooted-adapters/git-pages`](./packages/adapters/git-pages) |
+| Fastify (any Node.js host) | [`@rooted-adapters/fastify`](./packages/adapters/fastify) |
+| Express (any Node.js host) | [`@rooted-adapters/express`](./packages/adapters/express) |
+
+The base `@rooted/adapter` package is for writing custom adapters. More in the [adapters guide](./docs/guide/adapters.md).
 
 
 ## Bundle size

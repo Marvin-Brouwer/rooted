@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { SeoApi } from './seo-api.mts'
+import type { SeoApi } from '@rooted/adapter'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 const SEO_PLUGIN_NAME = 'rooted:seo'

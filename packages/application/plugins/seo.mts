@@ -10,7 +10,7 @@ import { buildSitemapIndexXml, buildSitemapXml } from './seo-sitemap.mts'
 
 import type { LlmsTxtOptions } from './llms-txt.mts'
 import type { RobotsOptions } from './robots.mts'
-import type { AdditionalSitemap, SeoApi, SitemapEntry } from './seo-api.mts'
+import type { AdditionalSitemap, SeoApi, SitemapEntry } from '@rooted/adapter'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { RouteSeoMetadata } from '@rooted/router/routes'
 import type { Plugin, ResolvedConfig } from 'vite'

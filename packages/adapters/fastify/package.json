@@ -1,0 +1,65 @@
+{
+	"name": "@rooted-adapters/fastify",
+	"version": "1.0.0-alpha.0",
+	"description": "Adapter for server-side hosting with Fastify",
+	"keywords": [
+		"web-components",
+		"typescript",
+		"rooted"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "packages/adapters/fastify"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
+	"sideEffects": false,
+	"publishConfig": {
+		"registry": "https://registry.npmjs.org/",
+		"access": "public",
+		"provenance": true
+	},
+	"files": [
+		"dist",
+		"readme.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"types": "./dist/index.d.mts"
+		}
+	},
+	"peerDependencies": {
+		"@fastify/static": ">= 8.0.0",
+		"@rooted/adapter": "workspace:^",
+		"fastify": ">= 5.0.0",
+		"rolldown": ">= 1.0.0",
+		"vite": ">= 8.0.1"
+	},
+	"peerDependenciesMeta": {
+		"@fastify/static": { "optional": false },
+		"fastify": { "optional": false }
+	},
+	"devDependencies": {
+		"@rooted/adapter": "workspace:^",
+		"@rooted/development": "workspace:*",
+		"@rooted/tsdown": "workspace:^",
+		"@types/node": "^25.6.2",
+		"tsx": "^4.21.0",
+		"typescript": "^6.0.3",
+		"vite": "^8.0.12"
+	},
+	"scripts": {
+		"build": "pnpm build:ci",
+		"build:dev": "pnpm build:ci",
+		"build:ci": "tsdown",
+		"watch": "tsdown --watch --no-clean",
+		"clean": "rm -rf dist"
+	}
+}

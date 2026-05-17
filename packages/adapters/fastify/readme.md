@@ -1,0 +1,55 @@
+# [`@rooted-adapters/fastify`](https://www.npmjs.com/package/@rooted-adapters/fastify)
+
+Deployment adapter for server-side hosting with Fastify. Part of the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework.
+
+Writes `routes.json` and a ready-to-run `server.mjs` to the output directory. Start the server with `node dist/server.mjs`. The `PORT` environment variable controls the port (default: 3000).
+
+Requires `fastify >= 5.0.0` and `@fastify/static >= 8.0.0`.
+
+> [!IMPORTANT]
+> This package is still in alpha.
+
+```sh
+pnpm add -D @rooted-adapters/fastify
+```
+
+```ts
+// vite.config.mts
+import { rootedManifest } from '@rooted/application'
+import { generateRouteManifest } from '@rooted/router/manifest'
+import { fastifyAdapter } from '@rooted-adapters/fastify'
+
+export default rootedManifest({
+  plugins: [
+    generateRouteManifest({ glob: './src/**/_routes.mts', routeManifestPath: './src/_routes.g.mts' }),
+    fastifyAdapter(),
+  ],
+})
+```
+
+## Adding plugins
+
+If you need to register Fastify plugins (proxies, auth, rate-limiting), point `middlewarePath` at a folder of `.mjs` files. Use the `createMiddleware` helper so editors pick up the Fastify instance type:
+
+```ts
+fastifyAdapter({ middlewarePath: './src/server-middleware' })
+```
+
+```ts
+// src/server-middleware/01-api-proxy.mts
+import { createMiddleware } from '@rooted-adapters/fastify'
+import fastifyHttpProxy from '@fastify/http-proxy'
+
+export default createMiddleware(async (app) => {
+  await app.register(fastifyHttpProxy, {
+    upstream: process.env.API_URL,
+    prefix: '/api',
+  })
+})
+```
+
+Files can be `.mts`, `.ts`, `.mjs`, or `.js` -- TypeScript is transpiled with rolldown at build time.
+
+Full details in [advanced/server-middleware](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/server-middleware.md).
+
+More in the [adapters guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/adapters.md).

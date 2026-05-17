@@ -64,9 +64,19 @@ Separate from `store` because they are different concerns: `store` is in-memory 
 
 ## `@rooted/application`
 
-Build-time tooling. The `rootedManifest` helper that wraps a Vite config, the SEO plugin (sitemap, llms.txt, robots, per-route meta injection), the PWA preset, the GitHub Pages adapter, and the import cycle detector.
+Build-time tooling. The `rootedManifest` helper that wraps a Vite config, the SEO plugin (sitemap, llms.txt, robots, per-route meta injection), the PWA preset, and the import cycle detector.
 
 This package has no runtime exports. If you're writing app code, you don't import from it.
+
+## `@rooted/adapter` and `@rooted-adapters/*`
+
+`@rooted/adapter` is the base package for deployment adapters. It exports `staticAdapter` (for file-based hosts) and `routedAdapter` (for Node.js servers). It handles the shared build work: reading `index.html`, pre-rendering static routes, injecting SEO, and running the SSG pass.
+
+The 17 `@rooted-adapters/*` packages are thin wrappers around `@rooted/adapter`. Each one handles the host-specific artifacts for a single deployment target (`_redirects`, `firebase.json`, `staticwebapp.config.json`, `server.mjs`, etc.).
+
+App developers install one `@rooted-adapters/*` package in `devDependencies` and never touch `@rooted/adapter` directly. Adapter authors who need to publish a custom host adapter depend on `@rooted/adapter` and call `staticAdapter` or `routedAdapter`.
+
+These packages live in `packages/adapter/` and `packages/adapters/*/`. The split is documented in [adr/2026-05-17.adapter-split.md](../adr/2026-05-17.adapter-split.md).
 
 ## What about `examples/recipe-book`?
 
