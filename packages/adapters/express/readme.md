@@ -35,8 +35,8 @@ If you need to register Express middleware (proxies, auth, rate-limiting), point
 expressAdapter({ middlewarePath: './src/server-middleware' })
 ```
 
-```js
-// src/server-middleware/01-api-proxy.mjs
+```ts
+// src/server-middleware/01-api-proxy.mts
 import { createMiddleware } from '@rooted-adapters/express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 
@@ -44,6 +44,8 @@ export default createMiddleware((app) => {
   app.use('/api', createProxyMiddleware({ target: process.env.API_URL }))
 })
 ```
+
+Files can be `.mts`, `.ts`, `.mjs`, or `.js` -- TypeScript is transpiled with esbuild at build time.
 
 Full details in [advanced/server-middleware](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/server-middleware.md).
 

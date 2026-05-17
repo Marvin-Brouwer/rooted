@@ -1,5 +1,7 @@
-import { copyFile, mkdir, readdir, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
+
+import { build } from 'esbuild'
 
 import { routedAdapter } from '@rooted/adapter'
 
@@ -15,12 +17,12 @@ export type ExpressMiddleware = (app: Express) => Promise<void> | void
 
 /**
  * Identity helper that types a middleware function for the express adapter.
- * Use it as the default export of a `.mjs` file under your `middlewarePath` folder
- * so editors pick up the Express instance type without extra annotations.
+ * Use it as the default export of a file under your `middlewarePath` folder so
+ * editors pick up the Express instance type without extra annotations.
  *
  * @example
- * ```js
- * // src/server-middleware/01-api-proxy.mjs
+ * ```ts
+ * // src/server-middleware/01-api-proxy.mts
  * import { createMiddleware } from '@rooted-adapters/express'
  * import { createProxyMiddleware } from 'http-proxy-middleware'
  *
@@ -43,10 +45,11 @@ export type ExpressAdapterOptions = {
 	 */
 	routes?: AdapterRoutes
 	/**
-	 * Path to a folder of `.mjs` middleware files, relative to the Vite project root.
-	 * Each file must export a default `function(app)` that registers middleware on the
-	 * Express instance. Files are loaded in lexicographic order, so numeric prefixes
-	 * (`01-auth.mjs`, `02-proxy.mjs`) control load order.
+	 * Path to a folder of middleware files, relative to the Vite project root.
+	 * Files can be `.mts`, `.ts`, `.mjs`, or `.js` -- TypeScript is transpiled with
+	 * esbuild at build time. Each file must export a default `function(app)` that
+	 * registers middleware on the Express instance. Files are loaded in lexicographic
+	 * order, so numeric prefixes (`01-auth.mts`, `02-proxy.mts`) control load order.
 	 * Middleware runs before the rooted static-file and route handlers.
 	 *
 	 * @example
@@ -54,13 +57,14 @@ export type ExpressAdapterOptions = {
 	 * expressAdapter({ middlewarePath: './src/server-middleware' })
 	 * ```
 	 *
-	 * ```js
-	 * // src/server-middleware/01-api-proxy.mjs
+	 * ```ts
+	 * // src/server-middleware/01-api-proxy.mts
+	 * import { createMiddleware } from '@rooted-adapters/express'
 	 * import { createProxyMiddleware } from 'http-proxy-middleware'
 	 *
-	 * export default function (app) {
+	 * export default createMiddleware((app) => {
 	 *   app.use('/api', createProxyMiddleware({ target: process.env.API_URL }))
-	 * }
+	 * })
 	 * ```
 	 */
 	middlewarePath?: string
@@ -101,15 +105,25 @@ export function expressAdapter(options?: ExpressAdapterOptions): Plugin {
 		async setup({ outputDirectory }) {
 			if (options?.middlewarePath) {
 				const sourceDirectory = path.resolve(process.cwd(), options.middlewarePath)
-				const files = (await readdir(sourceDirectory)).filter(f => f.endsWith('.mjs'))
+				const files = (await readdir(sourceDirectory)).filter(f => MIDDLEWARE_EXTENSIONS.test(f))
 				if (files.length === 0)
 					throw new Error(
-						`[rooted:express] No .mjs files found in middlewarePath "${options.middlewarePath}"`,
+						`[rooted:express] No middleware files (.mts, .ts, .mjs, .js) found in middlewarePath "${options.middlewarePath}"`,
 					)
 				const middlewareDirectory = path.join(outputDirectory, 'middleware')
 				await mkdir(middlewareDirectory, { recursive: true })
-				for (const file of files)
-					await copyFile(path.join(sourceDirectory, file), path.join(middlewareDirectory, file))
+				for (const file of files) {
+					await build({
+						entryPoints: [path.join(sourceDirectory, file)],
+						outfile: path.join(middlewareDirectory, file.replace(MIDDLEWARE_EXTENSIONS, '.mjs')),
+						bundle: true,
+						platform: 'node',
+						format: 'esm',
+						target: 'node22',
+						packages: 'external',
+						logLevel: 'silent',
+					})
+				}
 			}
 			await writeFile(
 				path.join(outputDirectory, 'server.mjs'),
@@ -119,6 +133,8 @@ export function expressAdapter(options?: ExpressAdapterOptions): Plugin {
 		},
 	})
 }
+
+const MIDDLEWARE_EXTENSIONS = /\.(mts|ts|mjs|js)$/
 
 function buildExpressTemplate(hasMiddleware: boolean): string {
 	const fsImport = hasMiddleware

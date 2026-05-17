@@ -35,6 +35,9 @@
 			"types": "./dist/index.d.mts"
 		}
 	},
+	"dependencies": {
+		"esbuild": ">= 0.27.0"
+	},
 	"peerDependencies": {
 		"@rooted/adapter": "workspace:^",
 		"express": ">= 5.0.0",
