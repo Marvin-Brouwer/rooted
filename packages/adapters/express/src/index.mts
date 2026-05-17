@@ -1,7 +1,7 @@
 import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { build } from 'esbuild'
+import { build } from 'rolldown'
 
 import { routedAdapter } from '@rooted/adapter'
 
@@ -47,7 +47,7 @@ export type ExpressAdapterOptions = {
 	/**
 	 * Path to a folder of middleware files, relative to the Vite project root.
 	 * Files can be `.mts`, `.ts`, `.mjs`, or `.js` -- TypeScript is transpiled with
-	 * esbuild at build time. Each file must export a default `function(app)` that
+	 * rolldown at build time. Each file must export a default `function(app)` that
 	 * registers middleware on the Express instance. Files are loaded in lexicographic
 	 * order, so numeric prefixes (`01-auth.mts`, `02-proxy.mts`) control load order.
 	 * Middleware runs before the rooted static-file and route handlers.
@@ -114,14 +114,14 @@ export function expressAdapter(options?: ExpressAdapterOptions): Plugin {
 				await mkdir(middlewareDirectory, { recursive: true })
 				for (const file of files) {
 					await build({
-						entryPoints: [path.join(sourceDirectory, file)],
-						outfile: path.join(middlewareDirectory, file.replace(MIDDLEWARE_EXTENSIONS, '.mjs')),
-						bundle: true,
+						input: path.join(sourceDirectory, file),
 						platform: 'node',
-						format: 'esm',
-						target: 'node22',
-						packages: 'external',
+						external: id => !id.startsWith('.') && !path.isAbsolute(id),
 						logLevel: 'silent',
+						output: {
+							file: path.join(middlewareDirectory, file.replace(MIDDLEWARE_EXTENSIONS, '.mjs')),
+							format: 'esm',
+						},
 					})
 				}
 			}

@@ -35,13 +35,11 @@
 			"types": "./dist/index.d.mts"
 		}
 	},
-	"dependencies": {
-		"esbuild": ">= 0.27.0"
-	},
 	"peerDependencies": {
 		"@fastify/static": ">= 8.0.0",
 		"@rooted/adapter": "workspace:^",
 		"fastify": ">= 5.0.0",
+		"rolldown": ">= 1.0.0",
 		"vite": ">= 8.0.1"
 	},
 	"peerDependenciesMeta": {

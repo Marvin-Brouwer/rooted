@@ -45,7 +45,7 @@ export default createMiddleware((app) => {
 })
 ```
 
-Files can be `.mts`, `.ts`, `.mjs`, or `.js` -- TypeScript is transpiled with esbuild at build time.
+Files can be `.mts`, `.ts`, `.mjs`, or `.js` -- TypeScript is transpiled with rolldown at build time.
 
 Full details in [advanced/server-middleware](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/server-middleware.md).
 
