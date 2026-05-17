@@ -3,7 +3,7 @@
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
-	"homepage": "https://marvin-brouwer.github.io/rooted/",
+	"homepage": "https://example.azurestaticapps.net/",
 	"scripts": {
 		"dev": "vite",
 		"analyze": "vite build -- --minify --no-mangle --analyze",
@@ -20,7 +20,7 @@
 		"@rooted/store": "workspace:^"
 	},
 	"devDependencies": {
-		"@rooted-adapters/github-pages": "workspace:^",
+		"@rooted-adapters/azure-static-webapp": "workspace:^",
 		"@rooted/application": "workspace:^",
 		"@varlock/vite-integration": "^1.1.1",
 		"varlock": "^1.1.0",

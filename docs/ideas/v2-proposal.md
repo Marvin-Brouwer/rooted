@@ -73,7 +73,7 @@ New functionality:
 - better default functions
   - after(miliseconds, callback) = setTimeOut with auto cleanup based on abortSignal
   - every(miliseconds, callback) = setInterval with auto cleanup based on abortSignal
-  - query<keyof HTMLTagList>(queryString) = document.querySelector + rooted()
+  - `query<keyof HTMLTagList>(queryString)` = document.querySelector + rooted()
 
 What remains:
 

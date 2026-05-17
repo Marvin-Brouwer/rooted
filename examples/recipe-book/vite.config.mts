@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { githubPagesAdapter } from '@rooted-adapters/github-pages'
+import { azureStaticWebappAdapter } from '@rooted-adapters/azure-static-webapp'
 import { varlockVitePlugin } from '@varlock/vite-integration'
 import { ENV } from 'varlock/env'
 import { normalizePath } from 'vite'
@@ -62,7 +62,7 @@ export default rootedManifest({
 			glob: './src/**/_routes.mts',
 			routeManifestPath: './src/_routes.g.mts',
 		}),
-		githubPagesAdapter(),
+		azureStaticWebappAdapter(),
 	],
 	codeSplitting: {
 		groups: codeSplittingGroups,

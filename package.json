@@ -8,6 +8,9 @@
 		"build": "pnpm -r --stream run build",
 		"build:dev": "pnpm -r --stream run build:dev",
 		"build:ci": "pnpm -r run build:ci",
+		"docs:dev": "vitepress dev docs",
+		"docs:build": "vitepress build docs",
+		"docs:preview": "vitepress preview docs",
 		"test": "vp test",
 		"test:watch": "vp test --watch",
 		"lint:nofix": "oxlint -c .repo/config/oxlint/oxlint.config.json . && node .repo/config/oxlint/check-packages.mjs",
@@ -31,6 +34,7 @@
 		"tsdown": "^0.22.0",
 		"typescript": "^6.0.3",
 		"vite-plus": "^0.1.21",
+		"vitepress": "^1.0.0",
 		"vitest": "^4.1.5"
 	},
 	"engines": {

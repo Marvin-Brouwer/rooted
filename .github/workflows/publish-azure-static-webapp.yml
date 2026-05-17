@@ -1,0 +1,91 @@
+name: Publish Azure Static Web App (recipe-book)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - examples/**
+      - packages/**
+      - .github/workflows/publish-azure-static-webapp.yml
+
+permissions:
+  id-token: write
+  contents: read
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  # Make the group unique, but, distinguish between automatic and manual dispatch
+  group: azure-static-webapp-${{ github.ref }}${{ github.event_name == 'workflow_dispatch' && '[dispatch]' || '' }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+      # Supposedly this speeds up the build
+      # https://github.com/actions/setup-node/issues/819#issuecomment-1659698335
+      - uses: actions/cache@v5
+        with:
+          path: "~/.pnpm"
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: "pnpm-lock.yaml"
+          check-latest: true
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build:ci
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: recipe-book-dist
+          path: ./examples/recipe-book/dist
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: recipe-book-dist
+          path: ./dist
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Get deployment token
+        id: swa-token
+        run: |
+          token=$(az staticwebapp secrets list \
+            --name "${{ vars.AZURE_STATIC_WEBAPP_NAME }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query "properties.apiKey" \
+            --output tsv)
+          echo "::add-mask::$token"
+          echo "token=$token" >> $GITHUB_OUTPUT
+      - name: Deploy to Azure Static Web Apps
+        uses: azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.swa-token.outputs.token }}
+          action: upload
+          app_location: ./dist
+          skip_app_build: true
