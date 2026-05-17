@@ -29,6 +29,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
+        with:
+          lfs: true
       # Supposedly this speeds up the build
       # https://github.com/actions/setup-node/issues/819#issuecomment-1659698335
       - uses: actions/cache@v5
