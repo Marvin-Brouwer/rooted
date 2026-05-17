@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import { routedAdapter } from '@rooted/adapter'
@@ -15,6 +15,28 @@ export type ExpressAdapterOptions = {
 	 * See {@link AdapterRoutes}.
 	 */
 	routes?: AdapterRoutes
+	/**
+	 * Path to a folder of `.mjs` middleware files, relative to the Vite project root.
+	 * Each file must export a default `function(app)` that registers middleware on the
+	 * Express instance. Files are loaded in lexicographic order, so numeric prefixes
+	 * (`01-auth.mjs`, `02-proxy.mjs`) control load order.
+	 * Middleware runs before the rooted static-file and route handlers.
+	 *
+	 * @example
+	 * ```ts
+	 * expressAdapter({ middlewarePath: './src/server-middleware' })
+	 * ```
+	 *
+	 * ```js
+	 * // src/server-middleware/01-api-proxy.mjs
+	 * import { createProxyMiddleware } from 'http-proxy-middleware'
+	 *
+	 * export default function (app) {
+	 *   app.use('/api', createProxyMiddleware({ target: process.env.API_URL }))
+	 * }
+	 * ```
+	 */
+	middlewarePath?: string
 }
 
 /**
@@ -50,18 +72,46 @@ export function expressAdapter(options?: ExpressAdapterOptions): Plugin {
 		name: 'rooted:express',
 		routes: options?.routes,
 		async setup({ outputDirectory }) {
+			if (options?.middlewarePath) {
+				const sourceDirectory = path.resolve(process.cwd(), options.middlewarePath)
+				const files = (await readdir(sourceDirectory)).filter(f => f.endsWith('.mjs'))
+				if (files.length === 0)
+					throw new Error(
+						`[rooted:express] No .mjs files found in middlewarePath "${options.middlewarePath}"`,
+					)
+				const middlewareDirectory = path.join(outputDirectory, 'middleware')
+				await mkdir(middlewareDirectory, { recursive: true })
+				for (const file of files)
+					await copyFile(path.join(sourceDirectory, file), path.join(middlewareDirectory, file))
+			}
 			await writeFile(
 				path.join(outputDirectory, 'server.mjs'),
-				EXPRESS_SERVER_TEMPLATE,
+				buildExpressTemplate(!!options?.middlewarePath),
 				'utf8',
 			)
 		},
 	})
 }
 
-const EXPRESS_SERVER_TEMPLATE = `\
+function buildExpressTemplate(hasMiddleware: boolean): string {
+	const fsImport = hasMiddleware
+		? `import { readFileSync, readdirSync } from 'node:fs'`
+		: `import { readFileSync } from 'node:fs'`
+
+	const middlewareBlock = hasMiddleware
+		? `
+// User middleware -- applied before rooted handlers
+const middlewareDir = path.join(__dirname, 'middleware')
+for (const file of readdirSync(middlewareDir).filter(f => f.endsWith('.mjs')).sort()) {
+  const mod = await import(path.join(middlewareDir, file))
+  if (mod.default) await mod.default(app)
+}
+`
+		: ''
+
+	return `\
 import express from 'express'
-import { readFileSync } from 'node:fs'
+${fsImport}
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
@@ -72,7 +122,7 @@ const { base, dynamicRoutes, fallback } = JSON.parse(
 
 const prefix = base.replace(/\\/$/, '')
 const app = express()
-
+${middlewareBlock}
 // Serves all pre-rendered HTML files and static assets automatically
 app.use(base, express.static(__dirname))
 
@@ -89,3 +139,4 @@ app.use((_req, res) => res.sendFile(path.join(__dirname, fallback)))
 const port = Number(process.env.PORT ?? 3000)
 app.listen(port, '0.0.0.0', () => console.log(\`Listening on http://0.0.0.0:\${port}\`))
 `
+}

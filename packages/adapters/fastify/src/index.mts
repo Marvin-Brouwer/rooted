@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import { routedAdapter } from '@rooted/adapter'
@@ -15,6 +15,31 @@ export type FastifyAdapterOptions = {
 	 * See {@link AdapterRoutes}.
 	 */
 	routes?: AdapterRoutes
+	/**
+	 * Path to a folder of `.mjs` middleware files, relative to the Vite project root.
+	 * Each file must export a default `async function(app)` that registers plugins or
+	 * middleware on the Fastify instance. Files are loaded in lexicographic order, so
+	 * numeric prefixes (`01-auth.mjs`, `02-proxy.mjs`) control load order.
+	 * Middleware runs before the rooted static-file and route handlers.
+	 *
+	 * @example
+	 * ```ts
+	 * fastifyAdapter({ middlewarePath: './src/server-middleware' })
+	 * ```
+	 *
+	 * ```js
+	 * // src/server-middleware/01-api-proxy.mjs
+	 * import fastifyHttpProxy from '@fastify/http-proxy'
+	 *
+	 * export default async function (app) {
+	 *   await app.register(fastifyHttpProxy, {
+	 *     upstream: process.env.API_URL,
+	 *     prefix: '/api',
+	 *   })
+	 * }
+	 * ```
+	 */
+	middlewarePath?: string
 }
 
 /**
@@ -49,17 +74,45 @@ export function fastifyAdapter(options?: FastifyAdapterOptions): Plugin {
 		name: 'rooted:fastify',
 		routes: options?.routes,
 		async setup({ outputDirectory }) {
+			if (options?.middlewarePath) {
+				const sourceDirectory = path.resolve(process.cwd(), options.middlewarePath)
+				const files = (await readdir(sourceDirectory)).filter(f => f.endsWith('.mjs'))
+				if (files.length === 0)
+					throw new Error(
+						`[rooted:fastify] No .mjs files found in middlewarePath "${options.middlewarePath}"`,
+					)
+				const middlewareDirectory = path.join(outputDirectory, 'middleware')
+				await mkdir(middlewareDirectory, { recursive: true })
+				for (const file of files)
+					await copyFile(path.join(sourceDirectory, file), path.join(middlewareDirectory, file))
+			}
 			await writeFile(
 				path.join(outputDirectory, 'server.mjs'),
-				FASTIFY_SERVER_TEMPLATE,
+				buildFastifyTemplate(!!options?.middlewarePath),
 				'utf8',
 			)
 		},
 	})
 }
 
-const FASTIFY_SERVER_TEMPLATE = `\
-import { readFileSync } from 'node:fs'
+function buildFastifyTemplate(hasMiddleware: boolean): string {
+	const fsImport = hasMiddleware
+		? `import { readFileSync, readdirSync } from 'node:fs'`
+		: `import { readFileSync } from 'node:fs'`
+
+	const middlewareBlock = hasMiddleware
+		? `
+// User middleware -- applied before rooted handlers
+const middlewareDir = path.join(__dirname, 'middleware')
+for (const file of readdirSync(middlewareDir).filter(f => f.endsWith('.mjs')).sort()) {
+  const mod = await import(path.join(middlewareDir, file))
+  if (mod.default) await mod.default(app)
+}
+`
+		: ''
+
+	return `\
+${fsImport}
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import Fastify from 'fastify'
@@ -72,7 +125,7 @@ const { base, dynamicRoutes, fallback } = JSON.parse(
 
 const prefix = base.replace(/\\/$/, '')
 const app = Fastify({ logger: true })
-
+${middlewareBlock}
 // Serves all pre-rendered HTML files and static assets automatically
 await app.register(fastifyStatic, { root: __dirname, prefix: base })
 
@@ -90,3 +143,4 @@ app.setNotFoundHandler((_req, reply) =>
 
 await app.listen({ port: Number(process.env.PORT ?? 3000), host: '0.0.0.0' })
 `
+}
