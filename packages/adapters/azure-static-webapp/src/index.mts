@@ -23,8 +23,8 @@ export type AzureStaticWebappAdapterOptions = {
  * Writes `staticwebapp.config.json` to the output directory with routing rules
  * built from the route manifest and/or manual `routes` option:
  * - Pre-rendered routes get explicit `200` entries so Azure serves their HTML directly.
- * - Parameterized routes get wildcard rewrite entries (`:param` becomes `*`).
- * - Everything else falls through to `navigationFallback` pointing at `404.html`.
+ * - Everything else returns a `404` response that serves `404.html`, matching the
+ *   behaviour of GitHub Pages: the SPA shell loads and the client-side router takes over.
  *
  * @example `vite.config.ts`
  * ```ts
@@ -53,14 +53,10 @@ export function azureStaticWebappAdapter(options?: AzureStaticWebappAdapterOptio
 					statusCode: 200 as const,
 				}))
 
-			const dynamicRoutes: AzureRoute[] = resolvedRoutes.dynamicPatterns
-				.map(p => ({ route: toAzureWildcard(p), rewrite: '/404.html' }))
-
 			const config: AzureStaticWebAppConfig = {
-				routes: [...staticRoutes, ...dynamicRoutes],
-				navigationFallback: {
-					rewrite: '/404.html',
-					exclude: ['/assets/*', '/*.{js,css,png,jpg,svg,ico,woff2,webmanifest}'],
+				routes: staticRoutes,
+				responseOverrides: {
+					404: { rewrite: '/404.html', statusCode: 404 },
 				},
 			}
 
@@ -73,20 +69,9 @@ export function azureStaticWebappAdapter(options?: AzureStaticWebappAdapterOptio
 	})
 }
 
-type AzureRoute =
-	| { route: string; serve: string; statusCode: 200 }
-	| { route: string; rewrite: string }
+type AzureRoute = { route: string; serve: string; statusCode: 200 }
 
 type AzureStaticWebAppConfig = {
 	routes: AzureRoute[]
-	navigationFallback: { rewrite: string; exclude: string[] }
-}
-
-// Azure SWA routes allow at most one '*'. Truncate the pattern at the first
-// param segment and replace everything from there with '/*'.
-// e.g. /user/:id/posts/:postId → /user/*
-function toAzureWildcard(pattern: string): string {
-	const firstParameter = pattern.indexOf(':')
-	if (firstParameter === -1) return pattern
-	return pattern.slice(0, pattern.lastIndexOf('/', firstParameter - 1) + 1) + '*'
+	responseOverrides: { 404: { rewrite: string; statusCode: 404 } }
 }
