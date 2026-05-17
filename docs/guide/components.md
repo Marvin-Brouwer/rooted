@@ -11,7 +11,11 @@ export const Example = component({
   name: 'example',
   styles,
   onMount({ append, element }) {
-    append(element('p', { textContent: 'Hello' }))
+    append(
+      element('p', {
+        textContent: 'Hello',
+      })
+    )
   },
 })
 ```
@@ -80,7 +84,11 @@ type GreetingOptions = { name: string }
 export const Greeting = component<GreetingOptions>({
   name: 'greeting',
   onMount({ append, element, options }) {
-    append(element('p', { textContent: `Hello, ${options.name}` }))
+    append(
+      element('p', {
+        textContent: `Hello, ${options.name}`,
+      })
+    )
   },
 })
 ```
@@ -130,7 +138,11 @@ All forms are removed automatically. You don't need to track them.
 ```ts
 onMount: async ({ append, element, signal }) => {
   const data = await fetch('/api/data', { signal }).then(r => r.json())
-  append(element('p', { textContent: data.message }))
+  append(
+    element('p', {
+      textContent: data.message,
+    })
+  )
 }
 ```
 

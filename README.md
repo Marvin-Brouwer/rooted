@@ -13,7 +13,11 @@ export const Greeting = component({
   name: 'greeting',
   styles,
   onMount({ append, element }) {
-    append(element('p', { textContent: 'Hello from rooted!' }))
+    append(
+      element('p', {
+        textContent: 'Hello from rooted!',
+      })
+    )
   },
 })
 ```
@@ -71,7 +75,11 @@ export const Counter = component({
   onMount({ append, element }) {
     let count = 0
 
-    const label = append(element('span', { textContent: '0' }))
+    const label = append(
+      element('span', {
+        textContent: '0',
+      })
+    )
 
     append(
       element('button', {
@@ -99,7 +107,11 @@ import { Counter } from './counter.mts'
 const Application = component({
   name: 'app',
   onMount({ append, element }) {
-    append(element('h1', { textContent: 'My App' }))
+    append(
+      element('h1', {
+        textContent: 'My App',
+      })
+    )
     append(Counter)
   },
 })

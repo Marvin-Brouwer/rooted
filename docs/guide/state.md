@@ -110,7 +110,11 @@ export const IncrementButton = component({
 export const CounterDisplay = component({
   name: 'counter-display',
   onMount({ append, element, signal }) {
-    const label = append(element('span', { textContent: String(counter.value.count) }))
+    const label = append(
+      element('span', {
+        textContent: String(counter.value.count),
+      })
+    )
     counter.on('change', signal, ({ detail }) => {
       label.textContent = String(detail.state.count)
     })
