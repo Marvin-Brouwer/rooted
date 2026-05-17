@@ -60,7 +60,9 @@ jobs:
     needs: build
     # The environment-scoped OIDC subject (repo:…:environment:production) lets
     # workflow_dispatch work from any branch, not just main.
-    environment: production
+    environment:
+      name: production
+      url: https://lively-sky-0adfd8510.7.azurestaticapps.net/
     permissions:
       id-token: write
     steps:
