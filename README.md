@@ -193,6 +193,10 @@ Measured from the tree-shaken production build of the [recipe-book example app](
 These numbers go stale as the framework changes. The current report is at [marvin-brouwer.github.io/rooted/stats.html](https://marvin-brouwer.github.io/rooted/stats.html).
 
 
+## Demo
+
+A live example app (a recipe book) is hosted at [lively-sky-0adfd8510.7.azurestaticapps.net](https://lively-sky-0adfd8510.7.azurestaticapps.net/). The source is in [`examples/recipe-book/`](./examples/recipe-book).
+
 ## Documentation
 
 The docs are split by audience. Pick the one that matches what you're doing.

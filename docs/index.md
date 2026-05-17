@@ -10,6 +10,9 @@ hero:
       text: Get started
       link: /guide/getting-started
     - theme: alt
+      text: View demo
+      link: https://lively-sky-0adfd8510.7.azurestaticapps.net/
+    - theme: alt
       text: GitHub
       link: https://github.com/Marvin-Brouwer/rooted
 
