@@ -68,17 +68,22 @@ import { component } from '@rooted/components'
 export const Counter = component({
   name: 'counter',
   styles,
-  onMount({ append, element, signal }) {
+  onMount({ append, element }) {
     let count = 0
 
     const label = append(element('span', { textContent: '0' }))
 
-    const button = append(element('button', { textContent: 'Increment' }))
-    button.addEventListener('click', () => {
-      count++
-      label.textContent = String(count)
-    }, { signal })
-    // The listener is removed automatically when the component unmounts.
+    append(
+      element('button', {
+        textContent: 'Increment',
+        on: {
+          click() {
+            count++
+            label.textContent = String(count)
+          },
+        },
+      })
+    )
   },
 })
 ```
@@ -129,9 +134,9 @@ const Router = router({
 application(
   component({
     name: 'app',
-    onMount({ append }) { 
-			append(Router) 
-		},
+    onMount({ append }) {
+      append(Router)
+    },
   })
 )
 ```

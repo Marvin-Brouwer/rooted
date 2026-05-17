@@ -95,16 +95,22 @@ Options are passed in once, at mount time. They do not update. If you need a val
 
 ## Listeners and the signal
 
-Every mount context has an `AbortSignal` that aborts when the component unmounts. Pass it to `addEventListener` and the listener is removed for free.
+Pass `on` as a property of an `element()` call to attach a listener. The listener is removed automatically when the component unmounts.
 
 ```ts
-onMount({ append, element, signal }) {
-  const button = append(element('button', { textContent: 'click me' }))
-  button.addEventListener('click', () => console.log('clicked'), { signal })
+onMount({ append, element }) {
+  append(
+    element('button', {
+      textContent: 'click me',
+      on: {
+        click() { console.log('clicked') },
+      },
+    })
+  )
 }
 ```
 
-For window or document listeners, use `on`:
+For window or document listeners, use `on` from the mount context:
 
 ```ts
 onMount({ on }) {
@@ -113,7 +119,9 @@ onMount({ on }) {
 }
 ```
 
-Both forms are removed automatically. You don't need to track them.
+If you need the raw `AbortSignal` (for example, to pass to `fetch`), it's available as `signal` in the mount context.
+
+All forms are removed automatically. You don't need to track them.
 
 ## Async `onMount`
 

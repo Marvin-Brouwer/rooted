@@ -55,6 +55,7 @@ export function azureStaticWebappAdapter(options?: AzureStaticWebappAdapterOptio
 
 			const config: AzureStaticWebAppConfig = {
 				routes: staticRoutes,
+				trailingSlash: 'always',
 				responseOverrides: {
 					404: { rewrite: '/404.html', statusCode: 404 },
 				},
@@ -73,5 +74,6 @@ type AzureRoute = { route: string; serve: string; statusCode: 200 }
 
 type AzureStaticWebAppConfig = {
 	routes: AzureRoute[]
+	trailingSlash: 'always'
 	responseOverrides: { 404: { rewrite: string; statusCode: 404 } }
 }

@@ -93,11 +93,17 @@ export const counter = createStore({ count: 0 })
 
 export const IncrementButton = component({
   name: 'increment-button',
-  onMount({ append, element, signal }) {
-    const button = append(element('button', { textContent: 'Increment' }))
-    button.addEventListener('click', () => {
-      counter.update(state => { state.count += 1 })
-    }, { signal })
+  onMount({ append, element }) {
+    append(
+      element('button', {
+        textContent: 'Increment',
+        on: {
+          click() {
+            counter.update(state => { state.count += 1 })
+          },
+        },
+      })
+    )
   },
 })
 
