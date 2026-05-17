@@ -24,7 +24,7 @@ export type AzureStaticWebappAdapterOptions = {
  * built from the route manifest and/or manual `routes` option:
  * - Pre-rendered routes get explicit `200` entries so Azure serves their HTML directly.
  * - Everything else returns a `404` response that serves `404.html`, matching the
- *   behaviour of GitHub Pages: the SPA shell loads and the client-side router takes over.
+ *   standard SPA behaviour: the shell loads and the client-side router takes over.
  *
  * @example `vite.config.ts`
  * ```ts
