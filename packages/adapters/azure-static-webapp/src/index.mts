@@ -3,18 +3,28 @@ import path from 'node:path'
 
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link azureStaticWebappAdapter}.
+ */
+export type AzureStaticWebappAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for Azure Static Web Apps.
  *
  * Writes `staticwebapp.config.json` to the output directory with routing rules
- * built from the route manifest:
+ * built from the route manifest and/or manual `routes` option:
  * - Pre-rendered routes get explicit `200` entries so Azure serves their HTML directly.
  * - Parameterized routes get wildcard rewrite entries (`:param` becomes `*`).
  * - Everything else falls through to `navigationFallback` pointing at `404.html`.
- *
- * When the route manifest plugin is absent, only the `navigationFallback` block is written.
  *
  * @example `vite.config.ts`
  * ```ts
@@ -30,31 +40,21 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function azureStaticWebappAdapter(): Plugin {
+export function azureStaticWebappAdapter(options?: AzureStaticWebappAdapterOptions): Plugin {
 	return staticAdapter({
 		name: 'rooted:azure-static-webapp',
-		async setup({ outputDirectory, manifestApi }) {
-			const staticRoutes: AzureRoute[] = []
-			const dynamicRoutes: AzureRoute[] = []
+		routes: options?.routes,
+		async setup({ outputDirectory, resolvedRoutes }) {
+			const staticRoutes: AzureRoute[] = resolvedRoutes.staticPaths
+				.filter(p => p.split('/').filter(Boolean).length > 0)
+				.map(p => ({
+					route: p,
+					serve: `/${p.split('/').filter(Boolean).join('/')}/index.html`,
+					statusCode: 200 as const,
+				}))
 
-			for (const route of manifestApi?.routes ?? []) {
-				if (!Object.hasOwn(route, 'getMetadata')) continue
-				const metadata = route.getMetadata()
-
-				if (metadata.staticRoute !== false) {
-					const staticPath = metadata.staticRoute
-					const segments = staticPath.split('/').filter(Boolean)
-					if (segments.length === 0) continue
-					staticRoutes.push({
-						route: staticPath,
-						serve: `/${segments.join('/')}/index.html`,
-						statusCode: 200,
-					})
-				} else if (!metadata.hasErrors) {
-					const pattern = buildAzurePattern(route)
-					dynamicRoutes.push({ route: pattern, rewrite: '/404.html' })
-				}
-			}
+			const dynamicRoutes: AzureRoute[] = resolvedRoutes.dynamicPatterns
+				.map(p => ({ route: toWildcard(p).replace(/\/$/, '') + '/*', rewrite: '/404.html' }))
 
 			const config: AzureStaticWebAppConfig = {
 				routes: [...staticRoutes, ...dynamicRoutes],
@@ -82,19 +82,7 @@ type AzureStaticWebAppConfig = {
 	navigationFallback: { rewrite: string; exclude: string[] }
 }
 
-// Converts a route to an Azure wildcard pattern.
-// Parent routes are resolved recursively; :param tokens become *.
-function buildAzurePattern(route: { getMetadata(): { routeParts: Array<string | object> } }): string {
-	let pattern = ''
-	for (const part of route.getMetadata().routeParts) {
-		if (typeof part === 'string') {
-			pattern += part
-		} else if (Object.hasOwn(part, 'getMetadata')) {
-			pattern += buildAzurePattern(part as { getMetadata(): { routeParts: Array<string | object> } })
-		} else {
-			pattern += '*'
-		}
-	}
-	// Azure doesn't support trailing slash in wildcard patterns, strip it
-	return pattern.endsWith('/') ? pattern.slice(0, -1) + '/*' : pattern
+// Converts :param tokens to Azure wildcard (*) segments.
+function toWildcard(pattern: string): string {
+	return pattern.replace(/:[\w]+/g, '*')
 }

@@ -1,6 +1,18 @@
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link awsS3Adapter}.
+ */
+export type AwsS3AdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for AWS S3 static website hosting.
@@ -24,6 +36,6 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function awsS3Adapter(): Plugin {
-	return staticAdapter({ name: 'rooted:aws-s3' })
+export function awsS3Adapter(options?: AwsS3AdapterOptions): Plugin {
+	return staticAdapter({ name: 'rooted:aws-s3', routes: options?.routes })
 }

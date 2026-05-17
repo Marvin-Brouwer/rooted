@@ -1,6 +1,18 @@
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link gcpCloudStorageAdapter}.
+ */
+export type GcpCloudStorageAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for Google Cloud Storage static website hosting.
@@ -18,6 +30,6 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function gcpCloudStorageAdapter(): Plugin {
-	return staticAdapter({ name: 'rooted:gcp-cloud-storage' })
+export function gcpCloudStorageAdapter(options?: GcpCloudStorageAdapterOptions): Plugin {
+	return staticAdapter({ name: 'rooted:gcp-cloud-storage', routes: options?.routes })
 }

@@ -1,5 +1,6 @@
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
 
 /**
@@ -11,6 +12,11 @@ export type StaticSiteAdapterOptions = {
 	 * Defaults to `'404.html'`.
 	 */
 	fallbackFileName?: string
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
 }
 
 /**
@@ -37,5 +43,6 @@ export function staticSiteAdapter(options?: StaticSiteAdapterOptions): Plugin {
 	return staticAdapter({
 		name: 'rooted:static-site',
 		fallbackFileName: options?.fallbackFileName,
+		routes: options?.routes,
 	})
 }

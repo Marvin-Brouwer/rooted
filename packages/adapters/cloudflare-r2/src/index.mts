@@ -1,6 +1,18 @@
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link cloudflareR2Adapter}.
+ */
+export type CloudflareR2AdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for Cloudflare R2 static website hosting.
@@ -21,6 +33,6 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function cloudflareR2Adapter(): Plugin {
-	return staticAdapter({ name: 'rooted:cloudflare-r2' })
+export function cloudflareR2Adapter(options?: CloudflareR2AdapterOptions): Plugin {
+	return staticAdapter({ name: 'rooted:cloudflare-r2', routes: options?.routes })
 }

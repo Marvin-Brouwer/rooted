@@ -3,7 +3,19 @@ import path from 'node:path'
 
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link vercelStaticAdapter}.
+ */
+export type VercelStaticAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for Vercel static hosting.
@@ -14,8 +26,6 @@ import type { Plugin } from 'vite'
  * Vercel serves pre-rendered HTML files automatically (it finds `/categories/index.html`
  * for `/categories/`), so rewrites are only generated for parameterized routes and
  * the final catch-all. The destination is `404.html` -- the plain SPA shell.
- *
- * When the route manifest plugin is absent, only the catch-all rewrite is written.
  *
  * @example `vite.config.ts`
  * ```ts
@@ -31,22 +41,16 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function vercelStaticAdapter(): Plugin {
+export function vercelStaticAdapter(options?: VercelStaticAdapterOptions): Plugin {
 	return staticAdapter({
 		name: 'rooted:vercel-static',
-		async setup({ config, manifestApi }) {
-			const dynamicRewrites: VercelRewrite[] = []
-
-			for (const route of manifestApi?.routes ?? []) {
-				if (!Object.hasOwn(route, 'getMetadata')) continue
-				const metadata = route.getMetadata()
-				if (metadata.staticRoute !== false) continue
-				if (metadata.hasErrors) continue
-				dynamicRewrites.push({
-					source: buildVercelPattern(route),
+		routes: options?.routes,
+		async setup({ config, resolvedRoutes }) {
+			const dynamicRewrites: VercelRewrite[] = resolvedRoutes.dynamicPatterns
+				.map(p => ({
+					source: p.endsWith('/') ? p.slice(0, -1) : p,
 					destination: '/404.html',
-				})
-			}
+				}))
 
 			const vercelConfig: VercelConfig = {
 				rewrites: [
@@ -66,20 +70,3 @@ export function vercelStaticAdapter(): Plugin {
 
 type VercelRewrite = { source: string; destination: string }
 type VercelConfig = { rewrites: VercelRewrite[] }
-
-// Converts a route to a Vercel rewrite source pattern.
-// Parent routes are resolved recursively; :param tokens use Vercel's :key syntax.
-function buildVercelPattern(route: { getMetadata(): { routeParts: Array<string | object> } }): string {
-	let pattern = ''
-	for (const part of route.getMetadata().routeParts) {
-		if (typeof part === 'string') {
-			pattern += part
-		} else if (Object.hasOwn(part, 'getMetadata')) {
-			pattern += buildVercelPattern(part as { getMetadata(): { routeParts: Array<string | object> } })
-		} else {
-			pattern += `:${(part as { key: string }).key}`
-		}
-	}
-	// Strip trailing slash -- Vercel patterns don't require it and it avoids double-matching
-	return pattern.endsWith('/') ? pattern.slice(0, -1) : pattern
-}

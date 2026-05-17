@@ -3,7 +3,19 @@ import path from 'node:path'
 
 import { routedAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link fastifyAdapter}.
+ */
+export type FastifyAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for server-side hosting with Fastify.
@@ -32,9 +44,10 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function fastifyAdapter(): Plugin {
+export function fastifyAdapter(options?: FastifyAdapterOptions): Plugin {
 	return routedAdapter({
 		name: 'rooted:fastify',
+		routes: options?.routes,
 		async setup({ outputDirectory }) {
 			await writeFile(
 				path.join(outputDirectory, 'server.mjs'),

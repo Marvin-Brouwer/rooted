@@ -3,7 +3,19 @@ import path from 'node:path'
 
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link githubPagesAdapter}.
+ */
+export type GitHubPagesAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for GitHub Pages.
@@ -35,9 +47,10 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function githubPagesAdapter(): Plugin {
+export function githubPagesAdapter(options?: GitHubPagesAdapterOptions): Plugin {
 	return staticAdapter({
 		name: 'rooted:github-pages',
+		routes: options?.routes,
 		async setup({ outputDirectory }) {
 			await writeFile(
 				path.join(outputDirectory, '.nojekyll'),

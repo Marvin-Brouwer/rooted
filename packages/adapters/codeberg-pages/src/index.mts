@@ -1,6 +1,18 @@
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link codebergPagesAdapter}.
+ */
+export type CodebergPagesAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for Codeberg Pages.
@@ -18,6 +30,6 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function codebergPagesAdapter(): Plugin {
-	return staticAdapter({ name: 'rooted:codeberg-pages' })
+export function codebergPagesAdapter(options?: CodebergPagesAdapterOptions): Plugin {
+	return staticAdapter({ name: 'rooted:codeberg-pages', routes: options?.routes })
 }

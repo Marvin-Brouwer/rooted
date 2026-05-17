@@ -1,6 +1,18 @@
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link azureBlobAdapter}.
+ */
+export type AzureBlobAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for Azure Blob Storage static website hosting.
@@ -19,6 +31,6 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function azureBlobAdapter(): Plugin {
-	return staticAdapter({ name: 'rooted:azure-blob' })
+export function azureBlobAdapter(options?: AzureBlobAdapterOptions): Plugin {
+	return staticAdapter({ name: 'rooted:azure-blob', routes: options?.routes })
 }

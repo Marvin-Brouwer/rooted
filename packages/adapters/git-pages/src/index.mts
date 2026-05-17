@@ -1,6 +1,18 @@
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link gitPagesAdapter}.
+ */
+export type GitPagesAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Base adapter for git-hosted static pages.
@@ -20,6 +32,6 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function gitPagesAdapter(): Plugin {
-	return staticAdapter({ name: 'rooted:git-pages' })
+export function gitPagesAdapter(options?: GitPagesAdapterOptions): Plugin {
+	return staticAdapter({ name: 'rooted:git-pages', routes: options?.routes })
 }

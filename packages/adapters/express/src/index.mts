@@ -3,7 +3,19 @@ import path from 'node:path'
 
 import { routedAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link expressAdapter}.
+ */
+export type ExpressAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for server-side hosting with Express.
@@ -33,9 +45,10 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function expressAdapter(): Plugin {
+export function expressAdapter(options?: ExpressAdapterOptions): Plugin {
 	return routedAdapter({
 		name: 'rooted:express',
+		routes: options?.routes,
 		async setup({ outputDirectory }) {
 			await writeFile(
 				path.join(outputDirectory, 'server.mjs'),

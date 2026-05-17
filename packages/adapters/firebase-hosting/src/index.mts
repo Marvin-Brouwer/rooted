@@ -3,7 +3,19 @@ import path from 'node:path'
 
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link firebaseHostingAdapter}.
+ */
+export type FirebaseHostingAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for Firebase Hosting.
@@ -11,9 +23,10 @@ import type { Plugin } from 'vite'
  * Writes `firebase.json` to the Vite project root (not the output directory).
  * Always written -- the build controls the deployment config.
  *
- * When the route manifest plugin is present, specific rewrite rules are generated for
- * parameterized routes before the catch-all. Firebase uses glob syntax: `*` matches a
- * single path segment. The rooted `:param` syntax maps to `*` per segment.
+ * When routes are available (via `generateRouteManifest` or the `routes` option),
+ * specific rewrite rules are generated for parameterized routes before the catch-all.
+ * Firebase uses glob syntax: `*` matches a single path segment. The rooted `:param`
+ * syntax maps to `*` per segment.
  *
  * `"trailingSlash": true` is always included since the rooted router enforces trailing slashes.
  *
@@ -31,23 +44,15 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function firebaseHostingAdapter(): Plugin {
+export function firebaseHostingAdapter(options?: FirebaseHostingAdapterOptions): Plugin {
 	return staticAdapter({
 		name: 'rooted:firebase-hosting',
-		async setup({ config, manifestApi }) {
+		routes: options?.routes,
+		async setup({ config, resolvedRoutes }) {
 			const outDirectory = path.relative(config.root, config.build.outDir) || 'dist'
 
-			const dynamicRewrites: FirebaseRewrite[] = []
-			for (const route of manifestApi?.routes ?? []) {
-				if (!Object.hasOwn(route, 'getMetadata')) continue
-				const metadata = route.getMetadata()
-				if (metadata.staticRoute !== false) continue
-				if (metadata.hasErrors) continue
-				dynamicRewrites.push({
-					source: buildFirebasePattern(route),
-					destination: '/404.html',
-				})
-			}
+			const dynamicRewrites: FirebaseRewrite[] = resolvedRoutes.dynamicPatterns
+				.map(p => ({ source: toWildcard(p), destination: '/404.html' }))
 
 			const firebaseConfig: FirebaseConfig = {
 				hosting: {
@@ -81,19 +86,7 @@ type FirebaseConfig = {
 	}
 }
 
-// Converts a route to a Firebase glob pattern.
-// Parent routes are resolved recursively; :param tokens become *.
-// Trailing slash is kept since Firebase uses ** for catch-all.
-function buildFirebasePattern(route: { getMetadata(): { routeParts: Array<string | object> } }): string {
-	let pattern = ''
-	for (const part of route.getMetadata().routeParts) {
-		if (typeof part === 'string') {
-			pattern += part
-		} else if (Object.hasOwn(part, 'getMetadata')) {
-			pattern += buildFirebasePattern(part as { getMetadata(): { routeParts: Array<string | object> } })
-		} else {
-			pattern += '*'
-		}
-	}
-	return pattern
+// Converts :param tokens to Firebase glob wildcard (*) segments.
+function toWildcard(pattern: string): string {
+	return pattern.replace(/:[\w]+/g, '*')
 }

@@ -3,7 +3,19 @@ import path from 'node:path'
 
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link cloudflarePagesAdapter}.
+ */
+export type CloudflarePagesAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for Cloudflare Pages static hosting.
@@ -24,9 +36,10 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function cloudflarePagesAdapter(): Plugin {
+export function cloudflarePagesAdapter(options?: CloudflarePagesAdapterOptions): Plugin {
 	return staticAdapter({
 		name: 'rooted:cloudflare-pages',
+		routes: options?.routes,
 		async setup({ outputDirectory }) {
 			await writeFile(
 				path.join(outputDirectory, '_redirects'),

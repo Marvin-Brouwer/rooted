@@ -1,6 +1,18 @@
 import { staticAdapter } from '@rooted/adapter'
 
+import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
+
+/**
+ * Options for {@link scalewayObjectStorageAdapter}.
+ */
+export type ScalewayObjectStorageAdapterOptions = {
+	/**
+	 * Manual route list for projects that don't use `generateRouteManifest`.
+	 * See {@link AdapterRoutes}.
+	 */
+	routes?: AdapterRoutes
+}
 
 /**
  * Adapter for Scaleway Object Storage static website hosting.
@@ -18,9 +30,10 @@ import type { Plugin } from 'vite'
  * })
  * ```
  */
-export function scalewayObjectStorageAdapter(): Plugin {
+export function scalewayObjectStorageAdapter(options?: ScalewayObjectStorageAdapterOptions): Plugin {
 	return staticAdapter({
 		name: 'rooted:scaleway-object-storage',
 		fallbackFileName: 'error.html',
+		routes: options?.routes,
 	})
 }
