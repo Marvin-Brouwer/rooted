@@ -54,7 +54,7 @@ export function azureStaticWebappAdapter(options?: AzureStaticWebappAdapterOptio
 				}))
 
 			const dynamicRoutes: AzureRoute[] = resolvedRoutes.dynamicPatterns
-				.map(p => ({ route: toWildcard(p).replace(/\/$/, '') + '/*', rewrite: '/404.html' }))
+				.map(p => ({ route: toAzureWildcard(p), rewrite: '/404.html' }))
 
 			const config: AzureStaticWebAppConfig = {
 				routes: [...staticRoutes, ...dynamicRoutes],
@@ -82,7 +82,11 @@ type AzureStaticWebAppConfig = {
 	navigationFallback: { rewrite: string; exclude: string[] }
 }
 
-// Converts :param tokens to Azure wildcard (*) segments.
-function toWildcard(pattern: string): string {
-	return pattern.replace(/:[\w]+/g, '*')
+// Azure SWA routes allow at most one '*'. Truncate the pattern at the first
+// param segment and replace everything from there with '/*'.
+// e.g. /user/:id/posts/:postId → /user/*
+function toAzureWildcard(pattern: string): string {
+	const firstParameter = pattern.indexOf(':')
+	if (firstParameter === -1) return pattern
+	return pattern.slice(0, pattern.lastIndexOf('/', firstParameter - 1) + 1) + '*'
 }
