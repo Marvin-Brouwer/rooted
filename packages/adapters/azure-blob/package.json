@@ -43,7 +43,7 @@
 		"@rooted/adapter": "workspace:^",
 		"@rooted/development": "workspace:*",
 		"@rooted/tsdown": "workspace:^",
-		"@types/node": "^25.6.2",
+		"@types/node": "^25.9.0",
 		"tsx": "^4.21.0",
 		"typescript": "^6.0.3",
 		"vite": "^8.0.13"
