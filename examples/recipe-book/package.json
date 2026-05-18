@@ -23,7 +23,7 @@
 		"@rooted-adapters/azure-static-webapp": "workspace:^",
 		"@rooted/application": "workspace:^",
 		"@varlock/vite-integration": "^1.1.1",
-		"varlock": "^1.1.0",
+		"varlock": "^1.2.0",
 		"gray-matter": "^4.0.3",
 		"html-minifier-terser": "^7.2.0",
 		"@types/html-minifier-terser": "^7.0.2",
