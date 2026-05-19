@@ -39,6 +39,14 @@ jobs:
       - name: Build
         run: pnpm build:ci
 
+      # Switch to Node 24 for the release step. rolldown v1.0.0 corrupts
+      # is-core-module/core.json via pnpm hard links on Node 24, so the
+      # build runs on Node 22. npm v11 (bundled with Node 24) has working
+      # OIDC Trusted Publisher support; npm v10 (Node 22) does not.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - name: Release
         run: pnpm release
         env:
