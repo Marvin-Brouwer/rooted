@@ -46,3 +46,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
           NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+          # Used as a fallback when OIDC Trusted Publisher exchange fails (e.g. new npm scopes).
+          # OIDC is always tried first; this token is only needed when Trusted Publisher
+          # is not yet configured for a given package on npmjs.com.
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
