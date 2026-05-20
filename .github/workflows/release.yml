@@ -24,6 +24,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Pre-fetch git notes synchronously. semantic-release@25 stores per-tag
+      # channel metadata in refs/notes/semantic-release-<tag>. multi-semantic-release
+      # fans out semantic-release across every package concurrently, and each one
+      # calls fetchNotes (+refs/notes/*:refs/notes/* with reject: false). Those
+      # parallel fetches race on the local refs database and leave one notes ref
+      # pointing at a missing object, which then fails getTagsNotes for any
+      # package that runs after. Doing the fetch once up front avoids the race.
+      - name: Fetch git notes
+        run: git fetch origin '+refs/notes/*:refs/notes/*'
+
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
