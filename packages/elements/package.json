@@ -55,6 +55,6 @@
 	"devDependencies": {
 		"@rooted/development": "workspace:*",
 		"@rooted/events": "workspace:^",
-		"tsx": "^4.22.3"
+		"tsx": "^4.22.4"
 	}
 }
