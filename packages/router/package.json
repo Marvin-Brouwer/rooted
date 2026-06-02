@@ -64,7 +64,7 @@
 	},
 	"dependencies": {
 		"jiti": "^2.7.0",
-		"tinyglobby": "^0.2.16"
+		"tinyglobby": "^0.2.17"
 	},
 	"peerDependencies": {
 		"@rooted/util": "workspace:^",
