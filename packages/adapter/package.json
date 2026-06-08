@@ -39,7 +39,7 @@
 		"vite": ">= 8.0.1"
 	},
 	"dependencies": {
-		"happy-dom": "^20.9.0"
+		"happy-dom": "^20.10.2"
 	},
 	"devDependencies": {
 		"@rooted/development": "workspace:*",
