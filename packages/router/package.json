@@ -76,7 +76,7 @@
 		"@rooted/components": "workspace:^",
 		"@rooted/development": "workspace:*",
 		"@rooted/tsdown": "workspace:^",
-		"@types/node": "^25.9.1",
+		"@types/node": "^25.9.2",
 		"tsx": "^4.22.4",
 		"vite": "^8.0.16"
 	}
