@@ -26,7 +26,7 @@
 		"typescript": ">=5.0.0"
 	},
 	"devDependencies": {
-		"@types/node": "^25.9.2",
+		"@types/node": "^25.9.3",
 		"tsdown": "^0.22.2"
 	}
 }
