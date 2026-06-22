@@ -30,7 +30,7 @@ jobs:
     name: Pack
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.event.inputs.branch }}
           fetch-depth: 0
