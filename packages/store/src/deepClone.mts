@@ -1,9 +1,11 @@
 /**
  * Returns a deep copy of `value`.
  *
- * What gets cloned: plain objects, arrays, `Date`, `Map`, `Set`, and any symbol-keyed properties on them. Cycles are handled.
+ * What gets cloned: plain objects, arrays, `Date`, `Map`, `Set`, class instances, and any symbol-keyed properties on them. Cycles are handled.
  *
- * What stays shared by reference: functions and class instances (anything whose prototype isn't `Object.prototype` or `null`). There's no general way to reconstruct those, so the original reference is reused.
+ * Functions stay shared by reference.
+ *
+ * Class instances are cloned structurally: a new object is created with the same prototype (so `instanceof` still works) and own properties are copied across. The trade-offs are real: private fields (`#field`) are lost, the constructor isn't re-run (no derived state, no observers re-wired), identity changes (`clone !== original`), and any `WeakMap`/`WeakSet` entries keyed on the original won't see the clone. If your class carries behaviour the clone needs to keep, prefer plain data.
  *
  * ```ts
  * import { deepClone } from '@rooted/store'
@@ -46,13 +48,9 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 	}
 
 	const proto = Object.getPrototypeOf(object)
-	// eslint-disable-next-line unicorn/no-null
-	if (proto !== Object.prototype && proto !== null) {
-		// Opaque value: share class instances by reference, don't try to reconstruct them
-		return value
-	}
-
-	const copy: Record<string | symbol, unknown> = {}
+	const copy = (proto === Object.prototype || proto === null)
+		? {} as Record<string | symbol, unknown>
+		: Object.create(proto) as Record<string | symbol, unknown>
 	seen.set(object, copy)
 	for (const key of Reflect.ownKeys(object)) {
 		const v = (object as Record<string | symbol, unknown>)[key]

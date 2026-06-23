@@ -418,11 +418,28 @@ describe('deepClone', () => {
 		expect(copy.fn).toBe(function_)
 	})
 
-	test('shares class instances by reference', () => {
-		class Thing { x = 1 }
+	test('structurally clones class instances', () => {
+		class Thing {
+			x = 1
+			nested = { count: 0 }
+		}
 		const t = new Thing()
 		const copy = deepClone({ t })
-		expect(copy.t).toBe(t)
+		expect(copy.t).not.toBe(t)
+		expect(copy.t).toBeInstanceOf(Thing)
+		expect(copy.t.x).toBe(1)
+		expect(copy.t.nested).not.toBe(t.nested)
+		expect(copy.t.nested.count).toBe(0)
+	})
+
+	test('class instance methods stay on the prototype', () => {
+		class Greeter {
+			greet() { return 'hi' }
+		}
+		const g = new Greeter()
+		const copy = deepClone({ g })
+		expect(copy.g.greet()).toBe('hi')
+		expect(Object.getPrototypeOf(copy.g)).toBe(Greeter.prototype)
 	})
 
 	test('returns primitives as-is', () => {
