@@ -9,3 +9,4 @@
  */
 
 export { createStore, type Store, type StoreEvent } from '../store.mts'
+export { deepClone, deepFreeze } from '../deepClone.mts'

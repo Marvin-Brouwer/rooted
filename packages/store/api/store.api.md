@@ -23,6 +23,12 @@ export function createStore(initial: bigint): Store<bigint>;
 export function createStore<T extends StateType | Array<StateType>>(initial: T): Store<T>;
 
 // @public
+export function deepClone<T>(value: T, seen?: WeakMap<object, unknown>): T;
+
+// @public
+export function deepFreeze<T>(value: T, seen?: WeakSet<object>): T;
+
+// @public
 export type Store<TState extends StateType | Array<StateType>> = {
     readonly value: Readonly<TState>;
     update(setter: (currentValue: TState) => SetterResult<TState>): void;

@@ -1,3 +1,4 @@
+import { deepClone, deepFreeze } from './deepClone.mts'
 import { hashState } from './hash.mts'
 
 type StoreEventDetail<TState> = { state: Readonly<TState> }
@@ -21,17 +22,27 @@ type SetterResult<TState> = TState extends object ? Partial<TState> | void : TSt
  * - `'change'` fires only when the state hash differs from the previous value.
  */
 export type Store<TState extends StateType | Array<StateType>> = {
-	/** A frozen snapshot of the current state. */
+	/**
+	 * A frozen snapshot of the current state.
+	 *
+	 * Computed lazily on first read after an `update` and cached until the next
+	 * `update`, so `store.value === store.value` between updates. Useful for
+	 * downstream memoisation.
+	 */
 	readonly value: Readonly<TState>
 	/**
 	 * Updates the store state synchronously.
 	 *
-	 * The setter receives a {@link https://developer.mozilla.org/docs/Web/API/structuredClone structuredClone}
-	 * of the current state (`currentValue`).
+	 * The setter receives the **live** state reference (not a clone). You can
+	 * mutate it at any depth directly: `s.pad.aces = score` works.
 	 *
-	 * - For **object** state: return `void` to apply mutations to the clone, or return a
-	 *   `Partial<TState>` to merge specific keys into the current state.
+	 * - For **object** state: return `void` to keep your mutations as-is, or
+	 *   return a `Partial<TState>` to merge specific keys on top of the current
+	 *   state.
 	 * - For **primitive** state: return the new value.
+	 *
+	 * Calling `update` invalidates the cached snapshot, so the next `value` read
+	 * reflects the new state.
 	 */
 	update(setter: (currentValue: TState) => SetterResult<TState>): void
 	/**
@@ -56,58 +67,32 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 	#state: TState
 	#hash: string
 	#isObject: boolean
+	#snapshot: Readonly<TState> | undefined
 
 	constructor(initial: TState) {
 		super()
-		this.#state = this.#clone(initial)
-		this.#hash = hashState(this.#state)
+		this.#state = initial
+		this.#hash = hashState(initial)
+		// eslint-disable-next-line unicorn/no-null
 		this.#isObject = typeof initial === 'object' && initial !== null
 	}
 
-	// structuredClone throws on undefined, null, and objects with methods, so guard here.
-	#clone(value: TState): TState {
-		if (value === undefined) return undefined as TState
-		// eslint-disable-next-line unicorn/no-null
-		if (value === null) return null as unknown as TState
-		if (typeof value === 'object') {
-			const entries = Object.entries(value as object)
-			const functionEntries = entries.filter(([, v]) => typeof v === 'function')
-			if (functionEntries.length > 0) {
-				const dataEntries = entries.filter(([, v]) => typeof v !== 'function')
-				return Object.assign(
-					structuredClone(Object.fromEntries(dataEntries)),
-					Object.fromEntries(functionEntries),
-				) as TState
-			}
-		}
-		return structuredClone(value)
-	}
-
 	get value(): Readonly<TState> {
-		const cloned = this.#clone(this.#state)
-		return this.#isObject
-			? Object.freeze(cloned)
-			: cloned
+		if (!this.#isObject) return this.#state as Readonly<TState>
+		return this.#snapshot ??= deepFreeze(deepClone(this.#state)) as Readonly<TState>
 	}
 
 	update(setter: (currentValue: TState) => SetterResult<TState>): void {
-		const draft = this.#clone(this.#state)
-		const result = setter(draft)
+		const result = setter(this.#state)
 
-		if (result === undefined) {
-			this.#state = this.#isObject ? this.#clone(draft) : draft
+		if (result !== undefined) {
+			this.#state = this.#isObject
+				? Object.assign({}, this.#state as object, result) as TState
+				: result as TState
 		}
-		else if (this.#isObject) {
-			this.#state = Object.assign(this.#clone(this.#state) as object, result as Partial<TState>) as TState
-		}
-		else {
-			this.#state = result as TState
-		}
+		this.#snapshot = undefined
 
-		const frozenState = this.#isObject
-			? Object.freeze(this.#clone(this.#state))
-			: this.#state as Readonly<TState>
-
+		const frozenState = this.value
 		this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('update', { detail: { state: frozenState } }))
 
 		const newHash = hashState(this.#state)
