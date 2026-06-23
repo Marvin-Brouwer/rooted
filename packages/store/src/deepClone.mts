@@ -23,16 +23,24 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 	if (value instanceof Date) return new Date(value.getTime()) as unknown as T
 
 	if (value instanceof Map) {
-		const copy = new Map()
+		const copy = Reflect.construct(Map, [], value.constructor as new () => unknown) as Map<unknown, unknown>
 		seen.set(object, copy)
 		for (const [k, v] of value) copy.set(deepClone(k, seen), deepClone(v, seen))
+		for (const key of Reflect.ownKeys(object)) {
+			const v = (object as Record<string | symbol, unknown>)[key]
+			;(copy as unknown as Record<string | symbol, unknown>)[key] = typeof v === 'function' ? v : deepClone(v, seen)
+		}
 		return copy as unknown as T
 	}
 
 	if (value instanceof Set) {
-		const copy = new Set()
+		const copy = Reflect.construct(Set, [], value.constructor as new () => unknown) as Set<unknown>
 		seen.set(object, copy)
 		for (const v of value) copy.add(deepClone(v, seen))
+		for (const key of Reflect.ownKeys(object)) {
+			const v = (object as Record<string | symbol, unknown>)[key]
+			;(copy as unknown as Record<string | symbol, unknown>)[key] = typeof v === 'function' ? v : deepClone(v, seen)
+		}
 		return copy as unknown as T
 	}
 

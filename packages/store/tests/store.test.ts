@@ -405,6 +405,30 @@ describe('deepClone', () => {
 		expect([...copy.s][0]).toEqual({ v: 2 })
 	})
 
+	test('preserves Map subclass prototype and own fields', () => {
+		class TaggedMap<K, V> extends Map<K, V> {
+			tag = 'mine'
+		}
+		const m = new TaggedMap<string, number>()
+		m.set('k', 1)
+		const copy = deepClone({ m })
+		expect(copy.m).toBeInstanceOf(TaggedMap)
+		expect(copy.m.get('k')).toBe(1)
+		expect(copy.m.tag).toBe('mine')
+	})
+
+	test('preserves Set subclass prototype and own fields', () => {
+		class TaggedSet<V> extends Set<V> {
+			tag = 'mine'
+		}
+		const s = new TaggedSet<number>()
+		s.add(1)
+		const copy = deepClone({ s })
+		expect(copy.s).toBeInstanceOf(TaggedSet)
+		expect([...copy.s]).toEqual([1])
+		expect(copy.s.tag).toBe('mine')
+	})
+
 	test('preserves symbol-keyed properties', () => {
 		const tag = Symbol('tag')
 		const original = { value: 1, [tag]: 'brand' }
