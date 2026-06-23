@@ -92,13 +92,12 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 		}
 		this.#snapshot = undefined
 
-		const frozenState = this.value
-		this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('update', { detail: { state: frozenState } }))
+		this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('update', { detail: { state: this.value } }))
 
 		const newHash = hashState(this.#state)
 		if (newHash !== this.#hash) {
 			this.#hash = newHash
-			this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('change', { detail: { state: frozenState } }))
+			this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('change', { detail: { state: this.value } }))
 		}
 	}
 
