@@ -1,7 +1,7 @@
 import { deepClone, deepFreeze } from './deepClone.mts'
 import { hashState } from './hash.mts'
 
-type StoreEventDetail<TState> = { state: Readonly<TState> }
+type StoreEventDetail<TState> = { state: ReadonlyState<TState> }
 
 export type StoreEvent<TState> = CustomEvent<StoreEventDetail<TState>>
 
@@ -11,6 +11,27 @@ export type StoreEvent<TState> = CustomEvent<StoreEventDetail<TState>>
  * and `undefined` (for stores created without an initial value).
  */
 export type StateType = Date | string | boolean | number | bigint | object | undefined | null
+
+/**
+ * A recursively-readonly view of a state value.
+ *
+ * Marks every nested object, array, tuple, `Map`, `Set`, `Date`, `RegExp`,
+ * and `Error` as readonly. Stops at functions (there's no meaningful
+ * "readonly function") and primitives.
+ */
+export type ReadonlyState<T> =
+	T extends (...arguments_: never) => unknown ? T :
+		T extends Date | RegExp | Error ? Readonly<T> :
+			T extends Map<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> :
+				T extends ReadonlyMap<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> :
+					T extends Set<infer V> ? ReadonlySet<ReadonlyState<V>> :
+						T extends ReadonlySet<infer V> ? ReadonlySet<ReadonlyState<V>> :
+							T extends ReadonlyArray<infer V>
+								? number extends T['length']
+									? ReadonlyArray<ReadonlyState<V>>
+									: { readonly [K in keyof T]: ReadonlyState<T[K]> }
+								: T extends object ? { readonly [K in keyof T]: ReadonlyState<T[K]> }
+									: T
 
 type SetterResult<TState> = TState extends object ? Partial<TState> | void : TState | void
 
@@ -29,7 +50,7 @@ export type Store<TState extends StateType | Array<StateType>> = {
 	 * `update`, so `store.value === store.value` between updates. Useful for
 	 * downstream memoisation.
 	 */
-	readonly value: Readonly<TState>
+	readonly value: ReadonlyState<TState>
 	/**
 	 * Updates the store state synchronously.
 	 *
@@ -67,7 +88,7 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 	#state: TState
 	#hash: string
 	#isObject: boolean
-	#snapshot: Readonly<TState> | undefined
+	#snapshot: ReadonlyState<TState> | undefined
 
 	constructor(initial: TState) {
 		super()
@@ -77,9 +98,9 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 		this.#isObject = typeof initial === 'object' && initial !== null
 	}
 
-	get value(): Readonly<TState> {
-		if (!this.#isObject) return this.#state as Readonly<TState>
-		return this.#snapshot ??= deepFreeze(deepClone(this.#state)) as Readonly<TState>
+	get value(): ReadonlyState<TState> {
+		if (!this.#isObject) return this.#state as ReadonlyState<TState>
+		return this.#snapshot ??= deepFreeze(deepClone(this.#state)) as ReadonlyState<TState>
 	}
 
 	update(setter: (currentValue: TState) => SetterResult<TState>): void {
