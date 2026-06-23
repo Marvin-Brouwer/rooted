@@ -1,23 +1,15 @@
 /**
- * Deep-clones a value without going through `structuredClone`.
+ * Returns a deep copy of `value`.
  *
- * Why not `structuredClone`? Two reasons:
- * - It throws `DataCloneError` on any function it encounters, even nested ones.
- * - It silently drops symbol-keyed properties (so brand symbols disappear).
+ * What gets cloned: plain objects, arrays, `Date`, `Map`, `Set`, and any
+ * symbol-keyed properties on them. Cycles are handled.
  *
- * This clone handles both: functions are kept by reference, and symbol keys
- * are copied via `Reflect.ownKeys`.
+ * What stays shared by reference: functions and class instances (anything
+ * whose prototype isn't `Object.prototype` or `null`). There's no general
+ * way to reconstruct those, so the original reference is reused.
  *
- * Behaviour worth knowing:
- * - Plain objects, arrays, `Date`, `Map`, `Set` are cloned structurally.
- * - Cycles are handled via a `seen` map.
- * - Symbol-keyed properties are copied.
- * - Function values are shared by reference (not reconstructed).
- * - Class instances (objects whose prototype isn't `Object.prototype` or `null`)
- *   are shared by reference. The clone does not try to reconstruct them, since
- *   there's no general way to do that.
+ * Useful when you want to detach a frozen `store.value` into a mutable copy:
  *
- * @example
  * ```ts
  * import { deepClone } from '@rooted/store'
  *

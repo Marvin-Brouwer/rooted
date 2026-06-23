@@ -464,10 +464,15 @@ describe('deepFreeze', () => {
 })
 
 describe('hashState — functions and symbol keys', () => {
-	test('functions are ignored', () => {
+	test('same function reference hashes the same', () => {
 		const function1 = () => 1
-		const function2 = () => 2
-		expect(hashState({ a: 1, fn: function1 })).toBe(hashState({ a: 1, fn: function2 }))
+		expect(hashState({ a: 1, fn: function1 })).toBe(hashState({ a: 1, fn: function1 }))
+	})
+
+	test('different function references hash differently', () => {
+		const function1 = () => 1
+		const function2 = () => 1 // same body, different reference
+		expect(hashState({ a: 1, fn: function1 })).not.toBe(hashState({ a: 1, fn: function2 }))
 	})
 
 	test('symbol-keyed properties affect the hash', () => {
