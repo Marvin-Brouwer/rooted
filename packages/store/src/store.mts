@@ -6,18 +6,14 @@ type StoreEventDetail<TState> = { state: ReadonlyState<TState> }
 export type StoreEvent<TState> = CustomEvent<StoreEventDetail<TState>>
 
 /**
- * The set of value types a {@link Store} may hold.
- * Covers all common serialisable primitives, objects, dates, arrays thereof,
- * and `undefined` (for stores created without an initial value).
+ * The set of value types a {@link Store} may hold. Covers all common serialisable primitives, objects, dates, arrays thereof, and `undefined` (for stores created without an initial value).
  */
 export type StateType = Date | string | boolean | number | bigint | object | undefined | null
 
 /**
  * A recursively-readonly view of a state value.
  *
- * Marks every nested object, array, tuple, `Map`, `Set`, `Date`, `RegExp`,
- * and `Error` as readonly. Stops at functions (there's no meaningful
- * "readonly function") and primitives.
+ * Marks every nested object, array, tuple, `Map`, `Set`, `Date`, `RegExp`, and `Error` as readonly. Stops at functions (there's no meaningful "readonly function") and primitives.
  */
 export type ReadonlyState<T> =
 	T extends (...arguments_: never) => unknown ? T :
@@ -46,40 +42,30 @@ export type Store<TState extends StateType | Array<StateType>> = {
 	/**
 	 * A frozen snapshot of the current state.
 	 *
-	 * Computed lazily on first read after an `update` and cached until the next
-	 * `update`, so `store.value === store.value` between updates. Useful for
-	 * downstream memoisation.
+	 * Computed lazily on first read after an `update` and cached until the next `update`, so `store.value === store.value` between updates. Useful for downstream memoisation.
 	 */
 	readonly value: ReadonlyState<TState>
 	/**
 	 * Updates the store state synchronously.
 	 *
-	 * The setter receives the **live** state reference (not a clone). You can
-	 * mutate it at any depth directly: `s.pad.aces = score` works.
+	 * The setter receives the **live** state reference (not a clone). You can mutate it at any depth directly: `s.pad.aces = score` works.
 	 *
-	 * - For **object** state: return `void` to keep your mutations as-is, or
-	 *   return a `Partial<TState>` to merge specific keys on top of the current
-	 *   state.
+	 * - For **object** state: return `void` to keep your mutations as-is, or return a `Partial<TState>` to merge specific keys on top of the current state.
 	 * - For **primitive** state: return the new value.
 	 *
-	 * Calling `update` invalidates the cached snapshot, so the next `value` read
-	 * reflects the new state.
+	 * Calling `update` invalidates the cached snapshot, so the next `value` read reflects the new state.
 	 */
 	update(setter: (currentValue: TState) => SetterResult<TState>): void
 	/**
-	 * Subscribes to `'update'` events, which fire on **every** call to
-	 * {@link Store.update} regardless of whether the state changed.
+	 * Subscribes to `'update'` events, which fire on **every** call to {@link Store.update} regardless of whether the state changed.
 	 *
-	 * The `signal` is required and controls listener lifetime. Pass the
-	 * component's `signal` to ensure cleanup on unmount.
+	 * The `signal` is required and controls listener lifetime. Pass the component's `signal` to ensure cleanup on unmount.
 	 */
 	on(event: 'update', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void
 	/**
-	 * Subscribes to `'change'` events, which fire only when the **state hash
-	 * differs** from the previous value (structural change detected).
+	 * Subscribes to `'change'` events, which fire only when the **state hash differs** from the previous value (structural change detected).
 	 *
-	 * The `signal` is required and controls listener lifetime. Pass the
-	 * component's `signal` to ensure cleanup on unmount.
+	 * The `signal` is required and controls listener lifetime. Pass the component's `signal` to ensure cleanup on unmount.
 	 */
 	on(event: 'change', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void
 }
@@ -134,12 +120,9 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 /**
  * Creates a new {@link Store} with the given initial state.
  *
- * Primitive values are widened to their base type. `createStore(true)` returns
- * `Store<boolean>`, not `Store<true>`. Use an explicit type parameter to narrow
- * further: `createStore<'idle' | 'navigating'>('idle')`.
+ * Primitive values are widened to their base type. `createStore(true)` returns `Store<boolean>`, not `Store<true>`. Use an explicit type parameter to narrow further: `createStore<'idle' | 'navigating'>('idle')`.
  *
- * Calling without an argument creates a store with `undefined` as the initial
- * value. The type parameter is required in this form: `createStore<string>()`.
+ * Calling without an argument creates a store with `undefined` as the initial value. The type parameter is required in this form: `createStore<string>()`.
  *
  * @example
  * ```ts

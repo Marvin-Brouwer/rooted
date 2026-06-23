@@ -285,7 +285,7 @@ describe('createStore — primitive state', () => {
 	})
 })
 
-describe('createStore — value caching', () => {
+describe('createStore - value caching', () => {
 	test('value returns the same frozen snapshot between updates', () => {
 		const store = createStore({ count: 0 })
 		const a = store.value
@@ -312,7 +312,7 @@ describe('createStore — value caching', () => {
 	})
 })
 
-describe('createStore — functions in state', () => {
+describe('createStore - functions in state', () => {
 	test('nested functions on state do not throw on update', () => {
 		const store = createStore({
 			items: [1, 2, 3],
@@ -334,7 +334,7 @@ describe('createStore — functions in state', () => {
 	})
 })
 
-describe('createStore — symbol-keyed properties', () => {
+describe('createStore - symbol-keyed properties', () => {
 	const brand = Symbol('brand')
 
 	test('symbol-keyed properties survive update + value read', () => {
@@ -463,7 +463,7 @@ describe('deepFreeze', () => {
 	})
 })
 
-describe('hashState — functions and symbol keys', () => {
+describe('hashState - functions and symbol keys', () => {
 	test('same function reference hashes the same', () => {
 		const function1 = () => 1
 		expect(hashState({ a: 1, fn: function1 })).toBe(hashState({ a: 1, fn: function1 }))

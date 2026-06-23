@@ -1,12 +1,9 @@
 /**
  * Returns a deep copy of `value`.
  *
- * What gets cloned: plain objects, arrays, `Date`, `Map`, `Set`, and any
- * symbol-keyed properties on them. Cycles are handled.
+ * What gets cloned: plain objects, arrays, `Date`, `Map`, `Set`, and any symbol-keyed properties on them. Cycles are handled.
  *
- * What stays shared by reference: functions and class instances (anything
- * whose prototype isn't `Object.prototype` or `null`). There's no general
- * way to reconstruct those, so the original reference is reused.
+ * What stays shared by reference: functions and class instances (anything whose prototype isn't `Object.prototype` or `null`). There's no general way to reconstruct those, so the original reference is reused.
  *
  * Useful when you want to detach a frozen `store.value` into a mutable copy:
  *
@@ -69,11 +66,7 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 /**
  * Recursively freezes a value in place. Cycles are handled via a `seen` set.
  *
- * Plain objects, arrays, and `Date` instances are frozen along with their
- * contents. `Map` and `Set` instances and class instances (anything with a
- * prototype other than `Object.prototype` or `null`) are left alone — freezing
- * them either doesn't do anything useful or would mutate values the caller
- * shares with us by reference.
+ * Plain objects, arrays, and `Date` instances are frozen along with their contents. `Map`, `Set`, and class instances (anything with a prototype other than `Object.prototype` or `null`) are left alone, since freezing them either doesn't do anything useful or would mutate values the caller shares with us by reference.
  */
 export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): T {
 	// eslint-disable-next-line unicorn/no-null

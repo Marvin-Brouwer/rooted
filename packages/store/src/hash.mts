@@ -1,9 +1,7 @@
 const functionIdentities = new WeakMap<Function, number>()
 let nextFunctionIdentity = 0
 
-// Functions can't be serialised, but they have identity. Give each function
-// reference a stable id so the same function hashes the same and a different
-// function reference changes the hash.
+// Functions can't be serialised, but they have identity. Give each function reference a stable id so the same function hashes the same and a different function reference changes the hash.
 function functionIdentity(value: Function): string {
 	let id = functionIdentities.get(value)
 	if (id === undefined) {
@@ -30,8 +28,7 @@ function hashReplacer(_key: string, value: unknown): unknown {
 				Object.entries(target).toSorted(([a], [b]) => a.localeCompare(b)),
 			)
 		}
-		// Include symbol-keyed properties (JSON.stringify drops them otherwise)
-		// and sort keys for stable output.
+		// Include symbol-keyed properties (JSON.stringify drops them otherwise) and sort keys for stable output.
 		const target = value as Record<string | symbol, unknown>
 		const entries: [string, unknown][] = []
 		for (const key of Reflect.ownKeys(target)) {
