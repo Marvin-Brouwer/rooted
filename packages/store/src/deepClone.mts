@@ -70,7 +70,7 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 /**
  * Recursively freezes a value in place. Cycles are handled via a `seen` set.
  *
- * Plain objects, arrays, class instances, `Date`, `RegExp`, and `Error` get `Object.freeze`d along with their reachable contents. `Map` and `Set` are skipped, since `Object.freeze` doesn't stop mutation through their methods.
+ * Plain objects, arrays, class instances, `Date`, `RegExp`, `Error`, `Map`, and `Set` get `Object.freeze`d along with their reachable contents. Note that `Object.freeze` on a `Map` or `Set` does not prevent `.set` / `.delete` / `.clear` from mutating the collection, since those go through internal slots. The entries and own properties are still frozen, so anything you read out of a frozen Map/Set can't be mutated through.
  */
 export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): T {
 	// eslint-disable-next-line unicorn/no-null
@@ -84,8 +84,20 @@ export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): 
 		return value
 	}
 
-	if (value instanceof Map || value instanceof Set) {
-		// Freezing a Map/Set doesn't stop mutation through its own methods, so don't pretend. Leave them mutable.
+	if (value instanceof Map) {
+		for (const [k, v] of value) {
+			deepFreeze(k, seen)
+			deepFreeze(v, seen)
+		}
+		freezeOwnProperties(object, seen)
+		Object.freeze(value)
+		return value
+	}
+
+	if (value instanceof Set) {
+		for (const v of value) deepFreeze(v, seen)
+		freezeOwnProperties(object, seen)
+		Object.freeze(value)
 		return value
 	}
 
@@ -95,10 +107,14 @@ export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): 
 		return value
 	}
 
+	freezeOwnProperties(object, seen)
+	Object.freeze(value)
+	return value
+}
+
+function freezeOwnProperties(object: object, seen: WeakSet<object>): void {
 	for (const key of Reflect.ownKeys(object)) {
 		const v = (object as Record<string | symbol, unknown>)[key]
 		if (typeof v !== 'function') deepFreeze(v, seen)
 	}
-	Object.freeze(value)
-	return value
 }

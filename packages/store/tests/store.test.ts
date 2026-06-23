@@ -503,12 +503,14 @@ describe('deepFreeze', () => {
 		expect(Object.isFrozen(t)).toBe(true)
 	})
 
-	test('skips Map and Set', () => {
-		const m = new Map([['k', 1]])
-		const s = new Set([1])
+	test('freezes Map and Set instances and their entries', () => {
+		const inner = { v: 1 }
+		const m = new Map([['k', inner]])
+		const s = new Set([inner])
 		deepFreeze({ m, s })
-		expect(Object.isFrozen(m)).toBe(false)
-		expect(Object.isFrozen(s)).toBe(false)
+		expect(Object.isFrozen(m)).toBe(true)
+		expect(Object.isFrozen(s)).toBe(true)
+		expect(Object.isFrozen(inner)).toBe(true)
 	})
 })
 
