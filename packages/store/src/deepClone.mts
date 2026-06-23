@@ -5,13 +5,11 @@
  *
  * What stays shared by reference: functions and class instances (anything whose prototype isn't `Object.prototype` or `null`). There's no general way to reconstruct those, so the original reference is reused.
  *
- * Useful when you want to detach a frozen `store.value` into a mutable copy:
- *
  * ```ts
  * import { deepClone } from '@rooted/store'
  *
- * const mine = deepClone(store.value)
- * mine.pad.aces = score // independent of the store
+ * const copy = deepClone(original)
+ * copy.nested.field = 'changed' // does not affect original
  * ```
  */
 export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new WeakMap()): T {
@@ -66,7 +64,7 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 /**
  * Recursively freezes a value in place. Cycles are handled via a `seen` set.
  *
- * Plain objects, arrays, and `Date` instances are frozen along with their contents. `Map`, `Set`, and class instances (anything with a prototype other than `Object.prototype` or `null`) are left alone, since freezing them either doesn't do anything useful or would mutate values the caller shares with us by reference.
+ * Plain objects, arrays, class instances, `Date`, `RegExp`, and `Error` get `Object.freeze`d along with their reachable contents. `Map` and `Set` are skipped, since `Object.freeze` doesn't stop mutation through their methods.
  */
 export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): T {
 	// eslint-disable-next-line unicorn/no-null
@@ -75,27 +73,19 @@ export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): 
 	if (seen.has(object)) return value
 	seen.add(object)
 
-	if (value instanceof Date) {
+	if (value instanceof Date || value instanceof RegExp || value instanceof Error) {
 		Object.freeze(value)
 		return value
 	}
 
 	if (value instanceof Map || value instanceof Set) {
-		// Freezing a Map/Set doesn't stop mutation through its own methods,
-		// so don't pretend. Leave them mutable.
+		// Freezing a Map/Set doesn't stop mutation through its own methods, so don't pretend. Leave them mutable.
 		return value
 	}
 
 	if (Array.isArray(value)) {
 		for (const item of value) deepFreeze(item, seen)
 		Object.freeze(value)
-		return value
-	}
-
-	const proto = Object.getPrototypeOf(object)
-	// eslint-disable-next-line unicorn/no-null
-	if (proto !== Object.prototype && proto !== null) {
-		// Opaque value: leave it alone, deepClone shares this by reference
 		return value
 	}
 

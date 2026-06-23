@@ -455,11 +455,19 @@ describe('deepFreeze', () => {
 		expect(Object.isFrozen(frozen)).toBe(true)
 	})
 
-	test('does not freeze class instances', () => {
+	test('freezes class instances and their fields', () => {
 		class Thing { x = 1 }
 		const t = new Thing()
 		deepFreeze({ t })
-		expect(Object.isFrozen(t)).toBe(false)
+		expect(Object.isFrozen(t)).toBe(true)
+	})
+
+	test('skips Map and Set', () => {
+		const m = new Map([['k', 1]])
+		const s = new Set([1])
+		deepFreeze({ m, s })
+		expect(Object.isFrozen(m)).toBe(false)
+		expect(Object.isFrozen(s)).toBe(false)
 	})
 })
 
