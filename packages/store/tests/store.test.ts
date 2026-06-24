@@ -512,6 +512,18 @@ describe('deepFreeze', () => {
 		expect(Object.isFrozen(s)).toBe(true)
 		expect(Object.isFrozen(inner)).toBe(true)
 	})
+
+	test('frozen Map and Set throw on mutating methods', () => {
+		const m = new Map<string, number>([['k', 1]])
+		const s = new Set<number>([1])
+		deepFreeze({ m, s })
+		expect(() => m.set('k2', 2)).toThrow(TypeError)
+		expect(() => m.delete('k')).toThrow(TypeError)
+		expect(() => m.clear()).toThrow(TypeError)
+		expect(() => s.add(2)).toThrow(TypeError)
+		expect(() => s.delete(1)).toThrow(TypeError)
+		expect(() => s.clear()).toThrow(TypeError)
+	})
 })
 
 describe('hashState - functions and symbol keys', () => {

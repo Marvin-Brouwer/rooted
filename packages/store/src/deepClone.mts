@@ -70,7 +70,7 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 /**
  * Recursively freezes a value in place. Cycles are handled via a `seen` set.
  *
- * Plain objects, arrays, class instances, `Date`, `RegExp`, `Error`, `Map`, and `Set` get `Object.freeze`d along with their reachable contents. Note that `Object.freeze` on a `Map` or `Set` does not prevent `.set` / `.delete` / `.clear` from mutating the collection, since those go through internal slots. The entries and own properties are still frozen, so anything you read out of a frozen Map/Set can't be mutated through.
+ * Plain objects, arrays, class instances, `Date`, `RegExp`, `Error`, `Map`, and `Set` get `Object.freeze`d along with their reachable contents. `Map` and `Set` mutating methods (`set`, `add`, `delete`, `clear`) are shadowed with own properties that throw a `TypeError`, since `Object.freeze` alone can't reach the internal slots those methods use.
  */
 export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): T {
 	// eslint-disable-next-line unicorn/no-null
@@ -90,6 +90,7 @@ export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): 
 			deepFreeze(v, seen)
 		}
 		freezeOwnProperties(object, seen)
+		blockMutation(object, ['set', 'delete', 'clear'])
 		Object.freeze(value)
 		return value
 	}
@@ -97,6 +98,7 @@ export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): 
 	if (value instanceof Set) {
 		for (const v of value) deepFreeze(v, seen)
 		freezeOwnProperties(object, seen)
+		blockMutation(object, ['add', 'delete', 'clear'])
 		Object.freeze(value)
 		return value
 	}
@@ -116,5 +118,19 @@ function freezeOwnProperties(object: object, seen: WeakSet<object>): void {
 	for (const key of Reflect.ownKeys(object)) {
 		const v = (object as Record<string | symbol, unknown>)[key]
 		if (typeof v !== 'function') deepFreeze(v, seen)
+	}
+}
+
+function blockMutation(object: object, methods: readonly string[]): void {
+	const name = object.constructor.name
+	for (const method of methods) {
+		Object.defineProperty(object, method, {
+			value: () => {
+				throw new TypeError(`Cannot ${method} on a frozen ${name}`)
+			},
+			configurable: false,
+			writable: false,
+			enumerable: false,
+		})
 	}
 }
