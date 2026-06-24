@@ -20,7 +20,7 @@ import { createStore } from '@rooted/store'
 const counter = createStore({ count: 0 })
 ```
 
-Stores hold any structured-cloneable value: primitives, objects, arrays, dates. `createStore()` without arguments returns a store with `undefined` as the initial value.
+Stores hold pretty much anything: primitives, objects, arrays, `Date`, `Map`, `Set`, class instances, even values with functions or symbol-keyed brands on them. `createStore()` without arguments returns a store with `undefined` as the initial value.
 
 ```ts
 const flag = createStore(true)             // Store<boolean>
@@ -30,19 +30,19 @@ const status = createStore<'idle' | 'navigating'>('idle')
 
 ## Reading
 
-`store.value` returns a frozen clone of the current state. Reading is free.
+`store.value` returns a deeply-frozen snapshot of the current state, typed as `ReadonlyState<T>` so nested mutations are rejected by both TypeScript and the runtime.
 
 ```ts
 const { count } = counter.value
 ```
 
-Because the value is cloned, mutating what you get back does not affect the store.
+The snapshot is built lazily on the first read after an `update` and cached until the next `update`. Two consecutive reads return the same object reference, which is handy for downstream memoisation. Updates that nobody reads pay zero clone cost.
 
 ## Updating
 
-`store.update(setter)` runs your setter function with a fresh clone of the state. There are two ways to use it.
+`store.update(setter)` runs your setter with the **live** state reference. You can mutate it at any depth, return a partial to merge, or return a new value for primitive stores.
 
-For object stores, mutate the draft:
+For object stores, mutate in place:
 
 ```ts
 counter.update(state => {
@@ -139,7 +139,9 @@ Fires `'update'` (you called it) but not `'change'` (the hash is the same). Use 
 The honest list:
 
 - The store is synchronous. There is no async middleware. If you need effects, write them yourself in the component that calls `update`.
-- Object updates clone the state. For very large objects this is measurable. Most apps don't notice.
+- Reads materialise a deep-frozen clone the first time after each update and cache it. For very large state trees this is measurable on first read. Updates with no readers pay nothing.
+- Class instances in state are cloned structurally. The prototype is preserved so `instanceof` keeps working, but the constructor isn't re-run, private fields (`#field`) are lost, identity changes, and any `WeakMap`/`WeakSet` entries keyed on the original won't see the clone. If your class carries behaviour the snapshot needs to keep, prefer plain data.
+- `Map` and `Set` snapshots throw a `TypeError` on `.set` / `.add` / `.delete` / `.clear`, since `Object.freeze` can't reach their internal slots and we'd rather fail loudly than silently mutate.
 - There is no time-travel debugging or middleware ecosystem. If you need those, this isn't the tool.
 
 This is intentional. The store is small enough to read in one sitting.
