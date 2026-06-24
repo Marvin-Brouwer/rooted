@@ -1,15 +1,33 @@
+import { deepClone, deepFreeze } from './deepClone.mts'
 import { hashState } from './hash.mts'
 
-type StoreEventDetail<TState> = { state: Readonly<TState> }
+type StoreEventDetail<TState> = { state: ReadonlyState<TState> }
 
 export type StoreEvent<TState> = CustomEvent<StoreEventDetail<TState>>
 
 /**
- * The set of value types a {@link Store} may hold.
- * Covers all common serialisable primitives, objects, dates, arrays thereof,
- * and `undefined` (for stores created without an initial value).
+ * The set of value types a {@link Store} may hold. Covers all common serialisable primitives, objects, dates, arrays thereof, and `undefined` (for stores created without an initial value).
  */
 export type StateType = Date | string | boolean | number | bigint | object | undefined | null
+
+/**
+ * A recursively-readonly view of a state value.
+ *
+ * Marks every nested object, array, tuple, `Map`, `Set`, `Date`, `RegExp`, and `Error` as readonly. Stops at functions (there's no meaningful "readonly function") and primitives.
+ */
+export type ReadonlyState<T> =
+	T extends (...arguments_: never) => unknown ? T :
+		T extends Date | RegExp | Error ? Readonly<T> :
+			T extends Map<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> :
+				T extends ReadonlyMap<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> :
+					T extends Set<infer V> ? ReadonlySet<ReadonlyState<V>> :
+						T extends ReadonlySet<infer V> ? ReadonlySet<ReadonlyState<V>> :
+							T extends ReadonlyArray<infer V>
+								? number extends T['length']
+									? ReadonlyArray<ReadonlyState<V>>
+									: { readonly [K in keyof T]: ReadonlyState<T[K]> }
+								: T extends object ? { readonly [K in keyof T]: ReadonlyState<T[K]> }
+									: T
 
 type SetterResult<TState> = TState extends object ? Partial<TState> | void : TState | void
 
@@ -21,33 +39,33 @@ type SetterResult<TState> = TState extends object ? Partial<TState> | void : TSt
  * - `'change'` fires only when the state hash differs from the previous value.
  */
 export type Store<TState extends StateType | Array<StateType>> = {
-	/** A frozen snapshot of the current state. */
-	readonly value: Readonly<TState>
+	/**
+	 * A frozen snapshot of the current state.
+	 *
+	 * Computed lazily on first read after an `update` and cached until the next `update`, so `store.value === store.value` between updates. Useful for downstream memoisation.
+	 */
+	readonly value: ReadonlyState<TState>
 	/**
 	 * Updates the store state synchronously.
 	 *
-	 * The setter receives a {@link https://developer.mozilla.org/docs/Web/API/structuredClone structuredClone}
-	 * of the current state (`currentValue`).
+	 * The setter receives the **live** state reference (not a clone). You can mutate it at any depth directly: `s.pad.aces = score` works.
 	 *
-	 * - For **object** state: return `void` to apply mutations to the clone, or return a
-	 *   `Partial<TState>` to merge specific keys into the current state.
+	 * - For **object** state: return `void` to keep your mutations as-is, or return a `Partial<TState>` to merge specific keys on top of the current state.
 	 * - For **primitive** state: return the new value.
+	 *
+	 * Calling `update` invalidates the cached snapshot, so the next `value` read reflects the new state.
 	 */
 	update(setter: (currentValue: TState) => SetterResult<TState>): void
 	/**
-	 * Subscribes to `'update'` events, which fire on **every** call to
-	 * {@link Store.update} regardless of whether the state changed.
+	 * Subscribes to `'update'` events, which fire on **every** call to {@link Store.update} regardless of whether the state changed.
 	 *
-	 * The `signal` is required and controls listener lifetime. Pass the
-	 * component's `signal` to ensure cleanup on unmount.
+	 * The `signal` is required and controls listener lifetime. Pass the component's `signal` to ensure cleanup on unmount.
 	 */
 	on(event: 'update', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void
 	/**
-	 * Subscribes to `'change'` events, which fire only when the **state hash
-	 * differs** from the previous value (structural change detected).
+	 * Subscribes to `'change'` events, which fire only when the **state hash differs** from the previous value (structural change detected).
 	 *
-	 * The `signal` is required and controls listener lifetime. Pass the
-	 * component's `signal` to ensure cleanup on unmount.
+	 * The `signal` is required and controls listener lifetime. Pass the component's `signal` to ensure cleanup on unmount.
 	 */
 	on(event: 'change', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void
 }
@@ -56,64 +74,37 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 	#state: TState
 	#hash: string
 	#isObject: boolean
+	#snapshot: ReadonlyState<TState> | undefined
 
 	constructor(initial: TState) {
 		super()
-		this.#state = this.#clone(initial)
-		this.#hash = hashState(this.#state)
+		this.#state = initial
+		this.#hash = hashState(initial)
+		// eslint-disable-next-line unicorn/no-null
 		this.#isObject = typeof initial === 'object' && initial !== null
 	}
 
-	// structuredClone throws on undefined, null, and objects with methods, so guard here.
-	#clone(value: TState): TState {
-		if (value === undefined) return undefined as TState
-		// eslint-disable-next-line unicorn/no-null
-		if (value === null) return null as unknown as TState
-		if (typeof value === 'object') {
-			const entries = Object.entries(value as object)
-			const functionEntries = entries.filter(([, v]) => typeof v === 'function')
-			if (functionEntries.length > 0) {
-				const dataEntries = entries.filter(([, v]) => typeof v !== 'function')
-				return Object.assign(
-					structuredClone(Object.fromEntries(dataEntries)),
-					Object.fromEntries(functionEntries),
-				) as TState
-			}
-		}
-		return structuredClone(value)
-	}
-
-	get value(): Readonly<TState> {
-		const cloned = this.#clone(this.#state)
-		return this.#isObject
-			? Object.freeze(cloned)
-			: cloned
+	get value(): ReadonlyState<TState> {
+		if (!this.#isObject) return this.#state as ReadonlyState<TState>
+		return this.#snapshot ??= deepFreeze(deepClone(this.#state)) as ReadonlyState<TState>
 	}
 
 	update(setter: (currentValue: TState) => SetterResult<TState>): void {
-		const draft = this.#clone(this.#state)
-		const result = setter(draft)
+		const result = setter(this.#state)
 
-		if (result === undefined) {
-			this.#state = this.#isObject ? this.#clone(draft) : draft
+		if (result !== undefined) {
+			this.#state = this.#isObject
+				? Object.assign({}, this.#state as object, result) as TState
+				: result as TState
 		}
-		else if (this.#isObject) {
-			this.#state = Object.assign(this.#clone(this.#state) as object, result as Partial<TState>) as TState
-		}
-		else {
-			this.#state = result as TState
-		}
+		this.#snapshot = undefined
 
-		const frozenState = this.#isObject
-			? Object.freeze(this.#clone(this.#state))
-			: this.#state as Readonly<TState>
-
-		this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('update', { detail: { state: frozenState } }))
+		this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('update', { detail: { state: this.value } }))
 
 		const newHash = hashState(this.#state)
 		if (newHash !== this.#hash) {
 			this.#hash = newHash
-			this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('change', { detail: { state: frozenState } }))
+			this.dispatchEvent(new CustomEvent<StoreEventDetail<TState>>('change', { detail: { state: this.value } }))
 		}
 	}
 
@@ -129,12 +120,9 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 /**
  * Creates a new {@link Store} with the given initial state.
  *
- * Primitive values are widened to their base type. `createStore(true)` returns
- * `Store<boolean>`, not `Store<true>`. Use an explicit type parameter to narrow
- * further: `createStore<'idle' | 'navigating'>('idle')`.
+ * Primitive values are widened to their base type. `createStore(true)` returns `Store<boolean>`, not `Store<true>`. Use an explicit type parameter to narrow further: `createStore<'idle' | 'navigating'>('idle')`.
  *
- * Calling without an argument creates a store with `undefined` as the initial
- * value. The type parameter is required in this form: `createStore<string>()`.
+ * Calling without an argument creates a store with `undefined` as the initial value. The type parameter is required in this form: `createStore<string>()`.
  *
  * @example
  * ```ts

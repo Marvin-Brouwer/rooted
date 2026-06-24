@@ -4,7 +4,6 @@
 
 ```ts
 
-import * as _$vite from 'vite';
 import { AdditionalSitemap } from '@rooted/adapter';
 import { ArrayElement } from '@rooted/util';
 import { BuildEnvironmentOptions } from 'vite';
@@ -12,6 +11,7 @@ import { ManifestOptions } from 'vite-plugin-pwa';
 import { SeoApi } from '@rooted/adapter';
 import { SitemapEntry } from '@rooted/adapter';
 import { UserConfig } from 'vite';
+import { UserConfigFnObject } from 'vite';
 import { VitePWAOptions } from 'vite-plugin-pwa';
 
 export { AdditionalSitemap }
@@ -60,7 +60,7 @@ export type RootedApplicationManifest = {
 };
 
 // @public
-export function rootedManifest(manifest: RootedApplicationManifest): _$vite.UserConfigFnObject;
+export function rootedManifest(manifest: RootedApplicationManifest): UserConfigFnObject;
 
 export { SeoApi }
 

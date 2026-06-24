@@ -1,5 +1,7 @@
 import { describe, expect, test, vi } from 'vitest'
 
+import { deepClone, deepFreeze } from '../src/deepClone.mts'
+import { hashState } from '../src/hash.mts'
 import { createStore } from '../src/store.mts'
 
 describe('createStore — value', () => {
@@ -39,25 +41,30 @@ describe('createStore — update', () => {
 		expect(store.value).toEqual({ a: 99, b: 2 })
 	})
 
-	test('currentValue is a structuredClone — mutations do not bleed into each other', () => {
+	test('setter sees the post-update state on the next call', () => {
 		const store = createStore({ items: [1, 2, 3] })
 		store.update((s) => {
 			s.items.push(4)
 		})
-		// A second update should still get the post-first-update state
 		store.update((s) => {
 			expect(s.items).toEqual([1, 2, 3, 4])
 		})
 	})
 
-	test('mutations to currentValue after setter returns do not affect stored state', () => {
+	test('snapshot is independent of post-update mutations to captured refs', () => {
 		const store = createStore({ count: 0 })
+		const snapshot = store.value
+
 		let captured: { count: number } | undefined
 		store.update((s) => {
 			captured = s
 		})
+		// The setter received the live state ref. Mutating it after the setter
+		// returns is unusual but allowed; the snapshot taken before is frozen
+		// and independent.
 		captured!.count = 999
-		expect(store.value.count).toBe(0)
+		expect(snapshot.count).toBe(0)
+		expect(Object.isFrozen(snapshot)).toBe(true)
 	})
 })
 
@@ -275,6 +282,267 @@ describe('createStore — primitive state', () => {
 		store.update(() => 'navigating') // same value, but update still fires
 		expect(handler).toHaveBeenCalledTimes(2)
 		controller.abort()
+	})
+})
+
+describe('createStore - value caching', () => {
+	test('value returns the same frozen snapshot between updates', () => {
+		const store = createStore({ count: 0 })
+		const a = store.value
+		const b = store.value
+		expect(a).toBe(b)
+	})
+
+	test('value returns a fresh snapshot after update', () => {
+		const store = createStore({ count: 0 })
+		const a = store.value
+		store.update((s) => {
+			s.count = 1
+		})
+		expect(store.value).not.toBe(a)
+	})
+
+	test('held snapshot is unaffected by later updates', () => {
+		const store = createStore({ count: 0, nested: { deep: 1 } })
+		const a = store.value
+		store.update((s) => {
+			s.nested.deep = 999
+		})
+		expect(a.nested.deep).toBe(1)
+	})
+})
+
+describe('createStore - functions in state', () => {
+	test('nested functions on state do not throw on update', () => {
+		const store = createStore({
+			items: [1, 2, 3],
+			format() { return `[${this.items.join(', ')}]` },
+		})
+		expect(() => {
+			store.update((s) => {
+				s.items.push(4)
+			})
+		}).not.toThrow()
+		expect(store.value.items).toEqual([1, 2, 3, 4])
+		expect(typeof store.value.format).toBe('function')
+	})
+
+	test('functions are shared by reference in snapshots', () => {
+		const function_ = () => 42
+		const store = createStore({ fn: function_ })
+		expect(store.value.fn).toBe(function_)
+	})
+})
+
+describe('createStore - symbol-keyed properties', () => {
+	const brand = Symbol('brand')
+
+	test('symbol-keyed properties survive update + value read', () => {
+		type Branded = { value: number, [brand]: 'tag' }
+		const initial: Branded = { value: 1, [brand]: 'tag' }
+		const store = createStore(initial)
+
+		store.update((s) => {
+			s.value = 2
+		})
+		expect(store.value[brand]).toBe('tag')
+		expect(store.value.value).toBe(2)
+	})
+
+	test('symbol-keyed properties on array elements survive cloning', () => {
+		type Tagged = number[] & { [brand]: 'list' }
+		const tagged = [1, 2, 3] as Tagged
+		tagged[brand] = 'list'
+
+		const store = createStore({ list: tagged })
+		store.update((s) => {
+			s.list.push(4)
+		})
+		expect(store.value.list[brand]).toBe('list')
+	})
+})
+
+describe('deepClone', () => {
+	test('clones plain objects deeply', () => {
+		const original = { a: { b: { c: 1 } } }
+		const copy = deepClone(original)
+		expect(copy).toEqual(original)
+		expect(copy).not.toBe(original)
+		expect(copy.a).not.toBe(original.a)
+	})
+
+	test('clones arrays deeply', () => {
+		const original = [[1], [2, [3]]]
+		const copy = deepClone(original)
+		expect(copy).toEqual(original)
+		expect(copy[1]).not.toBe(original[1])
+	})
+
+	test('handles cycles without infinite recursion', () => {
+		type Node = { name: string, self?: Node }
+		const a: Node = { name: 'a' }
+		a.self = a
+		const copy = deepClone(a)
+		expect(copy.name).toBe('a')
+		expect(copy.self).toBe(copy)
+	})
+
+	test('clones Date by value', () => {
+		const d = new Date('2026-01-01T00:00:00.000Z')
+		const copy = deepClone({ d })
+		expect(copy.d).not.toBe(d)
+		expect(copy.d.getTime()).toBe(d.getTime())
+	})
+
+	test('clones Map and Set', () => {
+		const m = new Map([['k', { v: 1 }]])
+		const s = new Set([{ v: 2 }])
+		const copy = deepClone({ m, s })
+		expect(copy.m).not.toBe(m)
+		expect(copy.m.get('k')).not.toBe(m.get('k'))
+		expect(copy.m.get('k')).toEqual({ v: 1 })
+		expect(copy.s).not.toBe(s)
+		expect([...copy.s][0]).toEqual({ v: 2 })
+	})
+
+	test('preserves Map subclass prototype and own fields', () => {
+		class TaggedMap<K, V> extends Map<K, V> {
+			tag = 'mine'
+		}
+		const m = new TaggedMap<string, number>()
+		m.set('k', 1)
+		const copy = deepClone({ m })
+		expect(copy.m).toBeInstanceOf(TaggedMap)
+		expect(copy.m.get('k')).toBe(1)
+		expect(copy.m.tag).toBe('mine')
+	})
+
+	test('preserves Set subclass prototype and own fields', () => {
+		class TaggedSet<V> extends Set<V> {
+			tag = 'mine'
+		}
+		const s = new TaggedSet<number>()
+		s.add(1)
+		const copy = deepClone({ s })
+		expect(copy.s).toBeInstanceOf(TaggedSet)
+		expect([...copy.s]).toEqual([1])
+		expect(copy.s.tag).toBe('mine')
+	})
+
+	test('preserves symbol-keyed properties', () => {
+		const tag = Symbol('tag')
+		const original = { value: 1, [tag]: 'brand' }
+		const copy = deepClone(original)
+		expect(copy[tag]).toBe('brand')
+	})
+
+	test('shares functions by reference', () => {
+		const function_ = () => 1
+		const copy = deepClone({ fn: function_ })
+		expect(copy.fn).toBe(function_)
+	})
+
+	test('structurally clones class instances', () => {
+		class Thing {
+			x = 1
+			nested = { count: 0 }
+		}
+		const t = new Thing()
+		const copy = deepClone({ t })
+		expect(copy.t).not.toBe(t)
+		expect(copy.t).toBeInstanceOf(Thing)
+		expect(copy.t.x).toBe(1)
+		expect(copy.t.nested).not.toBe(t.nested)
+		expect(copy.t.nested.count).toBe(0)
+	})
+
+	test('class instance methods stay on the prototype', () => {
+		class Greeter {
+			greet() { return 'hi' }
+		}
+		const g = new Greeter()
+		const copy = deepClone({ g })
+		expect(copy.g.greet()).toBe('hi')
+		expect(Object.getPrototypeOf(copy.g)).toBe(Greeter.prototype)
+	})
+
+	test('returns primitives as-is', () => {
+		expect(deepClone(1)).toBe(1)
+		expect(deepClone('x')).toBe('x')
+		// eslint-disable-next-line unicorn/no-null
+		expect(deepClone(null)).toBe(null)
+		expect(deepClone(undefined)).toBe(undefined)
+	})
+})
+
+describe('deepFreeze', () => {
+	test('freezes plain objects deeply', () => {
+		const object = deepFreeze({ a: { b: 1 } })
+		expect(Object.isFrozen(object)).toBe(true)
+		expect(Object.isFrozen(object.a)).toBe(true)
+	})
+
+	test('freezes arrays deeply', () => {
+		const array = deepFreeze([{ x: 1 }, { x: 2 }])
+		expect(Object.isFrozen(array)).toBe(true)
+		expect(Object.isFrozen(array[0])).toBe(true)
+	})
+
+	test('handles cycles', () => {
+		type Node = { name: string, self?: Node }
+		const a: Node = { name: 'a' }
+		a.self = a
+		const frozen = deepFreeze(a)
+		expect(Object.isFrozen(frozen)).toBe(true)
+	})
+
+	test('freezes class instances and their fields', () => {
+		class Thing { x = 1 }
+		const t = new Thing()
+		deepFreeze({ t })
+		expect(Object.isFrozen(t)).toBe(true)
+	})
+
+	test('freezes Map and Set instances and their entries', () => {
+		const inner = { v: 1 }
+		const m = new Map([['k', inner]])
+		const s = new Set([inner])
+		deepFreeze({ m, s })
+		expect(Object.isFrozen(m)).toBe(true)
+		expect(Object.isFrozen(s)).toBe(true)
+		expect(Object.isFrozen(inner)).toBe(true)
+	})
+
+	test('frozen Map and Set throw on mutating methods', () => {
+		const m = new Map<string, number>([['k', 1]])
+		const s = new Set<number>([1])
+		deepFreeze({ m, s })
+		expect(() => m.set('k2', 2)).toThrow(TypeError)
+		expect(() => m.delete('k')).toThrow(TypeError)
+		expect(() => m.clear()).toThrow(TypeError)
+		expect(() => s.add(2)).toThrow(TypeError)
+		expect(() => s.delete(1)).toThrow(TypeError)
+		expect(() => s.clear()).toThrow(TypeError)
+	})
+})
+
+describe('hashState - functions and symbol keys', () => {
+	test('same function reference hashes the same', () => {
+		const function1 = () => 1
+		expect(hashState({ a: 1, fn: function1 })).toBe(hashState({ a: 1, fn: function1 }))
+	})
+
+	test('different function references hash differently', () => {
+		const function1 = () => 1
+		const function2 = () => 1 // same body, different reference
+		expect(hashState({ a: 1, fn: function1 })).not.toBe(hashState({ a: 1, fn: function2 }))
+	})
+
+	test('symbol-keyed properties affect the hash', () => {
+		const brand = Symbol('brand')
+		const a = hashState({ value: 1, [brand]: 'x' } as Record<string | symbol, unknown>)
+		const b = hashState({ value: 1, [brand]: 'y' } as Record<string | symbol, unknown>)
+		expect(a).not.toBe(b)
 	})
 })
 
