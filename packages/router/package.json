@@ -78,6 +78,6 @@
 		"@rooted/tsdown": "workspace:^",
 		"@types/node": "^25.9.3",
 		"tsx": "^4.22.4",
-		"vite": "^8.0.16"
+		"vite": "^8.1.0"
 	}
 }
