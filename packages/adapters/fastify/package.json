@@ -51,7 +51,7 @@
 		"@rooted/development": "workspace:*",
 		"@rooted/tsdown": "workspace:^",
 		"@types/node": "^25.9.3",
-		"tsx": "^4.22.4",
+		"tsx": "^4.23.0",
 		"typescript": "^6.0.3",
 		"vite": "^8.1.0"
 	},
