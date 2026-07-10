@@ -37,6 +37,21 @@ async resolve({ create, tokens }) {
 
 Built-ins: `String`, `Number`, `Boolean`, `BigInt`, `Date`. Pass any of them as the second argument to `token()`.
 
+### Constant values
+
+Pass an array instead of a constructor to only match the listed values. The matched value keeps its literal type.
+
+```ts
+export const AboutRoute = route`/${token('locale', ['en-GB', 'nl-NL'])}/about/`({
+  resolve: ({ create, tokens }) => create(About, { locale: tokens.locale }),
+})
+// tokens.locale is 'en-GB' | 'nl-NL'; /de-DE/about/ does not match
+```
+
+The array must hold values of one kind, all strings or all numbers. Because the possible values are known, routes whose only dynamic parts are constant tokens are unrolled to concrete paths at build time: each value gets its own prerendered page and sitemap entry. Routes that mix a constant token with a typed token or wildcard stay dynamic.
+
+This is the mechanism behind [`@rooted/localization`](./localization.md), but it isn't tied to locales.
+
 ### Wildcard
 
 Use `wildcard()` as the last interpolation to match the rest of the path. Its key is `rest` by default.

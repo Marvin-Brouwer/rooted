@@ -2,9 +2,9 @@ import { describe, test, expect, vi, afterEach } from 'vitest'
 
 import { route } from '@rooted/router/routes'
 
-import { configureLocalization } from '../src/localization.mts'
 import { template } from '../src/dictionary.mts'
 import { localeTokenBrand } from '../src/locale-token.mts'
+import { configureLocalization } from '../src/localization.mts'
 
 function visit(path: string) {
 	history.pushState(undefined, '', path)

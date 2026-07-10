@@ -25,7 +25,7 @@ describe('template()', () => {
 
 	test('invalid parameter name warns in dev', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
-		template`x ${'bad name'}`
+		expect(template`x ${'bad name'}`).toBe('x {bad name}')
 		expect(warn).toHaveBeenCalledOnce()
 	})
 })

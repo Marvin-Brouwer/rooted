@@ -162,6 +162,7 @@ See the [`recipe-book` example](./examples/recipe-book) for a full vertical-slic
 |---------|--------------|
 | [`@rooted/components`](./packages/components) | The `component()` factory, the mount-context API, and the app bootstrap. |
 | [`@rooted/router`](./packages/router) | Typed routes, gates, navigation helpers, and the Vite route-discovery plugin. |
+| [`@rooted/localization`](./packages/localization) | URL-based localization: locale route token, overlay dictionaries, and hreflang tooling. |
 | [`@rooted/elements`](./packages/elements) | Low-level DOM helpers used by components. Useful when you build elements without a component shell. |
 | [`@rooted/events`](./packages/events) | Typed event helpers and global error utilities. |
 | [`@rooted/store`](./packages/store) | A small synchronous store with `update` and `change` events. Not reactive. |

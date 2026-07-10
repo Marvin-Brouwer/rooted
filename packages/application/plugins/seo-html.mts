@@ -72,10 +72,10 @@ export function injectHeadLinks(
 	return insertBeforeHead(html, tags.join('\n'))
 }
 
-function hasLink(html: string, rel: string, hreflang: string | undefined): boolean {
-	if (!hreflang) return new RegExp(`<link[^>]+rel=["']${rel}["']`, 'i').test(html)
+function hasLink(html: string, relation: string, hreflang: string | undefined): boolean {
+	if (!hreflang) return new RegExp(`<link[^>]+rel=["']${relation}["']`, 'i').test(html)
 	// Attribute order is not guaranteed, so require both attributes on the same tag
-	const pattern = new RegExp(`<link(?=[^>]+rel=["']${rel}["'])(?=[^>]+hreflang=["']${hreflang}["'])[^>]*>`, 'i')
+	const pattern = new RegExp(`<link(?=[^>]+rel=["']${relation}["'])(?=[^>]+hreflang=["']${hreflang}["'])[^>]*>`, 'i')
 	return pattern.test(html)
 }
 

@@ -40,6 +40,8 @@ The full set of fields:
 
 Routes without a `seo` field are still listed in the sitemap, just without per-route metadata.
 
+A route only counts as static when its pattern has no dynamic segments, with one exception: [constant-values tokens](./routing.md#constant-values) like `token('locale', ['en-GB', 'nl-NL'])` unroll into one prerendered page and one sitemap entry per listed value. Routes with a typed token or wildcard stay dynamic and are skipped.
+
 ## How metadata reaches the page
 
 Two paths:

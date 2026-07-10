@@ -34,7 +34,7 @@ export function createHreflangObserver(supportedLocales: readonly string[], defa
 			seen.add(upsertLink('x-default', toAbsolute(`/${defaultLocale}${rest}`, options?.deploymentUrl)))
 
 			// Drop tags for locales that are no longer configured
-			for (const element of [...document.head.querySelectorAll(`link[${managedAttribute}]`)]) {
+			for (const element of document.head.querySelectorAll(`link[${managedAttribute}]`)) {
 				if (!seen.has(element)) element.remove()
 			}
 		}
@@ -73,7 +73,7 @@ function upsertLink(hreflang: string, url: string): Element {
 }
 
 function removeManagedLinks() {
-	for (const element of [...document.head.querySelectorAll(`link[${managedAttribute}]`)]) {
+	for (const element of document.head.querySelectorAll(`link[${managedAttribute}]`)) {
 		element.remove()
 	}
 }

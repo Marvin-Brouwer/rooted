@@ -17,6 +17,7 @@ The split exists for two reasons:
 @rooted/store         # imports util
 @rooted/components    # imports util, elements, events
 @rooted/router        # imports util, components
+@rooted/localization  # imports util, router
 @rooted/application   # build-time. imports application primitives.
 ```
 
@@ -51,6 +52,12 @@ This package is the closest thing to "the framework." Most user code imports fro
 The router, gates, link component, navigation helpers, route-token parsing, route metadata, and the SEO meta runtime. Plus the `@rooted/router/manifest` Vite plugin for `_routes.mts` discovery.
 
 Imports `components` because routes resolve to component instances and the router itself is a component. Does not depend on `@rooted/application`; the router is usable without the build-time SEO tooling.
+
+## `@rooted/localization`
+
+URL-based localization built on the router's constant-values token. `configureLocalization`, the locale route token, overlay dictionaries with the `text` tagged template, and hreflang tooling (a runtime observer plus the `@rooted/localization/vite` build plugin).
+
+Separate from `router` on purpose: apps that don't localize shouldn't carry any i18n code. The router only provides the generic constant-values token; everything locale-specific lives here.
 
 ## `@rooted/store`
 
