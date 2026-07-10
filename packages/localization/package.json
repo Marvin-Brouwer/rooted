@@ -1,0 +1,68 @@
+{
+	"name": "@rooted/localization",
+	"version": "1.0.0-alpha.0",
+	"description": "URL-based localization for the rooted framework",
+	"keywords": [
+		"localization",
+		"i18n",
+		"router",
+		"web-components",
+		"typescript",
+		"rooted"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "packages/localization"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
+	"sideEffects": false,
+	"publishConfig": {
+		"registry": "https://registry.npmjs.org/",
+		"access": "public",
+		"provenance": true
+	},
+	"files": [
+		"dist",
+		"readme.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"exports": {
+		".": {
+			"source": "./src/_module/localization.mts",
+			"import": "./dist/localization.mjs",
+			"types": "./dist/localization.d.mts"
+		},
+		"./vite": {
+			"source": "./plugins/_module/vite.mts",
+			"import": "./dist/vite.mjs",
+			"types": "./dist/vite.d.mts"
+		}
+	},
+	"scripts": {
+		"build": "pnpm build:ci",
+		"build:dev": "pnpm build:ci && rooted-development extract-api",
+		"build:ci": "tsdown",
+		"watch": "tsdown --watch --no-clean",
+		"clean": "rm -rf dist",
+		"extract-api": "rooted-development extract-api"
+	},
+	"peerDependencies": {
+		"@rooted/router": "workspace:^",
+		"@rooted/util": "workspace:^",
+		"vite": ">=8.0.1"
+	},
+	"devDependencies": {
+		"@rooted/adapter": "workspace:^",
+		"@rooted/development": "workspace:*",
+		"@rooted/router": "workspace:^",
+		"@rooted/util": "workspace:^",
+		"@types/node": "^25.9.3",
+		"vite": "^8.1.3"
+	}
+}
