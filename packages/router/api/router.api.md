@@ -5,7 +5,6 @@
 ```ts
 
 import { Aria } from '@rooted/components/elements';
-import { Component } from '@rooted/components';
 import { createComponent } from '@rooted/components/elements';
 import { CssClasses } from '@rooted/components/elements';
 import { GenericComponent } from '@rooted/components';
@@ -36,7 +35,7 @@ export const href: {
 };
 
 // @public
-export const Link: Component<LinkOptions>;
+export const Link: any;
 
 // @public
 export type LinkOptions = {

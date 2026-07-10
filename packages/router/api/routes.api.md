@@ -8,6 +8,14 @@ import { createComponent } from '@rooted/components/elements';
 import { TupleResult } from '@rooted/util';
 
 // @public
+export type Constant<V extends string | number = string | number> = readonly V[] & {
+    [constantBrand]: true;
+};
+
+// @public
+export function isConstantParameter<K extends string>(token: Parameter<K, any>): token is Parameter<K, Constant>;
+
+// @public
 export type MatchRouteOptions = {
     target?: string | Path | Url | URL | Location;
     offset?: number;
@@ -23,7 +31,7 @@ export type Parameter<K extends string = string, T extends ParameterTokenType = 
 };
 
 // @public (undocumented)
-export type ParameterTokenType = Number | String | Boolean | Date | Wildcard | AnyRoute;
+export type ParameterTokenType = Number | String | Boolean | Date | Wildcard | Constant | AnyRoute;
 
 // @public
 export type ParameterType = NumberConstructor | StringConstructor | BooleanConstructor | DateConstructor | Wildcard;
@@ -72,7 +80,8 @@ export type RouteMetadata<T extends {
     readonly hasWildcard: boolean; /** Present and `true` when the route pattern has validation errors. */
     readonly hasErrors?: true; /** The split-up parts of the route pattern. */
     readonly routeParts: Array<string | RouteParameter>; /** Resolved static path string if this route has no dynamic segments, `false` otherwise. */
-    readonly staticRoute: false | string; /** Optional SEO metadata for this route. */
+    readonly staticRoute: false | string;
+    readonly staticPaths: false | readonly string[]; /** Optional SEO metadata for this route. */
     readonly seo?: RouteSeoMetadata;
 };
 
@@ -94,6 +103,9 @@ export type RouteSeoMetadata = {
 };
 
 // @public
+export function token<K extends string, const V extends readonly [string, ...string[]] | readonly [number, ...number[]]>(name: K, values: V): Parameter<K, Constant<V[number]>>;
+
+// @public (undocumented)
 export function token<K extends string = string, T extends ParameterType = ParameterType>(name: K, type: T): Parameter<K, ParameterToTokenType<T>>;
 
 // @public

@@ -230,7 +230,8 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 			for (const route of manifestApi?.routes ?? []) {
 				if (!Object.hasOwn(route, 'getMetadata')) continue
 				const meta = route.getMetadata()
-				if (typeof meta.staticRoute === 'string') seoByPath.set(meta.staticRoute, meta.seo)
+				if (meta.staticPaths === false) continue
+				for (const staticPath of meta.staticPaths) seoByPath.set(staticPath, meta.seo)
 			}
 
 			const staticRoutes: Array<{ staticPath: string, routeDirectory: string }> = []
@@ -276,11 +277,13 @@ function collectStaticRoutePaths(manifestApi: RouteManifestApi | undefined): str
 	for (const route of manifestApi?.routes ?? []) {
 		if (!Object.hasOwn(route, 'getMetadata')) continue
 		const metadata = route.getMetadata()
-		const staticPath = metadata.staticRoute
-		if (staticPath === false) continue
-		const segments = staticPath.split('/').filter(Boolean)
-		if (segments.length === 0) continue
-		paths.push(staticPath)
+		// staticPaths includes constant-token routes unrolled to concrete paths
+		if (metadata.staticPaths === false) continue
+		for (const staticPath of metadata.staticPaths) {
+			const segments = staticPath.split('/').filter(Boolean)
+			if (segments.length === 0) continue
+			paths.push(staticPath)
+		}
 	}
 	return paths
 }
@@ -290,7 +293,8 @@ function collectDynamicRoutePatterns(manifestApi: RouteManifestApi | undefined):
 	for (const route of manifestApi?.routes ?? []) {
 		if (!Object.hasOwn(route, 'getMetadata')) continue
 		const metadata = route.getMetadata()
-		if (metadata.staticRoute !== false) continue
+		// Routes that unroll to concrete paths are fully prerendered, not dynamic
+		if (metadata.staticPaths !== false) continue
 		if (metadata.hasErrors) continue
 		patterns.push(buildRoutePattern(route))
 	}

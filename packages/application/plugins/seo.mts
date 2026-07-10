@@ -5,12 +5,12 @@ import { promisify } from 'node:util'
 
 import { glob } from 'tinyglobby'
 
-import { injectCanonical, injectMetaTags, injectOgTags, injectRootJsonLd } from './seo-html.mts'
+import { injectCanonical, injectHeadLinks, injectMetaTags, injectOgTags, injectRootJsonLd } from './seo-html.mts'
 import { buildSitemapIndexXml, buildSitemapXml } from './seo-sitemap.mts'
 
 import type { LlmsTxtOptions } from './llms-txt.mts'
 import type { RobotsOptions } from './robots.mts'
-import type { AdditionalSitemap, SeoApi, SitemapEntry } from '@rooted/adapter'
+import type { AdditionalSitemap, RouteHeadLinkProvider, SeoApi, SitemapEntry } from '@rooted/adapter'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { RouteSeoMetadata } from '@rooted/router/routes'
 import type { Plugin, ResolvedConfig } from 'vite'
@@ -88,6 +88,7 @@ export function seoPlugin(
 	let manifestApi: RouteManifestApi | undefined
 
 	const additionalSitemaps = new Map<string, AdditionalSitemap>()
+	const headLinkProviders: RouteHeadLinkProvider[] = []
 
 	const defaultOgImage = options?.defaultOgImage
 		?? (deploymentUrl ? new URL('pwa-512x512.png', deploymentUrl).href : undefined)
@@ -113,13 +114,19 @@ export function seoPlugin(
 				return new URL(file, deploymentUrl).href
 			},
 			injectRouteHtml(html: string, seo: RouteSeoMetadata | undefined, staticPath: string): string {
-				return injectMetaTags(html, seo, toLocation(staticPath), defaultOgImage, titleSuffix)
+				const result = injectMetaTags(html, seo, toLocation(staticPath), defaultOgImage, titleSuffix)
+				const links = headLinkProviders.flatMap(provider => provider(staticPath) ?? [])
+				if (links.length === 0) return result
+				return injectHeadLinks(result, links.map(link => ({ rel: link.rel, hreflang: link.hreflang, href: toLocation(link.path) })))
 			},
 			injectRootHtml(html: string): string {
 				let result = injectRootJsonLd(html, webManifest, deploymentUrl)
 				result = injectCanonical(result, toLocation('/'))
 				result = injectOgTags(result, undefined, toLocation('/'), defaultOgImage)
 				return result
+			},
+			addRouteHeadLinks(provider: RouteHeadLinkProvider): void {
+				headLinkProviders.push(provider)
 			},
 		} satisfies SeoApi,
 
@@ -172,21 +179,25 @@ async function buildSitemapEntries(
 		for (const route of manifestApi.routes) {
 			if (!Object.hasOwn(route, 'getMetadata')) continue
 			const metadata = route.getMetadata()
-			const staticPath = metadata.staticRoute
-			if (staticPath === false) continue
+			// staticPaths includes constant-token routes unrolled to concrete paths
+			const staticPaths = metadata.staticPaths
+			if (staticPaths === false) continue
 			if (metadata.seo?.excludeFromSitemap) continue
-
-			const loc = toLocation(staticPath)
-			if (entries.has(loc)) continue
 
 			const sourceFile = manifestApi.routeSourceFiles.get(route)
 			const lastmod = await gitLastModified(sourceFile, root)
-			entries.set(loc, {
-				loc,
-				lastmod,
-				changeFrequency: metadata.seo?.changeFrequency,
-				priority: metadata.seo?.priority,
-			})
+
+			for (const staticPath of staticPaths) {
+				const loc = toLocation(staticPath)
+				if (entries.has(loc)) continue
+
+				entries.set(loc, {
+					loc,
+					lastmod,
+					changeFrequency: metadata.seo?.changeFrequency,
+					priority: metadata.seo?.priority,
+				})
+			}
 		}
 	}
 

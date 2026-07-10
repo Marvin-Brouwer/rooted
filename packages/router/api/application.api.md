@@ -50,7 +50,7 @@ export type Parameter<K extends string = string, T extends ParameterTokenType = 
 };
 
 // @public (undocumented)
-export type ParameterTokenType = Number | String | Boolean | Date | Wildcard | AnyRoute;
+export type ParameterTokenType = Number | String | Boolean | Date | Wildcard | Constant | AnyRoute;
 
 // @public
 export type ParameterType = NumberConstructor | StringConstructor | BooleanConstructor | DateConstructor | Wildcard;
@@ -125,6 +125,9 @@ export type RouteSeoMetadata = {
 };
 
 // @public
+export function token<K extends string, const V extends readonly [string, ...string[]] | readonly [number, ...number[]]>(name: K, values: V): Parameter<K, Constant<V[number]>>;
+
+// @public (undocumented)
 export function token<K extends string = string, T extends ParameterType = ParameterType>(name: K, type: T): Parameter<K, ParameterToTokenType<T>>;
 
 // @public

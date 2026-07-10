@@ -56,6 +56,29 @@ export function injectOgTags(
 	return insertBeforeHead(html, tags.join('\n'))
 }
 
+export function injectHeadLinks(
+	html: string,
+	links: Array<{ rel: string, hreflang?: string, href: string }>,
+): string {
+	const tags: string[] = []
+
+	for (const link of links) {
+		if (hasLink(html, link.rel, link.hreflang)) continue
+		const hreflang = link.hreflang ? ` hreflang="${escapeAttribute(link.hreflang)}"` : ''
+		tags.push(`\t<link rel="${escapeAttribute(link.rel)}"${hreflang} href="${escapeAttribute(link.href)}" />`)
+	}
+
+	if (tags.length === 0) return html
+	return insertBeforeHead(html, tags.join('\n'))
+}
+
+function hasLink(html: string, rel: string, hreflang: string | undefined): boolean {
+	if (!hreflang) return new RegExp(`<link[^>]+rel=["']${rel}["']`, 'i').test(html)
+	// Attribute order is not guaranteed, so require both attributes on the same tag
+	const pattern = new RegExp(`<link(?=[^>]+rel=["']${rel}["'])(?=[^>]+hreflang=["']${hreflang}["'])[^>]*>`, 'i')
+	return pattern.test(html)
+}
+
 export function injectRootJsonLd(
 	html: string,
 	webManifest: Partial<ManifestOptions> & { name?: string, description?: string },

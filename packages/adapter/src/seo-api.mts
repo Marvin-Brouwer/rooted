@@ -34,6 +34,31 @@ export type AdditionalSitemap = {
 }
 
 /**
+ * A `<link>` tag to add to the head of a prerendered route page.
+ */
+export type RouteHeadLink = {
+	/** Link relation, e.g. `'alternate'`. */
+	rel: string
+	/** Language code (or `'x-default'`) for `rel="alternate"` links. */
+	hreflang?: string
+	/**
+	 * Root-relative path the link points at (e.g. `/nl-NL/about/`).
+	 * The SEO plugin resolves it against the deployment URL or the Vite base.
+	 */
+	path: string
+}
+
+/**
+ * Returns extra head links for a prerendered path, or `undefined` when the
+ * path has none.
+ *
+ * Called lazily while the adapter injects per-route HTML (during
+ * `closeBundle`), so all plugins have started by then. Register the provider
+ * early, in `configResolved` or `buildStart`.
+ */
+export type RouteHeadLinkProvider = (staticPath: string) => RouteHeadLink[] | undefined
+
+/**
  * Inter-plugin API exposed by the `rooted:seo` Vite plugin.
  *
  * Retrieve it in `configResolved` or `buildStart`:
@@ -78,4 +103,12 @@ export type SeoApi = {
 	 * @param html - The source HTML string to transform.
 	 */
 	injectRootHtml(html: string): string
+	/**
+	 * Registers a provider of extra `<link>` head tags per prerendered path,
+	 * e.g. `rel="alternate" hreflang` links for localized routes.
+	 *
+	 * Providers are evaluated lazily inside {@link SeoApi.injectRouteHtml}, so
+	 * registering in `configResolved` or `buildStart` is always early enough.
+	 */
+	addRouteHeadLinks(provider: RouteHeadLinkProvider): void
 }

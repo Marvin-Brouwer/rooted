@@ -103,19 +103,22 @@ export function llmsTxtPlugin(
 					for (const route of manifestApi.routes) {
 						if (!Object.hasOwn(route, 'getMetadata')) continue
 						const metadata = route.getMetadata()
-						const staticPath = metadata.staticRoute
-						if (staticPath === false) continue
+						// staticPaths includes constant-token routes unrolled to concrete paths
+						const staticPaths = metadata.staticPaths
+						if (staticPaths === false) continue
 						if (!metadata.seo?.title) {
-							config.logger.info(`[llms-txt] skipping route ${staticPath}: no seo.title`)
+							config.logger.info(`[llms-txt] skipping route ${staticPaths.join(', ')}: no seo.title`)
 							continue
 						}
 
-						pages.push({
-							title: metadata.seo.title,
-							url: toAbsolute(staticPath),
-							description: metadata.seo.description,
-							isHome: staticPath === '/',
-						})
+						for (const staticPath of staticPaths) {
+							pages.push({
+								title: metadata.seo.title,
+								url: toAbsolute(staticPath),
+								description: metadata.seo.description,
+								isHome: staticPath === '/',
+							})
+						}
 					}
 				}
 
