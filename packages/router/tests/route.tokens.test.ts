@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest'
 
-import { token, wildcard, isParameterToken, isWildcardParameter } from '../src/route.tokens.mts'
+import { token, wildcard, isParameterToken, isWildcardParameter, isConstantParameter } from '../src/route.tokens.mts'
 
 describe('token()', () => {
 	test('creates a token with the given key', () => {
@@ -75,6 +75,47 @@ describe('token()', () => {
 			expect(token('d', Date).match('not-a-date')[0]).toBe(false)
 		})
 	})
+
+	describe('Constant values', () => {
+		test('matches a listed string value', () => {
+			const result = token('locale', ['en-GB', 'nl-NL']).match('nl-NL')
+			expect(result[0]).toBe(true)
+			expect(result[1]).toBe('nl-NL')
+		})
+
+		test('rejects a value outside the list', () => {
+			expect(token('locale', ['en-GB', 'nl-NL']).match('de-DE')[0]).toBe(false)
+		})
+
+		test('matches a listed number value and preserves the number type', () => {
+			const result = token('version', [1, 2]).match('2')
+			expect(result[0]).toBe(true)
+			expect(result[1]).toBe(2)
+		})
+
+		test('rejects a number outside the list', () => {
+			expect(token('version', [1, 2]).match('3')[0]).toBe(false)
+		})
+
+		test('accepts its own matched output again (href.for round-trip)', () => {
+			const t = token('locale', ['en-GB', 'nl-NL'])
+			const first = t.match('en-GB')
+			expect(first[0]).toBe(true)
+			expect(t.match(first[1] as string)[0]).toBe(true)
+		})
+
+		test('isConstantParameter returns true', () => {
+			expect(isConstantParameter(token('locale', ['en-GB', 'nl-NL']))).toBe(true)
+		})
+
+		test('isParameterToken returns true', () => {
+			expect(isParameterToken(token('locale', ['en-GB', 'nl-NL']))).toBe(true)
+		})
+
+		test('isWildcardParameter returns false', () => {
+			expect(isWildcardParameter(token('locale', ['en-GB', 'nl-NL']))).toBe(false)
+		})
+	})
 })
 
 describe('wildcard()', () => {
@@ -114,4 +155,10 @@ describe('isWildcardParameter()', () => {
 	test('returns false for a token', () => expect(isWildcardParameter(token('x', String))).toBe(false))
 	test('returns true for a wildcard', () => expect(isWildcardParameter(wildcard())).toBe(true))
 	test('returns true for a named wildcard', () => expect(isWildcardParameter(wildcard('q'))).toBe(true))
+})
+
+describe('isConstantParameter()', () => {
+	test('returns false for a typed token', () => expect(isConstantParameter(token('x', String))).toBe(false))
+	test('returns false for a wildcard', () => expect(isConstantParameter(wildcard())).toBe(false))
+	test('returns true for a constant token', () => expect(isConstantParameter(token('locale', ['en-GB']))).toBe(true))
 })

@@ -65,6 +65,18 @@ export type RouteMetadata<T extends { parameters: any, parent?: any }> = {
 	readonly routeParts: Array<string | RouteParameter>
 	/** Resolved static path string if this route has no dynamic segments, `false` otherwise. */
 	readonly staticRoute: false | string
+	/**
+	 * All concrete paths this route can produce at build time.
+	 *
+	 * `[staticRoute]` for fully static routes. Routes whose only dynamic parts
+	 * are constant-values tokens (including through parent routes) unroll to
+	 * the cartesian product of the listed values, e.g.
+	 * `route\`/${token('locale', ['en-GB', 'nl-NL'])}/about/\`` produces
+	 * `['/en-GB/about/', '/nl-NL/about/']`. `false` when the route has a typed
+	 * token, a wildcard, or a dynamic parent. Build tooling (sitemap,
+	 * prerendering) uses this to enumerate pages.
+	 */
+	readonly staticPaths: false | readonly string[]
 	/** Optional SEO metadata for this route. */
 	readonly seo?: RouteSeoMetadata
 }
