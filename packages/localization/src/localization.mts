@@ -145,7 +145,6 @@ export function configureLocalization<
 		...([...dictionaries.keys()]).filter(locale => locale !== defaultLocale),
 	] as readonly TLocale[]
 	const compiled = compileDictionaries(dictionaryEntries)
-	const warnedMissingNames = new Set<string>()
 
 	function rawSegment(): string | undefined {
 		if (!isClient()) return undefined
@@ -182,12 +181,8 @@ export function configureLocalization<
 		const valueByName = new Map(entry.keyNames.map((name, index) => [name, values[index]]))
 		let output = entry.value.parts[0]
 		for (let index = 0; index < entry.value.names.length; index++) {
-			const name = entry.value.names[index]
-			if (!valueByName.has(name) && isDevelopment() && !warnedMissingNames.has(`${locale}:${name}`)) {
-				warnedMissingNames.add(`${locale}:${name}`)
-				console.warn(`[@rooted/localization] translation for "${locale}" references unknown parameter "{${name}}"`)
-			}
-			const value = valueByName.get(name)
+			// Unknown names render empty; compileDictionaries already warned in dev
+			const value = valueByName.get(entry.value.names[index])
 			output += (value === undefined ? '' : String(value)) + entry.value.parts[index + 1]
 		}
 		return output

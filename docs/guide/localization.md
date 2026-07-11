@@ -25,13 +25,10 @@ Each locale gets its own dictionary file, default-exporting a `dictionary`. That
 
 ```ts
 // src/_shared/i18n/dictionaries/nl-NL.mts
-import { dictionary, template, translation } from '@rooted/localization'
+import { dictionary, translation } from '@rooted/localization'
 
 export default dictionary('nl-NL', [
-  translation(
-    template`this is an example label`,
-    template`dit is een voorbeeld label`,
-  ),
+  translation('this is an example label', 'dit is een voorbeeld label'),
 ])
 ```
 
@@ -106,10 +103,7 @@ Interpolations are declared by name in the dictionary, which lets a translation 
 ```ts
 // src/_shared/i18n/dictionaries/nl-NL.mts
 export default dictionary('nl-NL', [
-  translation(
-    template`hello ${'lastName'}, ${'firstName'}`,
-    template`hallo ${'firstName'} ${'lastName'}`,
-  ),
+  translation('hello {lastName}, {firstName}', 'hallo {firstName} {lastName}'),
 ])
 ```
 
@@ -119,14 +113,7 @@ localization.text`hello ${lastName}, ${firstName}`
 // nl-NL: 'hallo Marvin Brouwer'
 ```
 
-The parameter names are checked at compile time. A translation may reorder the key's parameters or leave some out, but referencing a name the key doesn't declare is a type error:
-
-```ts
-translation(
-  template`hello ${'lastName'}`,
-  template`hallo ${'typo'}`, // does not compile
-)
-```
+A translation may reorder the key's parameters or leave some out. Referencing a name the key doesn't declare logs a console warning when the localization is configured, so a typo like `'hallo {tpyo}'` shows up in the browser console the moment the app starts in development. Literal braces are escaped as `{{` and `}}`.
 
 When a translation is missing, the default text renders. In development it's prefixed with `[i18n missing nl-NL]` so gaps are easy to spot; production falls back silently.
 

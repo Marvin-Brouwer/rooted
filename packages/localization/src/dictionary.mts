@@ -1,14 +1,5 @@
 import { isDevelopment } from '@rooted/util/dev'
 
-declare const phraseNames: unique symbol
-
-/**
- * A placeholder string built by {@link template}, carrying its parameter
- * names at the type level. At runtime it's a plain string like
- * `'hello {lastName}, {firstName}'`.
- */
-export type Phrase<N extends string = never> = string & { readonly [phraseNames]: N }
-
 /**
  * A single dictionary entry: the default-language key and its translated
  * value. Built by {@link translation}.
@@ -33,54 +24,23 @@ export type CompiledEntry = {
 	value: ParsedTemplate
 }
 
-const validName = /^[A-Za-z_$][\w$-]*$/
-
 /**
- * Tagged template for the two sides of a {@link translation}. Interpolate
- * parameter names as strings; the names are carried in the type, so the
- * translated side can only use names the key side declares.
+ * Pairs a default-language key with its translated counterpart. Parameters
+ * are written as `{name}` placeholders; literal braces are escaped as `{{`
+ * and `}}`.
+ *
+ * The translation may reorder the key's parameters (or leave some out). In
+ * development, a translation referencing a name the key doesn't declare
+ * logs a console warning when the localization is configured.
  *
  * @example
  * ```ts
- * template`hello ${'lastName'}, ${'firstName'}`
- * ```
- *
- * @see {@link translation}
- */
-export function template<const N extends readonly string[]>(strings: TemplateStringsArray, ...names: N): Phrase<N[number]> {
-	if (isDevelopment()) {
-		for (const name of names) {
-			if (!validName.test(name))
-				console.warn(`[@rooted/localization] invalid template parameter name "${name}"`)
-		}
-	}
-
-	// eslint-disable-next-line unicorn/no-array-reduce
-	return [...strings].reduce((accumulator, part, index) =>
-		index === 0 ? escapeBraces(part) : `${accumulator}{${names[index - 1]}}${escapeBraces(part)}`, '') as Phrase<N[number]>
-}
-
-function escapeBraces(text: string): string {
-	return text.replaceAll('{', '{{').replaceAll('}', '}}')
-}
-
-/**
- * Pairs a default-language {@link template} with its translated counterpart.
- *
- * The translation may reorder the key's parameters (or leave some out), but
- * referencing a name the key doesn't declare is a compile error.
- *
- * @example
- * ```ts
- * translation(
- *   template`hello ${'lastName'}, ${'firstName'}`,
- *   template`hallo ${'firstName'} ${'lastName'}`,
- * )
+ * translation('hello {lastName}, {firstName}', 'hallo {firstName} {lastName}')
  * ```
  *
  * @see {@link dictionary}
  */
-export function translation<N extends string, M extends N>(key: Phrase<N>, value: Phrase<M>): Translation {
+export function translation(key: string, value: string): Translation {
 	return [key, value]
 }
 
@@ -92,7 +52,7 @@ export function translation<N extends string, M extends N>(key: Phrase<N>, value
  * ```ts
  * // src/_shared/i18n/dictionaries/nl-NL.mts
  * export default dictionary('nl-NL', [
- *   translation(template`this is an example label`, template`dit is een voorbeeld label`),
+ *   translation('this is an example label', 'dit is een voorbeeld label'),
  * ])
  * ```
  *
@@ -156,7 +116,11 @@ export function lookupKey(parts: ArrayLike<string>): string {
 	return Array.from(parts).join(lookupSeparator)
 }
 
-/** @internal Compiles all dictionaries once, keyed by locale, then by lookup key. */
+/**
+ * @internal Compiles all dictionaries once, keyed by locale, then by lookup
+ * key. In development, warns for translations that reference parameter names
+ * their key doesn't declare.
+ */
 export function compileDictionaries(dictionaries: readonly Dictionary[]): Map<string, Map<string, CompiledEntry>> {
 	const compiled = new Map<string, Map<string, CompiledEntry>>()
 
@@ -164,9 +128,19 @@ export function compileDictionaries(dictionaries: readonly Dictionary[]): Map<st
 		const entries = compiled.get(locale) ?? new Map<string, CompiledEntry>()
 		for (const [key, value] of translations) {
 			const parsedKey = parseTemplate(key)
+			const parsedValue = parseTemplate(value)
+
+			if (isDevelopment()) {
+				for (const name of parsedValue.names) {
+					if (parsedKey.names.includes(name)) continue
+					const declared = parsedKey.names.length > 0 ? parsedKey.names.map(known => `{${known}}`).join(', ') : 'no parameters'
+					console.warn(`[@rooted/localization] ${locale}: translation "${value}" references unknown parameter "{${name}}" (key "${key}" declares ${declared})`)
+				}
+			}
+
 			entries.set(lookupKey(parsedKey.parts), {
 				keyNames: parsedKey.names,
-				value: parseTemplate(value),
+				value: parsedValue,
 			})
 		}
 		compiled.set(locale, entries)

@@ -1,52 +1,20 @@
 import { describe, test, expect, vi, afterEach } from 'vitest'
 
-import { template, translation, dictionary, parseTemplate, lookupKey } from '../src/dictionary.mts'
+import { translation, dictionary, parseTemplate, lookupKey, compileDictionaries } from '../src/dictionary.mts'
 
 afterEach(() => {
 	vi.restoreAllMocks()
 })
 
-describe('template()', () => {
-	test('plain text passes through', () => {
-		expect(template`hello`).toBe('hello')
-	})
-
-	test('interpolated names become placeholders', () => {
-		expect(template`hello ${'name'}`).toBe('hello {name}')
-	})
-
-	test('multiple names keep their order', () => {
-		expect(template`hello ${'lastName'}, ${'firstName'}`).toBe('hello {lastName}, {firstName}')
-	})
-
-	test('literal braces are escaped', () => {
-		expect(template`use {braces}`).toBe('use {{braces}}')
-	})
-
-	test('invalid parameter name warns in dev', () => {
-		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
-		expect(template`x ${'bad name'}`).toBe('x {bad name}')
-		expect(warn).toHaveBeenCalledOnce()
-	})
-})
-
 describe('translation()', () => {
 	test('pairs the key with its translated value', () => {
-		expect(translation(template`hello ${'name'}`, template`hallo ${'name'}`))
-			.toEqual(['hello {name}', 'hallo {name}'])
-	})
-
-	test('allows reordering the parameters', () => {
-		expect(translation(
-			template`hello ${'lastName'}, ${'firstName'}`,
-			template`hallo ${'firstName'} ${'lastName'}`,
-		)).toEqual(['hello {lastName}, {firstName}', 'hallo {firstName} {lastName}'])
+		expect(translation('hello {name}', 'hallo {name}')).toEqual(['hello {name}', 'hallo {name}'])
 	})
 })
 
 describe('dictionary()', () => {
 	test('pairs the locale with its translations', () => {
-		const greeting = translation(template`hi`, template`hoi`)
+		const greeting = translation('hi', 'hoi')
 		expect(dictionary('nl-NL', [greeting])).toEqual(['nl-NL', [greeting]])
 	})
 })
@@ -71,16 +39,11 @@ describe('parseTemplate()', () => {
 	test('an unclosed brace is treated as literal text', () => {
 		expect(parseTemplate('{unclosed')).toEqual({ parts: ['{unclosed'], names: [] })
 	})
-
-	test('round-trips template() output', () => {
-		expect(parseTemplate(template`hello ${'lastName'}, ${'firstName'}`))
-			.toEqual({ parts: ['hello ', ', ', ''], names: ['lastName', 'firstName'] })
-	})
 })
 
 describe('lookupKey()', () => {
 	test('erases names: dictionary key and call-site parts produce the same key', () => {
-		const dictionaryKey = parseTemplate(template`hello ${'lastName'}, ${'firstName'}`)
+		const dictionaryKey = parseTemplate('hello {lastName}, {firstName}')
 		// A text call site only has the raw string parts
 		const callSiteParts = ['hello ', ', ', '']
 		expect(lookupKey(dictionaryKey.parts)).toBe(lookupKey(callSiteParts))
@@ -88,5 +51,38 @@ describe('lookupKey()', () => {
 
 	test('different text parts produce different keys', () => {
 		expect(lookupKey(['hello ', ''])).not.toBe(lookupKey(['goodbye ', '']))
+	})
+})
+
+describe('compileDictionaries()', () => {
+	test('a translation referencing an unknown parameter warns in dev', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
+		compileDictionaries([
+			dictionary('nl-NL', [translation('hi {name}', 'hoi {typo}')]),
+		])
+		expect(warn).toHaveBeenCalledOnce()
+		expect(warn.mock.calls[0][0]).toContain('{typo}')
+		expect(warn.mock.calls[0][0]).toContain('nl-NL')
+	})
+
+	test('reordered and omitted parameters do not warn', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
+		compileDictionaries([
+			dictionary('nl-NL', [
+				translation('hello {lastName}, {firstName}', 'hallo {firstName} {lastName}'),
+				translation('hi {name}', 'hoi'),
+			]),
+		])
+		expect(warn).not.toHaveBeenCalled()
+	})
+
+	test('does not warn in production', () => {
+		vi.stubEnv('DEV', false)
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
+		compileDictionaries([
+			dictionary('nl-NL', [translation('hi {name}', 'hoi {typo}')]),
+		])
+		expect(warn).not.toHaveBeenCalled()
+		vi.unstubAllEnvs()
 	})
 })

@@ -61,21 +61,13 @@ export type ObserveHreflangOptions = {
 };
 
 // @public
-export type Phrase<N extends string = never> = string & {
-    readonly [phraseNames]: N;
-};
-
-// @public
 export type SupportedLocales<T> = T extends Localization<infer L> ? L : never;
-
-// @public
-export function template<const N extends readonly string[]>(strings: TemplateStringsArray, ...names: N): Phrase<N[number]>;
 
 // @public
 export type Translation = readonly [key: string, value: string];
 
 // @public
-export function translation<N extends string, M extends N>(key: Phrase<N>, value: Phrase<M>): Translation;
+export function translation(key: string, value: string): Translation;
 
 // (No @packageDocumentation comment for this package)
 

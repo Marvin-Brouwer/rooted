@@ -2,7 +2,7 @@ import { describe, test, expect, vi, afterEach } from 'vitest'
 
 import { route } from '@rooted/router/routes'
 
-import { dictionary, template, translation, type Translation } from '../src/dictionary.mts'
+import { dictionary, translation } from '../src/dictionary.mts'
 import { localeTokenBrand } from '../src/locale-token.mts'
 import { configureLocalization } from '../src/localization.mts'
 
@@ -15,8 +15,8 @@ function configure() {
 		default: 'en-GB',
 		dictionaries: [
 			dictionary('nl-NL', [
-				translation(template`this is an example label`, template`dit is een voorbeeld label`),
-				translation(template`hello ${'lastName'}, ${'firstName'}`, template`hallo ${'firstName'} ${'lastName'}`),
+				translation('this is an example label', 'dit is een voorbeeld label'),
+				translation('hello {lastName}, {firstName}', 'hallo {firstName} {lastName}'),
 			]),
 		],
 	})
@@ -178,17 +178,15 @@ describe('text', () => {
 		expect(localization.text`unknown label`).toBe('unknown label')
 	})
 
-	test('a translation referencing an unknown parameter renders empty and warns once', () => {
+	test('a translation referencing an unknown parameter renders it empty', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
-		// translation() makes this a compile error; hand-built to test the runtime guard
-		const broken: Translation = ['hi {name}', 'hoi {typo}']
 		const localization = configureLocalization({
 			default: 'en-GB',
-			dictionaries: [dictionary('nl-NL', [broken])],
+			dictionaries: [dictionary('nl-NL', [translation('hi {name}', 'hoi {typo}')])],
 		})
+		// configureLocalization already warned once, at compile time
+		expect(warn).toHaveBeenCalledOnce()
 		visit('/nl-NL/greeting/')
 		expect(localization.text`hi ${'Marvin'}`).toBe('hoi ')
-		expect(localization.text`hi ${'Marvin'}`).toBe('hoi ')
-		expect(warn).toHaveBeenCalledOnce()
 	})
 })
