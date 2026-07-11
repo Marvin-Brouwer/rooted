@@ -12,46 +12,71 @@ pnpm add @rooted/localization
 
 ## Configuring
 
+Localization is a cross-cutting concern, so it belongs in your `_shared` folder. The recommended layout:
+
+```txt
+src/_shared/i18n/
+  localization.mts          # the configured instance
+  dictionaries/
+    nl-NL.mts               # one file per locale
+```
+
+Each locale gets its own dictionary file. That keeps translations reviewable per language and makes it obvious what a new locale needs: one new file, one new line in the configuration.
+
+```ts
+// src/_shared/i18n/dictionaries/nl-NL.mts
+import { template, type Dictionary } from '@rooted/localization'
+
+export const nlNL = {
+  [template`this is an example label`]: template`dit is een voorbeeld label`,
+} satisfies Dictionary
+```
+
 Configure once, export the instance, and import it wherever you need it.
 
 ```ts
-// src/localization.mts
-import { configureLocalization, template } from '@rooted/localization'
+// src/_shared/i18n/localization.mts
+import { configureLocalization, type SupportedLocales } from '@rooted/localization'
+
+import { nlNL } from './dictionaries/nl-NL.mts'
 
 export const localization = configureLocalization({
   default: 'en-GB',
   dictionaries: {
-    'nl-NL': {
-      [template`this is an example label`]: template`dit is een voorbeeld label`,
-    },
+    'nl-NL': nlNL,
   },
 })
+
+export type Locale = SupportedLocales<typeof localization> // 'en-GB' | 'nl-NL'
 ```
 
-`supportedLocales` is the default plus the dictionary keys, typed as a literal union. To reuse that union elsewhere:
+Export a `Locale` type alongside the instance, like above. Whenever a component prop or function argument takes a locale, type it as `Locale` and it stays in sync with your configuration:
 
 ```ts
-import { type SupportedLocales } from '@rooted/localization'
+import { localization, type Locale } from '../_shared/i18n/localization.mts'
 
-type Locale = SupportedLocales<typeof localization> // 'en-GB' | 'nl-NL'
+type GreetingOptions = { locale: Locale }
 ```
 
 ## Routes
 
-`localization.parameter` is a [constant-values token](./routing.md#constant-values) keyed `locale`. Put it in your route patterns like any other token:
+Put `localization.parameter` right after the leading slash of every localized route. It fills the locale segment of the URL and gives your resolver a typed `tokens.locale`:
 
 ```ts
 import { route } from '@rooted/router/routes'
-import { localization } from '../localization.mts'
+
+import { localization } from '../_shared/i18n/localization.mts'
 
 export const AboutRoute = route`/${localization.parameter}/about/`({
   resolve: ({ create, tokens }) => create(About, { locale: tokens.locale }),
 })
 ```
 
-The token only matches configured locales, so `/de-DE/about/` is a plain non-match, no route filter needed. And because the locales are a known list, the route unrolls at build time: `/en-GB/about/` and `/nl-NL/about/` each get a prerendered page and a sitemap entry.
+Only configured locales match. `/de-DE/about/` is a plain 404, without any filtering code in your resolver. At build time every locale gets its own page: `/en-GB/about/` and `/nl-NL/about/` are each prerendered and listed in the sitemap.
 
 Routes that combine the locale with a typed token (`/${localization.parameter}/recipe/${token('id', Number)}/`) still work at runtime, but stay dynamic at build time. They aren't prerendered or listed in the sitemap.
+
+Under the hood the parameter is a regular [constant-values token](./routing.md#constant-values), so everything from the routing guide applies to it.
 
 ### Reading the locale
 
@@ -80,12 +105,13 @@ localization.text`this is an example label`
 Interpolations are declared by name in the dictionary, which lets a translation reorder them when sentence structure differs:
 
 ```ts
-dictionaries: {
-  'nl-NL': {
-    [template`hello ${'lastName'}, ${'firstName'}`]: template`hallo ${'firstName'} ${'lastName'}`,
-  },
-}
+// src/_shared/i18n/dictionaries/nl-NL.mts
+export const nlNL = {
+  [template`hello ${'lastName'}, ${'firstName'}`]: template`hallo ${'firstName'} ${'lastName'}`,
+} satisfies Dictionary
+```
 
+```ts
 localization.text`hello ${lastName}, ${firstName}`
 // en-GB: 'hello Brouwer, Marvin'
 // nl-NL: 'hallo Marvin Brouwer'

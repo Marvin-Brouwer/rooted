@@ -42,10 +42,10 @@ Built-ins: `String`, `Number`, `Boolean`, `BigInt`, `Date`. Pass any of them as 
 Pass an array instead of a constructor to only match the listed values. The matched value keeps its literal type.
 
 ```ts
-export const AboutRoute = route`/${token('locale', ['en-GB', 'nl-NL'])}/about/`({
-  resolve: ({ create, tokens }) => create(About, { locale: tokens.locale }),
+export const PlanRoute = route`/plans/${token('plan', ['free', 'pro', 'team'])}/`({
+  resolve: ({ create, tokens }) => create(PlanPage, { plan: tokens.plan }),
 })
-// tokens.locale is 'en-GB' | 'nl-NL'; /de-DE/about/ does not match
+// tokens.plan is 'free' | 'pro' | 'team'; /plans/enterprise/ does not match
 ```
 
 The array must hold values of one kind, all strings or all numbers. Because the possible values are known, routes whose only dynamic parts are constant tokens are unrolled to concrete paths at build time: each value gets its own prerendered page and sitemap entry. Routes that mix a constant token with a typed token or wildcard stay dynamic.

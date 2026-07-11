@@ -24,7 +24,8 @@ export const localization = configureLocalization({
 
 ```ts
 import { route } from '@rooted/router/routes'
-import { localization } from './localization.mts'
+
+import { localization } from '../_shared/i18n/localization.mts'
 
 export const AboutRoute = route`/${localization.parameter}/about/`({
   resolve: ({ create, tokens }) => create(About, { locale: tokens.locale })
