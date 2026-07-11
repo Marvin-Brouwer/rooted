@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, afterEach } from 'vitest'
 
-import { translation, dictionary, parseTemplate, lookupKey, compileDictionaries } from '../src/dictionary.mts'
+import { translation, dictionary, parseTemplate, lookupKey, compileDictionary } from '../src/dictionary.mts'
 
 afterEach(() => {
 	vi.restoreAllMocks()
@@ -13,9 +13,10 @@ describe('translation()', () => {
 })
 
 describe('dictionary()', () => {
-	test('pairs the locale with its translations', () => {
+	test('bundles translations into a dictionary', () => {
 		const greeting = translation('hi', 'hoi')
-		expect(dictionary('nl-NL', [greeting])).toEqual(['nl-NL', [greeting]])
+		const example = translation('example', 'voorbeeld')
+		expect(dictionary(greeting, example)).toEqual([greeting, example])
 	})
 })
 
@@ -54,12 +55,10 @@ describe('lookupKey()', () => {
 	})
 })
 
-describe('compileDictionaries()', () => {
+describe('compileDictionary()', () => {
 	test('a translation referencing an unknown parameter warns in dev', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
-		compileDictionaries([
-			dictionary('nl-NL', [translation('hi {name}', 'hoi {typo}')]),
-		])
+		compileDictionary('nl-NL', dictionary(translation('hi {name}', 'hoi {typo}')))
 		expect(warn).toHaveBeenCalledOnce()
 		expect(warn.mock.calls[0][0]).toContain('{typo}')
 		expect(warn.mock.calls[0][0]).toContain('nl-NL')
@@ -67,21 +66,17 @@ describe('compileDictionaries()', () => {
 
 	test('reordered and omitted parameters do not warn', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
-		compileDictionaries([
-			dictionary('nl-NL', [
-				translation('hello {lastName}, {firstName}', 'hallo {firstName} {lastName}'),
-				translation('hi {name}', 'hoi'),
-			]),
-		])
+		compileDictionary('nl-NL', dictionary(
+			translation('hello {lastName}, {firstName}', 'hallo {firstName} {lastName}'),
+			translation('hi {name}', 'hoi'),
+		))
 		expect(warn).not.toHaveBeenCalled()
 	})
 
 	test('does not warn in production', () => {
 		vi.stubEnv('DEV', false)
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
-		compileDictionaries([
-			dictionary('nl-NL', [translation('hi {name}', 'hoi {typo}')]),
-		])
+		compileDictionary('nl-NL', dictionary(translation('hi {name}', 'hoi {typo}')))
 		expect(warn).not.toHaveBeenCalled()
 		vi.unstubAllEnvs()
 	})

@@ -11,7 +11,7 @@ import type { ResolvedConfig } from 'vite'
 
 const localization = configureLocalization({
 	default: 'en-GB',
-	dictionaries: [dictionary('nl-NL', [])],
+	dictionaries: { 'nl-NL': () => Promise.resolve({ default: dictionary() }) },
 })
 
 function setup(routes: unknown[]): RouteHeadLinkProvider {

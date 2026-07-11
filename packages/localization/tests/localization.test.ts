@@ -2,7 +2,7 @@ import { describe, test, expect, vi, afterEach } from 'vitest'
 
 import { route } from '@rooted/router/routes'
 
-import { dictionary, translation } from '../src/dictionary.mts'
+import { dictionary, translation, type DictionaryModule } from '../src/dictionary.mts'
 import { localeTokenBrand } from '../src/locale-token.mts'
 import { configureLocalization } from '../src/localization.mts'
 
@@ -10,15 +10,23 @@ function visit(path: string) {
 	history.pushState(undefined, '', path)
 }
 
+function loader(module: DictionaryModule) {
+	return vi.fn(() => Promise.resolve(module))
+}
+
+const nlNL = {
+	default: dictionary(
+		translation('this is an example label', 'dit is een voorbeeld label'),
+		translation('hello {lastName}, {firstName}', 'hallo {firstName} {lastName}'),
+	),
+}
+
 function configure() {
 	return configureLocalization({
 		default: 'en-GB',
-		dictionaries: [
-			dictionary('nl-NL', [
-				translation('this is an example label', 'dit is een voorbeeld label'),
-				translation('hello {lastName}, {firstName}', 'hallo {firstName} {lastName}'),
-			]),
-		],
+		dictionaries: {
+			'nl-NL': loader(nlNL),
+		},
 	})
 }
 
@@ -36,16 +44,15 @@ describe('configureLocalization()', () => {
 	test('the default locale is not duplicated when it has a dictionary', () => {
 		const localization = configureLocalization({
 			default: 'en-GB',
-			dictionaries: [dictionary('en-GB', []), dictionary('nl-NL', [])],
+			dictionaries: { 'en-GB': loader({ default: dictionary() }), 'nl-NL': loader({ default: dictionary() }) },
 		})
 		expect(localization.supportedLocales).toEqual(['en-GB', 'nl-NL'])
 	})
 
-	test('dictionaries is exposed as a map keyed by locale', () => {
+	test('dictionaries exposes the configured loaders keyed by locale', () => {
 		const localization = configure()
 		expect(localization.dictionaries).toBeInstanceOf(Map)
-		expect(localization.dictionaries.get('nl-NL')).toHaveLength(2)
-		expect(localization.dictionaries.has('en-GB' as 'nl-NL')).toBe(false)
+		expect(localization.dictionaries.get('nl-NL')).toBeTypeOf('function')
 	})
 
 	test('Locale carries the default locale at runtime', () => {
@@ -140,6 +147,80 @@ describe('route helpers', () => {
 	})
 })
 
+describe('load', () => {
+	test('resolves without calling anything for the default locale', async () => {
+		const nlLoader = loader(nlNL)
+		const localization = configureLocalization({
+			default: 'en-GB',
+			dictionaries: { 'nl-NL': nlLoader },
+		})
+		visit('/en-GB/greeting/')
+		await localization.load()
+		expect(nlLoader).not.toHaveBeenCalled()
+	})
+
+	test('loads the current locale by default', async () => {
+		const nlLoader = loader(nlNL)
+		const localization = configureLocalization({
+			default: 'en-GB',
+			dictionaries: { 'nl-NL': nlLoader },
+		})
+		visit('/nl-NL/greeting/')
+		await localization.load()
+		expect(nlLoader).toHaveBeenCalledOnce()
+	})
+
+	test('loads an explicit locale', async () => {
+		const nlLoader = loader(nlNL)
+		const localization = configureLocalization({
+			default: 'en-GB',
+			dictionaries: { 'nl-NL': nlLoader },
+		})
+		visit('/')
+		await localization.load('nl-NL')
+		expect(nlLoader).toHaveBeenCalledOnce()
+	})
+
+	test('concurrent and repeated loads call the loader once', async () => {
+		const nlLoader = loader(nlNL)
+		const localization = configureLocalization({
+			default: 'en-GB',
+			dictionaries: { 'nl-NL': nlLoader },
+		})
+		visit('/nl-NL/greeting/')
+		await Promise.all([localization.load(), localization.load(), localization.load()])
+		await localization.load()
+		expect(nlLoader).toHaveBeenCalledOnce()
+	})
+
+	test('a failing loader warns and resolves', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
+		const localization = configureLocalization({
+			default: 'en-GB',
+			dictionaries: { 'nl-NL': () => Promise.reject(new Error('chunk gone')) },
+		})
+		visit('/nl-NL/greeting/')
+		await expect(localization.load()).resolves.toBeUndefined()
+		expect(warn).toHaveBeenCalledOnce()
+		expect(warn.mock.calls[0][0]).toContain('nl-NL')
+		// text falls back to the default text (with the dev marker)
+		expect(localization.text`unknown label`).toBe('[i18n missing nl-NL] unknown label')
+	})
+
+	test('navigation auto-starts the load', async () => {
+		const nlLoader = loader(nlNL)
+		const localization = configureLocalization({
+			default: 'en-GB',
+			dictionaries: { 'nl-NL': nlLoader },
+		})
+		visit('/nl-NL/greeting/')
+		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: undefined }))
+		await vi.waitFor(() => expect(nlLoader).toHaveBeenCalled())
+		await new Promise(resolve => setTimeout(resolve))
+		expect(localization.text`this is an example label`).toBe('dit is een voorbeeld label')
+	})
+})
+
 describe('text', () => {
 	test('default locale renders the inline text', () => {
 		const localization = configure()
@@ -147,15 +228,23 @@ describe('text', () => {
 		expect(localization.text`this is an example label`).toBe('this is an example label')
 	})
 
-	test('translated locale renders the dictionary value', () => {
+	test('translated locale renders the dictionary value once loaded', async () => {
 		const localization = configure()
 		visit('/nl-NL/greeting/')
+		await localization.load()
 		expect(localization.text`this is an example label`).toBe('dit is een voorbeeld label')
 	})
 
-	test('interpolated values are re-mapped by name, allowing reordering', () => {
+	test('before the dictionary loads, the default text renders with the dev marker', () => {
 		const localization = configure()
 		visit('/nl-NL/greeting/')
+		expect(localization.text`this is an example label`).toBe('[i18n missing nl-NL] this is an example label')
+	})
+
+	test('interpolated values are re-mapped by name, allowing reordering', async () => {
+		const localization = configure()
+		visit('/nl-NL/greeting/')
+		await localization.load()
 		expect(localization.text`hello ${'Brouwer'}, ${'Marvin'}`).toBe('hallo Marvin Brouwer')
 	})
 
@@ -165,28 +254,32 @@ describe('text', () => {
 		expect(localization.text`hello ${'Brouwer'}, ${'Marvin'}`).toBe('hello Brouwer, Marvin')
 	})
 
-	test('missing translation shows the dev marker', () => {
+	test('missing translation shows the dev marker', async () => {
 		const localization = configure()
 		visit('/nl-NL/greeting/')
+		await localization.load()
 		expect(localization.text`unknown label`).toBe('[i18n missing nl-NL] unknown label')
 	})
 
-	test('missing translation falls back silently in production', () => {
+	test('missing translation falls back silently in production', async () => {
 		vi.stubEnv('DEV', false)
 		const localization = configure()
 		visit('/nl-NL/greeting/')
+		await localization.load()
 		expect(localization.text`unknown label`).toBe('unknown label')
 	})
 
-	test('a translation referencing an unknown parameter renders it empty', () => {
+	test('a translation referencing an unknown parameter renders it empty and warns on load', async () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
 		const localization = configureLocalization({
 			default: 'en-GB',
-			dictionaries: [dictionary('nl-NL', [translation('hi {name}', 'hoi {typo}')])],
+			dictionaries: {
+				'nl-NL': () => Promise.resolve({ default: dictionary(translation('hi {name}', 'hoi {typo}')) }),
+			},
 		})
-		// configureLocalization already warned once, at compile time
-		expect(warn).toHaveBeenCalledOnce()
 		visit('/nl-NL/greeting/')
+		await localization.load()
+		expect(warn).toHaveBeenCalledOnce()
 		expect(localization.text`hi ${'Marvin'}`).toBe('hoi ')
 	})
 })

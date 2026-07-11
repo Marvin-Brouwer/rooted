@@ -27,26 +27,26 @@ Each locale gets its own dictionary file, default-exporting a `dictionary`. That
 // src/_shared/i18n/dictionaries/nl-NL.mts
 import { dictionary, translation } from '@rooted/localization'
 
-export default dictionary('nl-NL', [
+export default dictionary(
   translation('this is an example label', 'dit is een voorbeeld label'),
-])
+)
 ```
 
-Configure once, export the instance, and import it wherever you need it.
+Configure once, export the instance, and import it wherever you need it. Dictionaries are wired up as dynamic imports, so the bundler splits each locale into its own chunk: a visitor only downloads the language they're actually reading, and the default language ships no dictionary at all.
 
 ```ts
 // src/_shared/i18n/localization.mts
 import { configureLocalization } from '@rooted/localization'
 
-import nlNL from './dictionaries/nl-NL.mts'
-
 export const localization = configureLocalization({
   default: 'en-GB',
-  dictionaries: [nlNL],
+  dictionaries: {
+    'nl-NL': () => import('./dictionaries/nl-NL.mts'),
+  },
 })
 ```
 
-The instance also exposes the configured dictionaries as a readonly map (`localization.dictionaries`), and the locale union as a type. Whenever a component prop or function argument takes a locale, type it as `typeof localization.Locale` and it stays in sync with your configuration:
+The instance also exposes the configured loaders as a readonly map (`localization.dictionaries`), and the locale union as a type. Whenever a component prop or function argument takes a locale, type it as `typeof localization.Locale` and it stays in sync with your configuration:
 
 ```ts
 import { localization } from '../_shared/i18n/localization.mts'
@@ -56,7 +56,7 @@ type GreetingOptions = { locale: typeof localization.Locale } // 'en-GB' | 'nl-N
 
 ## Routes
 
-Put `localization.parameter` right after the leading slash of every localized route. It fills the locale segment of the URL and gives your resolver a typed `tokens.locale`:
+Put `localization.parameter` right after the leading slash of every localized route. It fills the locale segment of the URL and gives your resolver a typed `tokens.locale`. Start the resolver with `await localization.load()`: navigation already downloads the dictionary chunk in the background, and the await guarantees the first paint is translated (it also keeps prerendered snapshots deterministic).
 
 ```ts
 import { route } from '@rooted/router/routes'
@@ -64,7 +64,11 @@ import { route } from '@rooted/router/routes'
 import { localization } from '../_shared/i18n/localization.mts'
 
 export const AboutRoute = route`/${localization.parameter}/about/`({
-  resolve: ({ create, tokens }) => create(About, { locale: tokens.locale }),
+  async resolve({ create, tokens }) {
+    await localization.load()
+    const { About } = await import('./about.mts')
+    return create(About, { locale: tokens.locale })
+  },
 })
 ```
 
@@ -102,9 +106,9 @@ Interpolations are declared by name in the dictionary, which lets a translation 
 
 ```ts
 // src/_shared/i18n/dictionaries/nl-NL.mts
-export default dictionary('nl-NL', [
+export default dictionary(
   translation('hello {lastName}, {firstName}', 'hallo {firstName} {lastName}'),
-])
+)
 ```
 
 ```ts
@@ -113,7 +117,7 @@ localization.text`hello ${lastName}, ${firstName}`
 // nl-NL: 'hallo Marvin Brouwer'
 ```
 
-A translation may reorder the key's parameters or leave some out. Referencing a name the key doesn't declare logs a console warning when the localization is configured, so a typo like `'hallo {tpyo}'` shows up in the browser console the moment the app starts in development. Literal braces are escaped as `{{` and `}}`.
+A translation may reorder the key's parameters or leave some out. Referencing a name the key doesn't declare logs a console warning when the dictionary chunk loads, so a typo like `'hallo {tpyo}'` shows up in the browser console as soon as that language is used in development. Literal braces are escaped as `{{` and `}}`.
 
 When a translation is missing, the default text renders. In development it's prefixed with `[i18n missing nl-NL]` so gaps are easy to spot; production falls back silently.
 

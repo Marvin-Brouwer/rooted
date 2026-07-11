@@ -7,10 +7,21 @@ import { isDevelopment } from '@rooted/util/dev'
 export type Translation = readonly [key: string, value: string]
 
 /**
- * A locale paired with its translations. Built by {@link dictionary} and
- * passed to `configureLocalization` in the `dictionaries` array.
+ * The translations for one locale. Built by {@link dictionary}, which
+ * locale it belongs to is decided by its key in the `dictionaries` record
+ * of `configureLocalization`.
  */
-export type Dictionary<TLocale extends string = string> = readonly [locale: TLocale, translations: readonly Translation[]]
+export type Dictionary = readonly Translation[]
+
+/** The module shape of a dictionary file: `export default dictionary(...)`. */
+export type DictionaryModule = { default: Dictionary }
+
+/**
+ * Lazily loads one locale's dictionary. Write it as a dynamic import so the
+ * bundler splits each locale into its own chunk:
+ * `'nl-NL': () => import('./dictionaries/nl-NL.mts')`.
+ */
+export type DictionaryLoader = () => Promise<DictionaryModule>
 
 /** @internal A parsed placeholder string: the text parts and the parameter names between them. */
 export type ParsedTemplate = {
@@ -45,21 +56,22 @@ export function translation(key: string, value: string): Translation {
 }
 
 /**
- * Pairs a locale with its translations. Meant as the default export of a
- * dictionary file, one file per locale:
+ * Bundles translations into a dictionary. Meant as the default export of a
+ * dictionary file, one file per locale; the locale itself is the key in the
+ * `dictionaries` record of `configureLocalization`.
  *
  * @example
  * ```ts
  * // src/_shared/i18n/dictionaries/nl-NL.mts
- * export default dictionary('nl-NL', [
+ * export default dictionary(
  *   translation('this is an example label', 'dit is een voorbeeld label'),
- * ])
+ * )
  * ```
  *
  * @see {@link translation}
  */
-export function dictionary<const TLocale extends string>(locale: TLocale, translations: readonly Translation[]): Dictionary<TLocale> {
-	return [locale, translations]
+export function dictionary(...translations: Translation[]): Dictionary {
+	return translations
 }
 
 /**
@@ -117,34 +129,30 @@ export function lookupKey(parts: ArrayLike<string>): string {
 }
 
 /**
- * @internal Compiles all dictionaries once, keyed by locale, then by lookup
- * key. In development, warns for translations that reference parameter names
- * their key doesn't declare.
+ * @internal Compiles one locale's dictionary, keyed by lookup key. Runs when
+ * the dictionary chunk loads. In development, warns for translations that
+ * reference parameter names their key doesn't declare.
  */
-export function compileDictionaries(dictionaries: readonly Dictionary[]): Map<string, Map<string, CompiledEntry>> {
-	const compiled = new Map<string, Map<string, CompiledEntry>>()
+export function compileDictionary(locale: string, translations: Dictionary): Map<string, CompiledEntry> {
+	const entries = new Map<string, CompiledEntry>()
 
-	for (const [locale, translations] of dictionaries) {
-		const entries = compiled.get(locale) ?? new Map<string, CompiledEntry>()
-		for (const [key, value] of translations) {
-			const parsedKey = parseTemplate(key)
-			const parsedValue = parseTemplate(value)
+	for (const [key, value] of translations) {
+		const parsedKey = parseTemplate(key)
+		const parsedValue = parseTemplate(value)
 
-			if (isDevelopment()) {
-				for (const name of parsedValue.names) {
-					if (parsedKey.names.includes(name)) continue
-					const declared = parsedKey.names.length > 0 ? parsedKey.names.map(known => `{${known}}`).join(', ') : 'no parameters'
-					console.warn(`[@rooted/localization] ${locale}: translation "${value}" references unknown parameter "{${name}}" (key "${key}" declares ${declared})`)
-				}
+		if (isDevelopment()) {
+			for (const name of parsedValue.names) {
+				if (parsedKey.names.includes(name)) continue
+				const declared = parsedKey.names.length > 0 ? parsedKey.names.map(known => `{${known}}`).join(', ') : 'no parameters'
+				console.warn(`[@rooted/localization] ${locale}: translation "${value}" references unknown parameter "{${name}}" (key "${key}" declares ${declared})`)
 			}
-
-			entries.set(lookupKey(parsedKey.parts), {
-				keyNames: parsedKey.names,
-				value: parsedValue,
-			})
 		}
-		compiled.set(locale, entries)
+
+		entries.set(lookupKey(parsedKey.parts), {
+			keyNames: parsedKey.names,
+			value: parsedValue,
+		})
 	}
 
-	return compiled
+	return entries
 }

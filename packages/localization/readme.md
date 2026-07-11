@@ -10,16 +10,23 @@ pnpm add @rooted/localization
 ```
 
 ```ts
-import { configureLocalization, dictionary, translation } from '@rooted/localization'
+import { configureLocalization } from '@rooted/localization'
 
 export const localization = configureLocalization({
   default: 'en-GB',
-  dictionaries: [
-    dictionary('nl-NL', [
-      translation('hello {name}', 'hallo {name}'),
-    ]),
-  ],
+  dictionaries: {
+    'nl-NL': () => import('./dictionaries/nl-NL.mts'),
+  },
 })
+```
+
+```ts
+// dictionaries/nl-NL.mts
+import { dictionary, translation } from '@rooted/localization'
+
+export default dictionary(
+  translation('hello {name}', 'hallo {name}'),
+)
 ```
 
 ```ts

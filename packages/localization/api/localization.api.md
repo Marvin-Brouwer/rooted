@@ -8,13 +8,21 @@ import { Constant } from '@rooted/router/routes';
 import { Parameter } from '@rooted/router/routes';
 
 // @public
-export function configureLocalization<const TDefault extends string, const TDictionaries extends readonly Dictionary[] = readonly []>(options: LocalizationOptions<TDefault, TDictionaries>): Localization<TDefault | TDictionaries[number][0]>;
+export function configureLocalization<const TDefault extends string, const TDictionaries extends Record<string, DictionaryLoader> = Record<never, DictionaryLoader>>(options: LocalizationOptions<TDefault, TDictionaries>): Localization<TDefault | (keyof TDictionaries & string)>;
 
 // @public
-export type Dictionary<TLocale extends string = string> = readonly [locale: TLocale, translations: readonly Translation[]];
+export type Dictionary = readonly Translation[];
 
 // @public
-export function dictionary<const TLocale extends string>(locale: TLocale, translations: readonly Translation[]): Dictionary<TLocale>;
+export function dictionary(...translations: Translation[]): Dictionary;
+
+// @public
+export type DictionaryLoader = () => Promise<DictionaryModule>;
+
+// @public
+export type DictionaryModule = {
+    default: Dictionary;
+};
 
 // @public
 export type LocaleParameter<TLocale extends string> = Parameter<'locale', Constant<TLocale>> & {
@@ -33,17 +41,18 @@ export type LocaleTokenInfo = {
 // @public
 export type Localization<TLocale extends string> = {
     parameter: LocaleParameter<TLocale>; /** All configured locales: the default plus the dictionary locales. */
-    supportedLocales: readonly TLocale[]; /** The configured overlay dictionaries, keyed by locale. */
-    dictionaries: ReadonlyMap<TLocale, readonly Translation[]>;
+    supportedLocales: readonly TLocale[]; /** The configured dictionary loaders, keyed by locale. */
+    dictionaries: ReadonlyMap<TLocale, DictionaryLoader>;
     readonly Locale: TLocale;
     readonly currentLocale: TLocale; /** URL-derived locale validity helpers. */
     route: LocalizationRoute;
+    load(locale?: TLocale): Promise<void>;
     text(strings: TemplateStringsArray, ...values: unknown[]): string;
     observeHreflang(options?: ObserveHreflangOptions): () => void;
 };
 
 // @public
-export type LocalizationOptions<TDefault extends string, TDictionaries extends readonly Dictionary[]> = {
+export type LocalizationOptions<TDefault extends string, TDictionaries extends Record<string, DictionaryLoader>> = {
     default: TDefault;
     dictionaries?: TDictionaries;
 };
