@@ -1,12 +1,25 @@
 import { isDevelopment } from '@rooted/util/dev'
 
+declare const phraseNames: unique symbol
+
 /**
- * An overlay dictionary for one locale. Keys and values are placeholder
- * strings in the format `'hello {name}'`, where `{name}` marks an
- * interpolated parameter. Use {@link template} to build them, or write them
- * by hand. Literal braces are escaped as `{{` and `}}`.
+ * A placeholder string built by {@link template}, carrying its parameter
+ * names at the type level. At runtime it's a plain string like
+ * `'hello {lastName}, {firstName}'`.
  */
-export type Dictionary = Record<string, string>
+export type Phrase<N extends string = never> = string & { readonly [phraseNames]: N }
+
+/**
+ * A single dictionary entry: the default-language key and its translated
+ * value. Built by {@link translation}.
+ */
+export type Translation = readonly [key: string, value: string]
+
+/**
+ * A locale paired with its translations. Built by {@link dictionary} and
+ * passed to `configureLocalization` in the `dictionaries` array.
+ */
+export type Dictionary<TLocale extends string = string> = readonly [locale: TLocale, translations: readonly Translation[]]
 
 /** @internal A parsed placeholder string: the text parts and the parameter names between them. */
 export type ParsedTemplate = {
@@ -23,25 +36,18 @@ export type CompiledEntry = {
 const validName = /^[A-Za-z_$][\w$-]*$/
 
 /**
- * Tagged template for dictionary keys and values. Interpolate parameter
- * names as strings; the result is a plain placeholder string, so it works
- * as a computed object key.
- *
- * The translated value may reference the key's parameters in any order,
- * which matters when sentence structure differs between languages.
+ * Tagged template for the two sides of a {@link translation}. Interpolate
+ * parameter names as strings; the names are carried in the type, so the
+ * translated side can only use names the key side declares.
  *
  * @example
  * ```ts
- * template`hello ${'name'}`  // 'hello {name}'
- *
- * dictionaries: {
- *   'nl-NL': {
- *     [template`hello ${'lastName'}, ${'firstName'}`]: template`hallo ${'firstName'} ${'lastName'}`,
- *   },
- * }
+ * template`hello ${'lastName'}, ${'firstName'}`
  * ```
+ *
+ * @see {@link translation}
  */
-export function template(strings: TemplateStringsArray, ...names: string[]): string {
+export function template<const N extends readonly string[]>(strings: TemplateStringsArray, ...names: N): Phrase<N[number]> {
 	if (isDevelopment()) {
 		for (const name of names) {
 			if (!validName.test(name))
@@ -51,11 +57,49 @@ export function template(strings: TemplateStringsArray, ...names: string[]): str
 
 	// eslint-disable-next-line unicorn/no-array-reduce
 	return [...strings].reduce((accumulator, part, index) =>
-		index === 0 ? escapeBraces(part) : `${accumulator}{${names[index - 1]}}${escapeBraces(part)}`, '')
+		index === 0 ? escapeBraces(part) : `${accumulator}{${names[index - 1]}}${escapeBraces(part)}`, '') as Phrase<N[number]>
 }
 
 function escapeBraces(text: string): string {
 	return text.replaceAll('{', '{{').replaceAll('}', '}}')
+}
+
+/**
+ * Pairs a default-language {@link template} with its translated counterpart.
+ *
+ * The translation may reorder the key's parameters (or leave some out), but
+ * referencing a name the key doesn't declare is a compile error.
+ *
+ * @example
+ * ```ts
+ * translation(
+ *   template`hello ${'lastName'}, ${'firstName'}`,
+ *   template`hallo ${'firstName'} ${'lastName'}`,
+ * )
+ * ```
+ *
+ * @see {@link dictionary}
+ */
+export function translation<N extends string, M extends N>(key: Phrase<N>, value: Phrase<M>): Translation {
+	return [key, value]
+}
+
+/**
+ * Pairs a locale with its translations. Meant as the default export of a
+ * dictionary file, one file per locale:
+ *
+ * @example
+ * ```ts
+ * // src/_shared/i18n/dictionaries/nl-NL.mts
+ * export default dictionary('nl-NL', [
+ *   translation(template`this is an example label`, template`dit is een voorbeeld label`),
+ * ])
+ * ```
+ *
+ * @see {@link translation}
+ */
+export function dictionary<const TLocale extends string>(locale: TLocale, translations: readonly Translation[]): Dictionary<TLocale> {
+	return [locale, translations]
 }
 
 /**
@@ -113,12 +157,12 @@ export function lookupKey(parts: ArrayLike<string>): string {
 }
 
 /** @internal Compiles all dictionaries once, keyed by locale, then by lookup key. */
-export function compileDictionaries(dictionaries: Record<string, Dictionary>): Map<string, Map<string, CompiledEntry>> {
+export function compileDictionaries(dictionaries: readonly Dictionary[]): Map<string, Map<string, CompiledEntry>> {
 	const compiled = new Map<string, Map<string, CompiledEntry>>()
 
-	for (const [locale, dictionary] of Object.entries(dictionaries)) {
-		const entries = new Map<string, CompiledEntry>()
-		for (const [key, value] of Object.entries(dictionary)) {
+	for (const [locale, translations] of dictionaries) {
+		const entries = compiled.get(locale) ?? new Map<string, CompiledEntry>()
+		for (const [key, value] of translations) {
 			const parsedKey = parseTemplate(key)
 			entries.set(lookupKey(parsedKey.parts), {
 				keyNames: parsedKey.names,

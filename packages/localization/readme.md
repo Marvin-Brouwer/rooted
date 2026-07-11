@@ -10,15 +10,15 @@ pnpm add @rooted/localization
 ```
 
 ```ts
-import { configureLocalization, template } from '@rooted/localization'
+import { configureLocalization, dictionary, template, translation } from '@rooted/localization'
 
 export const localization = configureLocalization({
   default: 'en-GB',
-  dictionaries: {
-    'nl-NL': {
-      [template`hello ${'name'}`]: template`hallo ${'name'}`,
-    },
-  },
+  dictionaries: [
+    dictionary('nl-NL', [
+      translation(template`hello ${'name'}`, template`hallo ${'name'}`),
+    ]),
+  ],
 })
 ```
 

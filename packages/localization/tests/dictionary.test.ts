@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, afterEach } from 'vitest'
 
-import { template, parseTemplate, lookupKey } from '../src/dictionary.mts'
+import { template, translation, dictionary, parseTemplate, lookupKey } from '../src/dictionary.mts'
 
 afterEach(() => {
 	vi.restoreAllMocks()
@@ -27,6 +27,27 @@ describe('template()', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
 		expect(template`x ${'bad name'}`).toBe('x {bad name}')
 		expect(warn).toHaveBeenCalledOnce()
+	})
+})
+
+describe('translation()', () => {
+	test('pairs the key with its translated value', () => {
+		expect(translation(template`hello ${'name'}`, template`hallo ${'name'}`))
+			.toEqual(['hello {name}', 'hallo {name}'])
+	})
+
+	test('allows reordering the parameters', () => {
+		expect(translation(
+			template`hello ${'lastName'}, ${'firstName'}`,
+			template`hallo ${'firstName'} ${'lastName'}`,
+		)).toEqual(['hello {lastName}, {firstName}', 'hallo {firstName} {lastName}'])
+	})
+})
+
+describe('dictionary()', () => {
+	test('pairs the locale with its translations', () => {
+		const greeting = translation(template`hi`, template`hoi`)
+		expect(dictionary('nl-NL', [greeting])).toEqual(['nl-NL', [greeting]])
 	})
 })
 

@@ -11,6 +11,6 @@
  */
 
 export { configureLocalization, type Localization, type LocalizationOptions, type LocalizationRoute, type SupportedLocales } from '../localization.mts'
-export { template, type Dictionary } from '../dictionary.mts'
+export { dictionary, template, translation, type Dictionary, type Phrase, type Translation } from '../dictionary.mts'
 export { localeTokenBrand, type LocaleParameter, type LocaleTokenInfo } from '../locale-token.mts'
 export type { ObserveHreflangOptions } from '../hreflang.mts'

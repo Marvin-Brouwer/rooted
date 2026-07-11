@@ -3,6 +3,7 @@ import { describe, test, expect } from 'vitest'
 import { route } from '@rooted/router/routes'
 
 import { localizationSeo } from '../plugins/hreflang.mts'
+import { dictionary } from '../src/dictionary.mts'
 import { configureLocalization } from '../src/localization.mts'
 
 import type { RouteHeadLink, RouteHeadLinkProvider } from '@rooted/adapter'
@@ -10,7 +11,7 @@ import type { ResolvedConfig } from 'vite'
 
 const localization = configureLocalization({
 	default: 'en-GB',
-	dictionaries: { 'nl-NL': {} },
+	dictionaries: [dictionary('nl-NL', [])],
 })
 
 function setup(routes: unknown[]): RouteHeadLinkProvider {

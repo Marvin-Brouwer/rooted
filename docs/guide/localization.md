@@ -21,41 +21,40 @@ src/_shared/i18n/
     nl-NL.mts               # one file per locale
 ```
 
-Each locale gets its own dictionary file. That keeps translations reviewable per language and makes it obvious what a new locale needs: one new file, one new line in the configuration.
+Each locale gets its own dictionary file, default-exporting a `dictionary`. That keeps translations reviewable per language and makes it obvious what a new locale needs: one new file, one new line in the configuration.
 
 ```ts
 // src/_shared/i18n/dictionaries/nl-NL.mts
-import { template, type Dictionary } from '@rooted/localization'
+import { dictionary, template, translation } from '@rooted/localization'
 
-export const nlNL = {
-  [template`this is an example label`]: template`dit is een voorbeeld label`,
-} satisfies Dictionary
+export default dictionary('nl-NL', [
+  translation(
+    template`this is an example label`,
+    template`dit is een voorbeeld label`,
+  ),
+])
 ```
 
 Configure once, export the instance, and import it wherever you need it.
 
 ```ts
 // src/_shared/i18n/localization.mts
-import { configureLocalization, type SupportedLocales } from '@rooted/localization'
+import { configureLocalization } from '@rooted/localization'
 
-import { nlNL } from './dictionaries/nl-NL.mts'
+import nlNL from './dictionaries/nl-NL.mts'
 
 export const localization = configureLocalization({
   default: 'en-GB',
-  dictionaries: {
-    'nl-NL': nlNL,
-  },
+  dictionaries: [nlNL],
 })
-
-export type Locale = SupportedLocales<typeof localization> // 'en-GB' | 'nl-NL'
 ```
 
-Export a `Locale` type alongside the instance, like above. Whenever a component prop or function argument takes a locale, type it as `Locale` and it stays in sync with your configuration:
+The instance also exposes the configured dictionaries as a readonly map (`localization.dictionaries`), and the locale union as a type. Whenever a component prop or function argument takes a locale, type it as `typeof localization.Locale` and it stays in sync with your configuration:
 
 ```ts
-import { localization, type Locale } from '../_shared/i18n/localization.mts'
+import { localization } from '../_shared/i18n/localization.mts'
 
-type GreetingOptions = { locale: Locale }
+type GreetingOptions = { locale: typeof localization.Locale } // 'en-GB' | 'nl-NL'
 ```
 
 ## Routes
@@ -106,9 +105,12 @@ Interpolations are declared by name in the dictionary, which lets a translation 
 
 ```ts
 // src/_shared/i18n/dictionaries/nl-NL.mts
-export const nlNL = {
-  [template`hello ${'lastName'}, ${'firstName'}`]: template`hallo ${'firstName'} ${'lastName'}`,
-} satisfies Dictionary
+export default dictionary('nl-NL', [
+  translation(
+    template`hello ${'lastName'}, ${'firstName'}`,
+    template`hallo ${'firstName'} ${'lastName'}`,
+  ),
+])
 ```
 
 ```ts
@@ -117,7 +119,14 @@ localization.text`hello ${lastName}, ${firstName}`
 // nl-NL: 'hallo Marvin Brouwer'
 ```
 
-`template` just builds a placeholder string (`'hello {lastName}, {firstName}'`), so you can also write dictionary entries by hand, or load them from JSON. Literal braces are escaped as `{{` and `}}`.
+The parameter names are checked at compile time. A translation may reorder the key's parameters or leave some out, but referencing a name the key doesn't declare is a type error:
+
+```ts
+translation(
+  template`hello ${'lastName'}`,
+  template`hallo ${'typo'}`, // does not compile
+)
+```
 
 When a translation is missing, the default text renders. In development it's prefixed with `[i18n missing nl-NL]` so gaps are easy to spot; production falls back silently.
 
@@ -150,7 +159,7 @@ Each prerendered locale variant gets one link per configured locale plus an `x-d
 
 ## Honest limitations (v1)
 
-- Per-route `seo.title` and `seo.description` are single values; prerendered locale variants share them. Localizing route metadata is future work.
+- Per-route `seo.title` and `seo.description` are single values; prerendered locale variants share them. Setting them with `localization.text` doesn't help: the `seo` object is evaluated once when the route module loads, not once per URL, so every variant would get the same text. Locale-aware route metadata (a lazy `seo` evaluated per path) is future work.
 - `llms.txt` lists every locale variant with the same title.
 - The sitemap gets one entry per locale variant, but no `xhtml:link` alternate annotations yet; the hreflang tags in the HTML head carry that signal.
 - Mixed routes (locale token plus a typed token) aren't unrolled, so they're not prerendered and not in the sitemap.

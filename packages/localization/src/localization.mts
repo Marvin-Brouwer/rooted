@@ -2,22 +2,22 @@ import { href } from '@rooted/router'
 import { isClient } from '@rooted/util'
 import { isDevelopment } from '@rooted/util/dev'
 
-import { compileDictionaries, lookupKey, type Dictionary } from './dictionary.mts'
+import { compileDictionaries, lookupKey, type Dictionary, type Translation } from './dictionary.mts'
 import { createHreflangObserver, type ObserveHreflangOptions } from './hreflang.mts'
 import { createLocaleParameter, type LocaleParameter } from './locale-token.mts'
 
 /**
  * Options for {@link configureLocalization}.
  */
-export type LocalizationOptions<TDefault extends string, TDictionaries extends Record<string, Dictionary>> = {
+export type LocalizationOptions<TDefault extends string, TDictionaries extends readonly Dictionary[]> = {
 	/**
 	 * The locale of the inline text at `text` call sites, e.g. `'en-GB'`.
 	 * The default locale needs no dictionary.
 	 */
 	default: TDefault
 	/**
-	 * Overlay dictionaries per locale. Keys and values use the placeholder
-	 * format built by {@link template}, e.g. `'hello {name}'`.
+	 * Overlay dictionaries, one {@link dictionary} per locale:
+	 * `dictionaries: [nlNL, deDE]`.
 	 */
 	dictionaries?: TDictionaries
 }
@@ -55,8 +55,22 @@ export type Localization<TLocale extends string> = {
 	 * ```
 	 */
 	parameter: LocaleParameter<TLocale>
-	/** All configured locales: the default plus the dictionary keys. */
+	/** All configured locales: the default plus the dictionary locales. */
 	supportedLocales: readonly TLocale[]
+	/** The configured overlay dictionaries, keyed by locale. */
+	dictionaries: ReadonlyMap<TLocale, readonly Translation[]>
+	/**
+	 * Type carrier for the configured locale union. Reference it as
+	 * `typeof localization.Locale` wherever code takes a locale:
+	 *
+	 * ```ts
+	 * type GreetingOptions = { locale: typeof localization.Locale }
+	 * ```
+	 *
+	 * At runtime this is just the default locale; its only job is carrying
+	 * the type.
+	 */
+	readonly Locale: TLocale
 	/**
 	 * The locale parsed from the first path segment of the current URL.
 	 * Falls back to the default locale, so it's always usable in components.
@@ -109,29 +123,28 @@ export type SupportedLocales<T> = T extends Localization<infer L> ? L : never
  *
  * @example
  * ```ts
+ * import nlNL from './dictionaries/nl-NL.mts'
+ *
  * export const localization = configureLocalization({
  *   default: 'en-GB',
- *   dictionaries: {
- *     'nl-NL': {
- *       [template`this is an example label`]: template`dit is een voorbeeld label`,
- *     },
- *   },
+ *   dictionaries: [nlNL],
  * })
  * ```
  */
 export function configureLocalization<
 	const TDefault extends string,
-	const TDictionaries extends Record<string, Dictionary> = Record<never, Dictionary>,
->(options: LocalizationOptions<TDefault, TDictionaries>): Localization<TDefault | (keyof TDictionaries & string)> {
-	type TLocale = TDefault | (keyof TDictionaries & string)
+	const TDictionaries extends readonly Dictionary[] = readonly [],
+>(options: LocalizationOptions<TDefault, TDictionaries>): Localization<TDefault | TDictionaries[number][0]> {
+	type TLocale = TDefault | TDictionaries[number][0]
 
 	const defaultLocale = options.default as TLocale
-	const dictionaries: Record<string, Dictionary> = options.dictionaries ?? {}
+	const dictionaryEntries: readonly Dictionary[] = options.dictionaries ?? []
+	const dictionaries = new Map(dictionaryEntries) as ReadonlyMap<TLocale, readonly Translation[]>
 	const supportedLocales = [
 		defaultLocale,
-		...(Object.keys(dictionaries) as TLocale[]).filter(locale => locale !== defaultLocale),
+		...([...dictionaries.keys()]).filter(locale => locale !== defaultLocale),
 	] as readonly TLocale[]
-	const compiled = compileDictionaries(dictionaries)
+	const compiled = compileDictionaries(dictionaryEntries)
 	const warnedMissingNames = new Set<string>()
 
 	function rawSegment(): string | undefined {
@@ -183,6 +196,8 @@ export function configureLocalization<
 	return {
 		parameter: createLocaleParameter(defaultLocale, supportedLocales),
 		supportedLocales,
+		dictionaries,
+		Locale: defaultLocale,
 		get currentLocale() { return currentLocale() },
 		route: {
 			get rawValue() { return rawSegment() },

@@ -8,10 +8,13 @@ import { Constant } from '@rooted/router/routes';
 import { Parameter } from '@rooted/router/routes';
 
 // @public
-export function configureLocalization<const TDefault extends string, const TDictionaries extends Record<string, Dictionary> = Record<never, Dictionary>>(options: LocalizationOptions<TDefault, TDictionaries>): Localization<TDefault | (keyof TDictionaries & string)>;
+export function configureLocalization<const TDefault extends string, const TDictionaries extends readonly Dictionary[] = readonly []>(options: LocalizationOptions<TDefault, TDictionaries>): Localization<TDefault | TDictionaries[number][0]>;
 
 // @public
-export type Dictionary = Record<string, string>;
+export type Dictionary<TLocale extends string = string> = readonly [locale: TLocale, translations: readonly Translation[]];
+
+// @public
+export function dictionary<const TLocale extends string>(locale: TLocale, translations: readonly Translation[]): Dictionary<TLocale>;
 
 // @public
 export type LocaleParameter<TLocale extends string> = Parameter<'locale', Constant<TLocale>> & {
@@ -29,8 +32,10 @@ export type LocaleTokenInfo = {
 
 // @public
 export type Localization<TLocale extends string> = {
-    parameter: LocaleParameter<TLocale>; /** All configured locales: the default plus the dictionary keys. */
-    supportedLocales: readonly TLocale[];
+    parameter: LocaleParameter<TLocale>; /** All configured locales: the default plus the dictionary locales. */
+    supportedLocales: readonly TLocale[]; /** The configured overlay dictionaries, keyed by locale. */
+    dictionaries: ReadonlyMap<TLocale, readonly Translation[]>;
+    readonly Locale: TLocale;
     readonly currentLocale: TLocale; /** URL-derived locale validity helpers. */
     route: LocalizationRoute;
     text(strings: TemplateStringsArray, ...values: unknown[]): string;
@@ -38,7 +43,7 @@ export type Localization<TLocale extends string> = {
 };
 
 // @public
-export type LocalizationOptions<TDefault extends string, TDictionaries extends Record<string, Dictionary>> = {
+export type LocalizationOptions<TDefault extends string, TDictionaries extends readonly Dictionary[]> = {
     default: TDefault;
     dictionaries?: TDictionaries;
 };
@@ -56,10 +61,21 @@ export type ObserveHreflangOptions = {
 };
 
 // @public
+export type Phrase<N extends string = never> = string & {
+    readonly [phraseNames]: N;
+};
+
+// @public
 export type SupportedLocales<T> = T extends Localization<infer L> ? L : never;
 
 // @public
-export function template(strings: TemplateStringsArray, ...names: string[]): string;
+export function template<const N extends readonly string[]>(strings: TemplateStringsArray, ...names: N): Phrase<N[number]>;
+
+// @public
+export type Translation = readonly [key: string, value: string];
+
+// @public
+export function translation<N extends string, M extends N>(key: Phrase<N>, value: Phrase<M>): Translation;
 
 // (No @packageDocumentation comment for this package)
 

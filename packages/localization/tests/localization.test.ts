@@ -2,7 +2,7 @@ import { describe, test, expect, vi, afterEach } from 'vitest'
 
 import { route } from '@rooted/router/routes'
 
-import { template } from '../src/dictionary.mts'
+import { dictionary, template, translation, type Translation } from '../src/dictionary.mts'
 import { localeTokenBrand } from '../src/locale-token.mts'
 import { configureLocalization } from '../src/localization.mts'
 
@@ -13,12 +13,12 @@ function visit(path: string) {
 function configure() {
 	return configureLocalization({
 		default: 'en-GB',
-		dictionaries: {
-			'nl-NL': {
-				[template`this is an example label`]: template`dit is een voorbeeld label`,
-				[template`hello ${'lastName'}, ${'firstName'}`]: template`hallo ${'firstName'} ${'lastName'}`,
-			},
-		},
+		dictionaries: [
+			dictionary('nl-NL', [
+				translation(template`this is an example label`, template`dit is een voorbeeld label`),
+				translation(template`hello ${'lastName'}, ${'firstName'}`, template`hallo ${'firstName'} ${'lastName'}`),
+			]),
+		],
 	})
 }
 
@@ -29,16 +29,27 @@ afterEach(() => {
 })
 
 describe('configureLocalization()', () => {
-	test('supportedLocales is the default plus the dictionary keys', () => {
+	test('supportedLocales is the default plus the dictionary locales', () => {
 		expect(configure().supportedLocales).toEqual(['en-GB', 'nl-NL'])
 	})
 
 	test('the default locale is not duplicated when it has a dictionary', () => {
 		const localization = configureLocalization({
 			default: 'en-GB',
-			dictionaries: { 'en-GB': {}, 'nl-NL': {} },
+			dictionaries: [dictionary('en-GB', []), dictionary('nl-NL', [])],
 		})
 		expect(localization.supportedLocales).toEqual(['en-GB', 'nl-NL'])
+	})
+
+	test('dictionaries is exposed as a map keyed by locale', () => {
+		const localization = configure()
+		expect(localization.dictionaries).toBeInstanceOf(Map)
+		expect(localization.dictionaries.get('nl-NL')).toHaveLength(2)
+		expect(localization.dictionaries.has('en-GB' as 'nl-NL')).toBe(false)
+	})
+
+	test('Locale carries the default locale at runtime', () => {
+		expect(configure().Locale).toBe('en-GB')
 	})
 
 	test('parameter is keyed "locale"', () => {
@@ -169,13 +180,11 @@ describe('text', () => {
 
 	test('a translation referencing an unknown parameter renders empty and warns once', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
+		// translation() makes this a compile error; hand-built to test the runtime guard
+		const broken: Translation = ['hi {name}', 'hoi {typo}']
 		const localization = configureLocalization({
 			default: 'en-GB',
-			dictionaries: {
-				'nl-NL': {
-					[template`hi ${'name'}`]: template`hoi ${'typo'}`,
-				},
-			},
+			dictionaries: [dictionary('nl-NL', [broken])],
 		})
 		visit('/nl-NL/greeting/')
 		expect(localization.text`hi ${'Marvin'}`).toBe('hoi ')

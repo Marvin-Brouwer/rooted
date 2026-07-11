@@ -1,5 +1,6 @@
 import { describe, test, expect, afterEach } from 'vitest'
 
+import { dictionary } from '../src/dictionary.mts'
 import { configureLocalization } from '../src/localization.mts'
 
 function visit(path: string) {
@@ -14,7 +15,7 @@ function alternateLinks() {
 
 const localization = configureLocalization({
 	default: 'en-GB',
-	dictionaries: { 'nl-NL': {} },
+	dictionaries: [dictionary('nl-NL', [])],
 })
 
 let dispose: (() => void) | undefined
