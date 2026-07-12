@@ -1,11 +1,15 @@
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import { resolveRouteSeo } from '@rooted/adapter'
+
+import type { SeoApi } from '@rooted/adapter'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Plugin, ResolvedConfig } from 'vite'
 import type { ManifestOptions } from 'vite-plugin-pwa'
 
 const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
+const SEO_PLUGIN_NAME = 'rooted:seo'
 
 /**
  * A custom section in the generated `llms.txt`, used to override or extend
@@ -61,6 +65,7 @@ export function llmsTxtPlugin(
 ): Plugin {
 	let config: ResolvedConfig
 	let manifestApi: RouteManifestApi | undefined
+	let seoApi: SeoApi | undefined
 
 	function toAbsolute(staticPath: string): string {
 		return deploymentUrl
@@ -76,9 +81,13 @@ export function llmsTxtPlugin(
 			config = resolved
 			const manifestPlugin = resolved.plugins.find(p => p.name === MANIFEST_PLUGIN_NAME)
 			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
+			const seoPlugin = resolved.plugins.find(p => p.name === SEO_PLUGIN_NAME)
+			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 		},
 
 		async closeBundle() {
+			await seoApi?.prepare()
+
 			const lines: string[] = []
 
 			if (webManifest.name) lines.push(`# ${webManifest.name}`)
@@ -106,16 +115,19 @@ export function llmsTxtPlugin(
 						// staticPaths includes constant-token routes unrolled to concrete paths
 						const staticPaths = metadata.staticPaths
 						if (staticPaths === false) continue
-						if (!metadata.seo?.title) {
-							config.logger.info(`[llms-txt] skipping route ${staticPaths.join(', ')}: no seo.title`)
-							continue
-						}
 
 						for (const staticPath of staticPaths) {
+							// Lazy seo resolvers are evaluated per generated page
+							const seo = await resolveRouteSeo(route, staticPath)
+							if (!seo?.title) {
+								config.logger.info(`[llms-txt] skipping route ${staticPath}: no seo.title`)
+								continue
+							}
+
 							pages.push({
-								title: metadata.seo.title,
+								title: seo.title,
 								url: toAbsolute(staticPath),
-								description: metadata.seo.description,
+								description: seo.description,
 								isHome: staticPath === '/',
 							})
 						}

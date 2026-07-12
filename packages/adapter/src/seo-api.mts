@@ -59,6 +59,20 @@ export type RouteHeadLink = {
 export type RouteHeadLinkProvider = (staticPath: string) => RouteHeadLink[] | undefined
 
 /**
+ * Free-form transform applied to a prerendered page's HTML, after meta tags
+ * and head links. Use it for changes the other seams can't express, like
+ * setting the `lang` attribute on the `<html>` tag.
+ */
+export type RouteHtmlTransform = (html: string, staticPath: string) => string
+
+/**
+ * Async work that must finish before any route seo is evaluated at build
+ * time, e.g. preloading lazily imported dictionaries. Registered tasks run
+ * once, awaited by every build consumer through {@link SeoApi.prepare}.
+ */
+export type SeoPrepareTask = () => Promise<void>
+
+/**
  * Inter-plugin API exposed by the `rooted:seo` Vite plugin.
  *
  * Retrieve it in `configResolved` or `buildStart`:
@@ -111,4 +125,19 @@ export type SeoApi = {
 	 * registering in `configResolved` or `buildStart` is always early enough.
 	 */
 	addRouteHeadLinks(provider: RouteHeadLinkProvider): void
+	/**
+	 * Registers a transform applied to each prerendered page's HTML at the end
+	 * of {@link SeoApi.injectRouteHtml}.
+	 */
+	addRouteHtmlTransform(transform: RouteHtmlTransform): void
+	/**
+	 * Registers async work that must finish before route seo is evaluated at
+	 * build time. Call from `configResolved` or `buildStart`.
+	 */
+	addPrepareTask(task: SeoPrepareTask): void
+	/**
+	 * Runs all registered prepare tasks once (later calls await the same run).
+	 * Build consumers await this before evaluating route seo.
+	 */
+	prepare(): Promise<void>
 }
