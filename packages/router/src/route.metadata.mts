@@ -43,6 +43,13 @@ export type RouteSeoMetadata = {
 }
 
 /**
+ * The untyped shape of a lazy seo resolver as stored on {@link RouteMetadata}.
+ * See `RouteSeoResolver` in route.mts for the typed builder-facing variant.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyRouteSeoResolver = (context: { tokens: any }) => RouteSeoMetadata | Promise<RouteSeoMetadata>
+
+/**
  * Internal metadata bag stored on every {@link Route} under the {@link routeMetadata} symbol key.
  *
  * Do not access directly from application code. Use {@link isRoute} to test
@@ -77,8 +84,8 @@ export type RouteMetadata<T extends { parameters: any, parent?: any }> = {
 	 * prerendering) uses this to enumerate pages.
 	 */
 	readonly staticPaths: false | readonly string[]
-	/** Optional SEO metadata for this route. */
-	readonly seo?: RouteSeoMetadata
+	/** Optional SEO metadata for this route, or a lazy resolver for it. */
+	readonly seo?: RouteSeoMetadata | AnyRouteSeoResolver
 }
 
 /** Returns `true` if `instance` is a {@link Route}. */

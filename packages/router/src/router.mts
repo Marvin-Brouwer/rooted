@@ -195,7 +195,8 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 						applyTransition(() => renderRoute())
 					}
 					else {
-						applyRouteSeoMeta(matchRouteResult.route, target.pathOnly, seoOptions, element)
+						const seo = await resolveSeo(matchRouteResult.route, matchRouteResult.match)
+						applyRouteSeoMeta(seo, target.pathOnly, seoOptions, element)
 						applyTransition(() => renderRoute(matchRouteResult.element))
 					}
 				}
@@ -219,6 +220,13 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 }
 
 type SuccessRouteMatch = RouteMatch<any> & { success: true }
+
+// Evaluates a lazy seo resolver with the matched tokens, once per navigation
+async function resolveSeo(route: AnyRoute, match: SuccessRouteMatch) {
+	const seo = route[routeMetadata].seo
+	if (typeof seo !== 'function') return seo
+	return await seo({ tokens: match.tokens })
+}
 type FilterRoutesResult
 	= { kind: 'match', route: AnyRoute, match: SuccessRouteMatch, element: Element }
 	| { kind: 'error', error: Error, route: AnyRoute }

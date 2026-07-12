@@ -8,6 +8,11 @@ import { createComponent } from '@rooted/components/elements';
 import { TupleResult } from '@rooted/util';
 
 // @public
+export type AnyRouteSeoResolver = (context: {
+    tokens: any;
+}) => RouteSeoMetadata | Promise<RouteSeoMetadata>;
+
+// @public
 export type Constant<V extends string | number = string | number> = readonly V[] & {
     [constantBrand]: true;
 };
@@ -50,7 +55,7 @@ export function route<const T extends RouteParameter[]>(strings: TemplateStrings
 // @public
 export type RouteBuilder<T extends RouteParameter[]> = (definition: {
     resolve: RouteResolver<T>;
-    seo?: RouteSeoMetadata;
+    seo?: RouteSeoMetadata | RouteSeoResolver<T>;
 }) => ExtractParent<T> extends never ? Route<{
     parameters: FilterOutParent<T>;
 }> : Route<{
@@ -81,8 +86,8 @@ export type RouteMetadata<T extends {
     readonly hasErrors?: true; /** The split-up parts of the route pattern. */
     readonly routeParts: Array<string | RouteParameter>; /** Resolved static path string if this route has no dynamic segments, `false` otherwise. */
     readonly staticRoute: false | string;
-    readonly staticPaths: false | readonly string[]; /** Optional SEO metadata for this route. */
-    readonly seo?: RouteSeoMetadata;
+    readonly staticPaths: false | readonly string[]; /** Optional SEO metadata for this route, or a lazy resolver for it. */
+    readonly seo?: RouteSeoMetadata | AnyRouteSeoResolver;
 };
 
 // @public (undocumented)
@@ -101,6 +106,11 @@ export type RouteSeoMetadata = {
     changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'; /** Sitemap `priority` field (0.0–1.0). */
     priority?: number;
 };
+
+// @public
+export type RouteSeoResolver<T extends readonly RouteParameter[]> = (context: {
+    tokens: PathParameterDictionary<T>;
+}) => RouteSeoMetadata | Promise<RouteSeoMetadata>;
 
 // @public
 export function token<K extends string, const V extends readonly [string, ...string[]] | readonly [number, ...number[]]>(name: K, values: V): Parameter<K, Constant<V[number]>>;

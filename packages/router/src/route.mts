@@ -77,10 +77,29 @@ export type RouteResolver<T extends readonly RouteParameter[]>
 		Element | undefined | Promise<Element | undefined>
 
 /**
+ * Lazily resolves a route's SEO metadata, as an alternative to a plain
+ * {@link RouteSeoMetadata} object.
+ *
+ * Evaluated once per navigation at runtime and once per generated page at
+ * build time. At build the function runs as if the browser were at the page
+ * being generated (`location` points at it), so URL-dependent values like
+ * localized text come out right per page. Keep it pure and cheap.
+ *
+ * Receives the same typed `tokens` a resolver gets; ignore the argument when
+ * you don't need it:
+ * ```ts
+ * seo: () => ({ title: localization.text`Browse categories` })
+ * seo: ({ tokens }) => ({ title: `Docs v${tokens.version}` })
+ * ```
+ */
+export type RouteSeoResolver<T extends readonly RouteParameter[]>
+	= (context: { tokens: PathParameterDictionary<T> }) => RouteSeoMetadata | Promise<RouteSeoMetadata>
+
+/**
  * Curried builder returned by {@link route}. Call it with `{ resolve }` (and
  * optionally `seo`) to produce a fully typed {@link Route}.
  */
-export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: RouteResolver<T>, seo?: RouteSeoMetadata }) =>
+export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: RouteResolver<T>, seo?: RouteSeoMetadata | RouteSeoResolver<T> }) =>
 	// This is typed with an anonymous object on purpose.
 	// It serves as a debug view as well as type information
 	ExtractParent<T> extends never

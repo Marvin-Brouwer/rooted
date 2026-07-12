@@ -5,6 +5,15 @@ vi.mock('../src/dev-helper.mts', () => ({ devHelper: {} }))
 
 import { route } from '../src/route.mts'
 import { token } from '../src/route.tokens.mts'
+import { applyRouteSeoMeta } from '../src/seo-meta.mts'
+
+import type { ElementFactory } from '@rooted/components/elements'
+
+const elementFactory = ((tag: string, properties: Record<string, string>) => {
+	const node = document.createElement(tag)
+	for (const [attribute, value] of Object.entries(properties)) node.setAttribute(attribute, value)
+	return node
+}) as unknown as ElementFactory
 
 describe('route() — seo metadata', () => {
 	test('route without seo has undefined seo metadata', () => {
@@ -87,5 +96,69 @@ describe('route() — seo metadata', () => {
 
 		expect(r.getMetadata().seo?.title).toBe('Article')
 		expect(r.getMetadata().seo?.noIndex).toBe(true)
+	})
+})
+
+describe('route() — lazy seo resolvers', () => {
+	test('a seo function is stored as-is on the metadata', () => {
+		const r = route`/test/`({
+			resolve: () => Promise.resolve(void 0),
+			seo: () => ({ title: 'Lazy' }),
+		})
+		expect(r.getMetadata().seo).toBeTypeOf('function')
+	})
+
+	test('evaluates with the matched tokens', async () => {
+		const r = route`/docs/${token('version', [1, 2])}/`({
+			resolve: () => Promise.resolve(void 0),
+			seo: ({ tokens }) => ({ title: `Docs v${tokens.version}` }),
+		})
+
+		const match = await r.match({ target: '/docs/2/' })
+		expect(match.success).toBe(true)
+		if (!match.success) return
+
+		const seo = r.getMetadata().seo
+		if (typeof seo !== 'function') throw new Error('expected a seo resolver')
+		expect((await seo({ tokens: match.tokens })).title).toBe('Docs v2')
+	})
+
+	test('may be async', async () => {
+		const r = route`/test/`({
+			resolve: () => Promise.resolve(void 0),
+			seo: () => Promise.resolve({ title: 'Later' }),
+		})
+
+		const seo = r.getMetadata().seo
+		if (typeof seo !== 'function') throw new Error('expected a seo resolver')
+		expect((await seo({ tokens: {} })).title).toBe('Later')
+	})
+})
+
+describe('applyRouteSeoMeta()', () => {
+	function apply(seo: Parameters<typeof applyRouteSeoMeta>[0], options?: Parameters<typeof applyRouteSeoMeta>[2]) {
+		applyRouteSeoMeta(seo, '/test/', options, elementFactory)
+	}
+
+	test('sets the document title, with suffix', () => {
+		apply({ title: 'Hello' }, { titleSuffix: ' | App' })
+		expect(document.title).toBe('Hello | App')
+	})
+
+	test('sets the description meta tag', () => {
+		apply({ title: 'x', description: 'A description' })
+		expect(document.head.querySelector('meta[name="description"]')?.getAttribute('content')).toBe('A description')
+	})
+
+	test('sets canonical and og:url from the deployment url', () => {
+		apply({ title: 'x' }, { deploymentUrl: 'https://example.com/' })
+		expect(document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href).toBe('https://example.com/test/')
+		expect(document.head.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe('https://example.com/test/')
+	})
+
+	test('does nothing without seo metadata', () => {
+		document.title = 'untouched'
+		apply(undefined)
+		expect(document.title).toBe('untouched')
 	})
 })

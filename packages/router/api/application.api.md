@@ -69,7 +69,7 @@ export function route<const T extends RouteParameter[]>(strings: TemplateStrings
 // @public
 export type RouteBuilder<T extends RouteParameter[]> = (definition: {
     resolve: RouteResolver<T>;
-    seo?: RouteSeoMetadata;
+    seo?: RouteSeoMetadata | RouteSeoResolver<T>;
 }) => ExtractParent<T> extends never ? Route<{
     parameters: FilterOutParent<T>;
 }> : Route<{
