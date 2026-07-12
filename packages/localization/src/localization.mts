@@ -3,7 +3,7 @@ import { isClient } from '@rooted/util'
 import { isDevelopment } from '@rooted/util/dev'
 
 import { compileDictionary, lookupKey, type CompiledEntry, type DictionaryLoader } from './dictionary.mts'
-import { createHreflangObserver, type ObserveHreflangOptions } from './hreflang.mts'
+import { createDocumentObserver, type ObserveDocumentOptions } from './document.mts'
 import { createLocaleParameter, type LocaleParameter } from './locale-token.mts'
 
 /**
@@ -122,13 +122,14 @@ export type Localization<TLocale extends string> = {
 	 */
 	text(strings: TemplateStringsArray, ...values: unknown[]): string
 	/**
-	 * Keeps `<link rel="alternate" hreflang>` tags in `document.head` current
-	 * across navigations. Returns a dispose function.
+	 * Keeps the live document's locale state current across navigations: the
+	 * `lang` attribute on `<html>`, the `<link rel="alternate" hreflang>`
+	 * links, and the `og:locale` meta tags. Returns a dispose function.
 	 *
-	 * This only affects the live document. Prerendered HTML gets its hreflang
-	 * tags from the build plugin (`@rooted/localization/vite`); use both.
+	 * This only affects the live document. Prerendered HTML gets the same
+	 * treatment from the build plugin (`@rooted/localization/vite`); use both.
 	 */
-	observeHreflang(options?: ObserveHreflangOptions): () => void
+	observeDocument(options?: ObserveDocumentOptions): () => void
 }
 
 /**
@@ -245,7 +246,7 @@ export function configureLocalization<
 	}
 
 	return {
-		parameter: createLocaleParameter(defaultLocale, supportedLocales),
+		parameter: createLocaleParameter(defaultLocale, supportedLocales, locale => load(locale as TLocale)),
 		supportedLocales,
 		dictionaries,
 		Locale: defaultLocale,
@@ -257,6 +258,6 @@ export function configureLocalization<
 		},
 		load,
 		text,
-		observeHreflang: createHreflangObserver(supportedLocales, defaultLocale),
+		observeDocument: createDocumentObserver(supportedLocales, defaultLocale),
 	}
 }

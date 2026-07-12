@@ -1,8 +1,8 @@
 import { href } from '@rooted/router'
 import { isClient } from '@rooted/util'
 
-/** Options for `localization.observeHreflang`. */
-export type ObserveHreflangOptions = {
+/** Options for `localization.observeDocument`. */
+export type ObserveDocumentOptions = {
 	/**
 	 * Base URL of the deployed site, e.g. `'https://example.com/my-app/'`.
 	 * Used to build absolute alternate URLs. Defaults to `location.origin`.
@@ -12,9 +12,9 @@ export type ObserveHreflangOptions = {
 
 const managedAttribute = 'data-rooted-localization'
 
-/** @internal Creates the observeHreflang function for a set of configured locales. */
-export function createHreflangObserver(supportedLocales: readonly string[], defaultLocale: string) {
-	return function observeHreflang(options?: ObserveHreflangOptions): () => void {
+/** @internal Creates the observeDocument function for a set of configured locales. */
+export function createDocumentObserver(supportedLocales: readonly string[], defaultLocale: string) {
+	return function observeDocument(options?: ObserveDocumentOptions): () => void {
 		if (!isClient()) return () => { /* nothing to dispose outside the browser */ }
 
 		function update() {
@@ -22,9 +22,12 @@ export function createHreflangObserver(supportedLocales: readonly string[], defa
 			const segment = path.split('/')[1]
 
 			if (!supportedLocales.includes(segment)) {
-				removeManagedLinks()
+				removeManagedTags()
+				document.documentElement.lang = defaultLocale
 				return
 			}
+
+			document.documentElement.lang = segment
 
 			const rest = path.slice(1 + segment.length)
 			const seen = new Set<Element>()
@@ -33,8 +36,14 @@ export function createHreflangObserver(supportedLocales: readonly string[], defa
 			}
 			seen.add(upsertLink('x-default', toAbsolute(`/${defaultLocale}${rest}`, options?.deploymentUrl)))
 
-			// Drop tags for locales that are no longer configured
-			for (const element of document.head.querySelectorAll(`link[${managedAttribute}]`)) {
+			seen.add(upsertMeta('og:locale', toOgLocale(segment)))
+			for (const locale of supportedLocales) {
+				if (locale === segment) continue
+				seen.add(upsertMeta('og:locale:alternate', toOgLocale(locale), true))
+			}
+
+			// Drop tags for locales that are no longer configured or applicable
+			for (const element of document.head.querySelectorAll(`[${managedAttribute}]`)) {
 				if (!seen.has(element)) element.remove()
 			}
 		}
@@ -44,9 +53,14 @@ export function createHreflangObserver(supportedLocales: readonly string[], defa
 
 		return () => {
 			window.removeEventListener('popstate', update)
-			removeManagedLinks()
+			removeManagedTags()
 		}
 	}
+}
+
+// The og format uses an underscore: nl-NL becomes nl_NL
+function toOgLocale(locale: string): string {
+	return locale.replaceAll('-', '_')
 }
 
 function toAbsolute(path: string, deploymentUrl: string | undefined): string {
@@ -72,8 +86,27 @@ function upsertLink(hreflang: string, url: string): Element {
 	return link
 }
 
-function removeManagedLinks() {
-	for (const element of document.head.querySelectorAll(`link[${managedAttribute}]`)) {
+function upsertMeta(property: string, content: string, matchContent = false): Element {
+	const selector = matchContent
+		? `meta[property="${property}"][content="${content}"]`
+		: `meta[property="${property}"]`
+	const existing = document.head.querySelector(selector)
+	if (existing) {
+		existing.setAttribute('content', content)
+		existing.setAttribute(managedAttribute, '')
+		return existing
+	}
+
+	const meta = document.createElement('meta')
+	meta.setAttribute('property', property)
+	meta.setAttribute('content', content)
+	meta.setAttribute(managedAttribute, '')
+	document.head.append(meta)
+	return meta
+}
+
+function removeManagedTags() {
+	for (const element of document.head.querySelectorAll(`[${managedAttribute}]`)) {
 		element.remove()
 	}
 }

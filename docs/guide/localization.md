@@ -125,15 +125,45 @@ When a translation is missing, the default text renders. In development it's pre
 
 ## SEO
 
-Localized pages should tell search engines about their alternates. Two pieces, use both:
+### Localized titles and descriptions
 
-**At runtime**, `observeHreflang` keeps `<link rel="alternate" hreflang>` tags in `document.head` current across navigations:
+Route `seo` metadata accepts a [lazy function](./seo.md#lazy-metadata), and `localization.text` inside it translates like anywhere else. The inline text is the dictionary key:
 
 ```ts
-const dispose = localization.observeHreflang({ deploymentUrl: 'https://example.com/' })
+export const CategoriesRoute = route`/${localization.parameter}/categories/`({
+  async resolve({ create }) {
+    await localization.load()
+    const { Categories } = await import('./categories.mts')
+    return create(Categories)
+  },
+  seo: () => ({
+    title: localization.text`Browse categories`,
+    description: localization.text`Browse all recipe categories.`,
+  }),
+})
 ```
 
-**At build time**, the `localizationSeo` Vite plugin injects the same links into the prerendered HTML (the runtime tags never end up in static files, prerender snapshots only capture the document body):
+```ts
+// src/_shared/i18n/dictionaries/nl-NL.mts
+export default dictionary(
+  translation('Browse categories', 'Categorieën bekijken'),
+  translation('Browse all recipe categories.', 'Bekijk alle receptcategorieën.'),
+)
+```
+
+This works in both worlds. At runtime the function runs per navigation, after your resolver loaded the dictionary. At build time it runs once per generated page, as if the browser were at that page's URL, and the build plugin preloads every dictionary first. So `/nl-NL/categories/` is prerendered with the Dutch title and `/en-GB/categories/` with the English one.
+
+### Alternates, lang, and og:locale
+
+Localized pages should also declare their language and alternates. Two pieces, use both:
+
+**At runtime**, `observeDocument` keeps the live document current across navigations: the `lang` attribute on `<html>`, one `<link rel="alternate" hreflang>` per locale plus `x-default`, and the `og:locale`/`og:locale:alternate` metas:
+
+```ts
+const dispose = localization.observeDocument({ deploymentUrl: 'https://example.com/' })
+```
+
+**At build time**, the `localizationSeo` Vite plugin writes the same things into the prerendered HTML (the runtime tags never end up in static files, prerender snapshots only capture the document body):
 
 ```ts
 // vite.config.mts
@@ -146,12 +176,11 @@ plugins: [
 ]
 ```
 
-Each prerendered locale variant gets one link per configured locale plus an `x-default` pointing at the default locale. The plugin reads the locales straight off `localization.parameter`, so it takes no options.
+The plugin reads the locales straight off `localization.parameter`, so it takes no options.
 
 ## Honest limitations (v1)
 
-- Per-route `seo.title` and `seo.description` are single values; prerendered locale variants share them. Setting them with `localization.text` doesn't help: the `seo` object is evaluated once when the route module loads, not once per URL, so every variant would get the same text. Locale-aware route metadata (a lazy `seo` evaluated per path) is future work.
-- `llms.txt` lists every locale variant with the same title.
+- `llms.txt` lists every locale variant. The plan is to list only the default language with a note about the available locales; not built yet.
 - The sitemap gets one entry per locale variant, but no `xhtml:link` alternate annotations yet; the hreflang tags in the HTML head carry that signal.
 - Mixed routes (locale token plus a typed token) aren't unrolled, so they're not prerendered and not in the sitemap.
 - A build-time check for missing dictionary entries doesn't exist yet. Missing translations surface at runtime, in development, with the `[i18n missing]` marker.

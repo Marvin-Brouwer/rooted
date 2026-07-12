@@ -36,6 +36,7 @@ export const localeTokenBrand: unique symbol;
 export type LocaleTokenInfo = {
     defaultLocale: string;
     locales: readonly string[];
+    load(locale: string): Promise<void>;
 };
 
 // @public
@@ -48,7 +49,7 @@ export type Localization<TLocale extends string> = {
     route: LocalizationRoute;
     load(locale?: TLocale): Promise<void>;
     text(strings: TemplateStringsArray, ...values: unknown[]): string;
-    observeHreflang(options?: ObserveHreflangOptions): () => void;
+    observeDocument(options?: ObserveDocumentOptions): () => void;
 };
 
 // @public
@@ -65,7 +66,7 @@ export type LocalizationRoute = {
 };
 
 // @public
-export type ObserveHreflangOptions = {
+export type ObserveDocumentOptions = {
     deploymentUrl?: string;
 };
 

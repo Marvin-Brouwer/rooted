@@ -16,6 +16,12 @@ export const localeTokenBrand: unique symbol = Symbol.for('@rooted/localization/
 export type LocaleTokenInfo = {
 	defaultLocale: string
 	locales: readonly string[]
+	/**
+	 * Loads one locale's dictionary, same as `localization.load`. Carried on
+	 * the token so build tooling can preload dictionaries before evaluating
+	 * lazy seo resolvers, without knowing the localization instance.
+	 */
+	load(locale: string): Promise<void>
 }
 
 /**
@@ -25,9 +31,13 @@ export type LocaleTokenInfo = {
 export type LocaleParameter<TLocale extends string> = Parameter<'locale', Constant<TLocale>> & { [localeTokenBrand]: LocaleTokenInfo }
 
 /** @internal Creates the branded locale token for a set of configured locales. */
-export function createLocaleParameter<TLocale extends string>(defaultLocale: TLocale, locales: readonly TLocale[]): LocaleParameter<TLocale> {
+export function createLocaleParameter<TLocale extends string>(
+	defaultLocale: TLocale,
+	locales: readonly TLocale[],
+	load: (locale: string) => Promise<void>,
+): LocaleParameter<TLocale> {
 	const parameter = token('locale', locales as readonly TLocale[] as readonly [TLocale, ...TLocale[]])
 	return Object.assign(parameter, {
-		[localeTokenBrand]: { defaultLocale, locales } satisfies LocaleTokenInfo,
+		[localeTokenBrand]: { defaultLocale, locales, load } satisfies LocaleTokenInfo,
 	}) as LocaleParameter<TLocale>
 }

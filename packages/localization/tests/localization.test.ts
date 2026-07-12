@@ -65,10 +65,20 @@ describe('configureLocalization()', () => {
 
 	test('parameter carries the locale brand payload', () => {
 		const localization = configure()
-		expect(localization.parameter[localeTokenBrand]).toEqual({
-			defaultLocale: 'en-GB',
-			locales: ['en-GB', 'nl-NL'],
+		const info = localization.parameter[localeTokenBrand]
+		expect(info.defaultLocale).toBe('en-GB')
+		expect(info.locales).toEqual(['en-GB', 'nl-NL'])
+		expect(info.load).toBeTypeOf('function')
+	})
+
+	test('the brand payload load reaches the dictionary loader', async () => {
+		const nlLoader = loader(nlNL)
+		const localization = configureLocalization({
+			default: 'en-GB',
+			dictionaries: { 'nl-NL': nlLoader },
 		})
+		await localization.parameter[localeTokenBrand].load('nl-NL')
+		expect(nlLoader).toHaveBeenCalledOnce()
 	})
 
 	test('parameter matches configured locales in a route', async () => {

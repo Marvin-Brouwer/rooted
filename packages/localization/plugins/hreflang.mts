@@ -23,14 +23,27 @@ type RouteLike = {
 
 type LocaleToken = Parameter<'locale', Constant> & { [localeTokenBrand]: LocaleTokenInfo }
 
+type LocalizedVariant = {
+	locale: string
+	defaultLocale: string
+	locales: readonly string[]
+	links: RouteHeadLink[]
+}
+
 /**
- * Registers hreflang alternate head links for prerendered localized routes
- * with the rooted SEO plugin.
+ * Wires localized routes into the rooted SEO plugin.
  *
  * For every route composed with `localization.parameter`, each prerendered
- * locale variant gets one `<link rel="alternate" hreflang>` per configured
- * locale plus an `x-default` pointing at the default locale. The locales are
- * read straight off the branded token, so the plugin needs no options.
+ * locale variant gets:
+ * - one `<link rel="alternate" hreflang>` per configured locale plus an
+ *   `x-default` pointing at the default locale,
+ * - a `lang` attribute on the `<html>` tag,
+ * - `og:locale` and `og:locale:alternate` meta tags.
+ *
+ * It also preloads every locale's dictionary before the build evaluates lazy
+ * seo resolvers, so `localization.text` inside `seo: () => ({ ... })` comes
+ * out translated per page. Everything is read straight off the branded
+ * locale token, so the plugin needs no options.
  *
  * Add it to the Vite plugins next to `generateRouteManifest` and the adapter:
  * ```ts
@@ -40,11 +53,15 @@ type LocaleToken = Parameter<'locale', Constant> & { [localeTokenBrand]: LocaleT
  * ```
  *
  * This only covers prerendered HTML. The live document is handled by
- * `localization.observeHreflang` at runtime; use both.
+ * `localization.observeDocument` at runtime; use both.
  */
 export function localizationSeo(): Plugin {
 	let manifestApi: RouteManifestApi | undefined
-	let index: Map<string, RouteHeadLink[]> | undefined
+	let index: Map<string, LocalizedVariant> | undefined
+
+	function variants(): Map<string, LocalizedVariant> {
+		return index ??= buildVariantIndex(manifestApi)
+	}
 
 	return {
 		name: 'rooted:localization-seo',
@@ -56,19 +73,30 @@ export function localizationSeo(): Plugin {
 			const seoPlugin = config.plugins.find(plugin => plugin.name === SEO_PLUGIN_NAME)
 			const seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 
-			// Lazy provider: the index is built on first use, which happens during
-			// the adapter's closeBundle, safely after the manifest plugin loaded
-			// the routes in buildStart.
-			seoApi?.addRouteHeadLinks(staticPath => {
-				index ??= buildAlternatesIndex(manifestApi)
-				return index.get(staticPath)
+			// Everything below runs lazily during the adapter's closeBundle,
+			// safely after the manifest plugin loaded the routes in buildStart.
+
+			// Preload every dictionary before lazy seo resolvers are evaluated
+			seoApi?.addPrepareTask(async () => {
+				for (const info of collectLocaleTokenInfos(manifestApi)) {
+					for (const locale of info.locales) await info.load(locale)
+				}
+			})
+
+			seoApi?.addRouteHeadLinks(staticPath => variants().get(staticPath)?.links)
+
+			// Per-variant lang attribute and og:locale meta tags
+			seoApi?.addRouteHtmlTransform((html, staticPath) => {
+				const variant = variants().get(staticPath)
+				if (!variant) return html
+				return injectOgLocales(setHtmlLang(html, variant.locale), variant)
 			})
 		},
 	}
 }
 
-function buildAlternatesIndex(manifestApi: RouteManifestApi | undefined): Map<string, RouteHeadLink[]> {
-	const index = new Map<string, RouteHeadLink[]>()
+function buildVariantIndex(manifestApi: RouteManifestApi | undefined): Map<string, LocalizedVariant> {
+	const index = new Map<string, LocalizedVariant>()
 
 	for (const route of manifestApi?.routes ?? []) {
 		if (!Object.hasOwn(route, 'getMetadata')) continue
@@ -100,12 +128,55 @@ function buildAlternatesIndex(manifestApi: RouteManifestApi | undefined): Map<st
 			})
 
 			for (let localeIndex = 0; localeIndex < locales.length; localeIndex++) {
-				index.set((pathsByLocale[localeIndex] as string[])[variant], links)
+				index.set((pathsByLocale[localeIndex] as string[])[variant], {
+					locale: locales[localeIndex],
+					defaultLocale,
+					locales,
+					links,
+				})
 			}
 		}
 	}
 
 	return index
+}
+
+function collectLocaleTokenInfos(manifestApi: RouteManifestApi | undefined): LocaleTokenInfo[] {
+	const seen = new Set<LocaleToken>()
+
+	for (const route of manifestApi?.routes ?? []) {
+		if (!Object.hasOwn(route, 'getMetadata')) continue
+		const localeToken = findLocaleToken((route as RouteLike).getMetadata().routeParts)
+		if (localeToken) seen.add(localeToken)
+	}
+
+	return [...seen].map(localeToken => localeToken[localeTokenBrand])
+}
+
+function setHtmlLang(html: string, locale: string): string {
+	return html.replace(/<html([^>]*)>/i, (tag, attributes: string) => {
+		if (/\slang=["'][^"']*["']/i.test(attributes)) {
+			return `<html${attributes.replace(/\slang=["'][^"']*["']/i, ` lang="${locale}"`)}>`
+		}
+		return `<html lang="${locale}"${attributes}>`
+	})
+}
+
+// The og format uses an underscore: nl-NL becomes nl_NL
+function toOgLocale(locale: string): string {
+	return locale.replaceAll('-', '_')
+}
+
+function injectOgLocales(html: string, variant: LocalizedVariant): string {
+	if (/<meta[^>]+property=["']og:locale["']/i.test(html)) return html
+
+	const tags = [`\t<meta property="og:locale" content="${toOgLocale(variant.locale)}" />`]
+	for (const locale of variant.locales) {
+		if (locale === variant.locale) continue
+		tags.push(`\t<meta property="og:locale:alternate" content="${toOgLocale(locale)}" />`)
+	}
+
+	return html.replace('</head>', `${tags.join('\n')}\n</head>`)
 }
 
 function findLocaleToken(routeParts: Array<string | object>): LocaleToken | undefined {
