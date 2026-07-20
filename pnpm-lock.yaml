@@ -82,8 +82,8 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
       '@varlock/vite-integration':
-        specifier: ^1.2.1
-        version: 1.2.1(varlock@1.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(tsx@4.23.1))
+        specifier: ^1.3.0
+        version: 1.3.0(varlock@1.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(tsx@4.23.1))
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -3157,11 +3157,11 @@ packages:
   '@ungap/structured-clone@1.3.1':
     resolution: {integrity: sha512-mUFwbeTqrVgDQxFveS+df2yfap6iuP20NAKAsBt5jDEoOTDew+zwLAOilHCeQJOVSvmgCX4ogqIrA0mnyr08yQ==}
 
-  '@varlock/vite-integration@1.2.1':
-    resolution: {integrity: sha512-gfN4pqD6MnE6LJujcbF0MG0uFH3LrG+H8+LY/RU4mMg1nLNwfBWXbbaZGiQ1wHNVTjR25pvHLVCn8jEd5b0Iww==}
+  '@varlock/vite-integration@1.3.0':
+    resolution: {integrity: sha512-U/jt8Pk76yeVncjNTxoaCrW75573ricf1/x2QydR86/JEVQ1seC813L338Xpxp3yQaiYUWh+W1Yi78cF1vzoLQ==}
     engines: {node: '>=22'}
     peerDependencies:
-      varlock: ^1.10.0
+      varlock: ^1.11.0
       vite: '>=5'
 
   '@vite-pwa/assets-generator@1.0.2':
@@ -9453,7 +9453,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.1': {}
 
-  '@varlock/vite-integration@1.2.1(varlock@1.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(tsx@4.23.1))':
+  '@varlock/vite-integration@1.3.0(varlock@1.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(tsx@4.23.1))':
     dependencies:
       varlock: 1.11.0
       vite: 8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(tsx@4.23.1)
