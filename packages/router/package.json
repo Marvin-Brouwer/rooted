@@ -64,7 +64,7 @@
 	},
 	"dependencies": {
 		"jiti": "^2.7.0",
-		"tinyglobby": "^0.2.16"
+		"tinyglobby": "^0.2.17"
 	},
 	"peerDependencies": {
 		"@rooted/util": "workspace:^",
@@ -76,8 +76,8 @@
 		"@rooted/components": "workspace:^",
 		"@rooted/development": "workspace:*",
 		"@rooted/tsdown": "workspace:^",
-		"@types/node": "^25.9.0",
-		"tsx": "^4.22.1",
-		"vite": "^8.0.13"
+		"@types/node": "^25.9.3",
+		"tsx": "^4.23.1",
+		"vite": "^8.1.5"
 	}
 }
