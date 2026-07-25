@@ -23,8 +23,14 @@ export function createStore(initial: bigint): Store<bigint>;
 export function createStore<T extends StateType | Array<StateType>>(initial: T): Store<T>;
 
 // @public
+export function deepClone<T>(value: T, seen?: WeakMap<object, unknown>): T;
+
+// @public
+export type ReadonlyState<T> = T extends ((...arguments_: never) => unknown) ? T : T extends Date | RegExp | Error ? Readonly<T> : T extends Map<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> : T extends ReadonlyMap<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> : T extends Set<infer V> ? ReadonlySet<ReadonlyState<V>> : T extends ReadonlySet<infer V> ? ReadonlySet<ReadonlyState<V>> : T extends ReadonlyArray<infer V> ? number extends T['length'] ? ReadonlyArray<ReadonlyState<V>> : { readonly [K in keyof T]: ReadonlyState<T[K]> } : T extends object ? { readonly [K in keyof T]: ReadonlyState<T[K]> } : T;
+
+// @public
 export type Store<TState extends StateType | Array<StateType>> = {
-    readonly value: Readonly<TState>;
+    readonly value: ReadonlyState<TState>;
     update(setter: (currentValue: TState) => SetterResult<TState>): void;
     on(event: 'update', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void;
     on(event: 'change', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void;

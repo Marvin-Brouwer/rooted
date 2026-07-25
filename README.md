@@ -203,9 +203,9 @@ Measured from the tree-shaken production build of the [recipe-book example app](
 
 | Format | Size |
 |--------|-------|
-| Raw    | ~26 KB |
-| Gzip   | ~12 KB |
-| Brotli | ~10 KB |
+| Raw    | ~27.50 KB |
+| Gzip   | ~11.88 KB |
+| Brotli | ~10.23 KB |
 
 These numbers go stale as the framework changes. The current report is at [marvin-brouwer.github.io/rooted/stats.html](https://marvin-brouwer.github.io/rooted/stats.html).
 
