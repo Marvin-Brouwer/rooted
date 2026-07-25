@@ -678,6 +678,9 @@ importers:
 
   packages/router:
     dependencies:
+      happy-dom:
+        specifier: ^20.10.6
+        version: 20.10.6
       jiti:
         specifier: ^2.7.0
         version: 2.7.0

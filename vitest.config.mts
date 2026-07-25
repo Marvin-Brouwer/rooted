@@ -55,10 +55,8 @@ export default defineConfig({
 	test: {
 		globals: true,
 		include: ['packages/*/tests/**/*.test.ts', 'packages/*/tests/**/*.spec.ts'],
+		// Individual files opt out with a `// @vitest-environment node` docblock.
 		environment: 'happy-dom',
-		environmentMatchGlobs: [
-			['packages/router/tests/**', 'happy-dom'],
-		],
 		coverage: {
 			provider: 'v8',
 			include: ['packages/*/src/**/*.{ts,mts}'],

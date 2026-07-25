@@ -63,6 +63,7 @@
 		"extract-api": "rooted-development extract-api"
 	},
 	"dependencies": {
+		"happy-dom": "^20.10.6",
 		"jiti": "^2.7.0",
 		"tinyglobby": "^0.2.17"
 	},
