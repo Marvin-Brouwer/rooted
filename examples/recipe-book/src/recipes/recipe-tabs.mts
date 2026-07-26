@@ -10,11 +10,6 @@ import { ScreenLockButton } from './screen-lock-button.mts'
  * A tab in a {@link RecipeTabs} group.
  * `panel` is the node that should show when this tab is active. The tabs
  * component takes ownership of the node and moves it into a tabpanel wrapper.
- *
- * `route` is typed as {@link MatchableRoute} because the tabs only ever call
- * `match()` on it. That also keeps child routes usable here - a route nested
- * under a parent with tokens isn't an `EmptyRoute`, even when it adds no
- * tokens of its own.
  */
 export type RecipeTab = {
 	id: string
