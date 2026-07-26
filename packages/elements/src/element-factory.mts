@@ -29,11 +29,11 @@ function buildClassList(classes: CssClasses | undefined) {
 }
 
 function isWritableDomProperty(element: Element, key: string): boolean {
-	let proto: object | null = element
-	while (proto) {
-		const desc = Object.getOwnPropertyDescriptor(proto, key)
+	let prototype: object | null = element
+	while (prototype) {
+		const desc = Object.getOwnPropertyDescriptor(prototype, key)
 		if (desc) return !!(desc.writable || desc.set)
-		proto = Object.getPrototypeOf(proto) as object | null
+		prototype = Object.getPrototypeOf(prototype) as object | null
 	}
 	return false
 }

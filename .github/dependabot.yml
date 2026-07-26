@@ -6,6 +6,15 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 10
+    ignore:
+      # Hold at TypeScript 6.x. 7.0 is the native port and ships no public compiler
+      # API, so anything reading it (our inheritdoc tsdown plugin,
+      # eslint-plugin-perfectionist) cannot run on it. A new API is planned for 7.1.
+      # Only the 7.0 series is ignored, so dependabot opens a PR by itself once 7.1
+      # is out, and CI answers whether the toolchain has caught up.
+      # See docs/adr/2026-07-26.typescript-7-hold.md.
+      - dependency-name: "typescript"
+        versions: ["7.0.x"]
     groups:
       eslint:
         patterns:
