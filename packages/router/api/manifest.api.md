@@ -17,7 +17,7 @@ export function hash(files: string[], version: string): string;
 // @public
 export type RouteManifestApi = {
     routes: AnyRoute[];
-    routeManifestPath: string; /** Maps each route object to the absolute path of the `_routes.mts` file it was defined in. */
+    routeManifestPath: string;
     routeSourceFiles: Map<AnyRoute, string>;
 };
 

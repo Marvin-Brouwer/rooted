@@ -26,7 +26,7 @@ export function createStore<T extends StateType | Array<StateType>>(initial: T):
 export function deepClone<T>(value: T, seen?: WeakMap<object, unknown>): T;
 
 // @public
-export type ReadonlyState<T> = T extends ((...arguments_: never) => unknown) ? T : T extends Date | RegExp | Error ? Readonly<T> : T extends Map<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> : T extends ReadonlyMap<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> : T extends Set<infer V> ? ReadonlySet<ReadonlyState<V>> : T extends ReadonlySet<infer V> ? ReadonlySet<ReadonlyState<V>> : T extends ReadonlyArray<infer V> ? number extends T['length'] ? ReadonlyArray<ReadonlyState<V>> : { readonly [K in keyof T]: ReadonlyState<T[K]> } : T extends object ? { readonly [K in keyof T]: ReadonlyState<T[K]> } : T;
+export type ReadonlyState<T> = T extends ((...arguments_: never) => unknown) ? T : T extends Date | RegExp | Error ? Readonly<T> : T extends Map<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> : T extends ReadonlyMap<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> : T extends Set<infer V> ? ReadonlySet<ReadonlyState<V>> : T extends ReadonlySet<infer V> ? ReadonlySet<ReadonlyState<V>> : T extends ReadonlyArray<infer V> ? number extends T['length'] ? ReadonlyArray<ReadonlyState<V>> : { readonly [K in keyof T]: ReadonlyState<T[K]>; } : T extends object ? { readonly [K in keyof T]: ReadonlyState<T[K]>; } : T;
 
 // @public
 export type Store<TState extends StateType | Array<StateType>> = {

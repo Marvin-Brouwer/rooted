@@ -1,6 +1,6 @@
 import { component } from '@rooted/components'
 import { TargetedEvent } from '@rooted/components/events'
-import { navigate, type Path, type EmptyRoute } from '@rooted/router'
+import { navigate, type Path, type MatchableRoute } from '@rooted/router'
 import { sessionStorage } from '@rooted/storage/web'
 
 import styles from './recipe-tabs.css'
@@ -15,7 +15,7 @@ export type RecipeTab = {
 	id: string
 	label: string
 	panel: Node
-	route: EmptyRoute
+	route: MatchableRoute
 	href: Path
 }
 
