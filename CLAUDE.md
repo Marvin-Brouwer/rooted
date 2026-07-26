@@ -25,7 +25,7 @@ Generated files in this repo:
 
 ## Quality Control
 
-When running eslint always run `pnpm eslint` from the repository root, other configurations don't work.  
+When running the linter always run `pnpm lint` from the repository root, other configurations don't work.  
 It is important to only fix linting issues in files that are modified or added in the current branch.
 
 After every completed code change, `pnpm lint` must return with no errors or warnings.
@@ -44,7 +44,7 @@ Always use [Conventional Commits](https://www.conventionalcommits.org/) format f
 <type>(<scope>): <short description>
 ```
 
-Common types: `feat`, `fix`, `docs`, `ci`, `test`, `chore`, `perf`, `build`. (NO `refactor`)
+Allowed types: `feat`, `fix`, `docs`, `ci`, `test`, `chore`, `perf`, `revert`. That list is enforced by `.repo/config/conventions/commitlint.config.mjs`, so anything else (`refactor`, `build`, `style`) gets rejected. Use `chore` for internal restructuring with no observable behaviour change, and `fix`/`feat` when there is one.
 Scope is optional but encouraged — use the package name or area (e.g. `router`, `components`, `release`).
 
 Examples:
@@ -64,7 +64,7 @@ Always use [Conventional Commits](https://www.conventionalcommits.org/) format f
 <type>(<scope>): <short description>
 ```
 
-Common types: `feat`, `fix`, `docs`, `ci`, `test`, `chore`, `perf`, `build`. (NO `refactor`) 
+Same types as commit messages: `feat`, `fix`, `docs`, `ci`, `test`, `chore`, `perf`, `revert`. PR titles go through the same commitlint config, so `refactor` and `build` are rejected here too.
 When working on a github issue, the scope should be the issue number (e.g `feat(#54): did a thing`).
 
 Examples:
@@ -78,7 +78,9 @@ docs: add guide for publishing new @rooted/* packages
 
 ## Running the linter
 
-Always run `pnpm eslint` from the repo root. Never use `npx eslint`.
+Always run `pnpm lint` from the repo root. Never call `oxlint` yourself, and never use `npx`. The script passes both `-c .repo/config/oxlint/oxlint.config.json` and `--ignore-path .oxlintignore`, and leaving either off means you get errors from files that are meant to be skipped.
+
+`pnpm lint` fixes what it can. Use `pnpm lint:nofix` to see what CI sees.
 
 ## Writing markdown
 
