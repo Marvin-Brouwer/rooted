@@ -51,7 +51,7 @@ export type RootedApplicationManifest = {
     detectors?: DetectorOptions;
     treeshaking?: TreeshakeOptions;
     webManifest: Partial<ManifestOptions> & {
-        id: ManifestOptions['id']; /** Deployment URL (e.g. `homepage` from `package.json`). The pathname is used as Vite's `base`. */
+        id: ManifestOptions['id'];
         url?: string;
     };
     icon?: string;

@@ -28,16 +28,5 @@
 				"@typescript-eslint/unbound-method": "off"
 			}
 		}
-	],
-	"ignorePatterns": [
-		"**/node_modules",
-		"**/dist",
-		".direnv",
-		"docs",
-		"temp",
-		"**/bin/**",
-		"**/*.d.ts",
-		"**/*.g.mts",
-		".repo/config/oxlint/plugin-local.mjs"
 	]
 }

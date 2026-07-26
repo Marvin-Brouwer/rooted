@@ -40,10 +40,10 @@ export const Link: Component<LinkOptions>;
 
 // @public
 export type LinkOptions = {
-    href: string | Url | Path; /** CSS class name applied to the rendered `<a>` element. */
+    href: string | Url | Path;
     classes?: CssClasses;
     children?: string | Node | Node[];
-    target?: string; /** Maps to the `<a>` element's `rel` attribute. */
+    target?: string;
     rel?: string;
     aria?: Aria;
 };
@@ -112,7 +112,7 @@ export type RouterOptions = {
     on?: {
         navigate?: NavigateHandler;
         error?: ErrorHandler;
-    }; /** Runtime SEO meta tag injection options. */
+    };
     seo?: RouterSeoOptions;
 };
 
