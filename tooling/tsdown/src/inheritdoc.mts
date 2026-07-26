@@ -66,12 +66,12 @@ function _resolveJsDocument(tsconfigPath: string, className: string, memberName:
 	// (project files + lib files from the tsconfig's lib setting)
 	let classSym: ts.Symbol | undefined
 	outer: for (const sf of program.getSourceFiles()) {
-		for (const stmt of sf.statements) {
+		for (const statement of sf.statements) {
 			if (
-				(ts.isInterfaceDeclaration(stmt) || ts.isClassDeclaration(stmt))
-				&& stmt.name?.text === className
+				(ts.isInterfaceDeclaration(statement) || ts.isClassDeclaration(statement))
+				&& statement.name?.text === className
 			) {
-				classSym = checker.getSymbolAtLocation(stmt.name)
+				classSym = checker.getSymbolAtLocation(statement.name)
 				if (classSym) break outer
 			}
 		}
@@ -84,8 +84,8 @@ function _resolveJsDocument(tsconfigPath: string, className: string, memberName:
 	const memberSym = type.getProperty(memberName)
 	if (!memberSym) return undefined
 
-	for (const decl of memberSym.getDeclarations() ?? []) {
-		const document = extractJsDocument(decl)
+	for (const declaration of memberSym.getDeclarations() ?? []) {
+		const document = extractJsDocument(declaration)
 		if (document) return document
 	}
 
@@ -100,20 +100,20 @@ function resolveTopLevelJsDocument(tsconfigPath: string, name: string): string |
 	let result: string | undefined = undefined
 
 	outer: for (const sf of program.getSourceFiles()) {
-		for (const stmt of sf.statements) {
-			if (ts.isFunctionDeclaration(stmt) && stmt.name?.text === name) {
+		for (const statement of sf.statements) {
+			if (ts.isFunctionDeclaration(statement) && statement.name?.text === name) {
 				// Try each overload. JSDoc is usually on the first, but check all.
-				const document = extractJsDocument(stmt)
+				const document = extractJsDocument(statement)
 				if (document) {
 					result = document
 					break outer
 				}
 				// No `break`: continue scanning for the next overload.
 			}
-			else if (ts.isVariableStatement(stmt)) {
-				for (const decl of stmt.declarationList.declarations) {
-					if (ts.isIdentifier(decl.name) && decl.name.text === name) {
-						const document = extractJsDocument(stmt)
+			else if (ts.isVariableStatement(statement)) {
+				for (const declaration of statement.declarationList.declarations) {
+					if (ts.isIdentifier(declaration.name) && declaration.name.text === name) {
+						const document = extractJsDocument(statement)
 						if (document) {
 							result = document
 							break outer
@@ -136,22 +136,22 @@ function resolveTopLevelTypeDocument(tsconfigPath: string, name: string): string
 	let result: string | undefined = undefined
 
 	outer: for (const sf of program.getSourceFiles()) {
-		for (const stmt of sf.statements) {
+		for (const statement of sf.statements) {
 			if (
-				(ts.isInterfaceDeclaration(stmt) || ts.isClassDeclaration(stmt))
-				&& stmt.name?.text === name
+				(ts.isInterfaceDeclaration(statement) || ts.isClassDeclaration(statement))
+				&& statement.name?.text === name
 			) {
-				result = extractJsDocument(stmt)
+				result = extractJsDocument(statement)
 				if (result) break outer
 			}
-			else if (ts.isTypeAliasDeclaration(stmt) && stmt.name.text === name) {
-				result = extractJsDocument(stmt)
+			else if (ts.isTypeAliasDeclaration(statement) && statement.name.text === name) {
+				result = extractJsDocument(statement)
 				if (result) break outer
 				// No JSDoc on the alias itself: follow a simple type reference to find docs on the target.
-				if (ts.isTypeReferenceNode(stmt.type)) {
-					const sym = checker.getSymbolAtLocation(stmt.type.typeName)
-					for (const decl of sym?.getDeclarations() ?? []) {
-						result = extractJsDocument(decl)
+				if (ts.isTypeReferenceNode(statement.type)) {
+					const sym = checker.getSymbolAtLocation(statement.type.typeName)
+					for (const declaration of sym?.getDeclarations() ?? []) {
+						result = extractJsDocument(declaration)
 						if (result) break outer
 					}
 				}

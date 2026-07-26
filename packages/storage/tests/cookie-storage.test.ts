@@ -23,8 +23,8 @@ function restoreCookieProperty(): void {
 	// If the prototype descriptor is still in place we're done; otherwise
 	// reinstall it on the instance as a safety net.
 	if (!Object.getOwnPropertyDescriptor(document, 'cookie')) {
-		const proto = Object.getPrototypeOf(document) as object | null
-		if (!proto || !Object.getOwnPropertyDescriptor(proto, 'cookie')) {
+		const prototype = Object.getPrototypeOf(document) as object | null
+		if (!prototype || !Object.getOwnPropertyDescriptor(prototype, 'cookie')) {
 			Object.defineProperty(document, 'cookie', {
 				...originalCookieDescriptor,
 				configurable: true,
