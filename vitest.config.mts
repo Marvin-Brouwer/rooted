@@ -44,9 +44,6 @@ export default defineConfig({
 		globals: true,
 		include: ['packages/*/tests/**/*.test.ts', 'packages/*/tests/**/*.spec.ts'],
 		environment: 'happy-dom',
-		environmentMatchGlobs: [
-			['packages/router/tests/**', 'happy-dom'],
-		],
 		coverage: {
 			provider: 'v8',
 			include: ['packages/*/src/**/*.{ts,mts}'],

@@ -30,6 +30,8 @@ It is important to only fix linting issues in files that are modified or added i
 
 After every completed code change, `pnpm lint` must return with no errors or warnings.
 
+Run `pnpm typecheck` too. The bundler strips types without checking them, so a broken type only shows up here, not in `pnpm build`.
+
 Always make sure everything builds `pnpm build:dev` and always test your work `pnpm test`,  
 both commands are run from the repository root.
 

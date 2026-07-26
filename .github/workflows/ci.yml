@@ -30,6 +30,9 @@ jobs:
       - name: Build
         run: pnpm build:ci
 
+      - name: Typecheck
+        run: pnpm typecheck
+
       - name: Lint
         run: pnpm lint:nofix
 

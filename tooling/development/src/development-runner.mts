@@ -143,7 +143,8 @@ export async function runParallelDevelopment(projectPath: string, exampleFilter:
 	}
 
 	// External abort (SIGINT/SIGTERM/uncaughtException from the entry point).
-	abortController.signal.addEventListener('abort', () => shutdown(process.exitCode ?? 0), { once: true })
+	// process.exitCode is typed number | string, Node coerces strings, so normalise it here.
+	abortController.signal.addEventListener('abort', () => shutdown(Number(process.exitCode ?? 0)), { once: true })
 	example.on('close', (code: number | null) => shutdown(code ?? 0))
 	watches.on('close', (code: number | null) => shutdown(code ?? 0))
 }

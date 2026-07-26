@@ -1,6 +1,6 @@
 import { component } from '@rooted/components'
 import { TargetedEvent } from '@rooted/components/events'
-import { navigate, type Path, type EmptyRoute } from '@rooted/router'
+import { navigate, type Path, type MatchableRoute } from '@rooted/router'
 import { sessionStorage } from '@rooted/storage/web'
 
 import styles from './recipe-tabs.css'
@@ -10,12 +10,17 @@ import { ScreenLockButton } from './screen-lock-button.mts'
  * A tab in a {@link RecipeTabs} group.
  * `panel` is the node that should show when this tab is active. The tabs
  * component takes ownership of the node and moves it into a tabpanel wrapper.
+ *
+ * `route` is typed as {@link MatchableRoute} because the tabs only ever call
+ * `match()` on it. That also keeps child routes usable here - a route nested
+ * under a parent with tokens isn't an `EmptyRoute`, even when it adds no
+ * tokens of its own.
  */
 export type RecipeTab = {
 	id: string
 	label: string
 	panel: Node
-	route: EmptyRoute
+	route: MatchableRoute
 	href: Path
 }
 
