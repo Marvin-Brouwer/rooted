@@ -5,6 +5,7 @@
 ```ts
 
 import { Constant } from '@rooted/router/routes';
+import { GenericComponent } from '@rooted/components';
 import { Parameter } from '@rooted/router/routes';
 
 // @public
@@ -23,6 +24,9 @@ export type DictionaryLoader = () => Promise<DictionaryModule>;
 export type DictionaryModule = {
     default: Dictionary;
 };
+
+// @public
+export type LocaleBranches<TLocale extends string, T> = { [K in TLocale]: () => Promise<T>; };
 
 // @public
 export type LocaleLoadResult<TLocale extends string> = [locale: TLocale, changed: boolean];
@@ -52,6 +56,8 @@ export type Localization<TLocale extends string> = {
     route: LocalizationRoute;
     load(locale?: TLocale): Promise<LocaleLoadResult<TLocale>>;
     text(strings: TemplateStringsArray, ...values: unknown[]): string;
+    branch<T>(loaders: LocaleBranches<TLocale, T>): Promise<T>;
+    localized(render: LocalizedRender<TLocale>): GenericComponent;
     observeDocument(options?: ObserveDocumentOptions): () => void;
 };
 
@@ -67,6 +73,9 @@ export type LocalizationRoute = {
     readonly valid: boolean;
     readonly invalid: boolean;
 };
+
+// @public
+export type LocalizedRender<TLocale extends string> = (locale: TLocale) => Node | GenericComponent | Promise<Node | GenericComponent>;
 
 // @public
 export type ObserveDocumentOptions = {

@@ -53,12 +53,14 @@
 		"extract-api": "rooted-development extract-api"
 	},
 	"peerDependencies": {
+		"@rooted/components": "workspace:^",
 		"@rooted/router": "workspace:^",
 		"@rooted/util": "workspace:^",
 		"vite": ">=8.0.1"
 	},
 	"devDependencies": {
 		"@rooted/adapter": "workspace:^",
+		"@rooted/components": "workspace:^",
 		"@rooted/development": "workspace:*",
 		"@rooted/router": "workspace:^",
 		"@rooted/util": "workspace:^",

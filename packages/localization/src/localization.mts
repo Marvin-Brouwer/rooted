@@ -5,6 +5,9 @@ import { isDevelopment } from '@rooted/util/dev'
 import { compileDictionary, lookupKey, type CompiledEntry, type DictionaryLoader } from './dictionary.mts'
 import { createDocumentObserver, type ObserveDocumentOptions } from './document.mts'
 import { createLocaleParameter, type LocaleParameter } from './locale-token.mts'
+import { createLocalizedFactory, type LocalizedRender } from './localized.mts'
+
+import type { GenericComponent } from '@rooted/components'
 
 /**
  * Options for {@link configureLocalization}.
@@ -55,6 +58,14 @@ export type LocalizationRoute = {
  * awaiting `load()` during the same navigation both see `true`.
  */
 export type LocaleLoadResult<TLocale extends string> = [locale: TLocale, changed: boolean]
+
+/**
+ * Per-locale loaders for {@link Localization.branch}, one per configured locale.
+ *
+ * A mapped type over the locale union, so leaving a locale out is a compile
+ * error and an unknown key is rejected.
+ */
+export type LocaleBranches<TLocale extends string, T> = { [K in TLocale]: () => Promise<T> }
 
 /**
  * The configured localization instance returned by {@link configureLocalization}.
@@ -148,6 +159,55 @@ export type Localization<TLocale extends string> = {
 	 * ```
 	 */
 	text(strings: TemplateStringsArray, ...values: unknown[]): string
+	/**
+	 * Picks one of several per-locale loaders and runs only the matching one.
+	 *
+	 * For content that's too big or too structural for the dictionary: a whole
+	 * page of prose, an image, a data file, or markup that genuinely differs per
+	 * language. It's not a replacement for {@link Localization.text}, which stays
+	 * the right tool for labels.
+	 *
+	 * You need one entry per configured locale; leaving one out is a compile
+	 * error. Only the current locale's loader is ever called, so writing them as
+	 * dynamic imports keeps each locale in its own chunk:
+	 *
+	 * ```ts
+	 * const content = await localization.branch({
+	 *   'en-GB': () => import('./about.en-GB.md'),
+	 *   'nl-NL': () => import('./about.nl-NL.md'),
+	 * })
+	 * append(create(Markdown, { source: content }))
+	 * ```
+	 *
+	 * The value is whatever the loader resolves to, untouched. A dynamic import
+	 * resolves to the module, so reach for `.default` yourself when that's what
+	 * you want: `(await import('./about.en-GB.md?raw')).default`.
+	 *
+	 * If the current locale has no entry at runtime (a version skew between the
+	 * configured locales and this call site) it warns and falls back to the
+	 * default locale, the same way `text` falls back to the default text.
+	 */
+	branch<T>(loaders: LocaleBranches<TLocale, T>): Promise<T>
+	/**
+	 * Wraps content that has to be rebuilt when the locale changes.
+	 *
+	 * Route components are already rebuilt by navigation, so they don't need
+	 * this. It's for the parts that outlive a route: an app shell, a menu, a
+	 * dialog mounted once at startup. The dictionary for the new locale is
+	 * loaded before `render` runs, so `text` returns translations rather than
+	 * falling back.
+	 *
+	 * ```ts
+	 * append(
+	 *   localization.localized(() => create(MenuContent, { onClose: () => dialog.close() })),
+	 * )
+	 * ```
+	 *
+	 * `render` runs on mount and again on every locale change, but not on
+	 * navigations that keep the same locale. The listener is tied to the
+	 * component, so unmounting cleans it up.
+	 */
+	localized(render: LocalizedRender<TLocale>): GenericComponent
 	/**
 	 * Keeps the live document's locale state current across navigations: the
 	 * `lang` attribute on `<html>`, the `<link rel="alternate" hreflang>`
@@ -258,6 +318,18 @@ export function configureLocalization<
 		void load()
 	}
 
+	function branch<T>(loaders: LocaleBranches<TLocale, T>): Promise<T> {
+		const locale = currentLocale()
+		const loader = loaders[locale]
+		if (typeof loader === 'function') return loader()
+
+		// Only reachable when the configured locales and this call site disagree
+		console.warn(`[@rooted/localization] no "${locale}" branch, falling back to "${defaultLocale}"`)
+		const fallback = loaders[defaultLocale]
+		if (typeof fallback === 'function') return fallback()
+		return Promise.reject(new Error(`[@rooted/localization] no branch for "${locale}" or "${defaultLocale}"`))
+	}
+
 	function renderDefault(strings: TemplateStringsArray, values: unknown[]): string {
 		// eslint-disable-next-line unicorn/no-array-reduce
 		return [...strings].reduce((accumulator, part, index) =>
@@ -299,6 +371,8 @@ export function configureLocalization<
 		},
 		load,
 		text,
+		branch,
+		localized: createLocalizedFactory(() => load()),
 		observeDocument: createDocumentObserver(supportedLocales, defaultLocale),
 	}
 }

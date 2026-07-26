@@ -296,6 +296,63 @@ describe('load result', () => {
 	})
 })
 
+describe('branch', () => {
+	test('runs only the current locale\'s loader', async () => {
+		const localization = configure()
+		visit('/nl-NL/about/')
+
+		const en = vi.fn(() => Promise.resolve('english'))
+		const nl = vi.fn(() => Promise.resolve('dutch'))
+		expect(await localization.branch({ 'en-GB': en, 'nl-NL': nl })).toBe('dutch')
+
+		expect(nl).toHaveBeenCalledOnce()
+		expect(en).not.toHaveBeenCalled()
+	})
+
+	test('uses the default locale loader at the root', async () => {
+		const localization = configure()
+		visit('/')
+
+		const en = vi.fn(() => Promise.resolve('english'))
+		const nl = vi.fn(() => Promise.resolve('dutch'))
+		expect(await localization.branch({ 'en-GB': en, 'nl-NL': nl })).toBe('english')
+		expect(nl).not.toHaveBeenCalled()
+	})
+
+	test('passes the loaded value through untouched', async () => {
+		const localization = configure()
+		visit('/')
+
+		const module = { default: 'raw markdown' }
+		expect(await localization.branch({ 'en-GB': () => Promise.resolve(module), 'nl-NL': () => Promise.resolve(module) }))
+			.toBe(module)
+	})
+
+	test('falls back to the default locale and warns when the entry is missing', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => void 0)
+		const localization = configure()
+		visit('/nl-NL/about/')
+
+		const en = vi.fn(() => Promise.resolve('english'))
+		// A version skew: the type says nl-NL is present, the runtime object disagrees
+		const loaders = { 'en-GB': en } as unknown as Record<'en-GB' | 'nl-NL', () => Promise<string>>
+
+		expect(await localization.branch(loaders)).toBe('english')
+		expect(en).toHaveBeenCalledOnce()
+		expect(warn).toHaveBeenCalledOnce()
+		expect(warn.mock.calls[0][0]).toContain('nl-NL')
+	})
+
+	test('rejects when neither the current nor the default locale has an entry', async () => {
+		vi.spyOn(console, 'warn').mockImplementation(() => void 0)
+		const localization = configure()
+		visit('/nl-NL/about/')
+
+		const loaders = {} as unknown as Record<'en-GB' | 'nl-NL', () => Promise<string>>
+		await expect(localization.branch(loaders)).rejects.toThrow('no branch for "nl-NL" or "en-GB"')
+	})
+})
+
 describe('text', () => {
 	test('default locale renders the inline text', () => {
 		const localization = configure()
