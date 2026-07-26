@@ -109,18 +109,18 @@ export type RouterOptions = {
     on?: {
         navigate?: NavigateHandler;
         error?: ErrorHandler;
-    }; /** Runtime SEO meta tag injection options. */
+    };
     seo?: RouterSeoOptions;
 };
 
 // @public
 export type RouteSeoMetadata = {
-    title?: string; /** Page description. Overrides `<meta name="description">` and `og:description`. */
-    description?: string; /** When `true`, injects `<meta name="robots" content="noindex">`. Default: `false`. */
-    noIndex?: boolean; /** When `true`, omits this route from sitemap generation. Default: `false`. */
+    title?: string;
+    description?: string;
+    noIndex?: boolean;
     excludeFromSitemap?: boolean;
-    image?: string; /** Sitemap `changefreq` field. */
-    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'; /** Sitemap `priority` field (0.0–1.0). */
+    image?: string;
+    changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
     priority?: number;
 };
 
@@ -131,7 +131,7 @@ export function token<K extends string, const V extends readonly [string, ...str
 export function token<K extends string = string, T extends ParameterType = ParameterType>(name: K, type: T): Parameter<K, ParameterToTokenType<T>>;
 
 // @public
-export type ValidatedRouterConfig<T extends RouterConfig> = { [K in keyof T]: K extends 'home' | 'notFound' ? T[K] : RouterCompatibleRoute<T[K]> };
+export type ValidatedRouterConfig<T extends RouterConfig> = { [K in keyof T]: K extends 'home' | 'notFound' ? T[K] : RouterCompatibleRoute<T[K]>; };
 
 // @public
 export function wildcard<K extends string = 'rest'>(name?: K): Parameter<K, Wildcard>;

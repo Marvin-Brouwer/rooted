@@ -1,0 +1,18 @@
+# Files oxlint should skip, in gitignore syntax, relative to this file.
+#
+# These used to live in `ignorePatterns` in .repo/config/oxlint/oxlint.config.json. As of
+# oxlint 1.75 those patterns are resolved inside the config file's own directory, and `..`
+# is rejected, so a config that isn't at the repo root can no longer point at anything
+# outside itself. Hence this file, wired up with `--ignore-path` in the lint scripts.
+# It has to live at the repo root: oxlint resolves these patterns relative to the ignore
+# file, not to the working directory.
+
+**/node_modules/
+**/dist/
+.direnv/
+docs/
+temp/
+**/bin/
+**/*.d.ts
+**/*.g.mts
+.repo/config/oxlint/plugin-local.mjs

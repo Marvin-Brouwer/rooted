@@ -2,7 +2,11 @@
 	"rules": {
 		"local/mjs-to-mts": "error",
 		"local/utf-encoding": "error",
-		"unicorn-js/prevent-abbreviations": ["error", {
+		"unicorn-js/name-replacements": ["error", {
+			"replacements": {
+				"application": false,
+				"applications": false
+			},
 			"allowList": {
 				"dev": true,
 				"dev.mts": true,

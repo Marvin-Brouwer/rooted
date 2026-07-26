@@ -28,19 +28,19 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           lfs: true
       # Supposedly this speeds up the build
       # https://github.com/actions/setup-node/issues/819#issuecomment-1659698335
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: "~/.pnpm"
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
       - name: Install pnpm
         uses: pnpm/action-setup@v6
       - name: Use Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: "pnpm"

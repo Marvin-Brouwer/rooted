@@ -50,15 +50,15 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 		for (let index = 0; index < value.length; index++) copy[index] = deepClone(value[index], seen)
 		// Copy symbol-keyed properties (e.g. brand symbols on tuples)
 		for (const key of Object.getOwnPropertySymbols(object)) {
-			(copy as Record<symbol, unknown>)[key] = (object as Record<symbol, unknown>)[key]
+			(copy as unknown as Record<symbol, unknown>)[key] = (object as Record<symbol, unknown>)[key]
 		}
 		return copy as unknown as T
 	}
 
-	const proto = Object.getPrototypeOf(object)
-	const copy = (proto === Object.prototype || proto === null)
+	const prototype = Object.getPrototypeOf(object)
+	const copy = (prototype === Object.prototype || prototype === null)
 		? {} as Record<string | symbol, unknown>
-		: Object.create(proto) as Record<string | symbol, unknown>
+		: Object.create(prototype) as Record<string | symbol, unknown>
 	seen.set(object, copy)
 	for (const key of Reflect.ownKeys(object)) {
 		const v = (object as Record<string | symbol, unknown>)[key]

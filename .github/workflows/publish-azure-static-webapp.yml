@@ -27,19 +27,19 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           lfs: true
       # Supposedly this speeds up the build
       # https://github.com/actions/setup-node/issues/819#issuecomment-1659698335
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: "~/.pnpm"
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
       - name: Install pnpm
         uses: pnpm/action-setup@v6
       - name: Use Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: "pnpm"
@@ -50,7 +50,7 @@ jobs:
       - name: Build
         run: pnpm build:ci
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: recipe-book-dist
           path: ./examples/recipe-book/dist
@@ -67,12 +67,12 @@ jobs:
       id-token: write
     steps:
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: recipe-book-dist
           path: ./dist
       - name: Azure login
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}

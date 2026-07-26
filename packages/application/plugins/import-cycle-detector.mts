@@ -144,8 +144,8 @@ function canReachViaStaticImports(
 	if (from === target) return true
 	if (visited.has(from)) return false
 	visited.add(from)
-	for (const dep of staticImports.get(from) ?? []) {
-		if (canReachViaStaticImports(dep, target, staticImports, visited)) return true
+	for (const dependency of staticImports.get(from) ?? []) {
+		if (canReachViaStaticImports(dependency, target, staticImports, visited)) return true
 	}
 	return false
 }

@@ -60,8 +60,8 @@ function appendComponentMetadata(element: HTMLElement, component: ComponentConst
 
 export const devHelper = {
 	componentNameCheck: isDevelopment() ? componentNameChecker() : void 0,
-	appendSourceLocation: isDevelopment() ? appendSourceLocation.bind() : void 0,
-	appendComponentMetaData: isDevelopment() ? appendComponentMetadata.bind() : void 0,
+	appendSourceLocation: isDevelopment() ? appendSourceLocation.bind(void 0) : void 0,
+	appendComponentMetaData: isDevelopment() ? appendComponentMetadata.bind(void 0) : void 0,
 }
 
 if (isDevelopment()) {

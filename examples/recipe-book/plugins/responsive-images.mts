@@ -277,11 +277,11 @@ function buildModule(images: ImageEntry[], sourceUrl: string, author: string): s
 	// URLs may be `import.meta.ROLLUP_FILE_URL_*` tokens that Rollup resolves
 	// only when they appear as real JS expressions — not inside string literals.
 	// Emit them as raw expressions so Rollup can replace them correctly.
-	const urlExpr = (url: string) => url.startsWith('import.meta.') ? url : JSON.stringify(url)
+	const urlExpression = (url: string) => url.startsWith('import.meta.') ? url : JSON.stringify(url)
 	const imagesLiteral = '[\n' + images.map(img =>
-		`  { "url": ${urlExpr(img.url)}, "width": ${img.width} }`,
+		`  { "url": ${urlExpression(img.url)}, "width": ${img.width} }`,
 	).join(',\n') + '\n]'
-	const sourceSetLiteral = '`' + images.map(img => `\${${urlExpr(img.url)}} ${img.width}w`).join(', ') + '`'
+	const sourceSetLiteral = '`' + images.map(img => `\${${urlExpression(img.url)}} ${img.width}w`).join(', ') + '`'
 	return [
 		`export const images = ${imagesLiteral}`,
 		`export const sourceSet = ${sourceSetLiteral}`,

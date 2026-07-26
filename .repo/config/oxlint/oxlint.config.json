@@ -3,7 +3,7 @@
 	"jsPlugins": [
 		"./plugin-local.mjs",
 		"eslint-plugin-perfectionist",
-		{ "name": "unicorn-js", "specifier": "eslint-plugin-unicorn" }
+		{ "name": "unicorn-js", "specifier": "./plugin-unicorn.mjs" }
 	],
 	"env": {
 		"es2022": true,
@@ -28,16 +28,5 @@
 				"@typescript-eslint/unbound-method": "off"
 			}
 		}
-	],
-	"ignorePatterns": [
-		"**/node_modules",
-		"**/dist",
-		".direnv",
-		"docs",
-		"temp",
-		"**/bin/**",
-		"**/*.d.ts",
-		"**/*.g.mts",
-		".repo/config/oxlint/plugin-local.mjs"
 	]
 }
