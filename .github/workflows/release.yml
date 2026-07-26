@@ -38,7 +38,7 @@ jobs:
         with:
           run_install: false
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -53,7 +53,7 @@ jobs:
       # is-core-module/core.json via pnpm hard links on Node 24, so the
       # build runs on Node 22. npm v11 (bundled with Node 24) has working
       # OIDC Trusted Publisher support; npm v10 (Node 22) does not.
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
 
