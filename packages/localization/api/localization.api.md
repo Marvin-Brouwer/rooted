@@ -25,6 +25,9 @@ export type DictionaryModule = {
 };
 
 // @public
+export type LocaleLoadResult<TLocale extends string> = [locale: TLocale, changed: boolean];
+
+// @public
 export type LocaleParameter<TLocale extends string> = Parameter<'locale', Constant<TLocale>> & {
     [localeTokenBrand]: LocaleTokenInfo;
 };
@@ -41,13 +44,13 @@ export type LocaleTokenInfo = {
 
 // @public
 export type Localization<TLocale extends string> = {
-    parameter: LocaleParameter<TLocale>; /** All configured locales: the default plus the dictionary locales. */
-    supportedLocales: readonly TLocale[]; /** The configured dictionary loaders, keyed by locale. */
+    parameter: LocaleParameter<TLocale>;
+    supportedLocales: readonly TLocale[];
     dictionaries: ReadonlyMap<TLocale, DictionaryLoader>;
     readonly Locale: TLocale;
-    readonly currentLocale: TLocale; /** URL-derived locale validity helpers. */
+    readonly currentLocale: TLocale;
     route: LocalizationRoute;
-    load(locale?: TLocale): Promise<void>;
+    load(locale?: TLocale): Promise<LocaleLoadResult<TLocale>>;
     text(strings: TemplateStringsArray, ...values: unknown[]): string;
     observeDocument(options?: ObserveDocumentOptions): () => void;
 };
@@ -60,8 +63,8 @@ export type LocalizationOptions<TDefault extends string, TDictionaries extends R
 
 // @public
 export type LocalizationRoute = {
-    readonly rawValue: string | undefined; /** `true` when the first path segment is a configured locale. */
-    readonly valid: boolean; /** `true` when the first path segment is missing or not a configured locale. */
+    readonly rawValue: string | undefined;
+    readonly valid: boolean;
     readonly invalid: boolean;
 };
 

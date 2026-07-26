@@ -48,6 +48,15 @@ export type LocalizationRoute = {
 }
 
 /**
+ * What {@link Localization.load} resolves to: the locale it loaded, and whether
+ * the latest navigation changed the locale.
+ *
+ * `changed` belongs to the navigation rather than the call, so two callers
+ * awaiting `load()` during the same navigation both see `true`.
+ */
+export type LocaleLoadResult<TLocale extends string> = [locale: TLocale, changed: boolean]
+
+/**
  * The configured localization instance returned by {@link configureLocalization}.
  */
 export type Localization<TLocale extends string> = {
@@ -104,10 +113,28 @@ export type Localization<TLocale extends string> = {
 	 * }
 	 * ```
 	 *
+	 * It also reports whether the latest navigation changed the locale, which
+	 * is what you need to react to a locale switch without re-doing work on
+	 * every navigation:
+	 *
+	 * ```ts
+	 * on('window', 'popstate', async () => {
+	 *   const [locale, changed] = await localization.load()
+	 *   if (!changed) return
+	 *   // the dictionary for `locale` is ready here
+	 * })
+	 * ```
+	 *
+	 * `changed` describes the navigation, not the call, so every caller during
+	 * one navigation sees the same value. It's `false` on the first page load,
+	 * since there's no previous navigation to differ from. For swapping DOM
+	 * rather than running side effects, reach for {@link Localization.localized}
+	 * instead.
+	 *
 	 * A failed chunk load logs a warning and resolves anyway; `text` then
 	 * falls back to the default-language text instead of breaking the page.
 	 */
-	load(locale?: TLocale): Promise<void>
+	load(locale?: TLocale): Promise<LocaleLoadResult<TLocale>>
 	/**
 	 * Tagged template that translates through the current locale's dictionary.
 	 *
@@ -191,12 +218,21 @@ export function configureLocalization<
 		return isSupported(segment) ? segment : defaultLocale
 	}
 
-	function load(locale?: TLocale): Promise<void> {
+	// The locale the latest navigation resolved to, and whether that navigation
+	// changed it. Both are updated once per `popstate`, never per `load` call,
+	// so every caller within one navigation gets the same answer.
+	let navigationLocale = isClient() ? currentLocale() : defaultLocale
+	let localeChanged = false
+
+	function load(locale?: TLocale): Promise<LocaleLoadResult<TLocale>> {
 		const target = locale ?? currentLocale()
-		if (compiled.has(target)) return Promise.resolve()
+		// Captured now rather than after awaiting, so the answer describes the
+		// navigation this call belongs to even if another one lands meanwhile.
+		const result: LocaleLoadResult<TLocale> = [target, localeChanged && target === navigationLocale]
+		if (compiled.has(target)) return Promise.resolve(result)
 
 		const loader = dictionaries.get(target)
-		if (!loader) return Promise.resolve()
+		if (!loader) return Promise.resolve(result)
 
 		const inFlight = loading.get(target) ?? loader()
 			.then(module => {
@@ -206,14 +242,19 @@ export function configureLocalization<
 				console.warn(`[@rooted/localization] failed to load the "${target}" dictionary: ${String(error)}`)
 			})
 		loading.set(target, inFlight)
-		return inFlight
+		return inFlight.then(() => result)
 	}
 
 	// Start downloading the current locale's dictionary as soon as possible,
 	// in parallel with whatever the navigation is loading. Route resolvers
 	// still `await load()` for a guaranteed translated first paint.
 	if (isClient()) {
-		window.addEventListener('popstate', () => void load())
+		window.addEventListener('popstate', () => {
+			const next = currentLocale()
+			localeChanged = next !== navigationLocale
+			navigationLocale = next
+			void load()
+		})
 		void load()
 	}
 
@@ -246,7 +287,7 @@ export function configureLocalization<
 	}
 
 	return {
-		parameter: createLocaleParameter(defaultLocale, supportedLocales, locale => load(locale as TLocale)),
+		parameter: createLocaleParameter(defaultLocale, supportedLocales, async locale => void await load(locale as TLocale)),
 		supportedLocales,
 		dictionaries,
 		Locale: defaultLocale,

@@ -10,6 +10,12 @@ function visit(path: string) {
 	history.pushState(undefined, '', path)
 }
 
+/** `visit` plus the `popstate` the router dispatches, so navigation bookkeeping runs. */
+function navigate(path: string) {
+	visit(path)
+	globalThis.dispatchEvent(new PopStateEvent('popstate', { state: undefined }))
+}
+
 function loader(module: DictionaryModule) {
 	return vi.fn(() => Promise.resolve(module))
 }
@@ -210,7 +216,7 @@ describe('load', () => {
 			dictionaries: { 'nl-NL': () => Promise.reject(new Error('chunk gone')) },
 		})
 		visit('/nl-NL/greeting/')
-		await expect(localization.load()).resolves.toBeUndefined()
+		await expect(localization.load()).resolves.toEqual(['nl-NL', false])
 		expect(warn).toHaveBeenCalledOnce()
 		expect(warn.mock.calls[0][0]).toContain('nl-NL')
 		// text falls back to the default text (with the dev marker)
@@ -227,6 +233,65 @@ describe('load', () => {
 		globalThis.dispatchEvent(new PopStateEvent('popstate', { state: undefined }))
 		await vi.waitFor(() => expect(nlLoader).toHaveBeenCalled())
 		await new Promise(resolve => setTimeout(resolve))
+		expect(localization.text`this is an example label`).toBe('dit is een voorbeeld label')
+	})
+})
+
+describe('load result', () => {
+	test('reports the loaded locale and no change on first load', async () => {
+		const localization = configure()
+		visit('/nl-NL/greeting/')
+		expect(await localization.load()).toEqual(['nl-NL', false])
+	})
+
+	test('reports the locale change after navigating to another locale', async () => {
+		const localization = configure()
+		navigate('/nl-NL/greeting/')
+		expect(await localization.load()).toEqual(['nl-NL', true])
+	})
+
+	test('every caller in one navigation sees the same change flag', async () => {
+		const localization = configure()
+		navigate('/nl-NL/greeting/')
+
+		// The internal preload already ran; neither of these may consume the flag
+		const [first, second] = await Promise.all([localization.load(), localization.load()])
+		expect(first).toEqual(['nl-NL', true])
+		expect(second).toEqual(['nl-NL', true])
+		expect(await localization.load()).toEqual(['nl-NL', true])
+	})
+
+	test('reports no change when navigating within the same locale', async () => {
+		const localization = configure()
+		navigate('/nl-NL/greeting/')
+		navigate('/nl-NL/about/')
+		expect(await localization.load()).toEqual(['nl-NL', false])
+	})
+
+	test('reports the change again when navigating back to the default locale', async () => {
+		const localization = configure()
+		navigate('/nl-NL/greeting/')
+		navigate('/en-GB/greeting/')
+		expect(await localization.load()).toEqual(['en-GB', true])
+	})
+
+	test('an explicit locale that is not the navigated one never reports a change', async () => {
+		const localization = configure()
+		navigate('/nl-NL/greeting/')
+		expect(await localization.load('en-GB')).toEqual(['en-GB', false])
+	})
+
+	test('a popstate listener registered after configure sees the change', async () => {
+		const localization = configure()
+		const seen: Array<[string, boolean]> = []
+		globalThis.addEventListener('popstate', () => {
+			void localization.load().then(result => void seen.push(result))
+		})
+
+		navigate('/nl-NL/greeting/')
+		await vi.waitFor(() => expect(seen).toHaveLength(1))
+		expect(seen[0]).toEqual(['nl-NL', true])
+		// The dictionary is ready by the time the handler's await resolves
 		expect(localization.text`this is an example label`).toBe('dit is een voorbeeld label')
 	})
 })

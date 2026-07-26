@@ -10,7 +10,7 @@
  * @module
  */
 
-export { configureLocalization, type Localization, type LocalizationOptions, type LocalizationRoute, type SupportedLocales } from '../localization.mts'
+export { configureLocalization, type LocaleLoadResult, type Localization, type LocalizationOptions, type LocalizationRoute, type SupportedLocales } from '../localization.mts'
 export { dictionary, translation, type Dictionary, type DictionaryLoader, type DictionaryModule, type Translation } from '../dictionary.mts'
 export { localeTokenBrand, type LocaleParameter, type LocaleTokenInfo } from '../locale-token.mts'
 export type { ObserveDocumentOptions } from '../document.mts'
