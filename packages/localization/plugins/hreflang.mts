@@ -154,7 +154,7 @@ function collectLocaleTokenInfos(manifestApi: RouteManifestApi | undefined): Loc
 }
 
 function setHtmlLang(html: string, locale: string): string {
-	return html.replace(/<html([^>]*)>/i, (tag, attributes: string) => {
+	return html.replace(/<html([^>]*)>/i, (_tag, attributes: string) => {
 		if (/\slang=["'][^"']*["']/i.test(attributes)) {
 			return `<html${attributes.replace(/\slang=["'][^"']*["']/i, ` lang="${locale}"`)}>`
 		}
