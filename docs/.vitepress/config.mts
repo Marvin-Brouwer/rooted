@@ -23,6 +23,8 @@ export default defineConfig({
 					{ text: 'Application model', link: '/guide/application-model' },
 					{ text: 'Components', link: '/guide/components' },
 					{ text: 'Routing', link: '/guide/routing' },
+					{ text: 'Localization', link: '/guide/localization' },
+					{ text: 'Markdown', link: '/guide/markdown' },
 					{ text: 'Styling', link: '/guide/styling' },
 					{ text: 'State', link: '/guide/state' },
 					{ text: 'Storage', link: '/guide/storage' },

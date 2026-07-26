@@ -92,6 +92,38 @@ localization.route.invalid  // the opposite
 
 These are handy in resolvers that take the locale as a plain `String` token, or for logging.
 
+### Reacting to a locale change
+
+Route components are rebuilt by navigation, so they pick up the new locale for free. The parts that don't are the ones that outlive a route: an app shell, a menu, a dialog mounted once at startup. Wrap those in `localization.localized`:
+
+```ts
+append(
+  localization.localized(() => create(MenuContent, { onClose: () => dialog.close() })),
+)
+```
+
+The callback runs on mount and again whenever the locale changes, and its result replaces whatever was there before. It doesn't run on navigations that keep the same locale, so a menu doesn't churn every time you click a link. The dictionary for the new locale is loaded before it runs, so `text` returns translations rather than falling back to the default language.
+
+It's a component, so the listener is tied to the mount signal. Unmount it and the subscription goes with it; there's nothing to dispose by hand.
+
+The callback receives the new locale if you want it:
+
+```ts
+localization.localized(locale => create(Flag, { locale }))
+```
+
+For reactions that aren't about swapping DOM (refetching data, updating a title, logging), `load` tells you what happened:
+
+```ts
+on('window', 'popstate', async () => {
+  const [locale, changed] = await localization.load()
+  if (!changed) return
+  // the dictionary for `locale` is ready here
+})
+```
+
+`changed` describes the navigation, not the call, so it reads the same from every caller during one navigation. It's `false` on the first page load, since there's no previous navigation to differ from.
+
 ## Translating text
 
 `localization.text` is a tagged template. The template text is the default-language text and doubles as the dictionary key:
@@ -117,11 +149,54 @@ localization.text`hello ${lastName}, ${firstName}`
 // nl-NL: 'hallo Marvin Brouwer'
 ```
 
-A translation may reorder the key's parameters or leave some out. Referencing a name the key doesn't declare logs a console warning when the dictionary chunk loads, so a typo like `'hallo {tpyo}'` shows up in the browser console as soon as that language is used in development. Literal braces are escaped as `{{` and `}}`.
+A translation may reorder the key's parameters or leave some out. Referencing a name the key doesn't declare logs a console warning when the dictionary chunk loads, so a typo like `'hallo {tpyo}'` shows up in the browser console as soon as that language is used in development. Literal braces are escaped as <code v-pre>{{</code> and <code v-pre>}}</code>.
 
 When a translation is missing, the default text renders. In development it's prefixed with `[i18n missing nl-NL]` so gaps are easy to spot; production falls back silently.
 
 `text` reads the locale from the URL at call time. Since the router caches route results per pathname and the locale is part of the path, rendered pages and their translations stay in sync.
+
+## Loading other per-locale content
+
+Dictionaries are for labels. They're the wrong shape for a whole page of prose, an image, a data file, or markup that genuinely differs between languages rather than just saying the same thing in different words. Putting a page of text through `text` means one enormous dictionary key, and it still can't express markup that differs structurally.
+
+`localization.branch` picks one of several loaders and runs only the matching one:
+
+```ts
+const source = await localization.branch({
+  'en-GB': () => import('./about.en-GB.md'),
+  'nl-NL': () => import('./about.nl-NL.md'),
+})
+
+append(create(Markdown, { source }))
+```
+
+This is not a replacement for `text`. Use it for the big structural things and keep `text` for labels.
+
+You need one entry per configured locale. Leaving one out is a compile error, and so is adding a locale that isn't configured. That's a stronger guarantee than `dictionaries` gives, since `dictionaries` defines the locale set from its own keys rather than checking it against one.
+
+Only the current locale's loader is ever called. Writing them as dynamic imports means each locale ends up in its own chunk and a visitor downloads one of them, the same property dictionary loaders have.
+
+It's generic, so it isn't only for markdown. Anything a loader can resolve to works:
+
+```ts
+const hero = await localization.branch({
+  'en-GB': () => import('./hero.en-GB.webp'),
+  'nl-NL': () => import('./hero.nl-NL.webp'),
+})
+```
+
+The value comes back untouched. A dynamic import resolves to the module, not to its default export, so reach for `.default` yourself when that's what you want:
+
+```ts
+const markdown = (await localization.branch({
+  'en-GB': () => import('./about.en-GB.md?raw'),
+  'nl-NL': () => import('./about.nl-NL.md?raw'),
+})).default
+```
+
+If the current locale has no entry at runtime, which needs a version skew between the configured locales and the call site, it warns and falls back to the default locale, the same way `text` falls back to the default text. If the default is missing too there's no value left to hand back, so it rejects.
+
+See the [markdown guide](./markdown.md) for the `.md` side of the first example.
 
 ## SEO
 
@@ -184,3 +259,6 @@ The plugin reads the locales straight off `localization.parameter`, so it takes 
 - The sitemap gets one entry per locale variant, but no `xhtml:link` alternate annotations yet; the hreflang tags in the HTML head carry that signal.
 - Mixed routes (locale token plus a typed token) aren't unrolled, so they're not prerendered and not in the sitemap.
 - A build-time check for missing dictionary entries doesn't exist yet. Missing translations surface at runtime, in development, with the `[i18n missing]` marker.
+- `dictionaries` doesn't check that you covered every locale, because it's what defines the locale set in the first place. `branch` does check, since by then the locales are known.
+- `localized` re-renders its whole subtree on a locale change. There's no partial update, so keep the callback cheap or wrap a smaller part of the tree.
+- `load`'s `changed` flag relies on localization's own `popstate` listener running first. It's registered when `configureLocalization` runs, so anything registered later (a component's `onMount`, for instance) sees the right value. A module-scope listener registered before localization is imported would see the previous navigation's value.
