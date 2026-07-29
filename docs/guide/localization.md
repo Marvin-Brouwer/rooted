@@ -6,6 +6,8 @@
 - The default language lives inline in your code, at the `text` call sites. It needs no dictionary.
 - Every other locale is an overlay dictionary. Missing entries fall back to the default text.
 
+The locale segment is the only part of the path that changes per language, so `/en-GB/about/` and `/nl-NL/about/` share a slug. [Translated URLs and international SEO](#translated-urls-and-international-seo) covers when that's the shape you want and when it isn't.
+
 ```sh
 pnpm add @rooted/localization
 ```
@@ -253,6 +255,51 @@ plugins: [
 
 The plugin reads the locales straight off `localization.parameter`, so it takes no options.
 
+## Translated URLs and international SEO
+
+The locale segment is the part of the path that changes per language. Everything after it is shared:
+
+```
+/en-GB/about/
+/nl-NL/about/
+```
+
+Full international SEO usually wants the whole URL in the reader's language, so the Dutch page would live at `/nl-NL/over-ons/`. This section is about where that line sits, and which side of it your app is on.
+
+### What's already covered
+
+Google's [Managing multi-regional and multilingual sites](https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites) asks for two things: give every language version its own URL rather than swapping content behind one URL based on a cookie or `Accept-Language`, and connect those versions with hreflang annotations. That's what the locale token and `localizationSeo` do between them, including `x-default`, the `lang` attribute, and `og:locale`. A subdirectory per locale is also the structure most practitioner guides land on, since it keeps everything on one domain.
+
+So the parts that are easy to get wrong, and expensive to fix later, are handled.
+
+### Where it stops
+
+Google's [URL structure best practices](https://developers.google.com/search/docs/crawling-indexing/url-structure) asks for simple, descriptive words in a URL, preferably in the language of the people reading it, and says localized words in URLs are fine as long as they're UTF-8 encoded and escaped properly when you link to them. A shared English slug under a Dutch locale prefix meets the first half of that and not the second.
+
+Worth being precise about how strong this guidance is: Google permits localized URLs, it doesn't require them. Ranking impact from the slug alone is small. The clearer arguments are relevance and trust in the target market, and practitioner guides ([Search Engine Journal on multilingual URL structure](https://www.searchenginejournal.com/multilingual-seo-url-structure/298747/), [Weglot on slug translation](https://www.weglot.com/blog/translate-url)) generally treat translated slugs as the default for that reason. They also note the other side: global brands often keep one slug set deliberately, because it's recognisable across markets and there's only one set of links to maintain.
+
+### When the locale token is the right shape
+
+Most multilingual apps aren't competing for organic search separately in each market, and for those the token is the whole answer with none of the cost:
+
+- Internal tools and anything behind a login, where search engines never see the pages.
+- Apps discovered through a store listing, a single brand domain, or word of mouth rather than per-market search.
+- Products that keep one slug vocabulary on purpose, so support and documentation can refer to one URL.
+
+You still get correct language delivery, hreflang, `lang`, `og:locale`, per-locale prerendering and sitemap entries. The thing you're giving up is a ranking signal you weren't competing for.
+
+The cost of the other approach is real and permanent: a slug per locale per route, a redirect for every slug you ever change, and a mapping that has to stay in sync with the content forever. That's worth paying when a market is a genuine acquisition channel, and not otherwise.
+
+### If you do need translated slugs
+
+Define the routes per locale yourself, one pattern each, rather than composing with `localization.parameter`. The automatic alternate grouping only covers routes built with the token, so supply the alternates yourself through `addRouteHeadLinks` on the `SeoApi` from `@rooted/adapter`, which is the same seam `localizationSeo` uses.
+
+Everything else in the package keeps working, because none of it depends on the token: `text` reads the locale from the URL, and `load`, `branch` and `localized` all go through `currentLocale`. You'd be replacing the routing half, not the localization half.
+
+### A note on AI answers
+
+It's tempting to assume this matters less now that a lot of traffic arrives through AI answers rather than search results, since training data skews heavily towards English. The evidence doesn't really support dropping translated URLs on that basis. Analysis of [multilingual AI search](https://searchengineland.com/multilingual-regions-ai-search-future-478282) suggests the language of the question reshapes which sources get cited, and points towards local-language coverage alongside English rather than instead of it. This is moving quickly and nobody has good numbers yet, so it's not a reason to decide either way.
+
 ## Honest limitations (v1)
 
 - `llms.txt` lists every locale variant. The plan is to list only the default language with a note about the available locales; not built yet.
@@ -261,4 +308,5 @@ The plugin reads the locales straight off `localization.parameter`, so it takes 
 - A build-time check for missing dictionary entries doesn't exist yet. Missing translations surface at runtime, in development, with the `[i18n missing]` marker.
 - `dictionaries` doesn't check that you covered every locale, because it's what defines the locale set in the first place. `branch` does check, since by then the locales are known.
 - `localized` re-renders its whole subtree on a locale change. There's no partial update, so keep the callback cheap or wrap a smaller part of the tree.
+- Path segments other than the locale are shared across locales, so slugs aren't translated. See [Translated URLs and international SEO](#translated-urls-and-international-seo) for what that does and doesn't affect.
 - `load`'s `changed` flag relies on localization's own `popstate` listener running first. It's registered when `configureLocalization` runs, so anything registered later (a component's `onMount`, for instance) sees the right value. A module-scope listener registered before localization is imported would see the previous navigation's value.

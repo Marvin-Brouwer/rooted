@@ -80,6 +80,16 @@ export type Localization<TLocale extends string> = {
 	 *   resolve: ({ create, tokens }) => create(About, { locale: tokens.locale })
 	 * })
 	 * ```
+	 *
+	 * The locale is the only segment that changes per language, so the example
+	 * above serves `/en-GB/about/` and `/nl-NL/about/` from one pattern and both
+	 * keep the same slug. That's the right shape for most multilingual apps, and
+	 * it's what makes the automatic hreflang alternates possible.
+	 *
+	 * If you're competing for organic search separately per market, international
+	 * SEO usually wants the slug translated too (`/nl-NL/over-ons/`). That means
+	 * defining the routes per locale instead of using this token. See the
+	 * localization guide, "Translated URLs and international SEO".
 	 */
 	parameter: LocaleParameter<TLocale>
 	/** All configured locales: the default plus the dictionary locales. */
