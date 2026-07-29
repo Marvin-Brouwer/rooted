@@ -4,20 +4,28 @@ Steps to scaffold a new `@rooted/*` package and get it publishing to npm. Read [
 
 ## 1. Scaffold
 
-Create the directory under `packages/`. Use `packages/util` as the template.
+Create the directory under `packages/`. Use `packages/util` as the template; it's the smallest complete package. Nothing needs adding to `pnpm-workspace.yaml`, the root `package.json`, or any workflow. They all work off globs, so a new directory under `packages/` is picked up on its own.
 
 ```
 packages/<name>/
   src/
     _module/
       <name>.mts        # the public entry
+  tests/
+    <name>.test.ts
+  api/
+    <name>.api.md       # generated, but committed
   package.json
   tsconfig.json
-  tsup.config.mts
+  tsconfig.tests.json
+  tsdown.config.mts
+  api-extractor.json
   readme.md
 ```
 
-The `_module/` folder is rooted's convention for the public entry points. The exports map in `package.json` points at the dist files generated from this folder.
+The `_module/` folder is rooted's convention for the public entry points. The exports map in `package.json` points at the dist files generated from this folder. `tsdown.config.mts` globs `src/_module/*.mts`, so adding a subpath later means adding a file there plus a key in `exports`, and nothing else.
+
+Copy `tsconfig.json`, `tsconfig.tests.json`, `tsdown.config.mts` and `api-extractor.json` from `packages/util` and change the entry-point filename in `api-extractor.json`. The six `scripts` are identical in every package, so copy those verbatim too.
 
 ### `package.json` checklist
 
@@ -26,12 +34,31 @@ The `_module/` folder is rooted's convention for the public entry points. The ex
 - `"publishConfig"`:
   ```json
   {
+    "registry": "https://registry.npmjs.org/",
     "access": "public",
     "provenance": true
   }
   ```
-- `"files"`: at minimum `"dist"` and `"readme.md"`.
+  `registry` is not optional. `pnpm lint` runs `.repo/config/oxlint/check-packages.mjs`, which fails for any non-private package whose `publishConfig.registry` doesn't match the one in `.npmrc`.
+- `"files"`: at minimum `"dist"` and `"readme.md"`. Add any file you ship unbuilt, such as an ambient `.d.ts`.
+- `"sideEffects": false`, plus `engines`, `license`, `repository.directory`, `homepage` and `bugs`.
 - An `exports` map that mirrors the `_module/` files. See `packages/util/package.json` for the shape.
+
+### If the package ships a Vite plugin
+
+Put the plugin in a sibling `plugins/` folder rather than in `src/`, and give it its own `_module/` barrel. You then also need:
+
+- `tsconfig.plugin.json` extending `.repo/config/ts/library-plugin.json`, so the Node-side code is typechecked separately from the browser code.
+- A second config in `tsdown.config.mts` with `entry: ['plugins/_module/*.mts']`, `platform: 'node'` and `tsconfig: 'tsconfig.plugin.json'`. Only the first config gets `onSuccess`.
+- A `"source"` condition in each `exports` entry. `.repo/config/ts/library.json` sets `customConditions: ["source"]`, and without it the workspace resolves to `dist` and you develop against stale types.
+
+Copy the shape from `packages/localization` or `packages/router`, whose tsdown configs are identical. Both entry groups emit into one flat `dist/`, so entry basenames must not collide between `src/_module/` and `plugins/_module/`.
+
+Ambient declarations for the file types a plugin handles (`*.md`, `*.css`) ship unbuilt, with their own export key pointing straight at the `.d.ts`. See `@rooted/components`'s `./css-loader/styles`, which consumers pull in with a triple-slash `reference types` directive.
+
+### API reports
+
+`api-extractor.json` is what opts a package into the API report. `rooted-pipeline api-diff` walks `packages/`, skips any directory without that file, and fails CI when a report drifts from the committed one. So run `pnpm build:dev` and commit whatever lands in `api/`. `api/temp/` is gitignored, and an `api/.npmignore` containing `*` keeps the folder out of the published tarball.
 
 ## 2. First publish
 
@@ -86,8 +113,14 @@ From this point on, the Release workflow publishes the new package via OIDC. No 
 
 ## 5. Update the docs
 
+Five hand-maintained lists. Nothing generates these, so all five need doing:
+
 - Add the package to the table in the root [README.md](../../README.md).
-- Add a brief "what it is, what it depends on" entry in [package design](./package-design.md).
-- If the package has user-facing API, add a guide page under [docs/guide/](../guide/) or [docs/advanced/](../advanced/) (whichever fits).
+- Add it to the table in [packages/readme.md](../../packages/readme.md).
+- Add a brief "what it is, what it depends on" entry in [package design](./package-design.md), including a line in the layering block at the top.
+- If the package has user-facing API, add a guide page under [docs/guide/](../guide/) or [docs/advanced/](../advanced/), whichever fits, and list it in [docs/guide/readme.md](../guide/readme.md).
+- Add that guide to the sidebar in [docs/.vitepress/config.mts](../.vitepress/config.mts). This one is easy to miss and there's no check for it. A guide that isn't in the sidebar is unreachable from the published site even though it builds fine, which is exactly what happened to the localization guide.
+
+Then run `pnpm docs:build` before you push. It isn't part of CI, so a broken docs site gets through everything else. Watch for a double opening brace in an inline code span: VitePress parses it as a Vue interpolation and the build fails on it. Write those as <code v-pre>{{</code> instead.
 
 The new package is not done until it is documented somewhere a user will actually find it.
