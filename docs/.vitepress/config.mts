@@ -56,6 +56,7 @@ export default defineConfig({
 					{ text: 'Coding style', link: '/maintainers/coding-style' },
 					{ text: 'Package design', link: '/maintainers/package-design' },
 					{ text: 'Adding packages', link: '/maintainers/adding-packages' },
+					{ text: 'Vite plugins', link: '/maintainers/vite-plugins' },
 				],
 			},
 		],

@@ -1,15 +1,21 @@
 import type { AnyRouteSeoResolver, RouteSeoMetadata } from '@rooted/router/routes'
 
 /**
- * Just the parts of a manifest route this module reads, described structurally.
+ * A route that {@link resolveRouteSeo} can read: one that reports its metadata
+ * and can match a path back to its tokens.
  *
- * Not `RouteManifestApi['routes'][number]`, deliberately. The bundled
- * declarations repeat shared types (the `routeMetadata` unique symbol, and the
- * `HrefBase` class with its protected member) once per entry point, and TypeScript
- * treats those repeats as unrelated. A caller holding `AnyRoute` from one entry
- * point then can't pass it to a function typed off another. Describing only what
- * this function touches keeps it structural, so every caller matches.
+ * Structural, so anything of that shape works. Every route from
+ * `RouteManifestApi['routes']` already satisfies it, whichever entry point you
+ * got it from, and a stub with those two methods is enough in a test.
+ *
+ * @example
+ * ```ts
+ * for (const route of manifestApi.routes) {
+ *   const seo = await resolveRouteSeo(route, '/en-GB/about/')
+ * }
+ * ```
  */
+// Structural rather than `RouteManifestApi['routes'][number]` because of #245
 type ManifestRoute = {
 	getMetadata(): { seo?: RouteSeoMetadata | AnyRouteSeoResolver }
 	match(options: { target: string }): Promise<{ success: boolean, tokens?: Record<string, unknown> }>

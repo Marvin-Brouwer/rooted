@@ -46,15 +46,7 @@ Copy `tsconfig.json`, `tsconfig.tests.json`, `tsdown.config.mts` and `api-extrac
 
 ### If the package ships a Vite plugin
 
-Put the plugin in a sibling `plugins/` folder rather than in `src/`, and give it its own `_module/` barrel. You then also need:
-
-- `tsconfig.plugin.json` extending `.repo/config/ts/library-plugin.json`, so the Node-side code is typechecked separately from the browser code.
-- A second config in `tsdown.config.mts` with `entry: ['plugins/_module/*.mts']`, `platform: 'node'` and `tsconfig: 'tsconfig.plugin.json'`. Only the first config gets `onSuccess`.
-- A `"source"` condition in each `exports` entry. `.repo/config/ts/library.json` sets `customConditions: ["source"]`, and without it the workspace resolves to `dist` and you develop against stale types.
-
-Copy the shape from `packages/localization` or `packages/router`, whose tsdown configs are identical. Both entry groups emit into one flat `dist/`, so entry basenames must not collide between `src/_module/` and `plugins/_module/`.
-
-Ambient declarations for the file types a plugin handles (`*.md`, `*.css`) ship unbuilt, with their own export key pointing straight at the `.d.ts`. See `@rooted/components`'s `./css-loader/styles`, which consumers pull in with a triple-slash `reference types` directive.
+It needs a `plugins/` folder, its own tsconfig, a second tsdown config and a `"source"` export condition. See [shipping a Vite plugin](./vite-plugins.md).
 
 ### API reports
 
