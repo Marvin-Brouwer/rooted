@@ -48,79 +48,97 @@ afterEach(() => {
 
 describe('localized()', () => {
 	test('renders on mount with the current locale', async () => {
+		// Arrange
 		const localization = configure()
 		navigate('/nl-NL/greeting/')
-
 		const render = vi.fn((locale: string) => document.createTextNode(`content for ${locale}`))
+
+		// Act
 		await mount(localization.localized(render))
 
+		// Assert
 		expect(render).toHaveBeenCalledOnce()
 		expect(render).toHaveBeenCalledWith('nl-NL')
 		expect(document.body.textContent).toContain('content for nl-NL')
 	})
 
 	test('the dictionary is loaded before render runs', async () => {
+		// Arrange: rendering the translation is the whole point. Without the
+		// awaited load this comes back with the `[i18n missing]` dev marker.
 		const localization = configure()
 		navigate('/nl-NL/greeting/')
-
-		// Rendering the translation is the whole point: without the awaited load
-		// this would come back with the `[i18n missing]` dev marker
 		const render = vi.fn(() => document.createTextNode(localization.text`this is an example label`))
+
+		// Act
 		await mount(localization.localized(render))
 
+		// Assert
 		expect(document.body.textContent).toBe('dit is een voorbeeld label')
 	})
 
 	test('re-renders with the new locale when the locale changes', async () => {
+		// Arrange
 		const localization = configure()
 		const render = vi.fn((locale: string) => document.createTextNode(`content for ${locale}`))
 		await mount(localization.localized(render))
 		expect(document.body.textContent).toContain('content for en-GB')
 
+		// Act
 		navigate('/nl-NL/greeting/')
 		await flush()
 
+		// Assert
 		expect(render).toHaveBeenCalledTimes(2)
 		expect(render).toHaveBeenLastCalledWith('nl-NL')
 		expect(document.body.textContent).toContain('content for nl-NL')
 	})
 
 	test('replaces the previous content rather than appending to it', async () => {
+		// Arrange
 		const localization = configure()
 		await mount(localization.localized((locale: string) => document.createTextNode(`content for ${locale}`)))
 
+		// Act
 		navigate('/nl-NL/greeting/')
 		await flush()
 
+		// Assert
 		expect(document.body.textContent).not.toContain('content for en-GB')
 	})
 
 	test('does not re-render when navigating within the same locale', async () => {
+		// Arrange
 		const localization = configure()
 		navigate('/nl-NL/a/')
-
 		const render = vi.fn((locale: string) => document.createTextNode(`content for ${locale}`))
 		await mount(localization.localized(render))
 		expect(render).toHaveBeenCalledOnce()
 
+		// Act
 		navigate('/nl-NL/b/')
 		await flush()
 
+		// Assert
 		expect(render).toHaveBeenCalledOnce()
 	})
 
 	test('accepts an async render', async () => {
+		// Arrange
 		const localization = configure()
 		const render = vi.fn(async (locale: string) => {
 			await Promise.resolve()
 			return document.createTextNode(`async ${locale}`)
 		})
+
+		// Act
 		await mount(localization.localized(render))
 
+		// Assert
 		expect(document.body.textContent).toContain('async en-GB')
 	})
 
 	test('renders a component instance', async () => {
+		// Arrange
 		const localization = configure()
 		const { component } = await import('@rooted/components')
 		const Inner = component({
@@ -130,26 +148,29 @@ describe('localized()', () => {
 			},
 		})
 
+		// Act
 		await mount(localization.localized(() => createComponent(Inner)))
 		await flush()
 
+		// Assert
 		expect(document.body.textContent).toContain('inner')
 	})
 
 	test('stops re-rendering once unmounted', async () => {
+		// Arrange
 		const localization = configure()
 		const render = vi.fn((locale: string) => document.createTextNode(`content for ${locale}`))
 		const instance = await mount(localization.localized(render))
 		expect(render).toHaveBeenCalledOnce()
 
-		instance.parentNode?.removeChild(instance)
-		// disconnectedCallback defers through queueMicrotask so re-parenting
+		// Act: disconnectedCallback defers through queueMicrotask so re-parenting
 		// doesn't count as an unmount; let that settle before navigating
+		instance.parentNode?.removeChild(instance)
 		await flush()
-
 		navigate('/nl-NL/greeting/')
 		await flush()
 
+		// Assert
 		expect(render).toHaveBeenCalledOnce()
 	})
 })

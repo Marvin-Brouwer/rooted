@@ -200,8 +200,9 @@ test probably isn't testing anything specific. See Bill Wake's
 [3A – Arrange, Act, Assert](https://xp123.com/3a-arrange-act-assert/), which
 named the pattern.
 
-Some tests genuinely have nothing to arrange. Give those `// Act` and `// Assert`
-and leave the first label off rather than inventing setup for it.
+Leave off a label that doesn't apply rather than inventing something to put
+under it. Plenty of tests have nothing to arrange, and a test that only checks
+ambient state has nothing to act on either.
 
 ### Coverage expectations
 
