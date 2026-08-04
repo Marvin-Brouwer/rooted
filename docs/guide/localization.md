@@ -147,8 +147,8 @@ export default dictionary(
 
 ```ts
 localization.text`hello ${lastName}, ${firstName}`
-// en-GB: 'hello Brouwer, Marvin'
-// nl-NL: 'hallo Marvin Brouwer'
+// en-GB: 'hello Jansen, Sanne'
+// nl-NL: 'hallo Sanne Jansen'
 ```
 
 A translation may reorder the key's parameters or leave some out. Referencing a name the key doesn't declare logs a console warning when the dictionary chunk loads, so a typo like `'hallo {tpyo}'` shows up in the browser console as soon as that language is used in development. Literal braces are escaped as <code v-pre>{{</code> and <code v-pre>}}</code>.
@@ -187,12 +187,12 @@ const hero = await localization.branch({
 })
 ```
 
-The value comes back untouched. A dynamic import resolves to the module, not to its default export, so reach for `.default` yourself when that's what you want:
+The value comes back untouched, so what you get is whatever the loader resolved to. For a dynamic import that's the module, not its default export. With `.md` files that's what you want, since the markdown plugin exports `html` by name and the module already matches what `Markdown` takes. For anything exported as a default, reach for `.default` yourself:
 
 ```ts
-const markdown = (await localization.branch({
-  'en-GB': () => import('./about.en-GB.md?raw'),
-  'nl-NL': () => import('./about.nl-NL.md?raw'),
+const pricing = (await localization.branch({
+  'en-GB': () => import('./pricing.en-GB.mts'),
+  'nl-NL': () => import('./pricing.nl-NL.mts'),
 })).default
 ```
 
@@ -302,10 +302,10 @@ It's tempting to assume this matters less now that a lot of traffic arrives thro
 
 ## Honest limitations (v1)
 
-- `llms.txt` lists every locale variant. The plan is to list only the default language with a note about the available locales; not built yet.
-- The sitemap gets one entry per locale variant, but no `xhtml:link` alternate annotations yet; the hreflang tags in the HTML head carry that signal.
-- Mixed routes (locale token plus a typed token) aren't unrolled, so they're not prerendered and not in the sitemap.
-- A build-time check for missing dictionary entries doesn't exist yet. Missing translations surface at runtime, in development, with the `[i18n missing]` marker.
+- `llms.txt` lists every locale variant, so the same page appears once per language.
+- The sitemap gets one entry per locale variant, but no `xhtml:link` alternate annotations, so the hreflang tags in the HTML head are the only place that signal lives. See [#253](https://github.com/Marvin-Brouwer/rooted/issues/253).
+- Mixed routes (a locale token plus a typed token or a wildcard) aren't unrolled, so they're not prerendered and not in the sitemap. A typed token has no value set to walk, so there's nothing to enumerate unless the route supplies the values itself. See [#254](https://github.com/Marvin-Brouwer/rooted/issues/254).
+- A build-time check for missing dictionary entries doesn't exist yet. Missing translations surface at runtime, in development, with the `[i18n missing]` marker. See [#252](https://github.com/Marvin-Brouwer/rooted/issues/252).
 - `dictionaries` doesn't check that you covered every locale, because it's what defines the locale set in the first place. `branch` does check, since by then the locales are known.
 - `localized` re-renders its whole subtree on a locale change. There's no partial update, so keep the callback cheap or wrap a smaller part of the tree.
 - Path segments other than the locale are shared across locales, so slugs aren't translated. See [Translated URLs and international SEO](#translated-urls-and-international-seo) for what that does and doesn't affect.

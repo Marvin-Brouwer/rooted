@@ -377,13 +377,13 @@ describe('text', () => {
 		const localization = configure()
 		visit('/nl-NL/greeting/')
 		await localization.load()
-		expect(localization.text`hello ${'Brouwer'}, ${'Marvin'}`).toBe('hallo Marvin Brouwer')
+		expect(localization.text`hello ${'Jansen'}, ${'Sanne'}`).toBe('hallo Sanne Jansen')
 	})
 
 	test('default locale interpolation renders positionally', () => {
 		const localization = configure()
 		visit('/en-GB/greeting/')
-		expect(localization.text`hello ${'Brouwer'}, ${'Marvin'}`).toBe('hello Brouwer, Marvin')
+		expect(localization.text`hello ${'Jansen'}, ${'Sanne'}`).toBe('hello Jansen, Sanne')
 	})
 
 	test('missing translation shows the dev marker', async () => {
@@ -412,6 +412,6 @@ describe('text', () => {
 		visit('/nl-NL/greeting/')
 		await localization.load()
 		expect(warn).toHaveBeenCalledOnce()
-		expect(localization.text`hi ${'Marvin'}`).toBe('hoi ')
+		expect(localization.text`hi ${'Sanne'}`).toBe('hoi ')
 	})
 })

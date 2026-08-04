@@ -102,7 +102,10 @@ create(Markdown, { source: about, tag: 'article', classes: styles.prose })
 
 The component assigns the HTML directly. It does not sanitise it, and nothing else in rooted does either.
 
-That's fine for what this package is built for: files in your repository, which went through code review like the rest of your source. It is not fine for anything a visitor can influence. If your markdown comes from user input or a CMS that accepts one, sanitise it before it reaches the component.
+That's fine for what this package is built for: files in your repository, which went through code review like the rest of your source. It is not fine for anything a visitor can influence.
+
+> [!IMPORTANT]
+> If your markdown comes from user input, or from a CMS that accepts it, sanitise it before it reaches the component.
 
 ## Translated content
 

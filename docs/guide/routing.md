@@ -50,8 +50,6 @@ export const PlanRoute = route`/plans/${token('plan', ['free', 'pro', 'team'])}/
 
 The array must hold values of one kind, all strings or all numbers. Because the possible values are known, routes whose only dynamic parts are constant tokens are unrolled to concrete paths at build time: each value gets its own prerendered page and sitemap entry. Routes that mix a constant token with a typed token or wildcard stay dynamic.
 
-This is the mechanism behind [`@rooted/localization`](./localization.md), but it isn't tied to locales.
-
 ### Wildcard
 
 Use `wildcard()` as the last interpolation to match the rest of the path. Its key is `rest` by default.
