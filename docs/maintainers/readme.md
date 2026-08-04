@@ -9,5 +9,6 @@ For the "how to behave" side (PR etiquette, commit conventions, code of conduct)
 - [Coding style](./coding-style.md). Why `.mts`, ES2022, no semicolons, full names, and `#app`.
 - [Package design](./package-design.md). Why rooted is split into the packages it has.
 - [Adding packages](./adding-packages.md). Steps to scaffold and publish a new `@rooted/*` package.
+- [Vite plugins](./vite-plugins.md). Shipping a build-time plugin alongside a package's browser code.
 
 Architectural decisions are recorded in [adr/](../adr) using a fixed front-matter format. See the existing ADRs as templates.

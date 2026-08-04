@@ -1,0 +1,76 @@
+{
+	"name": "@rooted/markdown",
+	"version": "1.0.0-alpha.0",
+	"description": "Markdown content for the rooted framework",
+	"keywords": [
+		"markdown",
+		"marked",
+		"frontmatter",
+		"vite-plugin",
+		"web-components",
+		"typescript",
+		"rooted"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "packages/markdown"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
+	"sideEffects": false,
+	"publishConfig": {
+		"registry": "https://registry.npmjs.org/",
+		"access": "public",
+		"provenance": true
+	},
+	"files": [
+		"dist",
+		"plugins/markdown.d.ts",
+		"readme.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"exports": {
+		".": {
+			"source": "./src/_module/markdown.mts",
+			"import": "./dist/markdown.mjs",
+			"types": "./dist/markdown.d.mts"
+		},
+		"./vite": {
+			"source": "./plugins/_module/vite.mts",
+			"import": "./dist/vite.mjs",
+			"types": "./dist/vite.d.mts"
+		},
+		"./vite/types": {
+			"types": "./plugins/markdown.d.ts"
+		}
+	},
+	"scripts": {
+		"build": "pnpm build:ci",
+		"build:dev": "pnpm build:ci && rooted-development extract-api",
+		"build:ci": "tsdown",
+		"watch": "tsdown --watch --no-clean",
+		"clean": "rm -rf dist",
+		"extract-api": "rooted-development extract-api"
+	},
+	"dependencies": {
+		"gray-matter": "^4.0.3",
+		"html-minifier-terser": "^7.2.0",
+		"marked": "^18.0.5"
+	},
+	"peerDependencies": {
+		"@rooted/components": "workspace:^",
+		"vite": ">=8.0.1"
+	},
+	"devDependencies": {
+		"@rooted/components": "workspace:^",
+		"@rooted/development": "workspace:*",
+		"@types/html-minifier-terser": "^7.0.2",
+		"@types/node": "^25.9.3",
+		"vite": "^8.1.3"
+	}
+}

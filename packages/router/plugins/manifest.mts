@@ -7,6 +7,8 @@ import { glob } from 'tinyglobby'
 
 import packageJson from '../package.json' with { type: 'json' }
 
+import { withDomGlobals } from './dom-globals.mts'
+
 import type { AnyRoute, UnknownRoute } from '../src/route.mts'
 import type { Plugin, ResolvedConfig } from 'vite'
 
@@ -171,9 +173,14 @@ export function generateRouteManifest(options: Options): Plugin<RouteManifestApi
 			await writeFile(rootPath, generatedManifest, 'utf8')
 		}
 
-		// Load the written manifest via JITI to populate the shared route registry
+		// Load the written manifest via JITI to populate the shared route registry.
+		// Route files are ordinary app modules that may evaluate DOM at import
+		// time, so the evaluation gets a temporary DOM; everything after it runs
+		// in plain Node again.
 		const jiti = createJiti(config.root)
-		const jitiModule: Record<string, unknown> = await jiti.import(rootPath)
+		const jitiModule = await withDomGlobals<Record<string, unknown>>(
+			() => jiti.import(rootPath),
+		)
 		const exported = jitiModule[options.routeExport ?? 'appRoutes']
 		if (exported && typeof exported === 'object') {
 			const exportedRoutes = Object.values(exported) as UnknownRoute[]

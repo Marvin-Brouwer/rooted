@@ -17,6 +17,8 @@ The split exists for two reasons:
 @rooted/store         # imports util
 @rooted/components    # imports util, elements, events
 @rooted/router        # imports util, components
+@rooted/localization  # imports util, router, components
+@rooted/markdown      # imports components
 @rooted/application   # build-time. imports application primitives.
 ```
 
@@ -51,6 +53,22 @@ This package is the closest thing to "the framework." Most user code imports fro
 The router, gates, link component, navigation helpers, route-token parsing, route metadata, and the SEO meta runtime. Plus the `@rooted/router/manifest` Vite plugin for `_routes.mts` discovery.
 
 Imports `components` because routes resolve to component instances and the router itself is a component. Does not depend on `@rooted/application`; the router is usable without the build-time SEO tooling.
+
+## `@rooted/localization`
+
+URL-based localization built on the router's constant-values token. `configureLocalization`, the locale route token, overlay dictionaries with the `text` tagged template, and hreflang tooling (a runtime observer plus the `@rooted/localization/vite` build plugin).
+
+Separate from `router` on purpose: apps that don't localize shouldn't carry any i18n code. The router only provides the generic constant-values token; everything locale-specific lives here.
+
+Imports `components` for `localized`, which is a component so its `popstate` subscription can hang off the mount signal instead of needing a disposer.
+
+## `@rooted/markdown`
+
+Build-time markdown. A Vite plugin (`@rooted/markdown/vite`) turns `.md` files into modules with a `frontmatter` and an `html` export, and a `Markdown` component renders that HTML. Ambient `*.md` types ship unbuilt at `@rooted/markdown/vite/types`.
+
+Its own package rather than part of `components` because it drags in `marked`, `gray-matter` and a minifier. Those are Node-only and never reach the bundle, but apps with no markdown shouldn't install them at all. Nothing else in rooted depends on it.
+
+Deliberately generic: it does frontmatter and render-to-HTML, nothing else. The recipe-book example keeps its own plugin for the recipe-specific parts (ingredient extraction, the measurement codespan renderer), which is the intended way to go beyond this.
 
 ## `@rooted/store`
 

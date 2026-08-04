@@ -3,7 +3,7 @@ import { describe, test, expect, vi } from 'vitest'
 // Suppress dev warnings during tests
 vi.mock('../src/dev-helper.mts', () => ({ devHelper: {} }))
 
-import { isRoute } from '../src/route.metadata.mts'
+import { isRoute, routeMetadata } from '../src/route.metadata.mts'
 import { route } from '../src/route.mts'
 import { token, wildcard } from '../src/route.tokens.mts'
 
@@ -148,6 +148,96 @@ describe('route() — parent route composition', () => {
 		if (!match.success) return
 		expect(match.tokens.x).toBe(5)
 		expect(match.tokens.y).toBe('hello')
+	})
+})
+
+describe('route() — constant token matching', () => {
+	test('matches a listed value and exposes it as a token', async () => {
+		const r = route`/${token('locale', ['en-GB', 'nl-NL'])}/about/`({ resolve: () => Promise.resolve(void 0) })
+		const match = await r.match({ target: '/nl-NL/about/' })
+		expect(match.success).toBe(true)
+		if (!match.success) return
+		expect(match.tokens.locale).toBe('nl-NL')
+	})
+
+	test('does not match a value outside the list', async () => {
+		const r = route`/${token('locale', ['en-GB', 'nl-NL'])}/about/`({ resolve: () => Promise.resolve(void 0) })
+		expect((await r.match({ target: '/de-DE/about/' })).success).toBe(false)
+	})
+
+	test('constant parent composes with a child route', async () => {
+		const parent = route`/${token('locale', ['en-GB', 'nl-NL'])}/`({ resolve: () => Promise.resolve(void 0) })
+		const child = route`/${parent}/about/`({ resolve: () => Promise.resolve(void 0) })
+		const match = await child.match({ target: '/en-GB/about/' })
+		expect(match.success).toBe(true)
+		if (!match.success) return
+		expect(match.tokens.locale).toBe('en-GB')
+	})
+
+	test('empty values array → error route that never matches', async () => {
+		const empty = [] as unknown as [string]
+		const r = route`/${token('locale', empty)}/about/`({ resolve: () => Promise.resolve(void 0) })
+		expect((await r.match({ target: '/en-GB/about/' })).success).toBe(false)
+	})
+})
+
+describe('route() — staticPaths metadata', () => {
+	test('fully static route unrolls to its own static path', () => {
+		const r = route`/categories/`({ resolve: () => Promise.resolve(void 0) })
+		expect(r[routeMetadata].staticPaths).toEqual(['/categories/'])
+		expect(r[routeMetadata].staticRoute).toBe('/categories/')
+	})
+
+	test('single constant token unrolls to one path per value', () => {
+		const r = route`/${token('locale', ['en-GB', 'nl-NL'])}/about/`({ resolve: () => Promise.resolve(void 0) })
+		expect(r[routeMetadata].staticPaths).toEqual(['/en-GB/about/', '/nl-NL/about/'])
+	})
+
+	test('staticRoute stays false for constant token routes (back-compat)', () => {
+		const r = route`/${token('locale', ['en-GB', 'nl-NL'])}/about/`({ resolve: () => Promise.resolve(void 0) })
+		expect(r[routeMetadata].staticRoute).toBe(false)
+	})
+
+	test('two constant tokens unroll to the cartesian product', () => {
+		const r = route`/${token('locale', ['en', 'nl'])}/docs/${token('version', [1, 2])}/`({ resolve: () => Promise.resolve(void 0) })
+		expect(r[routeMetadata].staticPaths).toEqual([
+			'/en/docs/1/',
+			'/en/docs/2/',
+			'/nl/docs/1/',
+			'/nl/docs/2/',
+		])
+	})
+
+	test('constant parent unrolls through a static child', () => {
+		const parent = route`/${token('locale', ['en-GB', 'nl-NL'])}/`({ resolve: () => Promise.resolve(void 0) })
+		const child = route`/${parent}/about/`({ resolve: () => Promise.resolve(void 0) })
+		expect(child[routeMetadata].staticPaths).toEqual(['/en-GB/about/', '/nl-NL/about/'])
+	})
+
+	test('typed token → false', () => {
+		const r = route`/recipe/${token('id', Number)}/`({ resolve: () => Promise.resolve(void 0) })
+		expect(r[routeMetadata].staticPaths).toBe(false)
+	})
+
+	test('wildcard → false', () => {
+		const r = route`/search/${wildcard()}/`({ resolve: () => Promise.resolve(void 0) })
+		expect(r[routeMetadata].staticPaths).toBe(false)
+	})
+
+	test('mixed constant and typed token → false', () => {
+		const r = route`/${token('locale', ['en', 'nl'])}/recipe/${token('id', Number)}/`({ resolve: () => Promise.resolve(void 0) })
+		expect(r[routeMetadata].staticPaths).toBe(false)
+	})
+
+	test('dynamic parent → false', () => {
+		const parent = route`/a/${token('x', Number)}/`({ resolve: () => Promise.resolve(void 0) })
+		const child = route`/${parent}/details/`({ resolve: () => Promise.resolve(void 0) })
+		expect(child[routeMetadata].staticPaths).toBe(false)
+	})
+
+	test('invalid pattern → false', () => {
+		const r = route`no-slash/`({ resolve: () => Promise.resolve(void 0) })
+		expect(r[routeMetadata].staticPaths).toBe(false)
 	})
 })
 

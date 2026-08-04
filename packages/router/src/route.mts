@@ -1,7 +1,7 @@
 import { devHelper } from './dev-helper.mts'
 import { type MatchRouteOptions, type RouteMatch, routeMatcher } from './route.match.mts'
 import { routeMetadata, type RouteMetadata, isRoute, type RouteSeoMetadata } from './route.metadata.mts'
-import { isParameterToken, isWildcardParameter, type Parameter, type ParameterToValueType, type RouteParameter } from './route.tokens.mts'
+import { isConstantParameter, isParameterToken, isWildcardParameter, type Constant, type Parameter, type ParameterToValueType, type RouteParameter } from './route.tokens.mts'
 
 import type { createComponent } from '@rooted/components/elements'
 
@@ -77,10 +77,29 @@ export type RouteResolver<T extends readonly RouteParameter[]>
 		Element | undefined | Promise<Element | undefined>
 
 /**
+ * Lazily resolves a route's SEO metadata, as an alternative to a plain
+ * {@link RouteSeoMetadata} object.
+ *
+ * Evaluated once per navigation at runtime and once per generated page at
+ * build time. At build the function runs as if the browser were at the page
+ * being generated (`location` points at it), so URL-dependent values like
+ * localized text come out right per page. Keep it pure and cheap.
+ *
+ * Receives the same typed `tokens` a resolver gets; ignore the argument when
+ * you don't need it:
+ * ```ts
+ * seo: () => ({ title: localization.text`Browse categories` })
+ * seo: ({ tokens }) => ({ title: `Docs v${tokens.version}` })
+ * ```
+ */
+export type RouteSeoResolver<T extends readonly RouteParameter[]>
+	= (context: { tokens: PathParameterDictionary<T> }) => RouteSeoMetadata | Promise<RouteSeoMetadata>
+
+/**
  * Curried builder returned by {@link route}. Call it with `{ resolve }` (and
  * optionally `seo`) to produce a fully typed {@link Route}.
  */
-export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: RouteResolver<T>, seo?: RouteSeoMetadata }) =>
+export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: RouteResolver<T>, seo?: RouteSeoMetadata | RouteSeoResolver<T> }) =>
 	// This is typed with an anonymous object on purpose.
 	// It serves as a debug view as well as type information
 	ExtractParent<T> extends never
@@ -187,6 +206,32 @@ function computeStaticRoute(strings: TemplateStringsArray, values: readonly Rout
 	return prefix + (parentStatic as string) + suffix
 }
 
+function computeStaticPaths(routeParts: Array<string | RouteParameter>): false | string[] {
+	let paths = ['']
+
+	for (const part of routeParts) {
+		if (typeof part === 'string') {
+			paths = paths.map(path => path + part)
+			continue
+		}
+		if (isRoute(part)) {
+			const parentPaths = part[routeMetadata].staticPaths
+			if (parentPaths === false) return false
+			paths = paths.flatMap(path => parentPaths.map(parentPath => path + parentPath))
+			continue
+		}
+		if (isConstantParameter(part as Parameter)) {
+			const constantValues = (part as Parameter).type as Constant
+			paths = paths.flatMap(path => constantValues.map(value => path + String(value)))
+			continue
+		}
+		// Typed token or wildcard: the possible values are unknown
+		return false
+	}
+
+	return paths
+}
+
 function reconstructPattern(strings: TemplateStringsArray, values: readonly RouteParameter[]): string {
 	// eslint-disable-next-line unicorn/no-array-reduce
 	return [...strings].reduce((accumulator, string_, index) => {
@@ -225,6 +270,9 @@ function validatePattern(strings: TemplateStringsArray, values: readonly RoutePa
 				errors.push(new Error(`Wildcard interpolation must be at the end of the pattern: "${pattern}"`))
 			if (!strings[index].endsWith('/'))
 				errors.push(new Error(`Wildcard interpolation must be preceded by a slash: "${pattern}"`))
+		}
+		if (isParameterToken(v) && isConstantParameter(v as Parameter) && ((v as Parameter).type as Constant).length === 0) {
+			errors.push(new Error(`Constant token '${(v as Parameter).key}' must list at least one value: "${pattern}"`))
 		}
 	}
 
@@ -329,6 +377,8 @@ export function route<const T extends RouteParameter[]>(
 		const lastValue = values.at(-1)
 		const hasWildcard = !!lastValue && isWildcardParameter(lastValue as Parameter)
 		const match = routeMatcher<T>(routeParts)
+		// Memoized: unrolling multiplies per constant token and build tooling reads it repeatedly
+		let staticPathsCache: false | string[] | undefined
 
 		return {
 			[routeMetadata]: {
@@ -338,6 +388,7 @@ export function route<const T extends RouteParameter[]>(
 				hasWildcard,
 				routeParts,
 				get staticRoute() { return computeStaticRoute(strings, values) },
+				get staticPaths() { return staticPathsCache ??= computeStaticPaths(routeParts) },
 				seo,
 			} satisfies RouteMetadata<any>,
 			getMetadata() { return this[routeMetadata] },
@@ -356,6 +407,7 @@ const errorRoute_ = (({ resolve }: { resolve: RouteResolver<any> }) => ({
 		hasErrors: true,
 		routeParts: [],
 		staticRoute: false,
+		staticPaths: false,
 	} satisfies RouteMetadata<any>,
 	getMetadata() { return this[routeMetadata] },
 	resolve,

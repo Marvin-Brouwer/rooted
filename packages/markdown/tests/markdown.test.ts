@@ -1,0 +1,88 @@
+import { describe, test, expect, afterEach } from 'vitest'
+
+import { createComponent } from '@rooted/components/elements'
+
+import { Markdown } from '../src/markdown.mts'
+
+async function mount(options: Parameters<typeof createComponent<never>>[1] extends never ? never : object) {
+	const instance = createComponent(Markdown, options as never)
+	document.body.append(instance)
+	await new Promise(resolve => setTimeout(resolve))
+	return instance
+}
+
+afterEach(() => {
+	document.body.replaceChildren()
+})
+
+describe('Markdown', () => {
+	test('renders the html from a transformed module shape', async () => {
+		// Act
+		await mount({ source: { html: '<h1>Hello</h1><p>Body</p>' } })
+
+		// Assert
+		expect(document.body.querySelector('h1')?.textContent).toBe('Hello')
+		expect(document.body.querySelector('p')?.textContent).toBe('Body')
+	})
+
+	test('renders a bare html string', async () => {
+		// Act
+		await mount({ source: '<p>Just a string</p>' })
+
+		// Assert
+		expect(document.body.querySelector('p')?.textContent).toBe('Just a string')
+	})
+
+	test('accepts a module namespace object directly', async () => {
+		// Arrange: what `await import('./about.md')` hands back, and what branch() returns
+		const module = { frontmatter: { title: 'About' }, html: '<h2>About</h2>' }
+
+		// Act
+		await mount({ source: module })
+
+		// Assert
+		expect(document.body.querySelector('h2')?.textContent).toBe('About')
+	})
+
+	test('wraps in a div by default', async () => {
+		// Act
+		await mount({ source: '<p>x</p>' })
+
+		// Assert
+		expect(document.body.querySelector('div')).not.toBeNull()
+	})
+
+	test('honours the tag option', async () => {
+		// Act
+		await mount({ source: '<p>x</p>', tag: 'article' })
+
+		// Assert
+		const article = document.body.querySelector('article')
+		expect(article).not.toBeNull()
+		expect(article?.querySelector('p')?.textContent).toBe('x')
+	})
+
+	test('applies classes', async () => {
+		// Act
+		await mount({ source: '<p>x</p>', classes: ['prose', 'wide'] })
+
+		// Assert
+		expect(document.body.querySelector('.prose.wide')).not.toBeNull()
+	})
+
+	test('renders nested markup rather than escaping it', async () => {
+		// Act
+		await mount({ source: '<ul><li>one</li><li>two</li></ul>' })
+
+		// Assert
+		expect(document.body.querySelectorAll('li')).toHaveLength(2)
+	})
+
+	test('empty html renders an empty wrapper rather than throwing', async () => {
+		// Act
+		await mount({ source: '' })
+
+		// Assert
+		expect(document.body.querySelector('div')?.childNodes).toHaveLength(0)
+	})
+})

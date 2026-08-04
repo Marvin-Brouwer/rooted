@@ -83,6 +83,18 @@ describe('forAny()', () => {
 		expect(result.pathOnly).toBe('/articles/42/')
 	})
 
+	test('generates a path from a route with a constant token', () => {
+		const AboutRoute = route`/${token('locale', ['en-GB', 'nl-NL'])}/about/`({ resolve: () => Promise.resolve(void 0) })
+		const result = forAny(AboutRoute, { locale: 'nl-NL' })
+		expect(result).toBeInstanceOf(Path)
+		expect(result.pathOnly).toBe('/nl-NL/about/')
+	})
+
+	test('throws for a constant token value outside the list', () => {
+		const AboutRoute = route`/${token('locale', ['en-GB', 'nl-NL'])}/about/`({ resolve: () => Promise.resolve(void 0) })
+		expect(() => forAny(AboutRoute, { locale: 'de-DE' as 'en-GB' })).toThrow()
+	})
+
 	test('Path passthrough', () => {
 		const p = path('/hello/')
 		expect(forAny(p)).toBe(p)
