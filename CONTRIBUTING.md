@@ -167,11 +167,41 @@ pnpm test:watch    # re-run on change
 ### Writing tests
 
 - Co-locate test files with the package they test (`packages/<pkg>/tests/`).
-- Test files must end in `.test.ts`.
+- Test files end in `.test.ts`. A few older ones use `.spec.ts`; both are picked
+  up, but new files should be `.test.ts`.
 - Test the public API surface — avoid testing private internals.
-- Each meaningful behaviour should have its own `it()` block with a descriptive
+- Each meaningful behaviour should have its own `test()` block with a descriptive
   name.
 - If you add a new feature or fix a bug, add or update tests to cover it.
+
+### Unit tests
+
+Structure the body of a test as **arrange, act, assert**, and label the three
+parts with comments:
+
+```ts
+test('falls back to the default locale when the entry is missing', async () => {
+    // Arrange
+    const localization = configure()
+    visit('/nl-NL/about/')
+
+    // Act
+    const result = await localization.branch(loaders)
+
+    // Assert
+    expect(result).toBe('english')
+})
+```
+
+Arrange sets up whatever the test needs. Act is the single call being tested.
+Assert checks what came back. The value of the split is mostly in Act: if a test
+needs two of them, it's usually two tests, and if you can't point at one, the
+test probably isn't testing anything specific. See Bill Wake's
+[3A – Arrange, Act, Assert](https://xp123.com/3a-arrange-act-assert/), which
+named the pattern.
+
+Some tests genuinely have nothing to arrange. Give those `// Act` and `// Assert`
+and leave the first label off rather than inventing setup for it.
 
 ### Coverage expectations
 
