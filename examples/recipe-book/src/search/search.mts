@@ -54,7 +54,10 @@ export const SearchPage = component({
 					children: [
 						element('div', {
 							classes: styles.resultTitle,
-							children: create(Link, { href: href.for(RecipeRoute, recipe), children: recipe.title }),
+							children: create(Link, {
+								href: href.for(RecipeRoute, recipe),
+								children: recipe.title
+							}),
 						}),
 						element('p', { classes: styles.resultDesc, textContent: recipe.description }),
 					],

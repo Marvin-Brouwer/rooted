@@ -19,8 +19,16 @@ export const NavigationMenu = component({
 			element('nav', {
 				aria: { label: 'Main navigation menu' },
 				children: [
-					create(Link, { href: href.path('/'), classes: styles.navBrand, children: 'Recipe Book' }),
-					create(Link, { href: href.for(CategoriesRoute), classes: styles.navLink, children: 'Browse' }),
+					create(Link, {
+						href: href.path('/'),
+						classes: styles.navBrand,
+						children: 'Recipe Book'
+					}),
+					create(Link, {
+						href: href.for(CategoriesRoute),
+						classes: styles.navLink,
+						children: 'Browse'
+					}),
 					element('div', { classes: styles.searchWrapper, children: [create(SearchBar)] }),
 				],
 			}),

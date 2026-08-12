@@ -93,7 +93,9 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 			handleUpdate()
 		})
 
-		append(create(NavigationSpinner, { state }))
+		append(create(NavigationSpinner, {
+			state
+		}))
 	},
 })
 

@@ -21,7 +21,11 @@ export type ServingStepperOptions = {
  *
  * @example
  * ```ts
- * create(ServingStepper, { baseServings: recipe.servings, servingsStore, servingsKey })
+ * create(ServingStepper, {
+ * 	baseServings: recipe.servings,
+ * 	servingsStore,
+ * 	servingsKey
+ * })
  * ```
  */
 export const ServingStepper = component<ServingStepperOptions>({
