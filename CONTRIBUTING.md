@@ -167,8 +167,8 @@ pnpm test:watch    # re-run on change
 ### Writing tests
 
 - Co-locate test files with the package they test (`packages/<pkg>/tests/`).
-- Test files end in `.test.ts`. A few older ones use `.spec.ts`; both are picked
-  up, but new files should be `.test.ts`.
+- `.test.ts` is a unit test. `.spec.ts` is a functional test, one that describes
+  behaviour rather than checking a unit in isolation. Both run.
 - Test the public API surface — avoid testing private internals.
 - Each meaningful behaviour should have its own `test()` block with a descriptive
   name.
@@ -176,8 +176,8 @@ pnpm test:watch    # re-run on change
 
 ### Unit tests
 
-Structure the body of a test as **arrange, act, assert**, and label the three
-parts with comments:
+This section is about `.test.ts` files. Structure the body of a unit test as
+**arrange, act, assert**, and label the three parts with comments:
 
 ```ts
 test('falls back to the default locale when the entry is missing', async () => {
