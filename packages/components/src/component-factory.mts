@@ -49,7 +49,9 @@ function createElement<TElement extends HTMLElement>(element: string, properties
  * @example
  * ```ts
  * const counter = create(Counter)
- * const counterWithOptions = create(Counter, { label: 'hello' })
+ * const counterWithOptions = create(Counter, {
+ *   label: 'hello'
+ * })
  * ```
  */
 export function create(component: Component): GenericComponent

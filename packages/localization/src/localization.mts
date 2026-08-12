@@ -77,7 +77,9 @@ export type Localization<TLocale extends string> = {
 	 *
 	 * ```ts
 	 * export const AboutRoute = route`/${localization.parameter}/about/`({
-	 *   resolve: ({ create, tokens }) => create(About, { locale: tokens.locale })
+	 *   resolve: ({ create, tokens }) => create(About, {
+	 *     locale: tokens.locale
+	 *   })
 	 * })
 	 * ```
 	 *
@@ -186,7 +188,9 @@ export type Localization<TLocale extends string> = {
 	 *   'en-GB': () => import('./about.en-GB.md'),
 	 *   'nl-NL': () => import('./about.nl-NL.md'),
 	 * })
-	 * append(create(Markdown, { source: content }))
+	 * append(create(Markdown, {
+	 *   source: content
+	 * }))
 	 * ```
 	 *
 	 * The value is whatever the loader resolves to, untouched. A dynamic import
@@ -209,7 +213,9 @@ export type Localization<TLocale extends string> = {
 	 *
 	 * ```ts
 	 * append(
-	 *   localization.localized(() => create(MenuContent, { onClose: () => dialog.close() })),
+	 *   localization.localized(() => create(MenuContent, {
+	 *     onClose: () => dialog.close()
+	 *   })),
 	 * )
 	 * ```
 	 *

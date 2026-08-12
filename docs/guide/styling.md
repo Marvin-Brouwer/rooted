@@ -171,7 +171,9 @@ Rooted's router can wrap renders in `document.startViewTransition`. Style the tr
 Enable it on the router:
 
 ```ts
-create(Router, { viewTransition: true })
+create(Router, {
+  viewTransition: true
+})
 ```
 
 Browsers without `startViewTransition` ignore the option and render without a transition.

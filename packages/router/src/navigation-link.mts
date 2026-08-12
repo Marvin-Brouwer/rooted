@@ -46,7 +46,10 @@ export type LinkOptions = {
  *
  * @example Text link
  * ```ts
- * create(Link, { href: '/about/', children: 'About us' })
+ * create(Link, {
+ *   href: '/about/',
+ *   children: 'About us'
+ * })
  * ```
  *
  * @example Link wrapping rich content with a CSS class

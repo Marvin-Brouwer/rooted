@@ -96,7 +96,9 @@ export type RouteParameter = Parameter | AnyRoute
  * import { route, token } from '@rooted/router'
  *
  * export const ArticleRoute = route`/articles/${token('id', Number)}/`({
- *   resolve: ({ create, tokens }) => create(Article, { id: tokens.id })
+ *   resolve: ({ create, tokens }) => create(Article, {
+ *     id: tokens.id
+ *   })
  * })
  * // tokens.id is typed as `number`
  * ```
@@ -104,7 +106,9 @@ export type RouteParameter = Parameter | AnyRoute
  * @example Constant values
  * ```ts
  * export const AboutRoute = route`/${token('locale', ['en-GB', 'nl-NL'])}/about/`({
- *   resolve: ({ create, tokens }) => create(About, { locale: tokens.locale })
+ *   resolve: ({ create, tokens }) => create(About, {
+ *     locale: tokens.locale
+ *   })
  * })
  * // tokens.locale is typed as `'en-GB' | 'nl-NL'`; /de-DE/about/ does not match
  * ```
@@ -206,7 +210,9 @@ type WildcardParameter<K extends string> = Parameter<K, Wildcard>
  * import { route, wildcard } from '@rooted/router'
  *
  * export const ArchiveRoute = route`/archive/${wildcard()}/`({
- *   resolve: ({ create, tokens }) => create(Archive, { slug: tokens.rest })
+ *   resolve: ({ create, tokens }) => create(Archive, {
+ *     slug: tokens.rest
+ *   })
  * })
  * // tokens.rest is typed as `string`
  * ```
@@ -214,7 +220,9 @@ type WildcardParameter<K extends string> = Parameter<K, Wildcard>
  * @example Custom key
  * ```ts
  * export const ArchiveRoute = route`/archive/${wildcard('slug')}/`({
- *   resolve: ({ create, tokens }) => create(Archive, { slug: tokens.slug })
+ *   resolve: ({ create, tokens }) => create(Archive, {
+ *     slug: tokens.slug
+ *   })
  * })
  * ```
  *

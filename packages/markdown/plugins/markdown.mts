@@ -38,7 +38,9 @@ const minifyOptions: MinifyOptions = {
  * component's `source`, so you can hand a dynamic import straight over:
  *
  * ```ts
- * append(create(Markdown, { source: await import('./about.md') }))
+ * append(create(Markdown, {
+ *   source: await import('./about.md')
+ * }))
  * ```
  *
  * Imports carrying a query (`./about.md?raw`, `?url`) are left alone for Vite

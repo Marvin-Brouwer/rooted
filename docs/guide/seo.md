@@ -15,7 +15,9 @@ Add a `seo` field next to `resolve` when you declare a route.
 import { route, token } from '@rooted/router/routes'
 
 export const RecipeRoute = route`/recipe/${token('id', Number)}/`({
-  resolve: ({ create, tokens }) => create(Recipe, { id: tokens.id }),
+  resolve: ({ create, tokens }) => create(Recipe, {
+    id: tokens.id
+  }),
   seo: {
     title: 'Recipe',
     description: 'A recipe from the rooted recipe book.',
@@ -48,7 +50,9 @@ A route only counts as static when its pattern has no dynamic segments, with one
 
 ```ts
 export const PlanRoute = route`/plans/${token('plan', ['free', 'pro', 'team'])}/`({
-  resolve: ({ create, tokens }) => create(PlanPage, { plan: tokens.plan }),
+  resolve: ({ create, tokens }) => create(PlanPage, {
+    plan: tokens.plan
+  }),
   seo: ({ tokens }) => ({
     title: `The ${tokens.plan} plan`,
   }),

@@ -132,7 +132,9 @@ element('main', {
 
 By default the router does not run a transition. If both old and new content are mounted briefly during render, that's the layout reflow you see. Two options:
 
-- Enable view transitions: `create(Router, { viewTransition: true })`. Browsers without `startViewTransition` ignore this and render unchanged.
+- Enable view transitions: `create(Router, {
+  viewTransition: true
+})`. Browsers without `startViewTransition` ignore this and render unchanged.
 - Use `scrollBehavior: { scrollToTop: 'on:end' }` so the scroll happens after the new content is in.
 
 ## I need to do something the docs don't cover

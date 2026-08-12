@@ -60,7 +60,9 @@ export type RouteParameterDictionary<TRoute extends AnyRoute, D extends number =
  * (the typed path parameters). Use `create` to instantiate your component with
  * whatever props you need:
  * ```ts
- * resolve: ({ create, tokens }) => create(MyComponent, { id: tokens.id })
+ * resolve: ({ create, tokens }) => create(MyComponent, {
+ *   id: tokens.id
+ * })
  * ```
  *
  * Returning `undefined` signals a 404. The route is treated as a non-match,
@@ -330,21 +332,27 @@ function zipTemplateParts<T extends RouteParameter>(strings: TemplateStringsArra
  * @example Route with typed parameters
  * ```ts
  * export const ArticleRoute = route`/articles/${token('id', Number)}/`({
- *   resolve: ({ create, tokens }) => create(Article, { id: tokens.id })
+ *   resolve: ({ create, tokens }) => create(Article, {
+ *     id: tokens.id
+ *   })
  * })
  * ```
  *
  * @example Child route (composes parent URL)
  * ```ts
  * export const CommentsRoute = route`/${ArticleRoute}/comments/`({
- *   resolve: ({ create, tokens }) => create(Comments, { articleId: tokens.id })
+ *   resolve: ({ create, tokens }) => create(Comments, {
+ *     articleId: tokens.id
+ *   })
  * })
  * ```
  *
  * @example Wildcard (catch-all)
  * ```ts
  * export const ArchiveRoute = route`/archive/${wildcard()}/`({
- *   resolve: ({ create, tokens }) => create(Archive, { slug: tokens.rest })
+ *   resolve: ({ create, tokens }) => create(Archive, {
+ *     slug: tokens.rest
+ *   })
  * })
  * ```
  *

@@ -46,7 +46,9 @@ export type MarkdownOptions = {
  * ```ts
  * import * as about from './about.md'
  *
- * append(create(Markdown, { source: about }))
+ * append(create(Markdown, {
+ *   source: about
+ * }))
  * ```
  *
  * For content that differs per locale, hand it whichever module
@@ -57,7 +59,9 @@ export type MarkdownOptions = {
  *   'en-GB': () => import('./about.en-GB.md'),
  *   'nl-NL': () => import('./about.nl-NL.md'),
  * })
- * append(create(Markdown, { source }))
+ * append(create(Markdown, {
+ *   source
+ * }))
  * ```
  *
  * The HTML is assigned as-is and is **not sanitised**. Treat `source` the way

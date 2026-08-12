@@ -69,7 +69,9 @@ export const AboutRoute = route`/${localization.parameter}/about/`({
   async resolve({ create, tokens }) {
     await localization.load()
     const { About } = await import('./about.mts')
-    return create(About, { locale: tokens.locale })
+    return create(About, {
+      locale: tokens.locale
+    })
   },
 })
 ```
@@ -100,7 +102,9 @@ Route components are rebuilt by navigation, so they pick up the new locale for f
 
 ```ts
 append(
-  localization.localized(() => create(MenuContent, { onClose: () => dialog.close() })),
+  localization.localized(() => create(MenuContent, {
+    onClose: () => dialog.close()
+  })),
 )
 ```
 
@@ -111,7 +115,9 @@ It's a component, so the listener is tied to the mount signal. Unmount it and th
 The callback receives the new locale if you want it:
 
 ```ts
-localization.localized(locale => create(Flag, { locale }))
+localization.localized(locale => create(Flag, {
+  locale
+}))
 ```
 
 For reactions that aren't about swapping DOM (refetching data, updating a title, logging), `load` tells you what happened:
@@ -169,7 +175,9 @@ const source = await localization.branch({
   'nl-NL': () => import('./about.nl-NL.md'),
 })
 
-append(create(Markdown, { source }))
+append(create(Markdown, {
+  source
+}))
 ```
 
 This is not a replacement for `text`. Use it for the big structural things and keep `text` for labels.

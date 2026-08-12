@@ -80,14 +80,20 @@ rootedMarkdown({ minify: false })
 import { Markdown } from '@rooted/markdown'
 import * as about from './about.md'
 
-append(create(Markdown, { source: about }))
+append(create(Markdown, {
+  source: about
+}))
 ```
 
 Passing the module namespace works because `html` is a named export, so the module already has the shape `source` wants. You can also pass an object or a plain string:
 
 ```ts
-create(Markdown, { source: { html: '<p>Hello</p>' } })
-create(Markdown, { source: '<p>Hello</p>' })
+create(Markdown, {
+  source: { html: '<p>Hello</p>' }
+})
+create(Markdown, {
+  source: '<p>Hello</p>'
+})
 ```
 
 A bare string is **HTML, not markdown**. `source: '# Hello'` renders a literal `# Hello`, because there's no parser in the browser to turn it into a heading.
@@ -95,7 +101,11 @@ A bare string is **HTML, not markdown**. `source: '# Hello'` renders a literal `
 `tag` and `classes` control the wrapper element, which is a `div` by default:
 
 ```ts
-create(Markdown, { source: about, tag: 'article', classes: styles.prose })
+create(Markdown, {
+  source: about,
+  tag: 'article',
+  classes: styles.prose
+})
 ```
 
 ### About trust
@@ -125,7 +135,9 @@ export const About = component({
       'nl-NL': () => import('./about.nl-NL.md'),
     })
 
-    append(create(Markdown, { source }))
+    append(create(Markdown, {
+      source
+    }))
   },
 })
 ```
@@ -143,7 +155,9 @@ append(
       'en-GB': () => import('./help.en-GB.md'),
       'nl-NL': () => import('./help.nl-NL.md'),
     })
-    return create(Markdown, { source })
+    return create(Markdown, {
+      source
+    })
   }),
 )
 ```

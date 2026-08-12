@@ -16,7 +16,9 @@ All three live in `@rooted/router`.
 import { route, token } from '@rooted/router/routes'
 
 export const ArticleRoute = route`/articles/${token('id', Number)}/`({
-  resolve: ({ create, tokens }) => create(Article, { id: tokens.id }),
+  resolve: ({ create, tokens }) => create(Article, {
+    id: tokens.id
+  }),
 })
 ```
 
@@ -27,7 +29,9 @@ Patterns must start and end with a `/`. The route is just a value, so you can im
 ```ts
 async resolve({ create, tokens }) {
   const { Article } = await import('./article.mts')
-  return create(Article, { id: tokens.id })
+  return create(Article, {
+    id: tokens.id
+  })
 }
 ```
 
@@ -43,7 +47,9 @@ Pass an array instead of a constructor to only match the listed values. The matc
 
 ```ts
 export const PlanRoute = route`/plans/${token('plan', ['free', 'pro', 'team'])}/`({
-  resolve: ({ create, tokens }) => create(PlanPage, { plan: tokens.plan }),
+  resolve: ({ create, tokens }) => create(PlanPage, {
+    plan: tokens.plan
+  }),
 })
 // tokens.plan is 'free' | 'pro' | 'team'; /plans/enterprise/ does not match
 ```
@@ -58,7 +64,9 @@ Use `wildcard()` as the last interpolation to match the rest of the path. Its ke
 import { route, wildcard } from '@rooted/router/routes'
 
 export const ArchiveRoute = route`/archive/${wildcard()}/`({
-  resolve: ({ create, tokens }) => create(Archive, { slug: tokens.rest }),
+  resolve: ({ create, tokens }) => create(Archive, {
+    slug: tokens.rest
+  }),
 })
 ```
 
@@ -74,7 +82,9 @@ import { route, token } from '@rooted/router/routes'
 import { ArticleRoute } from '../articles/_routes.mts'
 
 export const CommentsRoute = route`/${ArticleRoute}/comments/`({
-  resolve: ({ create, tokens }) => create(Comments, { articleId: tokens.id }),
+  resolve: ({ create, tokens }) => create(Comments, {
+    articleId: tokens.id
+  }),
 })
 ```
 
@@ -90,7 +100,9 @@ This is how you gate dynamic routes on real data:
 async resolve({ create, tokens }) {
   const found = await loadCategory(tokens.slug)
   if (!found) return // 404, instead of rendering with broken data
-  return create(Category, { slug: tokens.slug })
+  return create(Category, {
+    slug: tokens.slug
+  })
 }
 ```
 
@@ -180,7 +192,10 @@ Two ways to navigate.
 ```ts
 import { Link } from '@rooted/router'
 
-create(Link, { href: '/about/', children: 'About' })
+create(Link, {
+  href: '/about/',
+  children: 'About'
+})
 ```
 
 If `target` is set (other than `_self`), the click is not intercepted and the browser handles the link.
@@ -228,7 +243,9 @@ export const ArticleRoute = route`/articles/${token('id', Number)}/`({
   resolve: ({ create }) => create(ArticleShell),
 })
 
-const ArticleGate = gate(ArticleRoute, ({ id }) => create(ArticleContent, { id }))
+const ArticleGate = gate(ArticleRoute, ({ id }) => create(ArticleContent, {
+  id
+}))
 
 // Inside ArticleShell:
 append(ArticleGate)
