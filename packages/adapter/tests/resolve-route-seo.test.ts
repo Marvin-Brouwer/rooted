@@ -105,6 +105,35 @@ describe('resolveRouteSeo()', () => {
 		expect(seo?.title).toBe('Later')
 	})
 
+	test('works when location is a getter-only accessor, and puts it back', async () => {
+		// Arrange: this is how the static renderer installs location, and closeBundle
+		// is a parallel hook, so an seo resolver can run while that is in place
+		const previous = Object.getOwnPropertyDescriptor(globalThis, 'location')
+		const rendererLocation = { href: 'http://renderer/' }
+		Object.defineProperty(globalThis, 'location', {
+			get: () => rendererLocation,
+			configurable: true,
+		})
+		let seenHref: string | undefined
+		const aboutRoute = route`/spoofed/`({
+			resolve: () => Promise.resolve(void 0),
+			seo: () => {
+				seenHref = location.href
+				return { title: 'x' }
+			},
+		})
+
+		// Act
+		await resolveRouteSeo(aboutRoute, '/spoofed/')
+
+		// Assert
+		expect(seenHref).toBe('http://localhost/spoofed/')
+		const after = Object.getOwnPropertyDescriptor(globalThis, 'location')
+		expect(after?.get).toBeTypeOf('function')
+		expect(location.href).toBe('http://renderer/')
+		if (previous) Object.defineProperty(globalThis, 'location', previous)
+	})
+
 	test('caches per route and path', async () => {
 		// Arrange
 		const resolver = vi.fn(() => ({ title: 'Once' }))

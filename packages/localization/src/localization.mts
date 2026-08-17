@@ -315,6 +315,9 @@ export function configureLocalization<
 				compiled.set(target, compileDictionary(target, module.default))
 			})
 			.catch((error: unknown) => {
+				// Drop the memo so a later navigation can retry. Keeping it would
+				// degrade the locale to default-language text for the whole session.
+				loading.delete(target)
 				console.warn(`[@rooted/localization] failed to load the "${target}" dictionary: ${String(error)}`)
 			})
 		loading.set(target, inFlight)

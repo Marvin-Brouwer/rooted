@@ -56,25 +56,33 @@ export async function resolveRouteSeo(route: ManifestRoute, staticPath: string):
 async function evaluateAtPath(seo: AnyRouteSeoResolver, tokens: Record<string, unknown>, staticPath: string): Promise<RouteSeoMetadata> {
 	const run = evaluationQueue.then(async () => {
 		const globals = globalThis as Record<string, unknown>
-		const hadWindow = 'window' in globals
-		const previousWindow = globals['window']
-		const hadLocation = 'location' in globals
-		const previousLocation = globals['location']
+		// Descriptors, not values. The static renderer installs `location` as a
+		// getter-only accessor, so assigning over it throws in strict-mode ESM and
+		// restoring a plain value afterwards would strip the accessor it needs.
+		const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window')
+		const previousLocation = Object.getOwnPropertyDescriptor(globalThis, 'location')
 
 		try {
 			// Minimal spoof: isClient() checks for window, href.current() reads location.href
-			globals['window'] = previousWindow ?? {}
-			globals['location'] = { href: `http://localhost${staticPath}` }
+			spoof('window', globals['window'] ?? {})
+			spoof('location', { href: `http://localhost${staticPath}` })
 			return await seo({ tokens })
 		}
 		finally {
-			if (hadWindow) globals['window'] = previousWindow
-			else delete globals['window']
-			if (hadLocation) globals['location'] = previousLocation
-			else delete globals['location']
+			restore('window', previousWindow)
+			restore('location', previousLocation)
 		}
 	})
 
 	evaluationQueue = run.catch(() => void 0)
 	return run
+}
+
+function spoof(key: string, value: unknown): void {
+	Object.defineProperty(globalThis, key, { value, configurable: true, writable: true })
+}
+
+function restore(key: string, descriptor: PropertyDescriptor | undefined): void {
+	if (descriptor) Object.defineProperty(globalThis, key, descriptor)
+	else Reflect.deleteProperty(globalThis, key)
 }

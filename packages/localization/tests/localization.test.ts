@@ -334,6 +334,27 @@ describe('load', () => {
 		expect(localization.text`unknown label`).toBe('[i18n missing nl-NL] unknown label')
 	})
 
+	test('a failed load is retried on the next call', async () => {
+		// Arrange
+		vi.spyOn(console, 'warn').mockImplementation(() => void 0)
+		const nlLoader = vi.fn()
+			.mockImplementationOnce(() => Promise.reject(new Error('chunk gone')))
+			.mockImplementationOnce(() => Promise.resolve(nlNL))
+		const localization = configureLocalization({
+			default: 'en-GB',
+			dictionaries: { 'nl-NL': nlLoader },
+		})
+		visit('/nl-NL/greeting/')
+		await localization.load()
+
+		// Act
+		await localization.load()
+
+		// Assert: a flaky chunk must not degrade the locale for the whole session
+		expect(nlLoader).toHaveBeenCalledTimes(2)
+		expect(localization.text`this is an example label`).toBe('dit is een voorbeeld label')
+	})
+
 	test('navigation auto-starts the load', async () => {
 		// Arrange
 		const nlLoader = loader(nlNL)
