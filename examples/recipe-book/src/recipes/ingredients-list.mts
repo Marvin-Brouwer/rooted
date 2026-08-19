@@ -23,7 +23,10 @@ export type IngredientsListOptions = {
  *
  * @example
  * ```ts
- * create(IngredientsList, { recipe, servingsStore })
+ * create(IngredientsList, {
+ * 	recipe,
+ * 	servingsStore
+ * })
  * ```
  */
 export const IngredientsList = component<IngredientsListOptions>({
@@ -35,7 +38,11 @@ export const IngredientsList = component<IngredientsListOptions>({
 		const servingsKey = `servings/${recipe.title}`
 
 		append(
-			create(ServingStepper, { baseServings: recipe.servings, servingsStore, servingsKey }),
+			create(ServingStepper, {
+				baseServings: recipe.servings,
+				servingsStore,
+				servingsKey
+			}),
 			element('form', {
 				classes: styles.ingredients,
 				on: { reset: () => localStorage.removeItem(storageKey) },

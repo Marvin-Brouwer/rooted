@@ -1,6 +1,7 @@
 import { access, constants, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import { resolveRouteSeo } from './resolve-route-seo.mts'
 import { createStaticRenderer, injectSnapshot } from './static-renderer.mts'
 
 import type { SeoApi } from './seo-api.mts'
@@ -172,6 +173,10 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 			if (!await checkFileExists(indexHtmlPath)) return
 			const indexHtml = await readFile(indexHtmlPath, 'utf8')
 
+			// Let plugins finish async work (e.g. preloading lazily imported
+			// dictionaries) before any route seo is evaluated
+			await seoApi?.prepare()
+
 			// Collect routes from the manifest
 			const manifestStaticPaths = collectStaticRoutePaths(manifestApi)
 			const manifestDynamicPatterns = collectDynamicRoutePatterns(manifestApi)
@@ -225,12 +230,16 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 				await writeFile(indexHtmlPath, rootHtml, 'utf8')
 			}
 
-			// Build SEO lookup from manifest so manifest routes get per-route meta injection
+			// Build SEO lookup from manifest so manifest routes get per-route meta
+			// injection; lazy seo resolvers are evaluated per generated page
 			const seoByPath = new Map<string, RouteSeoMetadata | undefined>()
 			for (const route of manifestApi?.routes ?? []) {
 				if (!Object.hasOwn(route, 'getMetadata')) continue
 				const meta = route.getMetadata()
-				if (typeof meta.staticRoute === 'string') seoByPath.set(meta.staticRoute, meta.seo)
+				if (meta.staticPaths === false) continue
+				for (const staticPath of meta.staticPaths) {
+					seoByPath.set(staticPath, await resolveRouteSeo(route, staticPath))
+				}
 			}
 
 			const staticRoutes: Array<{ staticPath: string, routeDirectory: string }> = []
@@ -276,11 +285,13 @@ function collectStaticRoutePaths(manifestApi: RouteManifestApi | undefined): str
 	for (const route of manifestApi?.routes ?? []) {
 		if (!Object.hasOwn(route, 'getMetadata')) continue
 		const metadata = route.getMetadata()
-		const staticPath = metadata.staticRoute
-		if (staticPath === false) continue
-		const segments = staticPath.split('/').filter(Boolean)
-		if (segments.length === 0) continue
-		paths.push(staticPath)
+		// staticPaths includes constant-token routes unrolled to concrete paths
+		if (metadata.staticPaths === false) continue
+		for (const staticPath of metadata.staticPaths) {
+			const segments = staticPath.split('/').filter(Boolean)
+			if (segments.length === 0) continue
+			paths.push(staticPath)
+		}
 	}
 	return paths
 }
@@ -290,7 +301,8 @@ function collectDynamicRoutePatterns(manifestApi: RouteManifestApi | undefined):
 	for (const route of manifestApi?.routes ?? []) {
 		if (!Object.hasOwn(route, 'getMetadata')) continue
 		const metadata = route.getMetadata()
-		if (metadata.staticRoute !== false) continue
+		// Routes that unroll to concrete paths are fully prerendered, not dynamic
+		if (metadata.staticPaths !== false) continue
 		if (metadata.hasErrors) continue
 		patterns.push(buildRoutePattern(route))
 	}

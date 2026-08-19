@@ -24,7 +24,11 @@ export const Recipe = component<RecipeOptions>({
 		const recipe = await recipeData.getRecipeById(options.id)
 
 		if (!recipe) return void append(
-			create(Link, { href: href.for(CategoriesRoute), classes: styles.backLink, children: '← Browse' }),
+			create(Link, {
+				href: href.for(CategoriesRoute),
+				classes: styles.backLink,
+				children: '← Browse'
+			}),
 			element('div', {
 				classes: styles.recipeHeader,
 				children: element('h1', { textContent: 'No recipe' }),
@@ -44,10 +48,19 @@ export const Recipe = component<RecipeOptions>({
 		for (const variableElement of instructionsPanel.querySelectorAll<HTMLElement>('var[data-value]')) {
 			const value = Number.parseFloat(variableElement.dataset.value!)
 			const unit = variableElement.dataset.unit
-			variableElement.replaceWith(create(Measurement, { value, unit, baseServings: recipe.servings, servingsStore }))
+			variableElement.replaceWith(create(Measurement, {
+				value,
+				unit,
+				baseServings: recipe.servings,
+				servingsStore
+			}))
 		}
 
-		instructionsPanel.prepend(create(ServingStepper, { baseServings: recipe.servings, servingsStore, servingsKey }))
+		instructionsPanel.prepend(create(ServingStepper, {
+			baseServings: recipe.servings,
+			servingsStore,
+			servingsKey
+		}))
 
 		append(
 			create(Link, {
@@ -76,7 +89,10 @@ export const Recipe = component<RecipeOptions>({
 					{
 						id: 'ingredients',
 						label: 'Ingredients',
-						panel: create(IngredientsList, { recipe, servingsStore }),
+						panel: create(IngredientsList, {
+							recipe,
+							servingsStore
+						}),
 						route: RecipeIngredientsRoute,
 						href: href.for(RecipeIngredientsRoute, { id: options.id }),
 					},

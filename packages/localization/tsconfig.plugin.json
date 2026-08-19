@@ -1,0 +1,10 @@
+{
+	"extends": "../../.repo/config/ts/library-plugin.json",
+	"compilerOptions": {
+		"outDir": "./dist",
+		"rootDir": ".",
+		"lib": ["ES2024", "DOM"],
+		"types": ["node", "vite/client"]
+	},
+	"include": ["plugins", "src"]
+}

@@ -116,7 +116,9 @@ import { route, token } from '@rooted/router/routes'
 export const ArticleRoute = route`/articles/${token('id', Number)}/`({
   async resolve({ create, tokens }) {
     const { Article } = await import('./article.mts')
-    return create(Article, { id: tokens.id })
+    return create(Article, {
+      id: tokens.id
+    })
   },
 })
 ```

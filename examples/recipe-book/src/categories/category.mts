@@ -39,7 +39,10 @@ export const Category = component<CategoryOptions>({
 				list.append(element('li', {
 					classes: styles.recipeItem,
 					children: [
-						create(Link, { href: href.for(RecipeRoute, recipe), children: recipe.title }),
+						create(Link, {
+							href: href.for(RecipeRoute, recipe),
+							children: recipe.title
+						}),
 						element('span', {
 							classes: styles.recipeItemMeta,
 							textContent: `${recipe.prepTime + recipe.cookTime} min · ${recipe.difficulty}`,

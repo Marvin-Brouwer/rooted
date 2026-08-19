@@ -1,0 +1,7 @@
+{
+	"extends": "../../.repo/config/ts/tests.json",
+	"compilerOptions": {
+		"rootDir": "."
+	},
+	"include": ["src", "plugins", "tests"]
+}

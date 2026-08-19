@@ -163,7 +163,12 @@ export type MeasurementOptions = {
  *
  * @example
  * ```ts
- * create(Measurement, { value: 200, unit: 'g', baseServings: 4, servingsStore })
+ * create(Measurement, {
+ * 	value: 200,
+ * 	unit: 'g',
+ * 	baseServings: 4,
+ * 	servingsStore
+ * })
  * ```
  */
 export const Measurement = component<MeasurementOptions>({

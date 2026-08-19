@@ -5,12 +5,14 @@ import { promisify } from 'node:util'
 
 import { glob } from 'tinyglobby'
 
-import { injectCanonical, injectMetaTags, injectOgTags, injectRootJsonLd } from './seo-html.mts'
+import { resolveRouteSeo } from '@rooted/adapter'
+
+import { injectCanonical, injectHeadLinks, injectMetaTags, injectOgTags, injectRootJsonLd } from './seo-html.mts'
 import { buildSitemapIndexXml, buildSitemapXml } from './seo-sitemap.mts'
 
 import type { LlmsTxtOptions } from './llms-txt.mts'
 import type { RobotsOptions } from './robots.mts'
-import type { AdditionalSitemap, SeoApi, SitemapEntry } from '@rooted/adapter'
+import type { AdditionalSitemap, RouteHeadLinkProvider, RouteHtmlTransform, SeoApi, SeoPrepareTask, SitemapEntry } from '@rooted/adapter'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { RouteSeoMetadata } from '@rooted/router/routes'
 import type { Plugin, ResolvedConfig } from 'vite'
@@ -88,6 +90,16 @@ export function seoPlugin(
 	let manifestApi: RouteManifestApi | undefined
 
 	const additionalSitemaps = new Map<string, AdditionalSitemap>()
+	const headLinkProviders: RouteHeadLinkProvider[] = []
+	const htmlTransforms: RouteHtmlTransform[] = []
+	const prepareTasks: SeoPrepareTask[] = []
+	let prepared: Promise<void> | undefined
+
+	function prepare(): Promise<void> {
+		return prepared ??= (async () => {
+			for (const task of prepareTasks) await task()
+		})()
+	}
 
 	const defaultOgImage = options?.defaultOgImage
 		?? (deploymentUrl ? new URL('pwa-512x512.png', deploymentUrl).href : undefined)
@@ -113,7 +125,13 @@ export function seoPlugin(
 				return new URL(file, deploymentUrl).href
 			},
 			injectRouteHtml(html: string, seo: RouteSeoMetadata | undefined, staticPath: string): string {
-				return injectMetaTags(html, seo, toLocation(staticPath), defaultOgImage, titleSuffix)
+				let result = injectMetaTags(html, seo, toLocation(staticPath), defaultOgImage, titleSuffix)
+				const links = headLinkProviders.flatMap(provider => provider(staticPath) ?? [])
+				if (links.length > 0) {
+					result = injectHeadLinks(result, links.map(link => ({ rel: link.rel, hreflang: link.hreflang, href: toLocation(link.path) })))
+				}
+				for (const transform of htmlTransforms) result = transform(result, staticPath)
+				return result
 			},
 			injectRootHtml(html: string): string {
 				let result = injectRootJsonLd(html, webManifest, deploymentUrl)
@@ -121,6 +139,16 @@ export function seoPlugin(
 				result = injectOgTags(result, undefined, toLocation('/'), defaultOgImage)
 				return result
 			},
+			addRouteHeadLinks(provider: RouteHeadLinkProvider): void {
+				headLinkProviders.push(provider)
+			},
+			addRouteHtmlTransform(transform: RouteHtmlTransform): void {
+				htmlTransforms.push(transform)
+			},
+			addPrepareTask(task: SeoPrepareTask): void {
+				prepareTasks.push(task)
+			},
+			prepare,
 		} satisfies SeoApi,
 
 		configResolved(resolved) {
@@ -130,6 +158,8 @@ export function seoPlugin(
 		},
 
 		async closeBundle() {
+			await prepare()
+
 			const outputDirectory = config.build.outDir
 			const today = new Date().toISOString().slice(0, 10)
 
@@ -172,21 +202,28 @@ async function buildSitemapEntries(
 		for (const route of manifestApi.routes) {
 			if (!Object.hasOwn(route, 'getMetadata')) continue
 			const metadata = route.getMetadata()
-			const staticPath = metadata.staticRoute
-			if (staticPath === false) continue
-			if (metadata.seo?.excludeFromSitemap) continue
-
-			const loc = toLocation(staticPath)
-			if (entries.has(loc)) continue
+			// staticPaths includes constant-token routes unrolled to concrete paths
+			const staticPaths = metadata.staticPaths
+			if (staticPaths === false) continue
 
 			const sourceFile = manifestApi.routeSourceFiles.get(route)
 			const lastmod = await gitLastModified(sourceFile, root)
-			entries.set(loc, {
-				loc,
-				lastmod,
-				changeFrequency: metadata.seo?.changeFrequency,
-				priority: metadata.seo?.priority,
-			})
+
+			for (const staticPath of staticPaths) {
+				const loc = toLocation(staticPath)
+				if (entries.has(loc)) continue
+
+				// Lazy seo resolvers are evaluated per generated page
+				const seo = await resolveRouteSeo(route, staticPath)
+				if (seo?.excludeFromSitemap) continue
+
+				entries.set(loc, {
+					loc,
+					lastmod,
+					changeFrequency: seo?.changeFrequency,
+					priority: seo?.priority,
+				})
+			}
 		}
 	}
 

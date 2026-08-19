@@ -33,7 +33,9 @@ import { AnyRoute, RouteParameterDictionary } from './route.mts'
  *   resolve: ({ create }) => create(ArticleShell)
  * })
  * export const ArticleGate = gate(ArticleRoute,
- *   ({ id }) => create(ArticleContent, { id })
+ *   ({ id }) => create(ArticleContent, {
+ *     id
+ *   })
  * )
  *
  * // Inside ArticleShell:

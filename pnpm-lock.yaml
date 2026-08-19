@@ -658,8 +658,63 @@ importers:
         specifier: ^4.23.12
         version: 4.23.12
 
+  packages/localization:
+    devDependencies:
+      '@rooted/adapter':
+        specifier: workspace:^
+        version: link:../adapter
+      '@rooted/components':
+        specifier: workspace:^
+        version: link:../components
+      '@rooted/development':
+        specifier: workspace:*
+        version: link:../../tooling/development
+      '@rooted/router':
+        specifier: workspace:^
+        version: link:../router
+      '@rooted/util':
+        specifier: workspace:^
+        version: link:../util
+      '@types/node':
+        specifier: ^26.2.0
+        version: 26.2.0
+      vite:
+        specifier: ^8.2.1
+        version: 8.2.1(@types/node@26.2.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.12)(yaml@2.9.0)
+
+  packages/markdown:
+    dependencies:
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+      html-minifier-terser:
+        specifier: ^7.2.0
+        version: 7.2.0
+      marked:
+        specifier: ^18.0.5
+        version: 18.0.9
+    devDependencies:
+      '@rooted/components':
+        specifier: workspace:^
+        version: link:../components
+      '@rooted/development':
+        specifier: workspace:*
+        version: link:../../tooling/development
+      '@types/html-minifier-terser':
+        specifier: ^7.0.2
+        version: 7.0.2
+      '@types/node':
+        specifier: ^26.2.0
+        version: 26.2.0
+      vite:
+        specifier: ^8.2.1
+        version: 8.2.1(@types/node@26.2.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.12)(yaml@2.9.0)
+
   packages/router:
     dependencies:
+      happy-dom:
+        specifier: ^20.10.6
+        version: 20.11.2
       jiti:
         specifier: ^2.7.0
         version: 2.7.0

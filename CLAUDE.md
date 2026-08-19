@@ -1,5 +1,13 @@
 # Claude Code conventions
 
+## Follow the contribution guide
+
+[CONTRIBUTING.md](./CONTRIBUTING.md) is the authoritative guide for working in this repo, and it applies to you the same as to anyone else. Read it and follow it. Its sections on the development workflow, coding standards, testing and pull requests are not repeated here.
+
+Tests in particular: `CONTRIBUTING.md` covers where they live, what to test, and the arrange, act, assert structure expected in a test body. Follow that rather than copying whatever the nearest existing test happens to do.
+
+When this file and the contribution guide disagree, the contribution guide wins, and the disagreement is a bug in one of them. Say so instead of quietly picking one.
+
 ## TSDOC
 
 When writing TSDOC on functionality, follow these rules:

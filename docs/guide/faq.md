@@ -130,10 +130,23 @@ element('main', {
 
 ## Why does my component flicker on navigation?
 
-By default the router does not run a transition. If both old and new content are mounted briefly during render, that's the layout reflow you see. Two options:
+By default the router does not run a transition. If both old and new content are mounted briefly during render, that's the layout reflow you see. Two options, and they combine:
 
-- Enable view transitions: `create(Router, { viewTransition: true })`. Browsers without `startViewTransition` ignore this and render unchanged.
-- Use `scrollBehavior: { scrollToTop: 'on:end' }` so the scroll happens after the new content is in.
+Turn on view transitions. Browsers without `startViewTransition` ignore the option and render unchanged.
+
+```ts
+create(Router, {
+  viewTransition: true
+})
+```
+
+Or scroll after the new content is in, rather than before.
+
+```ts
+create(Router, {
+  scrollBehavior: { scrollToTop: 'on:end' }
+})
+```
 
 ## I need to do something the docs don't cover
 

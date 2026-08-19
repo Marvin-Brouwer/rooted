@@ -15,7 +15,9 @@ Add a `seo` field next to `resolve` when you declare a route.
 import { route, token } from '@rooted/router/routes'
 
 export const RecipeRoute = route`/recipe/${token('id', Number)}/`({
-  resolve: ({ create, tokens }) => create(Recipe, { id: tokens.id }),
+  resolve: ({ create, tokens }) => create(Recipe, {
+    id: tokens.id
+  }),
   seo: {
     title: 'Recipe',
     description: 'A recipe from the rooted recipe book.',
@@ -39,6 +41,25 @@ The full set of fields:
 | `priority` | Sitemap `<priority>`. A number between `0.0` and `1.0`. |
 
 Routes without a `seo` field are still listed in the sitemap, just without per-route metadata.
+
+A route only counts as static when its pattern has no dynamic segments, with one exception: [constant-values tokens](./routing.md#constant-values) like `token('plan', ['free', 'pro', 'team'])` unroll into one prerendered page and one sitemap entry per listed value. Routes with a typed token or wildcard stay dynamic and are skipped.
+
+### Lazy metadata
+
+`seo` also accepts a function. It runs once per navigation at runtime and once per generated page at build time, and receives the same typed `tokens` a resolver gets. Ignore the argument when you don't need it.
+
+```ts
+export const PlanRoute = route`/plans/${token('plan', ['free', 'pro', 'team'])}/`({
+  resolve: ({ create, tokens }) => create(PlanPage, {
+    plan: tokens.plan
+  }),
+  seo: ({ tokens }) => ({
+    title: `The ${tokens.plan} plan`,
+  }),
+})
+```
+
+At build time the function runs as if the browser were at the page being generated: `location` points at the concrete path. That's what makes URL-dependent values, like [localized text](./localization.md), come out right per page. Keep seo functions pure and cheap; they may also be `async`.
 
 ## How metadata reaches the page
 

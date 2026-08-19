@@ -47,7 +47,10 @@ export const Application = component({
 									if (event.navigationType === 'start') {
 										if (progress.value === 'navigating') return
 										progress.update(() => 'navigating')
-										append(create(NavigationProgress, { href: event.href, state: progress }))
+										append(create(NavigationProgress, {
+											href: event.href,
+											state: progress
+										}))
 									}
 									if (event.navigationType === 'end') {
 										if (progress.value === 'idle') return
