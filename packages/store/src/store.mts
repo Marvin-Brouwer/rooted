@@ -73,19 +73,21 @@ export type Store<TState extends StateType | Array<StateType>> = {
 class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget implements Store<TState> {
 	#state: TState
 	#hash: string
-	#isObject: boolean
 	#snapshot: ReadonlyState<TState> | undefined
 
 	constructor(initial: TState) {
 		super()
 		this.#state = initial
 		this.#hash = hashState(initial)
+	}
+
+	get #holdsObject(): boolean {
 		// eslint-disable-next-line unicorn/no-null
-		this.#isObject = typeof initial === 'object' && initial !== null
+		return typeof this.#state === 'object' && this.#state !== null
 	}
 
 	get value(): ReadonlyState<TState> {
-		if (!this.#isObject) return this.#state as ReadonlyState<TState>
+		if (!this.#holdsObject) return this.#state as ReadonlyState<TState>
 		return this.#snapshot ??= deepFreeze(deepClone(this.#state)) as ReadonlyState<TState>
 	}
 
@@ -93,7 +95,7 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 		const result = setter(this.#state)
 
 		if (result !== undefined) {
-			this.#state = this.#isObject
+			this.#state = this.#holdsObject
 				? Object.assign({}, this.#state as object, result) as TState
 				: result as TState
 		}

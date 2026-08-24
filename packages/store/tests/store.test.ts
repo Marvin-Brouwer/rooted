@@ -573,3 +573,236 @@ describe('hashState — hashedProperties()', () => {
 		controller.abort()
 	})
 })
+
+describe('createStore — deferred object state', () => {
+	test('value is a frozen snapshot once an object lands in a store created without an initial value', () => {
+		// Arrange
+		const store = createStore<{ count: number }>()
+		store.update(() => ({ count: 1 }))
+
+		// Act
+		const snapshot = store.value
+
+		// Assert
+		expect(Object.isFrozen(snapshot)).toBe(true)
+	})
+
+	test('snapshot of a deferred object is independent of later updates', () => {
+		// Arrange
+		const store = createStore<{ count: number }>()
+		store.update(() => ({ count: 1 }))
+		const snapshot = store.value
+
+		// Act
+		store.update((s) => {
+			s!.count = 2
+		})
+
+		// Assert
+		expect(snapshot!.count).toBe(1)
+		expect(store.value!.count).toBe(2)
+	})
+
+	test('a deferred object state still merges partials on later updates', () => {
+		// Arrange
+		const store = createStore<{ a: number, b: number }>()
+		store.update(() => ({ a: 1, b: 2 }))
+
+		// Act
+		store.update(() => ({ a: 99 }))
+
+		// Assert
+		expect(store.value).toEqual({ a: 99, b: 2 })
+	})
+})
+
+describe('createStore — symbol-keyed values on arrays', () => {
+	const meta = Symbol('meta')
+	type Tagged = number[] & { [meta]: { seen: number } }
+
+	function taggedState() {
+		const tagged = [1, 2, 3] as Tagged
+		tagged[meta] = { seen: 0 }
+		return { list: tagged }
+	}
+
+	test('object under a symbol key on an array is frozen in the snapshot', () => {
+		// Arrange
+		const store = createStore(taggedState())
+
+		// Act
+		const snapshot = store.value
+
+		// Assert
+		expect(Object.isFrozen(snapshot.list[meta])).toBe(true)
+	})
+
+	test('object under a symbol key on an array is not shared with the live state', () => {
+		// Arrange
+		const store = createStore(taggedState())
+		const snapshot = store.value
+
+		// Act
+		store.update((s) => {
+			s.list[meta].seen = 42
+		})
+
+		// Assert
+		expect(snapshot.list[meta].seen).toBe(0)
+		expect(store.value.list[meta].seen).toBe(42)
+	})
+})
+
+describe('createStore — function-typed state properties', () => {
+	test('replacing a function with a different reference fires update and change', () => {
+		// Arrange
+		const store = createStore({ fn: () => 1 })
+		const controller = new AbortController()
+		const updates = vi.fn()
+		const changes = vi.fn()
+		store.on('update', controller.signal, updates)
+		store.on('change', controller.signal, changes)
+
+		// Act
+		store.update((s) => {
+			s.fn = () => 2
+		})
+
+		// Assert
+		expect(updates).toHaveBeenCalledTimes(1)
+		expect(changes).toHaveBeenCalledTimes(1)
+		controller.abort()
+	})
+
+	test('assigning the same function reference fires update but not change', () => {
+		// Arrange
+		const same = () => 1
+		const store = createStore({ fn: same })
+		const controller = new AbortController()
+		const updates = vi.fn()
+		const changes = vi.fn()
+		store.on('update', controller.signal, updates)
+		store.on('change', controller.signal, changes)
+
+		// Act
+		store.update((s) => {
+			s.fn = same
+		})
+
+		// Assert
+		expect(updates).toHaveBeenCalledTimes(1)
+		expect(changes).toHaveBeenCalledTimes(0)
+		controller.abort()
+	})
+})
+
+describe('createStore — frozen snapshots reject writes', () => {
+	test('mutating a nested sub-tree of value throws', () => {
+		// Arrange
+		const store = createStore({ nested: { deep: 1 } })
+		const snapshot = store.value
+
+		// Act
+		const mutate = () => {
+			(snapshot.nested as { deep: number }).deep = 2
+		}
+
+		// Assert
+		expect(mutate).toThrow(TypeError)
+	})
+
+	test('mutating an array element of value throws', () => {
+		// Arrange
+		const store = createStore({ items: [{ id: 1 }] })
+		const snapshot = store.value
+
+		// Act
+		const mutate = () => {
+			(snapshot.items[0] as { id: number }).id = 2
+		}
+
+		// Assert
+		expect(mutate).toThrow(TypeError)
+	})
+})
+
+describe('createStore — Map, Set and Date in state', () => {
+	test('reading value does not throw', () => {
+		// Arrange
+		const store = createStore({
+			m: new Map([['k', 1]]),
+			s: new Set([1]),
+			d: new Date('2026-01-01T00:00:00.000Z'),
+		})
+
+		// Act
+		const read = () => store.value
+
+		// Assert
+		expect(read).not.toThrow()
+	})
+
+	test('updating does not throw', () => {
+		// Arrange
+		const store = createStore({
+			m: new Map([['k', 1]]),
+			s: new Set([1]),
+			d: new Date('2026-01-01T00:00:00.000Z'),
+		})
+
+		// Act
+		const write = () => store.update((state) => {
+			state.m.set('k', 2)
+			state.s.add(2)
+			state.d = new Date('2027-01-01T00:00:00.000Z')
+		})
+
+		// Assert
+		expect(write).not.toThrow()
+	})
+
+	test('a Map snapshot is independent of the live state', () => {
+		// Arrange
+		const store = createStore({ m: new Map<string, number>([['k', 1]]) })
+		const snapshot = store.value
+
+		// Act
+		store.update((state) => {
+			state.m.set('k', 2)
+		})
+
+		// Assert
+		expect(snapshot.m.get('k')).toBe(1)
+		expect(store.value.m.get('k')).toBe(2)
+	})
+
+	test('a Set snapshot is independent of the live state', () => {
+		// Arrange
+		const store = createStore({ s: new Set<number>([1]) })
+		const snapshot = store.value
+
+		// Act
+		store.update((state) => {
+			state.s.add(2)
+		})
+
+		// Assert
+		expect(snapshot.s.has(2)).toBe(false)
+		expect(store.value.s.has(2)).toBe(true)
+	})
+
+	test('a Date snapshot is independent of the live state', () => {
+		// Arrange
+		const store = createStore({ d: new Date('2026-01-01T00:00:00.000Z') })
+		const snapshot = store.value
+
+		// Act
+		store.update((state) => {
+			state.d.setUTCFullYear(2030)
+		})
+
+		// Assert
+		expect(snapshot.d.getUTCFullYear()).toBe(2026)
+		expect(store.value.d.getUTCFullYear()).toBe(2030)
+	})
+})
