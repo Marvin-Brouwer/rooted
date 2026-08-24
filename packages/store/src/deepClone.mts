@@ -25,7 +25,9 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 	if (value instanceof Map) {
 		const copy = Reflect.construct(Map, [], value.constructor as new () => unknown) as Map<unknown, unknown>
 		seen.set(object, copy)
-		for (const [entryKey, entryValue] of value) copy.set(deepClone(entryKey, seen), deepClone(entryValue, seen))
+		for (const [entryKey, entryValue] of value) {
+			copy.set(deepClone(entryKey, seen), deepClone(entryValue, seen))
+		}
 		cloneOwnProperties(object, copy, seen)
 		return copy as unknown as T
 	}
@@ -41,7 +43,9 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 	if (Array.isArray(value)) {
 		const copy: unknown[] = []
 		seen.set(object, copy)
-		for (let index = 0; index < value.length; index++) copy[index] = deepClone(value[index], seen)
+		for (let index = 0; index < value.length; index++) {
+			copy[index] = deepClone(value[index], seen)
+		}
 		// Carry over the own properties that aren't indices: brand symbols on tuples, stray string keys. The loop above already wrote every index, and `length` is own on any array, which is how cloneOwnProperties knows to leave those alone.
 		cloneOwnProperties(object, copy, seen)
 		return copy as unknown as T
