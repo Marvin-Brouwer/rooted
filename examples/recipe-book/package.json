@@ -26,7 +26,7 @@
 		"@varlock/vite-integration": "^1.4.0",
 		"gray-matter": "^4.0.3",
 		"html-minifier-terser": "^7.2.0",
-		"marked": "^18.0.9",
+		"marked": "^18.0.10",
 		"typescript": "^6.0.3",
 		"varlock": "^1.16.1",
 		"vite": "^8.2.1"
