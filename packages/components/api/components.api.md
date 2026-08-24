@@ -4,6 +4,11 @@
 
 ```ts
 
+import { CssClass } from '@rooted/elements';
+import { cssClass } from '@rooted/elements';
+import { CssClassDictionary } from '@rooted/elements';
+import { CssClasses } from '@rooted/elements';
+import { cssClasses } from '@rooted/elements';
 import { ElementFactory } from '@rooted/elements';
 import { EventBuilder } from '@rooted/elements/events';
 
@@ -34,21 +39,21 @@ export type ComponentContext<TOptions extends object = never> = [TOptions] exten
 // @public
 export type CssArtifacts = {
     readonly href: string;
-
     readonly scopeId: string;
 };
 
 // @public
 export const cssArtifacts: unique symbol;
 
-// @public
-export type CssClass = string | undefined | null;
+export { CssClass }
 
-// @public
-export function cssClass(className: string | CssClass, visible?: boolean | null | undefined): CssClass;
+export { cssClass }
 
-// @public
-export type CssClasses = Array<CssClass> | CssClass;
+export { CssClassDictionary }
+
+export { CssClasses }
+
+export { cssClasses }
 
 // @public
 export type CssModule = Record<string, CssClass> & {

@@ -16,19 +16,25 @@ export function createElementFactory(constructElement: ElementCreator, signal: A
 export type CssClass = string | undefined | null;
 
 // @public
-export function cssClass(className: string): CssClass;
-
-// @public (undocumented)
-export function cssClass(className: string, visible: boolean | null | undefined): CssClass;
-
-// @public (undocumented)
 export function cssClass(className: CssClass): CssClass;
 
 // @public (undocumented)
-export function cssClass(className: CssClass, visible: boolean | null | undefined): CssClass;
+export function cssClass(visible: boolean | null | undefined, className: CssClass): CssClass;
+
+// @public
+export type CssClassDictionary = Record<string, boolean | null | undefined>;
 
 // @public
 export type CssClasses = Array<CssClass> | CssClass;
+
+// @public
+export function cssClasses(visible: boolean | null | undefined, ...classNames: Array<CssClass>): CssClass;
+
+// @public (undocumented)
+export function cssClasses(...classNames: Array<CssClass>): CssClass;
+
+// @public (undocumented)
+export function cssClasses(classNames: CssClassDictionary): CssClass;
 
 // @public
 export type ElementChild = Node | string | undefined | null;

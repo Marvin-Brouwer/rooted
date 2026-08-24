@@ -6,6 +6,7 @@
  */
 import { describe, expect, test } from 'vitest'
 
+import { cssClasses } from '../src/classes.mts'
 import { createElementFactory } from '../src/element-factory.mts'
 
 const element = createElementFactory(document.createElement.bind(document))
@@ -52,6 +53,11 @@ describe('classes option', () => {
 	test('array of strings joins them', () => {
 		const div = element('div', { classes: ['card', 'active'] })
 		expect(div.className).toBe('card active')
+	})
+
+	test('cssClasses composes inside the array', () => {
+		const div = element('div', { classes: [cssClasses('card'), cssClasses(false, 'active'), cssClasses({ selected: true })] })
+		expect(div.className).toBe('card selected')
 	})
 
 	test('array filters falsy entries', () => {
