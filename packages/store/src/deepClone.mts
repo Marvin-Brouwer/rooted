@@ -48,9 +48,11 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 		const copy: unknown[] = []
 		seen.set(object, copy)
 		for (let index = 0; index < value.length; index++) copy[index] = deepClone(value[index], seen)
-		// Copy symbol-keyed properties (e.g. brand symbols on tuples)
-		for (const key of Object.getOwnPropertySymbols(object)) {
-			(copy as unknown as Record<symbol, unknown>)[key] = (object as Record<symbol, unknown>)[key]
+		// Carry over own properties that aren't array indices: brand symbols on tuples, stray string keys. By this point the index loop has written every index, and `length` is own on any array, so `hasOwn` is what tells those apart from the rest.
+		for (const key of Reflect.ownKeys(object)) {
+			if (Object.hasOwn(copy, key)) continue
+			const v = (object as Record<string | symbol, unknown>)[key]
+			;(copy as unknown as Record<string | symbol, unknown>)[key] = typeof v === 'function' ? v : deepClone(v, seen)
 		}
 		return copy as unknown as T
 	}
@@ -104,7 +106,7 @@ export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): 
 	}
 
 	if (Array.isArray(value)) {
-		for (const item of value) deepFreeze(item, seen)
+		freezeOwnProperties(object, seen)
 		Object.freeze(value)
 		return value
 	}
