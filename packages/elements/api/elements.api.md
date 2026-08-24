@@ -30,6 +30,12 @@ export function cssClass(className: CssClass, visible: boolean | null | undefine
 // @public
 export type CssClasses = Array<CssClass> | CssClass;
 
+// @public
+export type ElementChild = Node | string | undefined | null;
+
+// @public
+export type ElementChildren = Array<ElementChild> | ElementChild;
+
 // @public (undocumented)
 export type ElementCreator = (key: string, ns?: string) => Element;
 

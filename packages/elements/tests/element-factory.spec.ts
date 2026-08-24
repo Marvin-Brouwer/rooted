@@ -96,4 +96,32 @@ describe('children option', () => {
 		const p = element('p', { children: 'Hello' })
 		expect(p.textContent).toBe('Hello')
 	})
+
+	test('array skips null entries', () => {
+		const a = element('span', { textContent: 'a' })
+		const b = element('span', { textContent: 'b' })
+		const div = element('div', { children: [a, null, b] })
+		expect(div.childNodes.length).toBe(2)
+		expect(div.textContent).toBe('ab')
+	})
+
+	test('array skips undefined entries', () => {
+		const a = element('span', { textContent: 'a' })
+		const div = element('div', { children: [a, undefined] })
+		expect(div.childNodes.length).toBe(1)
+		expect(div.textContent).toBe('a')
+	})
+
+	test('conditional child renders nothing when the condition is false', () => {
+		const selected: boolean = false
+		const label = element('span', { textContent: 'Dutch' })
+		const div = element('div', { children: [label, selected ? element('span', { textContent: '✓' }) : null] })
+		expect(div.childNodes.length).toBe(1)
+		expect(div.textContent).toBe('Dutch')
+	})
+
+	test('single null child appends nothing', () => {
+		const div = element('div', { children: null })
+		expect(div.childNodes.length).toBe(0)
+	})
 })

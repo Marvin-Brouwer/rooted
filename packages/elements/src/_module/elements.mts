@@ -10,6 +10,7 @@
  */
 
 export type { Aria } from '../aria.mts'
+export * from '../children.mts'
 export * from '../classes.mts'
 export * from '../element-factory.mts'
 export type { HtmlElementProperties } from '../html-element-properties.mts'
