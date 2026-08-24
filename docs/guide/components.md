@@ -54,8 +54,12 @@ onMount({ append, element }) {
   const list = element('ul', {
     classes: styles.list,
     children: [
-      element('li', { textContent: 'one' }),
-      element('li', { textContent: 'two' }),
+      element('li', {
+        textContent: 'one',
+      }),
+      element('li', {
+        textContent: 'two',
+      }),
     ],
   })
   append(list)
@@ -73,8 +77,15 @@ For the difference between `element` and writing your own custom element from sc
 ```ts
 element('label', {
   children: [
-    element('span', { textContent: 'Name' }),
-    required ? element('abbr', { title: 'required', textContent: '*' }) : undefined,
+    element('span', {
+      textContent: 'Name',
+    }),
+    required
+      ? element('abbr', {
+        title: 'required',
+        textContent: '*',
+      })
+      : undefined,
   ],
 })
 ```
@@ -86,8 +97,15 @@ import { optional } from '@rooted/components/elements'
 
 element('label', {
   children: [
-    element('span', { textContent: 'Name' }),
-    optional(required, element('abbr', { title: 'required', textContent: '*' })),
+    element('span', {
+      textContent: 'Name',
+    }),
+    optional(required,
+      element('abbr', {
+        title: 'required',
+        textContent: '*',
+      })
+    ),
   ],
 })
 ```
@@ -99,7 +117,9 @@ Only `undefined` and `null` are skipped. `false` is not a valid child, so `requi
 Class names use the `classes` prop, not `class` or `className`. It accepts a string, a list of strings, or a CSS module value. CSS module imports give you the original class name, and the CSS loader ensures those class names only match inside this component's subtree.
 
 ```ts
-element('p', { classes: [styles.message, 'highlight'] })
+element('p', {
+  classes: [styles.message, 'highlight'],
+})
 ```
 
 ### Conditional classes

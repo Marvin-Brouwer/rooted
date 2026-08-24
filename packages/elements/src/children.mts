@@ -20,8 +20,15 @@ export type ElementChild = Node | string | undefined | null
  * ```ts
  * element('label', {
  *   children: [
- *     element('span', { textContent: 'Name' }),
- *     required ? element('abbr', { title: 'required', textContent: '*' }) : undefined,
+ *     element('span', {
+ *       textContent: 'Name',
+ *     }),
+ *     required
+ *       ? element('abbr', {
+ *         title: 'required',
+ *         textContent: '*',
+ *       })
+ *       : undefined,
  *   ],
  * })
  * ```

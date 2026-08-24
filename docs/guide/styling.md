@@ -107,7 +107,12 @@ export const Recipe = component({
   name: 'recipe',
   styles,
   onMount({ append, element }) {
-    append(element('h1', { classes: styles.title, textContent: 'Recipe' }))
+    append(
+      element('h1', {
+        classes: styles.title,
+        textContent: 'Recipe',
+      })
+    )
   },
 })
 ```

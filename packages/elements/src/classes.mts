@@ -86,7 +86,9 @@ export function cssClass(...arguments_: [CssClass] | [boolean | null | undefined
  *   classes: [
  *     cssClasses(styles.button, styles.rounded),
  *     cssClasses(isActive, styles.active, styles.raised),
- *     cssClasses({ 'btn--disabled': isDisabled }),
+ *     cssClasses({
+ *       'btn--disabled': isDisabled,
+ *     }),
  *   ],
  * })
  * ```

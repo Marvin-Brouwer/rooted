@@ -79,17 +79,28 @@ export function createElementFactory(constructElement: ElementCreator, signal: A
 	 * ```ts
 	 * const div = element('div', {
 	 *   classes: 'card',
-	 *   aria: { label: 'Card', labelledBy: headingEl },
+	 *   aria: {
+	 *     label: 'Card',
+	 *     labelledBy: headingEl,
+	 *   },
 	 *   children: [
-	 *     element('h2', { textContent: 'Title' }),
-	 *     element('p',  { textContent: 'Body'  }),
+	 *     element('h2', {
+	 *       textContent: 'Title',
+	 *     }),
+	 *     element('p', {
+	 *       textContent: 'Body',
+	 *     }),
 	 *   ],
 	 * })
 	 *
 	 * const icon = element('svg', {
 	 *   viewBox: '0 0 24 24',
-	 *   aria: { hidden: 'true' },
-	 *   children: element('svg:use', { href: spriteUrl }),
+	 *   aria: {
+	 *     hidden: 'true',
+	 *   },
+	 *   children: element('svg:use', {
+	 *     href: spriteUrl,
+	 *   }),
 	 * })
 	 * ```
 	 */

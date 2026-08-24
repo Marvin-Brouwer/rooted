@@ -13,8 +13,15 @@
  * ```ts
  * element('div', {
  *   children: [
- *     element('span', { textContent: 'a' }),
- *     optional(selected, element('span', { classes: styles.optionCheck, innerHTML: check })),
+ *     element('span', {
+ *       textContent: 'a',
+ *     }),
+ *     optional(selected,
+ *       element('span', {
+ *         classes: styles.optionCheck,
+ *         innerHTML: check,
+ *       })
+ *     ),
  *   ],
  * })
  * ```

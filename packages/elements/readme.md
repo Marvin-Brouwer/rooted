@@ -24,8 +24,12 @@ const element = createElementFactory(createElement, controller.signal)
 const card = element('div', {
   classes: 'card',
   children: [
-    element('h2', { textContent: 'Title' }),
-    element('p',  { textContent: 'Body'  }),
+    element('h2', {
+      textContent: 'Title',
+    }),
+    element('p', {
+      textContent: 'Body',
+    }),
   ],
 })
 ```
