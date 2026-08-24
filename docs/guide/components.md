@@ -93,7 +93,7 @@ element('label', {
 `optional(condition, value)` says the same thing without the ternary:
 
 ```ts
-import { optional } from '@rooted/components/elements'
+import { optional } from '@rooted/components'
 
 element('label', {
   children: [

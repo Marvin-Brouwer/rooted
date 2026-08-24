@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { optional } from '../src/_module/elements.mts'
+import { optional } from '../src/_module/components.mts'
 import { create } from '../src/component-factory.mts'
 import { RootedElement } from '../src/rooted-element.mts'
 

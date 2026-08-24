@@ -18,7 +18,7 @@ export type ElementChild = Node | string | undefined | null
  *
  * @example
  * ```ts
- * import { optional } from '@rooted/components/elements'
+ * import { optional } from '@rooted/components'
  *
  * element('label', {
  *   children: [

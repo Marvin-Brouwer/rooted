@@ -11,6 +11,7 @@ import { CssClasses } from '@rooted/elements';
 import { cssClasses } from '@rooted/elements';
 import { ElementFactory } from '@rooted/elements';
 import { EventBuilder } from '@rooted/elements/events';
+import { optional } from '@rooted/util';
 
 // @public
 export type Component<TOptions extends object = never> = ComponentConstructor<TOptions> & {
@@ -69,6 +70,8 @@ export class GenericComponent extends RootedElement {
     // (undocumented)
     static tagName: string;
 }
+
+export { optional }
 
 // (No @packageDocumentation comment for this package)
 
