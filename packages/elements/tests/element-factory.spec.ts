@@ -6,6 +6,7 @@
  */
 import { describe, expect, test } from 'vitest'
 
+import { cssClasses } from '../src/classes.mts'
 import { createElementFactory } from '../src/element-factory.mts'
 
 const element = createElementFactory(document.createElement.bind(document))
@@ -54,6 +55,11 @@ describe('classes option', () => {
 		expect(div.className).toBe('card active')
 	})
 
+	test('cssClasses composes inside the array', () => {
+		const div = element('div', { classes: [cssClasses('card'), cssClasses(false, 'active'), cssClasses({ selected: true })] })
+		expect(div.className).toBe('card selected')
+	})
+
 	test('array filters falsy entries', () => {
 		const div = element('div', { classes: ['card', '', false, null, 'active'] as string[] })
 		expect(div.className).toBe('card active')
@@ -95,5 +101,33 @@ describe('children option', () => {
 	test('string child is appended as text', () => {
 		const p = element('p', { children: 'Hello' })
 		expect(p.textContent).toBe('Hello')
+	})
+
+	test('array skips null entries', () => {
+		const a = element('span', { textContent: 'a' })
+		const b = element('span', { textContent: 'b' })
+		const div = element('div', { children: [a, null, b] })
+		expect(div.childNodes.length).toBe(2)
+		expect(div.textContent).toBe('ab')
+	})
+
+	test('array skips undefined entries', () => {
+		const a = element('span', { textContent: 'a' })
+		const div = element('div', { children: [a, undefined] })
+		expect(div.childNodes.length).toBe(1)
+		expect(div.textContent).toBe('a')
+	})
+
+	test('conditional child renders nothing when the condition is false', () => {
+		const selected: boolean = false
+		const label = element('span', { textContent: 'Dutch' })
+		const div = element('div', { children: [label, selected ? element('span', { textContent: '✓' }) : null] })
+		expect(div.childNodes.length).toBe(1)
+		expect(div.textContent).toBe('Dutch')
+	})
+
+	test('single null child appends nothing', () => {
+		const div = element('div', { children: null })
+		expect(div.childNodes.length).toBe(0)
 	})
 })

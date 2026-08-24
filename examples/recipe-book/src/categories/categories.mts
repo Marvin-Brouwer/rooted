@@ -37,7 +37,7 @@ async function mapCategories(element: ComponentContext['element'], create: Compo
 		return create(Link, {
 			classes: [
 				cssClass(styles.categoryCard),
-				cssClass(styles.selected, selected),
+				cssClass(selected, styles.selected),
 			],
 			aria: {
 				current: selected ? 'page' : undefined,

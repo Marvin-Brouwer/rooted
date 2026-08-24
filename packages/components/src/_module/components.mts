@@ -13,3 +13,4 @@ export { component, type Component, type ComponentConstructor, type ComponentCon
 export type { GenericComponent } from '../component/generic-component.mts'
 export * from '../component/classes.mts'
 export * from '../component/css-artifacts.mts'
+export { optional } from '@rooted/util'

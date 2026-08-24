@@ -54,8 +54,12 @@ onMount({ append, element }) {
   const list = element('ul', {
     classes: styles.list,
     children: [
-      element('li', { textContent: 'one' }),
-      element('li', { textContent: 'two' }),
+      element('li', {
+        textContent: 'one',
+      }),
+      element('li', {
+        textContent: 'two',
+      }),
     ],
   })
   append(list)
@@ -66,13 +70,88 @@ The props object is typed against the DOM interface for the tag, so `tabIndex`, 
 
 For the difference between `element` and writing your own custom element from scratch, see [advanced/elements](../advanced/elements.md).
 
+### Conditional children
+
+`undefined` and `null` entries in a `children` array are skipped, so a child that isn't always there doesn't need a branch around the whole element:
+
+```ts
+element('label', {
+  children: [
+    element('span', {
+      textContent: 'Name',
+    }),
+    required
+      ? element('abbr', {
+        title: 'required',
+        textContent: '*',
+      })
+      : undefined,
+  ],
+})
+```
+
+`optional(condition, value)` says the same thing without the ternary:
+
+```ts
+import { optional } from '@rooted/components'
+
+element('label', {
+  children: [
+    element('span', {
+      textContent: 'Name',
+    }),
+    optional(required,
+      element('abbr', {
+        title: 'required',
+        textContent: '*',
+      })
+    ),
+  ],
+})
+```
+
+Only `undefined` and `null` are skipped. `false` is not a valid child, so `required && element(...)` won't type-check, use `optional` or a ternary.
+
 ## Class names
 
 Class names use the `classes` prop, not `class` or `className`. It accepts a string, a list of strings, or a CSS module value. CSS module imports give you the original class name, and the CSS loader ensures those class names only match inside this component's subtree.
 
 ```ts
-element('p', { classes: [styles.message, 'highlight'] })
+element('p', {
+  classes: [
+    styles.message,
+    'highlight',
+  ],
+})
 ```
+
+### Conditional classes
+
+Falsy entries in a `classes` list are dropped, so conditional classes work the same way conditional children do. `cssClass(condition, className)` returns the class only when the condition is exactly `true`:
+
+```ts
+import { cssClass } from '@rooted/components'
+
+element('button', {
+  classes: [
+    styles.button,
+    cssClass(isActive, styles.active),
+    cssClass(isDisabled, styles.disabled),
+  ],
+})
+```
+
+Called with one argument it just returns the class, which reads better when the rest of the list is conditional: `cssClass(styles.button)`.
+
+`cssClasses` joins several names into one and gives back `undefined` when nothing is left. It has three forms:
+
+```ts
+cssClasses(styles.button, styles.rounded)          // 'button rounded'
+cssClasses(isActive, styles.active, styles.raised) // both, or undefined
+cssClasses({ 'is-active': isActive })              // the keys mapped to true
+```
+
+One thing to watch: a leading `undefined` or `null` is read as the condition, so `cssClasses(undefined, styles.active)` is `undefined` and not the class. A class name that might be `undefined` belongs after the condition, or in `cssClass`.
 
 ## Typed options
 

@@ -1,6 +1,7 @@
 import { ElementOnHandlers } from '@rooted/events'
 
 import { type Aria } from './aria.mts'
+import { ElementChildren } from './children.mts'
 import { CssClasses } from './classes.mts'
 import { FunctionKeys, InlineStyle, NonWritableKeys, OnHandlerKeys } from './element-type-utilities.mts'
 
@@ -18,7 +19,7 @@ type HtmlElementPropertiesMapped<TElement extends HTMLElement>
 	& {
 		// allows non-DOM attributes (data-*, aria-*, custom attributes like og property) as string/number fallbacks
 		[key: string]: unknown
-		children?: Array<Node | string> | Node | string
+		children?: ElementChildren
 		classes?: CssClasses
 		style?: InlineStyle
 		aria?: Aria

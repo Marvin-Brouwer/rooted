@@ -1,3 +1,5 @@
+import { ElementChildren } from '@rooted/elements'
+
 import { isComponent } from './component.mts'
 import { componentStore, GenericComponent } from './component/generic-component.mts'
 import { RootedElement, RootedElementConstructor } from './rooted-element.mts'
@@ -11,7 +13,7 @@ type WritableKeys<T> = { [P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -reado
 type RootedElementProperties<TComponent extends RootedElement> = Pick<TComponent, WritableKeys<TComponent> & Exclude<keyof TComponent, 'children' | 'className' | 'classList' | keyof RootedElement>>
 
 type HtmlComponentProperties<TElement extends HTMLElement> = Partial<Pick<TElement, WritableKeys<TElement> & Exclude<keyof TElement, 'children' | 'className' | 'classList'>>> & Partial<ARIAMixin> & {
-	children?: Array<Node | string> | Node | string
+	children?: ElementChildren
 }
 
 function createElement<TElement extends HTMLElement>(element: string, properties: HtmlComponentProperties<TElement>) {
@@ -27,6 +29,7 @@ function createElement<TElement extends HTMLElement>(element: string, properties
 
 	if (Array.isArray(children)) {
 		for (const child of children) {
+			if (child === undefined || child === null) continue
 			newElement.append(child)
 		}
 	}

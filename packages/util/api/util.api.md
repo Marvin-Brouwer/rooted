@@ -14,6 +14,9 @@ export type ErrorTuple = [success: false, value: never, error: Error];
 export function isClient(): boolean;
 
 // @public
+export function optional<T>(condition: boolean | null | undefined, value: T): T | undefined;
+
+// @public
 export function seededId(name: string): string;
 
 // @public

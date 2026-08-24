@@ -4,6 +4,7 @@
 
 ```ts
 
+import { CssClass } from '@rooted/elements';
 import { ElementFactory } from '@rooted/elements';
 import { EventBuilder } from '@rooted/elements/events';
 

@@ -1,6 +1,7 @@
 import { ElementOnHandlers } from '@rooted/events'
 
 import { type Aria, buildAriaProperties } from './aria.mts'
+import { ElementChildren } from './children.mts'
 import { CssClasses } from './classes.mts'
 import { HtmlElementProperties } from './html-element-properties.mts'
 import { SvgElementProperties, SvgTagElement, SvgTagName } from './svg-element-properties.mts'
@@ -68,7 +69,8 @@ export function createElementFactory(constructElement: ElementCreator, signal: A
 	 *   for IDL reflection properties (e.g. `aria-labelledby`).
 	 * - `on`: an object of event handlers. Each listener is removed when the
 	 *   component unmounts.
-	 *   `children`: a single `Node` or an array; appended in order.
+	 * - `children`: a single `Node` or an array; appended in order. `undefined`
+	 *   and `null` entries are skipped, same as `classes`.
 	 * - Other props are set as DOM properties (so `htmlFor` not `for`,
 	 *   `readOnly` not `readonly`). On SVG, anything that isn't a writable
 	 *   DOM property falls back to `setAttribute`.
@@ -77,17 +79,28 @@ export function createElementFactory(constructElement: ElementCreator, signal: A
 	 * ```ts
 	 * const div = element('div', {
 	 *   classes: 'card',
-	 *   aria: { label: 'Card', labelledBy: headingEl },
+	 *   aria: {
+	 *     label: 'Card',
+	 *     labelledBy: headingEl,
+	 *   },
 	 *   children: [
-	 *     element('h2', { textContent: 'Title' }),
-	 *     element('p',  { textContent: 'Body'  }),
+	 *     element('h2', {
+	 *       textContent: 'Title',
+	 *     }),
+	 *     element('p', {
+	 *       textContent: 'Body',
+	 *     }),
 	 *   ],
 	 * })
 	 *
 	 * const icon = element('svg', {
 	 *   viewBox: '0 0 24 24',
-	 *   aria: { hidden: 'true' },
-	 *   children: element('svg:use', { href: spriteUrl }),
+	 *   aria: {
+	 *     hidden: 'true',
+	 *   },
+	 *   children: element('svg:use', {
+	 *     href: spriteUrl,
+	 *   }),
 	 * })
 	 * ```
 	 */
@@ -117,7 +130,7 @@ export function createElementFactory(constructElement: ElementCreator, signal: A
 			buildAriaProperties(aria as Aria | undefined, newElement)
 			buildOnHandlers(on as ElementOnHandlers<Element> | undefined, newElement, signal)
 
-			appendChildren(newElement, children as Array<Node | string> | Node | string | undefined)
+			appendChildren(newElement, children as ElementChildren)
 
 			return newElement
 		}
@@ -141,7 +154,7 @@ export function createElementFactory(constructElement: ElementCreator, signal: A
 		if (style) Object.assign(newElement.style, style)
 		buildAriaProperties(aria as Aria | undefined, newElement)
 		buildOnHandlers(on as ElementOnHandlers<HTMLElement> | undefined, newElement, signal)
-		appendChildren(newElement, children as Array<Node | string> | Node | string | undefined)
+		appendChildren(newElement, children as ElementChildren)
 
 		return newElement
 	}
@@ -149,9 +162,10 @@ export function createElementFactory(constructElement: ElementCreator, signal: A
 	return createElement
 }
 
-function appendChildren(element: Element, children: Array<Node | string> | Node | string | undefined): void {
+function appendChildren(element: Element, children: ElementChildren): void {
 	if (Array.isArray(children)) {
 		for (const child of children) {
+			if (child === undefined || child === null) continue
 			element.append(child)
 		}
 	}

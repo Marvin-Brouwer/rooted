@@ -1,6 +1,7 @@
 import { ElementOnHandlers } from '@rooted/events'
 
 import { type Aria } from './aria.mts'
+import { ElementChildren } from './children.mts'
 import { CssClasses } from './classes.mts'
 import { FunctionKeys, InlineStyle, NonWritableKeys, OnHandlerKeys } from './element-type-utilities.mts'
 
@@ -33,7 +34,7 @@ type SvgElementPropertiesMapped<TElement extends SVGElement>
 		[key: string]: unknown
 		classes?: CssClasses
 		style?: InlineStyle
-		children?: Array<Node | string> | Node | string
+		children?: ElementChildren
 		aria?: Aria
 		on?: ElementOnHandlers<TElement>
 	}

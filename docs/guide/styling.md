@@ -107,7 +107,12 @@ export const Recipe = component({
   name: 'recipe',
   styles,
   onMount({ append, element }) {
-    append(element('h1', { classes: styles.title, textContent: 'Recipe' }))
+    append(
+      element('h1', {
+        classes: styles.title,
+        textContent: 'Recipe',
+      })
+    )
   },
 })
 ```
@@ -126,6 +131,8 @@ Class names are scoped to this component. A `.title` here won't collide with a `
 ```
 
 CSS modules give you `styles.title` as a scoped class name.
+
+For classes that depend on state, use `cssClass` and `cssClasses` rather than string concatenation. See [conditional classes](./components.md#conditional-classes) in the components guide.
 
 ### How scoping works
 
