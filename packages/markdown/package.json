@@ -71,6 +71,6 @@
 		"@rooted/development": "workspace:*",
 		"@types/html-minifier-terser": "^7.0.2",
 		"@types/node": "^26.2.0",
-		"vite": "^8.2.1"
+		"vite": "^8.2.2"
 	}
 }
