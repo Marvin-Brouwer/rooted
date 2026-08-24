@@ -25,6 +25,16 @@
  *   ],
  * })
  * ```
+ *
+ * @example
+ * Nothing about it is DOM specific, any array you filter afterwards works:
+ * ```ts
+ * const steps = [
+ *   'install',
+ *   optional(runTests, 'test'),
+ *   'build',
+ * ].filter(step => step !== undefined)
+ * ```
  */
 export function optional<T>(condition: boolean | null | undefined, value: T): T | undefined {
 	if (condition !== true) return

@@ -118,7 +118,10 @@ Class names use the `classes` prop, not `class` or `className`. It accepts a str
 
 ```ts
 element('p', {
-  classes: [styles.message, 'highlight'],
+  classes: [
+    styles.message,
+    'highlight',
+  ],
 })
 ```
 

@@ -13,22 +13,24 @@ export type ElementChild = Node | string | undefined | null
  * - An array is appended in order, skipping `undefined` and `null` entries.
  *
  * Because those entries are skipped, conditional children can be written
- * inline, either with a ternary or with `optional()` from
- * `@rooted/components/elements`.
+ * inline with `optional()`. A plain ternary ending in `undefined` works too,
+ * it just reads worse.
  *
  * @example
  * ```ts
+ * import { optional } from '@rooted/components/elements'
+ *
  * element('label', {
  *   children: [
  *     element('span', {
  *       textContent: 'Name',
  *     }),
- *     required
- *       ? element('abbr', {
+ *     optional(required,
+ *       element('abbr', {
  *         title: 'required',
  *         textContent: '*',
  *       })
- *       : undefined,
+ *     ),
  *   ],
  * })
  * ```
