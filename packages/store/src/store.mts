@@ -81,7 +81,6 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 		this.#hash = hashState(initial)
 	}
 
-	// Read from the current state, not from the initial one. A store created without an initial value starts out holding `undefined` and only becomes an object store once something is written to it.
 	get #holdsObject(): boolean {
 		// eslint-disable-next-line unicorn/no-null
 		return typeof this.#state === 'object' && this.#state !== null
