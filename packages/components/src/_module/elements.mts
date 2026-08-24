@@ -10,4 +10,5 @@
  */
 
 export * from '@rooted/elements'
+export { optional } from '@rooted/util'
 export { create as createComponent } from '../component-factory.mts'

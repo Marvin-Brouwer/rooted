@@ -6,6 +6,7 @@
 
 import { ElementFactory } from '@rooted/elements';
 import { EventBuilder } from '@rooted/elements/events';
+import { optional } from '@rooted/util';
 
 // @public
 export function createComponent(component: Component): GenericComponent;
@@ -15,6 +16,8 @@ export function createComponent<TOptions extends object>(component: Component<TO
 
 // @public (undocumented)
 export function createComponent<TComponent extends RootedElement>(component: RootedElementClass<TComponent>, properties: NoInfer<RootedElementProperties<TComponent>>): TComponent;
+
+export { optional }
 
 
 export * from "@rooted/elements";
