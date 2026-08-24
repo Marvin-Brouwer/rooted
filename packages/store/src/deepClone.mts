@@ -25,22 +25,16 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 	if (value instanceof Map) {
 		const copy = Reflect.construct(Map, [], value.constructor as new () => unknown) as Map<unknown, unknown>
 		seen.set(object, copy)
-		for (const [k, v] of value) copy.set(deepClone(k, seen), deepClone(v, seen))
-		for (const key of Reflect.ownKeys(object)) {
-			const v = (object as Record<string | symbol, unknown>)[key]
-			;(copy as unknown as Record<string | symbol, unknown>)[key] = typeof v === 'function' ? v : deepClone(v, seen)
-		}
+		for (const [entryKey, entryValue] of value) copy.set(deepClone(entryKey, seen), deepClone(entryValue, seen))
+		cloneOwnProperties(object, copy, seen)
 		return copy as unknown as T
 	}
 
 	if (value instanceof Set) {
 		const copy = Reflect.construct(Set, [], value.constructor as new () => unknown) as Set<unknown>
 		seen.set(object, copy)
-		for (const v of value) copy.add(deepClone(v, seen))
-		for (const key of Reflect.ownKeys(object)) {
-			const v = (object as Record<string | symbol, unknown>)[key]
-			;(copy as unknown as Record<string | symbol, unknown>)[key] = typeof v === 'function' ? v : deepClone(v, seen)
-		}
+		for (const entry of value) copy.add(deepClone(entry, seen))
+		cloneOwnProperties(object, copy, seen)
 		return copy as unknown as T
 	}
 
@@ -48,12 +42,8 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 		const copy: unknown[] = []
 		seen.set(object, copy)
 		for (let index = 0; index < value.length; index++) copy[index] = deepClone(value[index], seen)
-		// Carry over own properties that aren't array indices: brand symbols on tuples, stray string keys. By this point the index loop has written every index, and `length` is own on any array, so `hasOwn` is what tells those apart from the rest.
-		for (const key of Reflect.ownKeys(object)) {
-			if (Object.hasOwn(copy, key)) continue
-			const v = (object as Record<string | symbol, unknown>)[key]
-			;(copy as unknown as Record<string | symbol, unknown>)[key] = typeof v === 'function' ? v : deepClone(v, seen)
-		}
+		// Carry over the own properties that aren't indices: brand symbols on tuples, stray string keys. The loop above already wrote every index, and `length` is own on any array, which is how cloneOwnProperties knows to leave those alone.
+		cloneOwnProperties(object, copy, seen)
 		return copy as unknown as T
 	}
 
@@ -62,11 +52,19 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 		? {} as Record<string | symbol, unknown>
 		: Object.create(prototype) as Record<string | symbol, unknown>
 	seen.set(object, copy)
-	for (const key of Reflect.ownKeys(object)) {
-		const v = (object as Record<string | symbol, unknown>)[key]
-		copy[key] = typeof v === 'function' ? v : deepClone(v, seen)
-	}
+	cloneOwnProperties(object, copy, seen)
 	return copy as T
+}
+
+// Copies every own property of `source` onto `target`, cloning the values and sharing functions by reference. Keys `target` already owns are left alone, which is what keeps the array branch from overwriting the indices it just filled in.
+function cloneOwnProperties(source: object, target: object, seen: WeakMap<object, unknown>): void {
+	const from = source as Record<string | symbol, unknown>
+	const to = target as Record<string | symbol, unknown>
+	for (const key of Reflect.ownKeys(from)) {
+		if (Object.hasOwn(to, key)) continue
+		const property = from[key]
+		to[key] = typeof property === 'function' ? property : deepClone(property, seen)
+	}
 }
 
 /**
@@ -87,9 +85,9 @@ export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): 
 	}
 
 	if (value instanceof Map) {
-		for (const [k, v] of value) {
-			deepFreeze(k, seen)
-			deepFreeze(v, seen)
+		for (const [entryKey, entryValue] of value) {
+			deepFreeze(entryKey, seen)
+			deepFreeze(entryValue, seen)
 		}
 		freezeOwnProperties(object, seen)
 		blockMutation(object, ['set', 'delete', 'clear'])
@@ -98,7 +96,7 @@ export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): 
 	}
 
 	if (value instanceof Set) {
-		for (const v of value) deepFreeze(v, seen)
+		for (const entry of value) deepFreeze(entry, seen)
 		freezeOwnProperties(object, seen)
 		blockMutation(object, ['add', 'delete', 'clear'])
 		Object.freeze(value)
@@ -117,9 +115,10 @@ export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): 
 }
 
 function freezeOwnProperties(object: object, seen: WeakSet<object>): void {
-	for (const key of Reflect.ownKeys(object)) {
-		const v = (object as Record<string | symbol, unknown>)[key]
-		if (typeof v !== 'function') deepFreeze(v, seen)
+	const properties = object as Record<string | symbol, unknown>
+	for (const key of Reflect.ownKeys(properties)) {
+		const property = properties[key]
+		if (typeof property !== 'function') deepFreeze(property, seen)
 	}
 }
 
