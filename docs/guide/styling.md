@@ -127,6 +127,8 @@ Class names are scoped to this component. A `.title` here won't collide with a `
 
 CSS modules give you `styles.title` as a scoped class name.
 
+For classes that depend on state, use `cssClass` and `cssClasses` rather than string concatenation. See [conditional classes](./components.md#conditional-classes) in the components guide.
+
 ### How scoping works
 
 The rooted CSS loader plugin assigns each `.css` file a stable ID (a seeded hash of the file path). Every qualified rule selector in the file gets prefixed with `[r="<hash>"]`. At runtime the component's wrapper element has that attribute set, so only its subtree matches.
