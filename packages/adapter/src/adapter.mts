@@ -40,18 +40,13 @@ export type AdapterContext = {
 	/** The Vite resolved config. */
 	config: ResolvedConfig
 	/**
-	 * Route manifest API. Use this to iterate static routes and generate
-	 * host-specific artifacts (e.g. a server route config).
-	 */
-	manifestApi: RouteManifestApi | undefined
-	/**
 	 * SEO plugin API. Use this to inject meta tags, retrieve the sitemap URL,
 	 * or register additional sitemaps from within the adapter's `setup` hook.
 	 */
 	seoApi: SeoApi | undefined
 	/**
 	 * Merged route lists from the route manifest and any manual `routes` option.
-	 * Use this instead of `manifestApi` to support both manifest and manual routes.
+	 * Covers both manifest routes and manual ones.
 	 */
 	resolvedRoutes: ResolvedAdapterRoutes
 }
@@ -96,7 +91,7 @@ export type RoutedAdapterDefinition = {
 	routes?: AdapterRoutes
 	/**
 	 * Called before static routes are processed.
-	 * `context.manifestApi` and the auto-written `routes.json` are both available here.
+	 * `context.resolvedRoutes` and the auto-written `routes.json` are both available here.
 	 * Use this to generate any framework-specific server config.
 	 */
 	setup?(context: AdapterContext): Promise<void> | void
@@ -124,7 +119,7 @@ export function staticAdapter(definition: StaticAdapterDefinition): Plugin {
  * HTML, what the base path is, and which file to serve as the SPA fallback.
  *
  * Use `setup` to generate any framework-specific routing config from
- * `context.manifestApi`.
+ * `context.resolvedRoutes`.
  *
  * @example `routes.json` written automatically
  * ```json
@@ -222,7 +217,7 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 				)
 			}
 
-			await definition.setup?.({ outputDirectory, indexHtml, config, manifestApi, seoApi, resolvedRoutes })
+			await definition.setup?.({ outputDirectory, indexHtml, config, seoApi, resolvedRoutes })
 
 			// Inject root-level SEO (JSON-LD, canonical, og:url/type/image) into index.html
 			const rootHtml = seoApi ? seoApi.injectRootHtml(indexHtml) : indexHtml
