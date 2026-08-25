@@ -9,7 +9,8 @@ import packageJson from '../package.json' with { type: 'json' }
 
 import { withDomGlobals } from './dom-globals.mts'
 
-import type { AnyRoute, UnknownRoute } from '../src/route.mts'
+// Via the package entry, not `../src/route.mts`, so this build shares the declaration. See #245.
+import type { AnyRoute, UnknownRoute } from '@rooted/router'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 /**
