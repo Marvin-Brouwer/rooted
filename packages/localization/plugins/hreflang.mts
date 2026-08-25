@@ -1,4 +1,5 @@
 import { isConstantParameter } from '@rooted/router/routes'
+import { routeManifestPluginName, seoPluginName } from '@rooted/seo'
 
 import { localeTokenBrand } from '../src/locale-token.mts'
 
@@ -8,8 +9,6 @@ import type { Constant, Parameter } from '@rooted/router/routes'
 import type { RouteHeadLink, SeoApi } from '@rooted/seo'
 import type { Plugin } from 'vite'
 
-const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
-const SEO_PLUGIN_NAME = 'rooted:seo'
 
 // Structural view of a route, matching what the manifest api exposes. The
 // route objects come from a jiti-loaded module copy, so detection relies on
@@ -68,9 +67,9 @@ export function localizationSeo(): Plugin {
 		apply: 'build',
 
 		configResolved(config) {
-			const manifestPlugin = config.plugins.find(plugin => plugin.name === MANIFEST_PLUGIN_NAME)
+			const manifestPlugin = config.plugins.find(plugin => plugin.name === routeManifestPluginName)
 			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
-			const seoPlugin = config.plugins.find(plugin => plugin.name === SEO_PLUGIN_NAME)
+			const seoPlugin = config.plugins.find(plugin => plugin.name === seoPluginName)
 			const seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 
 			// Everything below runs lazily during the adapter's closeBundle,

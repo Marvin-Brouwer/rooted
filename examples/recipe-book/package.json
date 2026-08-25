@@ -22,6 +22,7 @@
 	"devDependencies": {
 		"@rooted-adapters/azure-static-webapp": "workspace:^",
 		"@rooted/application": "workspace:^",
+		"@rooted/seo": "workspace:^",
 		"@types/html-minifier-terser": "^7.0.2",
 		"@varlock/vite-integration": "^1.4.0",
 		"gray-matter": "^4.0.3",

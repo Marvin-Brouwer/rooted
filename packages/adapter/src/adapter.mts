@@ -1,14 +1,14 @@
 import { access, constants, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import { routeManifestPluginName, seoPluginName } from '@rooted/seo'
+
 import { createStaticRenderer, injectSnapshot } from './static-renderer.mts'
 
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { SeoApi } from '@rooted/seo'
 import type { Plugin, ResolvedConfig } from 'vite'
 
-const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
-const SEO_PLUGIN_NAME = 'rooted:seo'
 
 /**
  * A flat list of route paths/patterns for adapters that don't use `generateRouteManifest`.
@@ -147,9 +147,9 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 
 		configResolved(resolved) {
 			config = resolved
-			const manifestPlugin = resolved.plugins.find(p => p.name === MANIFEST_PLUGIN_NAME)
+			const manifestPlugin = resolved.plugins.find(p => p.name === routeManifestPluginName)
 			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
-			const seoPlugin = resolved.plugins.find(p => p.name === SEO_PLUGIN_NAME)
+			const seoPlugin = resolved.plugins.find(p => p.name === seoPluginName)
 			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 		},
 

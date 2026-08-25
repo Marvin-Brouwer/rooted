@@ -164,8 +164,8 @@ export type SeoPrepareTask = () => Promise<void>
  *
  * Retrieve it in `configResolved` or `buildStart`:
  * ```ts
- * const seoPlugin = config.plugins.find(p => p.name === 'rooted:seo')
- * const seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
+ * const plugin = config.plugins.find(p => p.name === seoPluginName)
+ * const seoApi = (plugin as { api?: SeoApi } | undefined)?.api
  * seoApi?.addSitemap({ name: 'icons', entries: [...] })
  * ```
  */

@@ -78,6 +78,9 @@ importers:
       '@rooted/application':
         specifier: workspace:^
         version: link:../../packages/application
+      '@rooted/seo':
+        specifier: workspace:^
+        version: link:../../packages/seo
       '@types/html-minifier-terser':
         specifier: ^7.0.2
         version: 7.0.2

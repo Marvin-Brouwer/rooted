@@ -20,6 +20,8 @@ The split exists for two reasons:
 @rooted/localization  # imports util, router, components
 @rooted/markdown      # imports components
 @rooted/application   # build-time. imports application primitives.
+@rooted/seo           # build-time. imports router (optional peer, types only).
+@rooted/adapter       # build-time. imports seo (types only).
 ```
 
 The arrow always points down. `elements` cannot import `components`. `store` does not import `components` (it's usable outside rooted apps). `application` is build-time only and does not ship runtime code that depends on the others.
@@ -52,7 +54,7 @@ This package is the closest thing to "the framework." Most user code imports fro
 
 The router, gates, link component, navigation helpers, route-token parsing, route metadata, and the SEO meta runtime. Plus the `@rooted/router/manifest` Vite plugin for `_routes.mts` discovery.
 
-Imports `components` because routes resolve to component instances and the router itself is a component. Does not depend on `@rooted/application`; the router is usable without the build-time SEO tooling.
+Imports `components` because routes resolve to component instances and the router itself is a component. Does not depend on `@rooted/application` or `@rooted/seo`; the router is usable without the build-time SEO tooling.
 
 ## `@rooted/localization`
 
@@ -80,15 +82,23 @@ Type-safe wrappers around `localStorage`, `sessionStorage`, and cookies. No reac
 
 Separate from `store` because they are different concerns: `store` is in-memory shared state, `storage` is persistent typed key-value access.
 
+## `@rooted/seo`
+
+Build-time SEO. Meta tags, Open Graph, canonical links, sitemap and `robots.txt` generation, and the `SeoApi` seam other plugins register against.
+
+Split in two on purpose. `@rooted/seo` knows nothing about routing, so it works in an app that doesn't use the router. `@rooted/seo/router` holds the parts that read the route manifest: per-page metadata, route entries in the sitemap, and `llms.txt`. The router is an optional peer, used for types only, and the plugin no-ops when it isn't there.
+
+Plugin-only, no `src/`. The split is documented in [adr/2026-08-25.seo-split.md](../adr/2026-08-25.seo-split.md).
+
 ## `@rooted/application`
 
-Build-time tooling. The `rootedManifest` helper that wraps a Vite config, the SEO plugin (sitemap, llms.txt, robots, per-route meta injection), the PWA preset, and the import cycle detector.
+Build-time tooling. The `rootedManifest` helper that wraps a Vite config, the PWA preset, and the import cycle detector. It wires up the plugins from `@rooted/seo` so apps don't have to.
 
 This package has no runtime exports. If you're writing app code, you don't import from it.
 
 ## `@rooted/adapter` and `@rooted-adapters/*`
 
-`@rooted/adapter` is the base package for deployment adapters. It exports `staticAdapter` (for file-based hosts) and `routedAdapter` (for Node.js servers). It handles the shared build work: reading `index.html`, pre-rendering static routes, injecting SEO, and running the SSG pass.
+`@rooted/adapter` is the base package for deployment adapters. It exports `staticAdapter` (for file-based hosts) and `routedAdapter` (for Node.js servers). It handles the shared build work: reading `index.html`, pre-rendering static routes, and running the SSG pass. SEO is delegated: the adapter calls `SeoApi.injectRouteHtml(html, staticPath)` and `@rooted/seo` does the work.
 
 The 17 `@rooted-adapters/*` packages are thin wrappers around `@rooted/adapter`. Each one handles the host-specific artifacts for a single deployment target (`_redirects`, `firebase.json`, `staticwebapp.config.json`, `server.mjs`, etc.).
 

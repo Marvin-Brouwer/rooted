@@ -7,6 +7,8 @@ SEO in rooted has two halves:
 
 Both halves are wired through `@rooted/application`'s `rootedManifest` helper. You don't have to touch them separately.
 
+The build-time half lives in `@rooted/seo`, split across two entry points. `@rooted/seo` itself knows nothing about routing: meta tag injection, sitemap generation, `robots.txt`. `@rooted/seo/router` adds the parts that read your routes: per-page metadata, route entries in the sitemap, and `llms.txt`. `rootedManifest` adds both, and skips the second when you have no router installed.
+
 ## Per-route metadata
 
 Add a `seo` field next to `resolve` when you declare a route.
@@ -66,6 +68,8 @@ At build time the function runs as if the browser were at the page being generat
 Two paths:
 
 - **At build time**, the SEO plugin renders one HTML file per static route. Each file gets the route's `<title>`, description, canonical link, and Open Graph tags injected. Crawlers see the right tags without running JavaScript.
+
+  The plugin doesn't read your routes to do this. It asks whoever registered a metadata provider, and `@rooted/seo/router` is the one that walks the route manifest. That's why the routing-free half works on its own, and it's the seam to use if your pages come from somewhere other than routes.
 - **At runtime**, when the router navigates to a new route, it updates `document.title` and the existing meta tags in place. This happens inside the router; you don't have to wire it up.
 
 You can pass router-specific SEO options through the router itself:
@@ -118,7 +122,7 @@ The `webManifest` is the standard PWA manifest. `webManifest.url` is the deploym
 ## `seo` options
 
 ```ts
-import type { SeoOptions } from '@rooted/application'
+import type { SeoOptions } from '@rooted/seo'
 
 export const seo: SeoOptions = {
   titleSuffix: ' | My App',     // appended to every route title
@@ -133,7 +137,7 @@ export const seo: SeoOptions = {
 `llms.txt` is a Markdown file that summarises the site for language models. The default behaviour writes a list of every static route with a `title`. You can override the section structure when you have a real content backend:
 
 ```ts
-import type { SeoOptions } from '@rooted/application'
+import type { SeoOptions } from '@rooted/seo'
 
 export const seo: SeoOptions = {
   llmsTxt: {
@@ -167,10 +171,10 @@ Set `llmsTxt: false` to skip the file entirely.
 The SEO plugin exposes a small inter-plugin API for registering additional sitemaps (for example one for icons or a content sitemap generated from a CMS). You retrieve it through the resolved Vite config:
 
 ```ts
-import type { SeoApi } from '@rooted/application'
+import { seoPluginName, type SeoApi } from '@rooted/seo'
 
-const seoPlugin = resolvedConfig.plugins.find(p => p.name === 'rooted:seo')
-const seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
+const plugin = resolvedConfig.plugins.find(p => p.name === seoPluginName)
+const seoApi = (plugin as { api?: SeoApi } | undefined)?.api
 seoApi?.addSitemap({
   name: 'icons',
   entries: [
@@ -179,7 +183,20 @@ seoApi?.addSitemap({
 })
 ```
 
-This is most useful from another Vite plugin's `configResolved` or `buildStart` hook.
+This is most useful from another Vite plugin's `configResolved` or `buildStart` hook. Plugins find each other by name rather than by importing, so `seoPluginName` is the contract; use the constant instead of writing the string.
+
+`SeoApi` has a few other seams, all registered the same way:
+
+| Method | What it does |
+|---|---|
+| `addSitemap` | Registers an extra sitemap, listed in `sitemap-index.xml`. |
+| `addSitemapEntryProvider` | Adds pages to the main `sitemap.xml`, by static path. |
+| `addRouteSeoProvider` | Supplies a page's metadata for `injectRouteHtml`. |
+| `addRouteHeadLinks` | Adds `<link>` tags to a page's head, used by hreflang. |
+| `addRouteHtmlTransform` | Free-form HTML transform, after meta tags and head links. |
+| `addPrepareTask` | Async work that must finish before any metadata is read. |
+
+`gitLastModified(file, root)` is exported too. It's what the sitemap uses for `lastmod`: the newest `git log` date for a file, falling back to its mtime when it isn't tracked.
 
 ## What you don't have to do
 
@@ -187,4 +204,4 @@ This is most useful from another Vite plugin's `configResolved` or `buildStart` 
 - You don't write `robots.txt` yourself. The defaults are sensible. Pass `seo.robots` to override them.
 - You don't have to update `<meta>` tags by hand. The router does it when navigating.
 
-If you need behaviour rooted's tooling doesn't support, the surface area is small. The relevant code is in [`packages/application/plugins`](../../packages/application/plugins).
+If you need behaviour rooted's tooling doesn't support, the surface area is small. The relevant code is in [`packages/seo/plugins`](../../packages/seo/plugins).

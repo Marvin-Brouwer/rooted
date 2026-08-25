@@ -12,7 +12,9 @@ The published `@rooted/*` packages live here, one folder each.
 | [`@rooted/events`](./events) | Typed event helpers and global error filtering. |
 | [`@rooted/store`](./store) | A small synchronous shared-state container. |
 | [`@rooted/storage`](./storage) | Typed wrappers around `localStorage`, `sessionStorage`, and cookies. |
-| [`@rooted/application`](./application) | Build-time configuration, SEO plugins, and Vite adapters. |
+| [`@rooted/application`](./application) | Build-time configuration: the Vite config wrapper and the PWA preset. |
+| [`@rooted/seo`](./seo) | Build-time SEO: meta tags, sitemaps, `robots.txt`, and `llms.txt`. |
+| [`@rooted/adapter`](./adapter) | Base package for deployment adapters. See also [`adapters/`](./adapters). |
 | [`@rooted/util`](./util) | Internal utilities. Not part of the public API. |
 
 For usage docs, start in [`docs/guide/`](../docs/guide/). For the deeper APIs, see [`docs/advanced/`](../docs/advanced/). For the "why" behind the package layout, see [`docs/maintainers/package-design.md`](../docs/maintainers/package-design.md).

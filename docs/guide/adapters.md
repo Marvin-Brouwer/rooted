@@ -187,3 +187,5 @@ export function myHostAdapter(): Plugin {
 ```
 
 Use `staticAdapter` for file-based hosts and `routedAdapter` for server-based hosts. The `setup` callback runs after the fallback file is written and before static routes are pre-rendered. See the TSDOC on `AdapterContext` for the full list of available fields.
+
+Route and SEO details are not among them. `AdapterContext` gives you `resolvedRoutes`, which merges the manifest routes with any listed manually, and that's the supported way to see what pages exist. SEO injection happens through `@rooted/seo` before the HTML reaches your adapter, so there's nothing to wire up.

@@ -4,20 +4,13 @@
 
 ```ts
 
-import { AdditionalSitemap } from '@rooted/seo';
 import { ArrayElement } from '@rooted/util';
 import { BuildEnvironmentOptions } from 'vite';
-import { LlmsTxtOptions } from '@rooted/seo';
-import { LlmsTxtSection } from '@rooted/seo';
 import { ManifestOptions } from 'vite-plugin-pwa';
-import { SeoApi } from '@rooted/seo';
 import { SeoOptions } from '@rooted/seo';
-import { SitemapEntry } from '@rooted/seo';
 import { UserConfig } from 'vite';
 import { UserConfigFnObject } from 'vite';
 import { VitePWAOptions } from 'vite-plugin-pwa';
-
-export { AdditionalSitemap }
 
 // @public
 export type CodeSplittingGroups = NonNullable<CodeSplittingOptions['groups']>;
@@ -29,10 +22,6 @@ export type CodeSplittingOptions = NonNullable<Exclude<OutputOptions['codeSplitt
 export type DetectorOptions = {
     importCycle?: ImportCycleOptions;
 };
-
-export { LlmsTxtOptions }
-
-export { LlmsTxtSection }
 
 // @public
 export type RootedApplicationManifest = {
@@ -52,12 +41,6 @@ export type RootedApplicationManifest = {
 
 // @public
 export function rootedManifest(manifest: RootedApplicationManifest): UserConfigFnObject;
-
-export { SeoApi }
-
-export { SeoOptions }
-
-export { SitemapEntry }
 
 // (No @packageDocumentation comment for this package)
 
