@@ -66,7 +66,6 @@
 	"devDependencies": {
 		"@rooted/components": "workspace:^",
 		"@rooted/development": "workspace:*",
-		"@rooted/router": "workspace:^",
 		"@rooted/tsdown": "workspace:^",
 		"@types/node": "^26.2.0",
 		"tsx": "^4.23.12",

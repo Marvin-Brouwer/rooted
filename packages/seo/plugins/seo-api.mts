@@ -103,24 +103,30 @@ export type RouteHtmlTransform = (html: string, staticPath: string) => string
 export type RouteSeoProvider = (staticPath: string) => PageSeoMetadata | undefined
 
 /**
- * A page to include in the main `sitemap.xml`, identified by its static path.
+ * A page the build knows about, identified by its static path.
  *
  * Paths rather than URLs, because only the SEO plugin knows the deployment URL
  * and base path. It turns these into absolute `loc` values.
  */
-export type SitemapPageEntry = Omit<SitemapEntry, 'loc'> & {
+export type PageEntry = Omit<SitemapEntry, 'loc'> & {
 	/** Static path of the page, e.g. `/categories/`. */
 	path: string
+	/** When `true`, the page is left out of `sitemap.xml`. It still counts as a page. */
+	excludeFromSitemap?: boolean
 }
 
 /**
- * Returns pages to merge into the main `sitemap.xml`.
+ * Returns every page the provider knows about, sitemap-eligible or not.
  *
  * Called once during `closeBundle`, after {@link SeoApi.prepare}. Pages whose
  * resolved URL is already present are skipped, so the first provider to claim
  * a URL wins.
+ *
+ * One seam, two consumers with different needs: `sitemap.xml` skips anything
+ * flagged `excludeFromSitemap`, `llms.txt` lists the lot. A page can be worth
+ * telling a model about without being worth indexing.
  */
-export type SitemapEntryProvider = () => Promise<SitemapPageEntry[]>
+export type PageProvider = () => Promise<PageEntry[]>
 
 /**
  * A custom section in the generated `llms.txt`, used to override or extend
@@ -222,9 +228,24 @@ export type SeoApi = {
 	 */
 	addRouteSeoProvider(provider: RouteSeoProvider): void
 	/**
-	 * Registers a source of sitemap entries for the main `sitemap.xml`.
+	 * Registers a source of pages, used for both `sitemap.xml` and `llms.txt`.
 	 */
-	addSitemapEntryProvider(provider: SitemapEntryProvider): void
+	addPageProvider(provider: PageProvider): void
+	/**
+	 * Every page the registered providers know about, sitemap-eligible or not.
+	 *
+	 * Asks each provider once and caches the answer, so plugins that need the
+	 * page list can call it without coordinating. Await {@link SeoApi.prepare}
+	 * first, or call this after it.
+	 */
+	getPages(): Promise<PageEntry[]>
+	/**
+	 * The SEO metadata for a page, from the registered providers.
+	 *
+	 * The same lookup {@link SeoApi.injectRouteHtml} uses. Handy for plugins
+	 * that need a page's title or description without knowing where it came from.
+	 */
+	getPageSeo(staticPath: string): PageSeoMetadata | undefined
 	/**
 	 * Registers a transform applied to each prerendered page's HTML at the end
 	 * of {@link SeoApi.injectRouteHtml}.

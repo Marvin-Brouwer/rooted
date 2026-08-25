@@ -2,7 +2,7 @@ import { gitLastModified } from './git-last-modified.mts'
 import { routeManifestPluginName, seoPluginName } from './plugin-names.mts'
 import { resolveRouteSeo } from './resolve-route-seo.mts'
 
-import type { PageSeoMetadata, SeoApi, SitemapPageEntry } from './seo-api.mts'
+import type { PageEntry, PageSeoMetadata, SeoApi } from './seo-api.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Plugin } from 'vite'
 
@@ -38,9 +38,9 @@ function routerIsInstalled(): boolean {
  * separate entry point.
  *
  * It does nothing in two cases. Without `@rooted/router` installed it warns
- * once, because loading this entry point without its peer is a mistake. With
- * the router installed but no manifest plugin in the config it stays quiet,
- * because that's a normal setup.
+ * once, because you only get here by adding this plugin yourself, so a missing
+ * peer is a mistake. With the router installed but no manifest plugin in the
+ * config it stays quiet, because that's a normal setup.
  *
  * @example
  * ```ts
@@ -51,11 +51,12 @@ function routerIsInstalled(): boolean {
  * })
  * ```
  *
- * @internal Automatically included by `rootedManifest` when the router is present.
+ * Add it yourself. `rootedManifest` doesn't, because `@rooted/application`
+ * knows nothing about routing, which is what keeps routing optional.
  */
 export function routeSeoPlugin(): Plugin {
 	const seoByPath = new Map<string, PageSeoMetadata | undefined>()
-	let pages: SitemapPageEntry[] = []
+	let pages: PageEntry[] = []
 
 	return {
 		name: routeSeoPluginName,
@@ -83,7 +84,7 @@ export function routeSeoPlugin(): Plugin {
 				pages = await walkRoutes(manifestApi, resolved.root, seoByPath)
 			})
 			seoApi.addRouteSeoProvider(staticPath => seoByPath.get(staticPath))
-			seoApi.addSitemapEntryProvider(async () => pages)
+			seoApi.addPageProvider(async () => pages)
 		},
 	}
 }
@@ -96,8 +97,8 @@ async function walkRoutes(
 	manifestApi: RouteManifestApi,
 	root: string,
 	seoByPath: Map<string, PageSeoMetadata | undefined>,
-): Promise<SitemapPageEntry[]> {
-	const pages: SitemapPageEntry[] = []
+): Promise<PageEntry[]> {
+	const pages: PageEntry[] = []
 
 	for (const route of manifestApi.routes) {
 		if (!Object.hasOwn(route, 'getMetadata')) continue
@@ -116,11 +117,12 @@ async function walkRoutes(
 			const seo = await resolveRouteSeo(route, staticPath)
 			seoByPath.set(staticPath, seo)
 
-			if (seo?.excludeFromSitemap) continue
-
+			// Every page, including the ones kept out of the sitemap: `llms.txt`
+			// still lists those, so the flag travels with the page.
 			pages.push({
 				path: staticPath,
 				lastmod,
+				excludeFromSitemap: seo?.excludeFromSitemap,
 				changeFrequency: seo?.changeFrequency,
 				priority: seo?.priority,
 			})

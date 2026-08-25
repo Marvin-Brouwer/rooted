@@ -9,7 +9,7 @@ import { injectCanonical, injectHeadLinks, injectMetaTags, injectOgTags, injectR
 import { buildSitemapIndexXml, buildSitemapXml } from './seo-sitemap.mts'
 
 import type { RobotsOptions } from './robots.mts'
-import type { AdditionalSitemap, LlmsTxtOptions, PageSeoMetadata, RouteHeadLinkProvider, RouteHtmlTransform, RouteSeoProvider, SeoApi, SeoPrepareTask, SitemapEntry, SitemapEntryProvider } from './seo-api.mts'
+import type { AdditionalSitemap, LlmsTxtOptions, PageEntry, PageProvider, PageSeoMetadata, RouteHeadLinkProvider, RouteHtmlTransform, RouteSeoProvider, SeoApi, SeoPrepareTask, SitemapEntry } from './seo-api.mts'
 import type { Plugin, ResolvedConfig } from 'vite'
 import type { ManifestOptions } from 'vite-plugin-pwa'
 
@@ -82,7 +82,8 @@ export function seoPlugin(
 	const additionalSitemaps = new Map<string, AdditionalSitemap>()
 	const headLinkProviders: RouteHeadLinkProvider[] = []
 	const routeSeoProviders: RouteSeoProvider[] = []
-	const sitemapEntryProviders: SitemapEntryProvider[] = []
+	const pageProviders: PageProvider[] = []
+	let collectedPages: Promise<PageEntry[]> | undefined
 	const htmlTransforms: RouteHtmlTransform[] = []
 	const prepareTasks: SeoPrepareTask[] = []
 	let prepared: Promise<void> | undefined
@@ -96,6 +97,19 @@ export function seoPlugin(
 	const defaultOgImage = options?.defaultOgImage
 		?? (deploymentUrl ? new URL('pwa-512x512.png', deploymentUrl).href : undefined)
 	const titleSuffix = options?.titleSuffix
+
+	function getPages(): Promise<PageEntry[]> {
+		return collectedPages ??= (async () => {
+			const byPath = new Map<string, PageEntry>()
+			for (const provider of pageProviders) {
+				for (const page of await provider()) {
+					if (byPath.has(page.path)) continue
+					byPath.set(page.path, page)
+				}
+			}
+			return [...byPath.values()]
+		})()
+	}
 
 	function routeSeo(staticPath: string): PageSeoMetadata | undefined {
 		for (const provider of routeSeoProviders) {
@@ -145,9 +159,11 @@ export function seoPlugin(
 			addRouteSeoProvider(provider: RouteSeoProvider): void {
 				routeSeoProviders.push(provider)
 			},
-			addSitemapEntryProvider(provider: SitemapEntryProvider): void {
-				sitemapEntryProviders.push(provider)
+			addPageProvider(provider: PageProvider): void {
+				pageProviders.push(provider)
 			},
+			getPages,
+			getPageSeo: routeSeo,
 			addRouteHtmlTransform(transform: RouteHtmlTransform): void {
 				htmlTransforms.push(transform)
 			},
@@ -177,12 +193,11 @@ export function seoPlugin(
 				const loc = toLocation('/')
 				entries.set(loc, { loc, lastmod: homeLastModified })
 			}
-			for (const provider of sitemapEntryProviders) {
-				for (const { path: staticPath, ...entry } of await provider()) {
-					const loc = toLocation(staticPath)
-					if (entries.has(loc)) continue
-					entries.set(loc, { loc, ...entry })
-				}
+			for (const { path: staticPath, excludeFromSitemap, ...entry } of await getPages()) {
+				if (excludeFromSitemap) continue
+				const loc = toLocation(staticPath)
+				if (entries.has(loc)) continue
+				entries.set(loc, { loc, ...entry })
 			}
 
 			if (entries.size > 0) {

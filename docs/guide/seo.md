@@ -5,9 +5,23 @@ SEO in rooted has two halves:
 1. **Per-route metadata.** Each route declares its `title`, `description`, and a few sitemap fields. The router applies these at runtime as the page changes.
 2. **Build-time tooling.** When you build for production, rooted writes `sitemap.xml`, `robots.txt`, and `llms.txt` based on the routes it finds. It also injects per-route meta tags into the static HTML shipped for each route.
 
-Both halves are wired through `@rooted/application`'s `rootedManifest` helper. You don't have to touch them separately.
+Most of it is wired through `@rooted/application`'s `rootedManifest` helper, with one plugin you add yourself if you use the router.
 
-The build-time half lives in `@rooted/seo`, split across two entry points. `@rooted/seo` itself knows nothing about routing: meta tag injection, sitemap generation, `robots.txt`. `@rooted/seo/router` adds the parts that read your routes: per-page metadata, route entries in the sitemap, and `llms.txt`. `rootedManifest` adds both, and skips the second when you have no router installed.
+The build-time half lives in `@rooted/seo`, split across two entry points. `@rooted/seo` itself knows nothing about routing: meta tag injection, sitemap generation, `robots.txt`. `@rooted/seo/router` supplies the parts that read your routes: each page's metadata and the pages themselves.
+
+`rootedManifest` wires up the first for you. It doesn't wire up the second, because `@rooted/application` knows nothing about routing, and that's what keeps routing optional. If you use the router, add the plugin next to `generateRouteManifest()`:
+
+```ts
+import { generateRouteManifest } from '@rooted/router/manifest'
+import { routeSeoPlugin } from '@rooted/seo/router'
+
+plugins: [
+  generateRouteManifest({ glob: './src/**/_routes.mts', routeManifestPath: './src/_routes.g.mts' }),
+  routeSeoPlugin(),
+]
+```
+
+`@rooted/seo/router` and `@rooted/router` come as a pair; importing the one without the other won't type check.
 
 ## Per-route metadata
 
@@ -69,7 +83,7 @@ Two paths:
 
 - **At build time**, the SEO plugin renders one HTML file per static route. Each file gets the route's `<title>`, description, canonical link, and Open Graph tags injected. Crawlers see the right tags without running JavaScript.
 
-  The plugin doesn't read your routes to do this. It asks whoever registered a metadata provider, and `@rooted/seo/router` is the one that walks the route manifest. That's why the routing-free half works on its own, and it's the seam to use if your pages come from somewhere other than routes.
+  The plugin doesn't read your routes to do this. It asks whoever registered a page and metadata provider, and `routeSeoPlugin` is what registers them from the route manifest. That's why the routing-free half works on its own, and it's the seam to use if your pages come from somewhere other than routes.
 - **At runtime**, when the router navigates to a new route, it updates `document.title` and the existing meta tags in place. This happens inside the router; you don't have to wire it up.
 
 You can pass router-specific SEO options through the router itself:
@@ -93,6 +107,7 @@ Wire up the manifest in `vite.config.mts`:
 ```ts
 import { rootedManifest } from '@rooted/application'
 import { generateRouteManifest } from '@rooted/router/manifest'
+import { routeSeoPlugin } from '@rooted/seo/router'
 
 import { seo } from './src/seo.mts'
 
@@ -113,6 +128,7 @@ export default rootedManifest({
       glob: './src/**/_routes.mts',
       routeManifestPath: './src/_routes.g.mts',
     }),
+    routeSeoPlugin(),
   ],
 })
 ```
@@ -190,8 +206,9 @@ This is most useful from another Vite plugin's `configResolved` or `buildStart` 
 | Method | What it does |
 |---|---|
 | `addSitemap` | Registers an extra sitemap, listed in `sitemap-index.xml`. |
-| `addSitemapEntryProvider` | Adds pages to the main `sitemap.xml`, by static path. |
+| `addPageProvider` | Supplies the pages, by static path. Feeds both `sitemap.xml` and `llms.txt`. |
 | `addRouteSeoProvider` | Supplies a page's metadata for `injectRouteHtml`. |
+| `getPages` / `getPageSeo` | Read back what the providers supplied. |
 | `addRouteHeadLinks` | Adds `<link>` tags to a page's head, used by hreflang. |
 | `addRouteHtmlTransform` | Free-form HTML transform, after meta tags and head links. |
 | `addPrepareTask` | Async work that must finish before any metadata is read. |

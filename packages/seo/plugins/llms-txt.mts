@@ -1,11 +1,9 @@
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { routeManifestPluginName, seoPluginName } from './plugin-names.mts'
-import { resolveRouteSeo } from './resolve-route-seo.mts'
+import { seoPluginName } from './plugin-names.mts'
 
 import type { LlmsTxtOptions, SeoApi } from './seo-api.mts'
-import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Plugin, ResolvedConfig } from 'vite'
 import type { ManifestOptions } from 'vite-plugin-pwa'
 
@@ -32,7 +30,6 @@ export function llmsTxtPlugin(
 	options: LlmsTxtOptions | undefined,
 ): Plugin {
 	let config: ResolvedConfig
-	let manifestApi: RouteManifestApi | undefined
 	let seoApi: SeoApi | undefined
 
 	function toAbsolute(staticPath: string): string {
@@ -47,8 +44,6 @@ export function llmsTxtPlugin(
 
 		configResolved(resolved) {
 			config = resolved
-			const manifestPlugin = resolved.plugins.find(p => p.name === routeManifestPluginName)
-			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
 			const seoPlugin = resolved.plugins.find(p => p.name === seoPluginName)
 			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 		},
@@ -72,34 +67,25 @@ export function llmsTxtPlugin(
 				}
 			}
 			else {
-				// Auto-generate "Pages" section from static routes
-				type PageEntry = { title: string, url: string, description?: string, isHome: boolean }
-				const pages: PageEntry[] = []
+				// Pages come from whoever registered them with the seo plugin.
+				// This plugin doesn't know what a route is; `@rooted/seo/router`
+				// is what supplies them when routing is in use.
+				type Listing = { title: string, url: string, description?: string, isHome: boolean }
+				const pages: Listing[] = []
 
-				if (manifestApi) {
-					for (const route of manifestApi.routes) {
-						if (!Object.hasOwn(route, 'getMetadata')) continue
-						const metadata = route.getMetadata()
-						// staticPaths includes constant-token routes unrolled to concrete paths
-						const staticPaths = metadata.staticPaths
-						if (staticPaths === false) continue
-
-						for (const staticPath of staticPaths) {
-							// Lazy seo resolvers are evaluated per generated page
-							const seo = await resolveRouteSeo(route, staticPath)
-							if (!seo?.title) {
-								config.logger.info(`[llms-txt] skipping route ${staticPath}: no seo.title`)
-								continue
-							}
-
-							pages.push({
-								title: seo.title,
-								url: toAbsolute(staticPath),
-								description: seo.description,
-								isHome: staticPath === '/',
-							})
-						}
+				for (const page of await seoApi?.getPages() ?? []) {
+					const seo = seoApi?.getPageSeo(page.path)
+					if (!seo?.title) {
+						config.logger.info(`[llms-txt] skipping ${page.path}: no seo.title`)
+						continue
 					}
+
+					pages.push({
+						title: seo.title,
+						url: toAbsolute(page.path),
+						description: seo.description,
+						isHome: page.path === '/',
+					})
 				}
 
 				if (pages.length === 0) return

@@ -14,6 +14,7 @@
 
 export { seoPlugin, type SeoOptions } from '../seo.mts'
 export { robotsPlugin, type RobotsOptions } from '../robots.mts'
+export { llmsTxtPlugin } from '../llms-txt.mts'
 export { gitLastModified } from '../git-last-modified.mts'
 export { seoPluginName, routeManifestPluginName } from '../plugin-names.mts'
 export type {
@@ -24,10 +25,10 @@ export type {
 	RouteHeadLink,
 	RouteHeadLinkProvider,
 	RouteHtmlTransform,
+	PageEntry,
+	PageProvider,
 	RouteSeoProvider,
 	SeoApi,
 	SeoPrepareTask,
 	SitemapEntry,
-	SitemapEntryProvider,
-	SitemapPageEntry,
 } from '../seo-api.mts'

@@ -22,6 +22,12 @@ export type LlmsTxtOptions = {
     sections?: LlmsTxtSection[];
 };
 
+// @internal
+export function llmsTxtPlugin(deploymentUrl: string | undefined, webManifest: Partial<ManifestOptions> & {
+    name?: string;
+    description?: string;
+}, options: LlmsTxtOptions | undefined): Plugin_2;
+
 // @public
 export type LlmsTxtSection = {
     title: string;
@@ -31,6 +37,15 @@ export type LlmsTxtSection = {
         description?: string;
     }>;
 };
+
+// @public
+export type PageEntry = Omit<SitemapEntry, 'loc'> & {
+    path: string;
+    excludeFromSitemap?: boolean;
+};
+
+// @public
+export type PageProvider = () => Promise<PageEntry[]>;
 
 // @public
 export type PageSeoMetadata = {
@@ -79,7 +94,9 @@ export type SeoApi = {
     injectRootHtml(html: string): string;
     addRouteHeadLinks(provider: RouteHeadLinkProvider): void;
     addRouteSeoProvider(provider: RouteSeoProvider): void;
-    addSitemapEntryProvider(provider: SitemapEntryProvider): void;
+    addPageProvider(provider: PageProvider): void;
+    getPages(): Promise<PageEntry[]>;
+    getPageSeo(staticPath: string): PageSeoMetadata | undefined;
     addRouteHtmlTransform(transform: RouteHtmlTransform): void;
     addPrepareTask(task: SeoPrepareTask): void;
     prepare(): Promise<void>;
@@ -117,14 +134,6 @@ export type SitemapEntry = {
         title?: string;
         caption?: string;
     }>;
-};
-
-// @public
-export type SitemapEntryProvider = () => Promise<SitemapPageEntry[]>;
-
-// @public
-export type SitemapPageEntry = Omit<SitemapEntry, 'loc'> & {
-    path: string;
 };
 
 // (No @packageDocumentation comment for this package)

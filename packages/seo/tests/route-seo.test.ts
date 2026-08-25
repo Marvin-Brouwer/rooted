@@ -4,12 +4,12 @@ import { route } from '@rooted/router/routes'
 
 import { routeSeoPlugin } from '../plugins/route-seo.mts'
 
-import type { RouteSeoProvider, SeoPrepareTask, SitemapEntryProvider } from '../plugins/seo-api.mts'
+import type { PageProvider, RouteSeoProvider, SeoPrepareTask } from '../plugins/seo-api.mts'
 import type { ResolvedConfig } from 'vite'
 
 type Registered = {
 	seoProviders: RouteSeoProvider[]
-	sitemapProviders: SitemapEntryProvider[]
+	pageProviders: PageProvider[]
 	prepareTasks: SeoPrepareTask[]
 	warn: ReturnType<typeof vi.fn>
 }
@@ -19,7 +19,7 @@ function setup(options: { routes?: unknown[], withManifest?: boolean, withSeo?: 
 
 	const registered: Registered = {
 		seoProviders: [],
-		sitemapProviders: [],
+		pageProviders: [],
 		prepareTasks: [],
 		warn: vi.fn(),
 	}
@@ -32,7 +32,7 @@ function setup(options: { routes?: unknown[], withManifest?: boolean, withSeo?: 
 		name: 'rooted:seo',
 		api: {
 			addRouteSeoProvider(p: RouteSeoProvider) { registered.seoProviders.push(p) },
-			addSitemapEntryProvider(p: SitemapEntryProvider) { registered.sitemapProviders.push(p) },
+			addPageProvider(p: PageProvider) { registered.pageProviders.push(p) },
 			addPrepareTask(task: SeoPrepareTask) { registered.prepareTasks.push(task) },
 		},
 	}
@@ -62,7 +62,7 @@ describe('routeSeoPlugin()', () => {
 
 		// Assert
 		expect(registered.seoProviders).toHaveLength(1)
-		expect(registered.sitemapProviders).toHaveLength(1)
+		expect(registered.pageProviders).toHaveLength(1)
 		expect(registered.prepareTasks).toHaveLength(1)
 	})
 
@@ -78,20 +78,20 @@ describe('routeSeoPlugin()', () => {
 		expect(registered.seoProviders[0]!('/about/')).toEqual({ title: 'About' })
 	})
 
-	test('reports static paths as sitemap pages', async () => {
+	test('reports static paths as pages', async () => {
 		// Arrange
 		const aboutRoute = route`/about/`({ resolve: () => Promise.resolve(void 0), seo: { title: 'About' } })
 		const registered = setup({ routes: [aboutRoute] })
 
 		// Act
 		for (const task of registered.prepareTasks) await task()
-		const pages = await registered.sitemapProviders[0]!()
+		const pages = await registered.pageProviders[0]!()
 
 		// Assert
 		expect(pages.map(page => page.path)).toEqual(['/about/'])
 	})
 
-	test('omits routes marked excludeFromSitemap but still resolves their seo', async () => {
+	test('reports routes marked excludeFromSitemap, flagged rather than dropped', async () => {
 		// Arrange
 		const hiddenRoute = route`/hidden/`({
 			resolve: () => Promise.resolve(void 0),
@@ -101,10 +101,13 @@ describe('routeSeoPlugin()', () => {
 
 		// Act
 		for (const task of registered.prepareTasks) await task()
-		const pages = await registered.sitemapProviders[0]!()
+		const pages = await registered.pageProviders[0]!()
 
 		// Assert
-		expect(pages).toEqual([])
+		// `llms.txt` lists these even though `sitemap.xml` skips them, so the page
+		// has to survive the seam with the flag attached.
+		expect(pages.map(page => page.path)).toEqual(['/hidden/'])
+		expect(pages[0]!.excludeFromSitemap).toBe(true)
 		expect(registered.seoProviders[0]!('/hidden/')).toEqual({ title: 'Hidden', excludeFromSitemap: true })
 	})
 
@@ -125,6 +128,6 @@ describe('routeSeoPlugin()', () => {
 
 		// Assert
 		expect(registered.warn).not.toHaveBeenCalled()
-		expect(registered.sitemapProviders).toHaveLength(0)
+		expect(registered.pageProviders).toHaveLength(0)
 	})
 })

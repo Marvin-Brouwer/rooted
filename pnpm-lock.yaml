@@ -598,9 +598,6 @@ importers:
       '@rooted/development':
         specifier: workspace:*
         version: link:../../tooling/development
-      '@rooted/router':
-        specifier: workspace:^
-        version: link:../router
       '@rooted/tsdown':
         specifier: workspace:^
         version: link:../../tooling/tsdown

@@ -4,21 +4,14 @@
 
 ```ts
 
-import { ManifestOptions } from 'vite-plugin-pwa';
 import { Plugin as Plugin_2 } from 'vite';
 import { RouteManifestApi } from '@rooted/router/manifest';
 import { RouteSeoMetadata } from '@rooted/router/routes';
 
-// @internal
-export function llmsTxtPlugin(deploymentUrl: string | undefined, webManifest: Partial<ManifestOptions> & {
-    name?: string;
-    description?: string;
-}, options: LlmsTxtOptions | undefined): Plugin_2;
-
 // @public
 export function resolveRouteSeo(route: ManifestRoute, staticPath: string): Promise<RouteSeoMetadata | undefined>;
 
-// @internal
+// @public
 export function routeSeoPlugin(): Plugin_2;
 
 // @public
