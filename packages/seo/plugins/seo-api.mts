@@ -93,6 +93,66 @@ export type RouteHeadLinkProvider = (staticPath: string) => RouteHeadLink[] | un
 export type RouteHtmlTransform = (html: string, staticPath: string) => string
 
 /**
+ * Returns the SEO metadata for a prerendered path, or `undefined` when the
+ * path has none.
+ *
+ * This is how route metadata reaches the SEO plugin. `@rooted/seo` has no idea
+ * what a route is, so `@rooted/seo/router` registers a provider that walks the
+ * route manifest. Register it in `configResolved` or `buildStart`.
+ */
+export type RouteSeoProvider = (staticPath: string) => PageSeoMetadata | undefined
+
+/**
+ * A page to include in the main `sitemap.xml`, identified by its static path.
+ *
+ * Paths rather than URLs, because only the SEO plugin knows the deployment URL
+ * and base path. It turns these into absolute `loc` values.
+ */
+export type SitemapPageEntry = Omit<SitemapEntry, 'loc'> & {
+	/** Static path of the page, e.g. `/categories/`. */
+	path: string
+}
+
+/**
+ * Returns pages to merge into the main `sitemap.xml`.
+ *
+ * Called once during `closeBundle`, after {@link SeoApi.prepare}. Pages whose
+ * resolved URL is already present are skipped, so the first provider to claim
+ * a URL wins.
+ */
+export type SitemapEntryProvider = () => Promise<SitemapPageEntry[]>
+
+/**
+ * A custom section in the generated `llms.txt`, used to override or extend
+ * the auto-generated "Pages" section.
+ */
+export type LlmsTxtSection = {
+	/** Heading shown as `## Title` in the output. */
+	title: string
+	entries: Array<{
+		title: string
+		url: string
+		description?: string
+	}>
+}
+
+/**
+ * Options for the generated `llms.txt` file.
+ */
+export type LlmsTxtOptions = {
+	/**
+	 * Markdown block inserted between the site description and the auto-generated
+	 * "Pages" section. Useful for adding extra context, disclaimers, or links.
+	 */
+	intro?: string
+	/**
+	 * Override the auto-generated "Pages" section with custom groupings.
+	 * When omitted, all static routes with a `seo.title` are listed under "Pages".
+	 */
+	sections?: LlmsTxtSection[]
+}
+
+/**
  * Async work that must finish before any route seo is evaluated at build
  * time, e.g. preloading lazily imported dictionaries. Registered tasks run
  * once, awaited by every build consumer through {@link SeoApi.prepare}.
@@ -129,12 +189,15 @@ export type SeoApi = {
 	 * `<meta name="robots">` (when `noIndex` is true), and Open Graph tags.
 	 * Tags that already exist in the HTML are left unchanged.
 	 *
+	 * Metadata comes from the providers registered with
+	 * {@link SeoApi.addRouteSeoProvider}, so the caller doesn't need to know
+	 * where a page's SEO came from.
+	 *
 	 * @param html - The source HTML string to transform.
-	 * @param seo - The SEO metadata from `route.getMetadata().seo`, or `undefined`.
-	 * @param staticPath - The route's static path (e.g. `/categories/`), used to
-	 *   build the canonical URL.
+	 * @param staticPath - The page's static path (e.g. `/categories/`), used to
+	 *   look up its metadata and build the canonical URL.
 	 */
-	injectRouteHtml(html: string, seo: PageSeoMetadata | undefined, staticPath: string): string
+	injectRouteHtml(html: string, staticPath: string): string
 	/**
 	 * Injects root-level SEO into the home `index.html`.
 	 *
@@ -152,6 +215,16 @@ export type SeoApi = {
 	 * registering in `configResolved` or `buildStart` is always early enough.
 	 */
 	addRouteHeadLinks(provider: RouteHeadLinkProvider): void
+	/**
+	 * Registers a source of per-page SEO metadata for {@link SeoApi.injectRouteHtml}.
+	 * Providers are asked in registration order and the first non-`undefined`
+	 * answer wins.
+	 */
+	addRouteSeoProvider(provider: RouteSeoProvider): void
+	/**
+	 * Registers a source of sitemap entries for the main `sitemap.xml`.
+	 */
+	addSitemapEntryProvider(provider: SitemapEntryProvider): void
 	/**
 	 * Registers a transform applied to each prerendered page's HTML at the end
 	 * of {@link SeoApi.injectRouteHtml}.

@@ -2,7 +2,7 @@ import { describe, test, expect, vi } from 'vitest'
 
 import { route, token } from '@rooted/router/routes'
 
-import { resolveRouteSeo } from '../src/resolve-route-seo.mts'
+import { resolveRouteSeo } from '../plugins/resolve-route-seo.mts'
 
 describe('resolveRouteSeo()', () => {
 	test('passes a plain seo object through', async () => {

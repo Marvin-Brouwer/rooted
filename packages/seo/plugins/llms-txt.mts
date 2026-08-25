@@ -1,45 +1,13 @@
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { resolveRouteSeo } from '@rooted/adapter'
+import { routeManifestPluginName, seoPluginName } from './plugin-names.mts'
+import { resolveRouteSeo } from './resolve-route-seo.mts'
 
+import type { LlmsTxtOptions, SeoApi } from './seo-api.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
-import type { SeoApi } from '@rooted/seo'
 import type { Plugin, ResolvedConfig } from 'vite'
 import type { ManifestOptions } from 'vite-plugin-pwa'
-
-const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
-const SEO_PLUGIN_NAME = 'rooted:seo'
-
-/**
- * A custom section in the generated `llms.txt`, used to override or extend
- * the auto-generated "Pages" section.
- */
-export type LlmsTxtSection = {
-	/** Heading shown as `## Title` in the output. */
-	title: string
-	entries: Array<{
-		title: string
-		url: string
-		description?: string
-	}>
-}
-
-/**
- * Options for the generated `llms.txt` file.
- */
-export type LlmsTxtOptions = {
-	/**
-	 * Markdown block inserted between the site description and the auto-generated
-	 * "Pages" section. Useful for adding extra context, disclaimers, or links.
-	 */
-	intro?: string
-	/**
-	 * Override the auto-generated "Pages" section with custom groupings.
-	 * When omitted, all static routes with a `seo.title` are listed under "Pages".
-	 */
-	sections?: LlmsTxtSection[]
-}
 
 /**
  * Generates an `llms.txt` file in the build output directory.
@@ -79,9 +47,9 @@ export function llmsTxtPlugin(
 
 		configResolved(resolved) {
 			config = resolved
-			const manifestPlugin = resolved.plugins.find(p => p.name === MANIFEST_PLUGIN_NAME)
+			const manifestPlugin = resolved.plugins.find(p => p.name === routeManifestPluginName)
 			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
-			const seoPlugin = resolved.plugins.find(p => p.name === SEO_PLUGIN_NAME)
+			const seoPlugin = resolved.plugins.find(p => p.name === seoPluginName)
 			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 		},
 

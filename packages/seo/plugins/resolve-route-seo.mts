@@ -1,12 +1,8 @@
+import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { AnyRouteSeoResolver, RouteSeoMetadata } from '@rooted/router/routes'
 
 /**
- * A route that {@link resolveRouteSeo} can read: one that reports its metadata
- * and can match a path back to its tokens.
- *
- * Structural, so anything of that shape works. Every route from
- * `RouteManifestApi['routes']` already satisfies it, whichever entry point you
- * got it from, and a stub with those two methods is enough in a test.
+ * A route as the manifest plugin hands it out.
  *
  * @example
  * ```ts
@@ -15,11 +11,7 @@ import type { AnyRouteSeoResolver, RouteSeoMetadata } from '@rooted/router/route
  * }
  * ```
  */
-// Structural rather than `RouteManifestApi['routes'][number]` because of #245
-type ManifestRoute = {
-	getMetadata(): { seo?: RouteSeoMetadata | AnyRouteSeoResolver }
-	match(options: { target: string }): Promise<{ success: boolean, tokens?: Record<string, unknown> }>
-}
+type ManifestRoute = RouteManifestApi['routes'][number]
 
 // Adapter, sitemap, and llms.txt each resolve the same route/path pairs
 const cache = new WeakMap<ManifestRoute, Map<string, RouteSeoMetadata | undefined>>()

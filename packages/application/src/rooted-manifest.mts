@@ -6,16 +6,28 @@ import { analyzer } from 'vite-bundle-analyzer'
 import { ManifestOptions, type VitePWAOptions } from 'vite-plugin-pwa'
 
 import { cssLoader } from '@rooted/components/css-loader'
-import { robotsPlugin } from '@rooted/seo'
+import { robotsPlugin, seoPlugin, type SeoOptions } from '@rooted/seo'
+import { llmsTxtPlugin, routeSeoPlugin } from '@rooted/seo/router'
 import { ArrayElement } from '@rooted/util'
 
 type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 
+// Routing is optional. Only wire the route seo plugin when the router is there,
+// otherwise it would warn on every build of an app that doesn't use routing.
+function routerIsInstalled(): boolean {
+	try {
+		// `import.meta.resolve`, not `createRequire`: @rooted/* packages are ESM only.
+		import.meta.resolve('@rooted/router/manifest')
+		return true
+	}
+	catch {
+		return false
+	}
+}
+
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
-import { llmsTxtPlugin } from '../plugins/llms-txt.mts'
 import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
 import { pwaPreset } from '../plugins/pwa-preset.mts'
-import { SeoOptions, seoPlugin } from '../plugins/seo.mts'
 
 import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
 
@@ -186,6 +198,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 				pwaPreset({ manifest, skipPwaGenerator, minify, autoIcon, runtimeCaching: manifest.runtimeCaching }),
 				pwaAssetsPlugin(!!manifest.icon || skipPwaGenerator, manifest.webManifest.url),
 				seoPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo),
+				routerIsInstalled() && routeSeoPlugin(),
 				manifest.seo?.robots !== false && robotsPlugin(manifest.webManifest.url, manifest.seo?.robots),
 				manifest.seo?.llmsTxt !== false && llmsTxtPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo?.llmsTxt || undefined),
 			],

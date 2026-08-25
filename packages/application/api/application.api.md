@@ -7,9 +7,11 @@
 import { AdditionalSitemap } from '@rooted/seo';
 import { ArrayElement } from '@rooted/util';
 import { BuildEnvironmentOptions } from 'vite';
+import { LlmsTxtOptions } from '@rooted/seo';
+import { LlmsTxtSection } from '@rooted/seo';
 import { ManifestOptions } from 'vite-plugin-pwa';
-import { RobotsOptions } from '@rooted/seo';
 import { SeoApi } from '@rooted/seo';
+import { SeoOptions } from '@rooted/seo';
 import { SitemapEntry } from '@rooted/seo';
 import { UserConfig } from 'vite';
 import { UserConfigFnObject } from 'vite';
@@ -28,21 +30,9 @@ export type DetectorOptions = {
     importCycle?: ImportCycleOptions;
 };
 
-// @public
-export type LlmsTxtOptions = {
-    intro?: string;
-    sections?: LlmsTxtSection[];
-};
+export { LlmsTxtOptions }
 
-// @public
-export type LlmsTxtSection = {
-    title: string;
-    entries: Array<{
-        title: string;
-        url: string;
-        description?: string;
-    }>;
-};
+export { LlmsTxtSection }
 
 // @public
 export type RootedApplicationManifest = {
@@ -65,14 +55,7 @@ export function rootedManifest(manifest: RootedApplicationManifest): UserConfigF
 
 export { SeoApi }
 
-// @public (undocumented)
-export type SeoOptions = {
-    homeRouteFiles?: string[];
-    defaultOgImage?: string;
-    titleSuffix?: string;
-    robots?: RobotsOptions | false;
-    llmsTxt?: LlmsTxtOptions | false;
-};
+export { SeoOptions }
 
 export { SitemapEntry }
 

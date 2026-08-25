@@ -13,36 +13,24 @@ export type AdditionalSitemap = {
     entries: SitemapEntry[];
 };
 
-// @public (undocumented)
-export function buildSitemapIndexXml(sitemaps: Array<{
-    loc: string;
-    lastmod: string;
-}>): string;
+// @public
+export function gitLastModified(filePath: string | undefined, cwd: string): Promise<string>;
 
-// @public (undocumented)
-export function buildSitemapXml(entries: SitemapEntry[]): string;
+// @public
+export type LlmsTxtOptions = {
+    intro?: string;
+    sections?: LlmsTxtSection[];
+};
 
-// @public (undocumented)
-export function injectCanonical(html: string, canonicalUrl: string): string;
-
-// @public (undocumented)
-export function injectHeadLinks(html: string, links: Array<{
-    rel: string;
-    hreflang?: string;
-    href: string;
-}>): string;
-
-// @public (undocumented)
-export function injectMetaTags(html: string, seo: PageSeoMetadata | undefined, canonicalUrl: string, defaultOgImage: string | undefined, titleSuffix: string | undefined): string;
-
-// @public (undocumented)
-export function injectOgTags(html: string, seo: PageSeoMetadata | undefined, canonicalUrl: string, defaultOgImage: string | undefined): string;
-
-// @public (undocumented)
-export function injectRootJsonLd(html: string, webManifest: Partial<ManifestOptions> & {
-    name?: string;
-    description?: string;
-}, deploymentUrl: string | undefined): string;
+// @public
+export type LlmsTxtSection = {
+    title: string;
+    entries: Array<{
+        title: string;
+        url: string;
+        description?: string;
+    }>;
+};
 
 // @public
 export type PageSeoMetadata = {
@@ -81,16 +69,36 @@ export type RouteHtmlTransform = (html: string, staticPath: string) => string;
 export const routeManifestPluginName = "vite-plugin:generate-rooted-route-manifest";
 
 // @public
+export type RouteSeoProvider = (staticPath: string) => PageSeoMetadata | undefined;
+
+// @public
 export type SeoApi = {
     addSitemap(sitemap: AdditionalSitemap): void;
     getSitemapUrl(): string | undefined;
-    injectRouteHtml(html: string, seo: PageSeoMetadata | undefined, staticPath: string): string;
+    injectRouteHtml(html: string, staticPath: string): string;
     injectRootHtml(html: string): string;
     addRouteHeadLinks(provider: RouteHeadLinkProvider): void;
+    addRouteSeoProvider(provider: RouteSeoProvider): void;
+    addSitemapEntryProvider(provider: SitemapEntryProvider): void;
     addRouteHtmlTransform(transform: RouteHtmlTransform): void;
     addPrepareTask(task: SeoPrepareTask): void;
     prepare(): Promise<void>;
 };
+
+// @public (undocumented)
+export type SeoOptions = {
+    homeRouteFiles?: string[];
+    defaultOgImage?: string;
+    titleSuffix?: string;
+    robots?: RobotsOptions | false;
+    llmsTxt?: LlmsTxtOptions | false;
+};
+
+// @internal
+export function seoPlugin(deploymentUrl: string | undefined, webManifest: Partial<ManifestOptions> & {
+    name?: string;
+    description?: string;
+}, options: SeoOptions | undefined): Plugin_2;
 
 // @public
 export const seoPluginName = "rooted:seo";
@@ -109,6 +117,14 @@ export type SitemapEntry = {
         title?: string;
         caption?: string;
     }>;
+};
+
+// @public
+export type SitemapEntryProvider = () => Promise<SitemapPageEntry[]>;
+
+// @public
+export type SitemapPageEntry = Omit<SitemapEntry, 'loc'> & {
+    path: string;
 };
 
 // (No @packageDocumentation comment for this package)
