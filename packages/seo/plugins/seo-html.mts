@@ -1,9 +1,9 @@
-import type { RouteSeoMetadata } from '@rooted/router/routes'
+import type { PageSeoMetadata } from './seo-api.mts'
 import type { ManifestOptions } from 'vite-plugin-pwa'
 
 export function injectMetaTags(
 	html: string,
-	seo: RouteSeoMetadata | undefined,
+	seo: PageSeoMetadata | undefined,
 	canonicalUrl: string,
 	defaultOgImage: string | undefined,
 	titleSuffix: string | undefined,
@@ -34,7 +34,7 @@ export function injectCanonical(html: string, canonicalUrl: string): string {
 
 export function injectOgTags(
 	html: string,
-	seo: RouteSeoMetadata | undefined,
+	seo: PageSeoMetadata | undefined,
 	canonicalUrl: string,
 	defaultOgImage: string | undefined,
 ): string {

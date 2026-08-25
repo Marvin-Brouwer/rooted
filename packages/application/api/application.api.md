@@ -4,12 +4,13 @@
 
 ```ts
 
-import { AdditionalSitemap } from '@rooted/adapter';
+import { AdditionalSitemap } from '@rooted/seo';
 import { ArrayElement } from '@rooted/util';
 import { BuildEnvironmentOptions } from 'vite';
 import { ManifestOptions } from 'vite-plugin-pwa';
-import { SeoApi } from '@rooted/adapter';
-import { SitemapEntry } from '@rooted/adapter';
+import { RobotsOptions } from '@rooted/seo';
+import { SeoApi } from '@rooted/seo';
+import { SitemapEntry } from '@rooted/seo';
 import { UserConfig } from 'vite';
 import { UserConfigFnObject } from 'vite';
 import { VitePWAOptions } from 'vite-plugin-pwa';

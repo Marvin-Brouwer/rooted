@@ -6,15 +6,12 @@ import { promisify } from 'node:util'
 import { glob } from 'tinyglobby'
 
 import { resolveRouteSeo } from '@rooted/adapter'
-
-import { injectCanonical, injectHeadLinks, injectMetaTags, injectOgTags, injectRootJsonLd } from './seo-html.mts'
-import { buildSitemapIndexXml, buildSitemapXml } from './seo-sitemap.mts'
+import { buildSitemapIndexXml, buildSitemapXml, injectCanonical, injectHeadLinks, injectMetaTags, injectOgTags, injectRootJsonLd } from '@rooted/seo'
 
 import type { LlmsTxtOptions } from './llms-txt.mts'
-import type { RobotsOptions } from './robots.mts'
-import type { AdditionalSitemap, RouteHeadLinkProvider, RouteHtmlTransform, SeoApi, SeoPrepareTask, SitemapEntry } from '@rooted/adapter'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { RouteSeoMetadata } from '@rooted/router/routes'
+import type { AdditionalSitemap, RobotsOptions, RouteHeadLinkProvider, RouteHtmlTransform, SeoApi, SeoPrepareTask, SitemapEntry } from '@rooted/seo'
 import type { Plugin, ResolvedConfig } from 'vite'
 import type { ManifestOptions } from 'vite-plugin-pwa'
 

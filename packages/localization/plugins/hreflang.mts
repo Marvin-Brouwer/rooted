@@ -3,9 +3,9 @@ import { isConstantParameter } from '@rooted/router/routes'
 import { localeTokenBrand } from '../src/locale-token.mts'
 
 import type { LocaleTokenInfo } from '../src/locale-token.mts'
-import type { RouteHeadLink, SeoApi } from '@rooted/adapter'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Constant, Parameter } from '@rooted/router/routes'
+import type { RouteHeadLink, SeoApi } from '@rooted/seo'
 import type { Plugin } from 'vite'
 
 const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'

@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { SeoApi } from '@rooted/adapter'
+import type { SeoApi } from '@rooted/seo'
 import type { PluginOption, ResolvedConfig } from 'vite'
 
 const DEFAULT_ICON_PATH = 'public/icon.svg'

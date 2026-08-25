@@ -1,10 +1,10 @@
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { SeoApi } from '@rooted/adapter'
-import type { Plugin, ResolvedConfig } from 'vite'
+import { seoPluginName } from './plugin-names.mts'
 
-const SEO_PLUGIN_NAME = 'rooted:seo'
+import type { SeoApi } from './seo-api.mts'
+import type { Plugin, ResolvedConfig } from 'vite'
 
 /**
  * Options for the generated `robots.txt`.
@@ -62,7 +62,7 @@ export function robotsPlugin(
 
 		configResolved(resolved) {
 			config = resolved
-			const seoPlugin = resolved.plugins.find(p => p.name === SEO_PLUGIN_NAME)
+			const seoPlugin = resolved.plugins.find(p => p.name === seoPluginName)
 			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 		},
 

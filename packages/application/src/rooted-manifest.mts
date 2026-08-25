@@ -6,6 +6,7 @@ import { analyzer } from 'vite-bundle-analyzer'
 import { ManifestOptions, type VitePWAOptions } from 'vite-plugin-pwa'
 
 import { cssLoader } from '@rooted/components/css-loader'
+import { robotsPlugin } from '@rooted/seo'
 import { ArrayElement } from '@rooted/util'
 
 type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
@@ -14,7 +15,6 @@ import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-
 import { llmsTxtPlugin } from '../plugins/llms-txt.mts'
 import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
 import { pwaPreset } from '../plugins/pwa-preset.mts'
-import { robotsPlugin } from '../plugins/robots.mts'
 import { SeoOptions, seoPlugin } from '../plugins/seo.mts'
 
 import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'

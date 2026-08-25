@@ -1,1 +1,1 @@
-export type { AdditionalSitemap, SeoApi, SitemapEntry } from '@rooted/adapter'
+export type { AdditionalSitemap, SeoApi, SitemapEntry } from '@rooted/seo'

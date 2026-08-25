@@ -1,4 +1,31 @@
-import type { RouteSeoMetadata } from '@rooted/router/routes'
+/**
+ * SEO metadata for one page.
+ *
+ * Structurally the same as `RouteSeoMetadata` from `@rooted/router/routes`, on
+ * purpose. Routes declare their seo with the router's type, and it lands here
+ * without a conversion. Keeping a copy is what lets this package work without
+ * `@rooted/router` installed. If you change one, change the other.
+ */
+export type PageSeoMetadata = {
+	/** Page title. Overrides `<title>` and `og:title`. */
+	title?: string
+	/** Page description. Overrides `<meta name="description">` and `og:description`. */
+	description?: string
+	/** When `true`, injects `<meta name="robots" content="noindex">`. Default: `false`. */
+	noIndex?: boolean
+	/** When `true`, omits this page from sitemap generation. Default: `false`. */
+	excludeFromSitemap?: boolean
+	/**
+	 * Override for `og:image`. Accepts an absolute URL or a root-relative path.
+	 * Falls back to the generated PWA icon (`pwa-512x512.png`) when omitted.
+	 */
+	image?: string
+	/** Sitemap `changefreq` field. */
+	changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'
+	/** Sitemap `priority` field (0.0-1.0). */
+	priority?: number
+}
+
 
 /**
  * A single URL entry in a sitemap or additional sitemap.
@@ -107,7 +134,7 @@ export type SeoApi = {
 	 * @param staticPath - The route's static path (e.g. `/categories/`), used to
 	 *   build the canonical URL.
 	 */
-	injectRouteHtml(html: string, seo: RouteSeoMetadata | undefined, staticPath: string): string
+	injectRouteHtml(html: string, seo: PageSeoMetadata | undefined, staticPath: string): string
 	/**
 	 * Injects root-level SEO into the home `index.html`.
 	 *

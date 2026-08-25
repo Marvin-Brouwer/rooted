@@ -47,6 +47,7 @@
 	},
 	"dependencies": {
 		"@rooted/adapter": "workspace:^",
+		"@rooted/seo": "workspace:^",
 		"@rooted/util": "workspace:^",
 		"@vite-pwa/assets-generator": "^1.0.2",
 		"tinyglobby": "^0.2.17",

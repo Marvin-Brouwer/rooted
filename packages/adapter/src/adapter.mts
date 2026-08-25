@@ -4,9 +4,9 @@ import path from 'node:path'
 import { resolveRouteSeo } from './resolve-route-seo.mts'
 import { createStaticRenderer, injectSnapshot } from './static-renderer.mts'
 
-import type { SeoApi } from './seo-api.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { RouteSeoMetadata } from '@rooted/router/routes'
+import type { SeoApi } from '@rooted/seo'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
@@ -39,11 +39,6 @@ export type AdapterContext = {
 	indexHtml: string
 	/** The Vite resolved config. */
 	config: ResolvedConfig
-	/**
-	 * SEO plugin API. Use this to inject meta tags, retrieve the sitemap URL,
-	 * or register additional sitemaps from within the adapter's `setup` hook.
-	 */
-	seoApi: SeoApi | undefined
 	/**
 	 * Merged route lists from the route manifest and any manual `routes` option.
 	 * Covers both manifest routes and manual ones.
@@ -217,7 +212,7 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 				)
 			}
 
-			await definition.setup?.({ outputDirectory, indexHtml, config, seoApi, resolvedRoutes })
+			await definition.setup?.({ outputDirectory, indexHtml, config, resolvedRoutes })
 
 			// Inject root-level SEO (JSON-LD, canonical, og:url/type/image) into index.html
 			const rootHtml = seoApi ? seoApi.injectRootHtml(indexHtml) : indexHtml

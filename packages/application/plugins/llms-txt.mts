@@ -3,8 +3,8 @@ import path from 'node:path'
 
 import { resolveRouteSeo } from '@rooted/adapter'
 
-import type { SeoApi } from '@rooted/adapter'
 import type { RouteManifestApi } from '@rooted/router/manifest'
+import type { SeoApi } from '@rooted/seo'
 import type { Plugin, ResolvedConfig } from 'vite'
 import type { ManifestOptions } from 'vite-plugin-pwa'
 
