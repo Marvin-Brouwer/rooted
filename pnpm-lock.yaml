@@ -768,8 +768,8 @@ importers:
   tooling/development:
     devDependencies:
       '@microsoft/api-extractor':
-        specifier: ^7.58.13
-        version: 7.58.13(@types/node@26.4.0)
+        specifier: ^7.59.0
+        version: 7.59.0(@types/node@26.4.0)
       '@types/node':
         specifier: ^26.4.0
         version: 26.4.0
@@ -783,8 +783,8 @@ importers:
   tooling/pipeline:
     devDependencies:
       '@microsoft/api-extractor':
-        specifier: ^7.58.13
-        version: 7.58.13(@types/node@26.4.0)
+        specifier: ^7.59.0
+        version: 7.59.0(@types/node@26.4.0)
       '@types/node':
         specifier: ^26.4.0
         version: 26.4.0
@@ -2081,8 +2081,8 @@ packages:
     resolution: {integrity: sha512-iDu1AtuRC2Z8XVs2SieZieVavF1FXPBX1C9pMexJh8Dx/Dd/3ZZ4nRQp/PU2Vk2rUHWuBz1wOyL4DcuhVnBXwg==}
     engines: {node: '>=20.9.0'}
 
-  '@microsoft/api-extractor@7.58.13':
-    resolution: {integrity: sha512-htjkWdR+ovlBiQuBbMutIuiu/dzKYpFrBRRuHGlpo7J81cPzmMTBKxE8j+aWSs5HxvXHCvatVe4vQ9CKqSvZaA==}
+  '@microsoft/api-extractor@7.59.0':
+    resolution: {integrity: sha512-KDYV8kSVjmG8JJWVg1f1aKxteNG1IQ44D07Rjhlcci8wlqrSFNhUfgv7dJhwT0W2h3NDIL5Vz2f+/DfO4OpDHw==}
     engines: {node: '>=20.9.0'}
     hasBin: true
 
@@ -8751,7 +8751,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
-  '@microsoft/api-extractor@7.58.13(@types/node@26.4.0)':
+  '@microsoft/api-extractor@7.59.0(@types/node@26.4.0)':
     dependencies:
       '@microsoft/api-extractor-model': 7.33.11(@types/node@26.4.0)
       '@microsoft/tsdoc': 0.16.0
@@ -10076,7 +10076,7 @@ snapshots:
   ajv@8.20.0:
     dependencies:
       fast-deep-equal: 3.1.3
-      fast-uri: 3.1.4
+      fast-uri: 3.1.6
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
 
