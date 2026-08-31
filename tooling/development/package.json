@@ -19,7 +19,7 @@
 	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.58.13",
-		"@types/node": "^26.2.0",
+		"@types/node": "^26.4.0",
 		"tree-kill": "^1.2.2",
 		"tsx": "^4.23.12"
 	}
