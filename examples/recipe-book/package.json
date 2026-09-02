@@ -24,12 +24,12 @@
 		"@rooted/application": "workspace:^",
 		"@rooted/seo": "workspace:^",
 		"@types/html-minifier-terser": "^7.0.2",
-		"@varlock/vite-integration": "^1.4.0",
+		"@varlock/vite-integration": "^1.5.0",
 		"gray-matter": "^4.0.3",
 		"html-minifier-terser": "^7.2.0",
-		"marked": "^18.0.10",
+		"marked": "^18.0.11",
 		"typescript": "^6.0.3",
-		"varlock": "^1.17.0",
+		"varlock": "^1.17.1",
 		"vite": "^8.2.2"
 	}
 }
