@@ -42,22 +42,5 @@
 		"node": ">=22.0.0",
 		"pnpm": ">=10.0.0"
 	},
-	"packageManager": "pnpm@11.0.9",
-	"pnpm": {
-		"peerDependencyRules": {
-			"allowedVersions": {
-				"vite-plugin-pwa>vite": "8"
-			}
-		},
-		"overrides": {
-			"source-map@0.8.0-beta.0": "0.7.4",
-			"sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.4.15"
-		},
-		"allowedDeprecatedVersions": {
-			"glob": "11"
-		},
-		"patchedDependencies": {
-			"semantic-release@25.0.3": "patches/semantic-release@25.0.3.patch"
-		}
-	}
+	"packageManager": "pnpm@11.0.9"
 }
