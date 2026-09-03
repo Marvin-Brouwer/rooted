@@ -2,9 +2,12 @@ import { readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { isRunnableDevEnvironment, normalizePath } from 'vite'
-
 import type { Connect, Plugin, ResolvedConfig, ViteDevServer } from 'vite'
+
+/** Vite ids are posix, and so are the paths chokidar reports back. */
+function toPosixPath(value: string): string {
+	return value.split('\\').join('/')
+}
 
 /** The extensions the build hook hands to rolldown. Dev reads the same set. */
 const SOURCE_EXTENSIONS = /\.(mts|ts|mjs|js)$/
@@ -121,16 +124,12 @@ export function nodeMiddlewareServer<TApplication>(
 		configureServer(server) {
 			if (!options.middlewarePath) return
 			const directory = path.resolve(config.root, options.middlewarePath)
-			const chain = createMiddlewareChain(options, config, 'dev', () =>
-				loadSources(server, directory, options, config))
+			const chain = createMiddlewareChain(options, config, 'dev', reload =>
+				loadSources(server, directory, options, config, reload))
 
 			server.watcher.add(directory)
 			server.watcher.on('all', (_event, changed) => {
-				if (normalizePath(path.dirname(changed)) !== normalizePath(directory)) return
-				// Without this the runner hands back the cached module and the
-				// rebuild below is a no-op.
-				const environment = server.environments.ssr
-				if (isRunnableDevEnvironment(environment)) environment.runner.clearCache()
+				if (toPosixPath(path.dirname(changed)) !== toPosixPath(directory)) return
 				config.logger.info(`[${options.name}] middleware changed, rebuilding`)
 				void chain.reset()
 			})
@@ -166,15 +165,18 @@ function createMiddlewareChain<TApplication>(
 	options: NodeMiddlewareServerOptions<TApplication>,
 	config: ResolvedConfig,
 	mode: 'dev' | 'preview',
-	load: () => Promise<Array<MiddlewareModule<TApplication>>>,
+	load: (reload: boolean) => Promise<Array<MiddlewareModule<TApplication>>>,
 ): MiddlewareChain {
 	let pending: Promise<NodeMiddlewareHandler | undefined> | undefined
+	let built = false
 
 	// Built on the first request, not while configuring: at hook time there is
 	// nothing to serve yet, and a throw there takes the whole server down.
 	async function build(): Promise<NodeMiddlewareHandler | undefined> {
+		const reload = built
+		built = true
 		try {
-			const middleware = await load()
+			const middleware = await load(reload)
 			if (middleware.length === 0) return undefined
 			return await options.createServer(middleware, { config, mode })
 		}
@@ -207,15 +209,25 @@ async function loadSources<TApplication>(
 	directory: string,
 	options: NodeMiddlewareServerOptions<TApplication>,
 	config: ResolvedConfig,
+	reload: boolean,
 ): Promise<Array<MiddlewareModule<TApplication>>> {
+	// Imported here rather than at the top of the module: @rooted/adapter is
+	// loaded by runtime consumers of the adapter packages, and they shouldn't
+	// pay for vite. This only ever runs inside a dev server, where it's loaded.
+	const { isRunnableDevEnvironment } = await import('vite')
 	const environment = server.environments.ssr
+	const runnable = isRunnableDevEnvironment(environment)
+	// Without this the runner hands back the module it already has and a
+	// rebuild after an edit is a no-op.
+	if (reload && runnable) environment.runner.clearCache()
+
 	const modules: Array<MiddlewareModule<TApplication>> = []
 	for (const file of await listMiddlewareFiles(directory, SOURCE_EXTENSIONS, options, config)) {
 		// ssrLoadModule is the older spelling of the same thing; it's the
 		// fallback for anyone who swapped in a non-runnable ssr environment.
-		const loaded = isRunnableDevEnvironment(environment)
-			? await environment.runner.import<Record<string, unknown>>(normalizePath(file))
-			: await server.ssrLoadModule(normalizePath(file))
+		const loaded = runnable
+			? await environment.runner.import<Record<string, unknown>>(toPosixPath(file))
+			: await server.ssrLoadModule(toPosixPath(file))
 		const module = toMiddlewareModule<TApplication>(loaded, file, options, config)
 		if (module) modules.push(module)
 	}
