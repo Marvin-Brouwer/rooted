@@ -1,9 +1,9 @@
 import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { build } from 'rolldown'
-
 import { routedAdapter } from '@rooted/adapter'
+
+import { expressDevelopmentServer } from './development-server.mts'
 
 import type { AdapterRoutes } from '@rooted/adapter'
 import type { Express } from 'express'
@@ -52,6 +52,11 @@ export type ExpressAdapterOptions = {
 	 * order, so numeric prefixes (`01-auth.mts`, `02-proxy.mts`) control load order.
 	 * Middleware runs before the rooted static-file and route handlers.
 	 *
+	 * The same files also run during `vite dev` and `vite preview`, on Vite's own
+	 * port, so you don't need a second process to reach them. Dev loads the
+	 * sources through Vite, preview runs the built `dist/middleware/*.mjs`.
+	 * See the [server middleware guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/server-middleware.md).
+	 *
 	 * @example
 	 * ```ts
 	 * expressAdapter({ middlewarePath: './src/server-middleware' })
@@ -82,6 +87,10 @@ export type ExpressAdapterOptions = {
  * Users start the server with `node dist/server.mjs`. The `PORT` environment variable
  * controls the port (default: 3000).
  *
+ * Returns two plugins: the build-time adapter, and a dev-time one that runs
+ * `middlewarePath` during `vite dev` and `vite preview`. Vite flattens nested
+ * plugin arrays, so it still goes straight into `plugins` as one entry.
+ *
  * Requires `express >= 5.0.0` in the project.
  *
  * @example `vite.config.ts`
@@ -98,13 +107,13 @@ export type ExpressAdapterOptions = {
  * })
  * ```
  */
-export function expressAdapter(options?: ExpressAdapterOptions): Plugin {
-	return routedAdapter({
+export function expressAdapter(options?: ExpressAdapterOptions): Plugin[] {
+	return [routedAdapter({
 		name: 'rooted:express',
 		routes: options?.routes,
-		async setup({ outputDirectory }) {
+		async setup({ outputDirectory, config }) {
 			if (options?.middlewarePath) {
-				const sourceDirectory = path.resolve(process.cwd(), options.middlewarePath)
+				const sourceDirectory = path.resolve(config.root, options.middlewarePath)
 				const files = (await readdir(sourceDirectory)).filter(f => MIDDLEWARE_EXTENSIONS.test(f))
 				if (files.length === 0)
 					throw new Error(
@@ -112,6 +121,8 @@ export function expressAdapter(options?: ExpressAdapterOptions): Plugin {
 					)
 				const middlewareDirectory = path.join(outputDirectory, 'middleware')
 				await mkdir(middlewareDirectory, { recursive: true })
+				// Imported here so vite dev never pays for loading rolldown.
+				const { build } = await import('rolldown')
 				for (const file of files) {
 					await build({
 						input: path.join(sourceDirectory, file),
@@ -131,7 +142,7 @@ export function expressAdapter(options?: ExpressAdapterOptions): Plugin {
 				'utf8',
 			)
 		},
-	})
+	}), expressDevelopmentServer(options?.middlewarePath)]
 }
 
 const MIDDLEWARE_EXTENSIONS = /\.(mts|ts|mjs|js)$/

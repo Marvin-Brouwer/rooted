@@ -1,9 +1,9 @@
 import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { build } from 'rolldown'
-
 import { routedAdapter } from '@rooted/adapter'
+
+import { fastifyDevelopmentServer } from './development-server.mts'
 
 import type { AdapterRoutes } from '@rooted/adapter'
 import type { FastifyInstance } from 'fastify'
@@ -56,6 +56,11 @@ export type FastifyAdapterOptions = {
 	 * control load order. Middleware runs before the rooted static-file and route
 	 * handlers.
 	 *
+	 * The same files also run during `vite dev` and `vite preview`, on Vite's own
+	 * port, so you don't need a second process to reach them. Dev loads the
+	 * sources through Vite, preview runs the built `dist/middleware/*.mjs`.
+	 * See the [server middleware guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/server-middleware.md).
+	 *
 	 * @example
 	 * ```ts
 	 * fastifyAdapter({ middlewarePath: './src/server-middleware' })
@@ -88,6 +93,10 @@ export type FastifyAdapterOptions = {
  * Users start the server with `node dist/server.mjs`. The `PORT` environment variable
  * controls the port (default: 3000).
  *
+ * Returns two plugins: the build-time adapter, and a dev-time one that runs
+ * `middlewarePath` during `vite dev` and `vite preview`. Vite flattens nested
+ * plugin arrays, so it still goes straight into `plugins` as one entry.
+ *
  * Requires `fastify >= 5.0.0` and `@fastify/static >= 8.0.0` in the project.
  *
  * @example `vite.config.ts`
@@ -104,13 +113,13 @@ export type FastifyAdapterOptions = {
  * })
  * ```
  */
-export function fastifyAdapter(options?: FastifyAdapterOptions): Plugin {
-	return routedAdapter({
+export function fastifyAdapter(options?: FastifyAdapterOptions): Plugin[] {
+	return [routedAdapter({
 		name: 'rooted:fastify',
 		routes: options?.routes,
-		async setup({ outputDirectory }) {
+		async setup({ outputDirectory, config }) {
 			if (options?.middlewarePath) {
-				const sourceDirectory = path.resolve(process.cwd(), options.middlewarePath)
+				const sourceDirectory = path.resolve(config.root, options.middlewarePath)
 				const files = (await readdir(sourceDirectory)).filter(f => MIDDLEWARE_EXTENSIONS.test(f))
 				if (files.length === 0)
 					throw new Error(
@@ -118,6 +127,8 @@ export function fastifyAdapter(options?: FastifyAdapterOptions): Plugin {
 					)
 				const middlewareDirectory = path.join(outputDirectory, 'middleware')
 				await mkdir(middlewareDirectory, { recursive: true })
+				// Imported here so vite dev never pays for loading rolldown.
+				const { build } = await import('rolldown')
 				for (const file of files) {
 					await build({
 						input: path.join(sourceDirectory, file),
@@ -137,7 +148,7 @@ export function fastifyAdapter(options?: FastifyAdapterOptions): Plugin {
 				'utf8',
 			)
 		},
-	})
+	}), fastifyDevelopmentServer(options?.middlewarePath)]
 }
 
 const MIDDLEWARE_EXTENSIONS = /\.(mts|ts|mjs|js)$/
