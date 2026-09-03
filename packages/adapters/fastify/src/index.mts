@@ -5,38 +5,10 @@ import { routedAdapter } from '@rooted/adapter'
 
 import { fastifyDevelopmentServer } from './development-server.mts'
 
+export type { FastifyMiddleware } from './middleware.mts'
+
 import type { AdapterRoutes } from '@rooted/adapter'
-import type { FastifyInstance } from 'fastify'
 import type { Plugin } from 'vite'
-
-/**
- * A Fastify middleware function for use with {@link FastifyAdapterOptions.middlewarePath}.
- * Receives the Fastify instance and may register plugins, hooks, or routes on it.
- */
-export type FastifyMiddleware = (app: FastifyInstance) => Promise<void> | void
-
-/**
- * Identity helper that types a middleware function for the fastify adapter.
- * Use it as the default export of a file under your `middlewarePath` folder so
- * editors pick up the Fastify instance type without extra annotations.
- *
- * @example
- * ```ts
- * // src/server-middleware/01-api-proxy.mts
- * import { createMiddleware } from '@rooted-adapters/fastify'
- * import fastifyHttpProxy from '@fastify/http-proxy'
- *
- * export default createMiddleware(async (app) => {
- *   await app.register(fastifyHttpProxy, {
- *     upstream: process.env.API_URL,
- *     prefix: '/api',
- *   })
- * })
- * ```
- */
-export function createMiddleware(handler: FastifyMiddleware): FastifyMiddleware {
-	return handler
-}
 
 /**
  * Options for {@link fastifyAdapter}.
@@ -68,7 +40,7 @@ export type FastifyAdapterOptions = {
 	 *
 	 * ```ts
 	 * // src/server-middleware/01-api-proxy.mts
-	 * import { createMiddleware } from '@rooted-adapters/fastify'
+	 * import { createMiddleware } from '@rooted-adapters/fastify/middleware'
 	 * import fastifyHttpProxy from '@fastify/http-proxy'
 	 *
 	 * export default createMiddleware(async (app) => {
@@ -103,7 +75,7 @@ export type FastifyAdapterOptions = {
  * ```ts
  * import { rootedManifest } from '@rooted/application'
  * import { generateRouteManifest } from '@rooted/router/manifest'
- * import { fastifyAdapter } from '@rooted-adapters/fastify'
+ * import { fastifyAdapter } from '@rooted-adapters/fastify/middleware'
  *
  * export default rootedManifest({
  *   plugins: [

@@ -2,7 +2,6 @@ import { access, constants, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import { resolveRouteSeo } from './resolve-route-seo.mts'
-import { createStaticRenderer, injectSnapshot } from './static-renderer.mts'
 
 import type { SeoApi } from './seo-api.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
@@ -259,7 +258,10 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 			}
 
 			// SSG pre-render pass -- boot the app once in happy-dom, navigate to each
-			// static route, and inject the resulting body HTML into the shell files
+			// static route, and inject the resulting body HTML into the shell files.
+			// Imported here so that loading an adapter, which every vite.config
+			// using one does, doesn't drag happy-dom in with it (issue #291).
+			const { createStaticRenderer, injectSnapshot } = await import('./static-renderer.mts')
 			const renderer = await createStaticRenderer(config, outputDirectory)
 				.catch((error: unknown) => {
 					config.logger.warn(`[static-renderer] Setup error: ${String(error)}`)
