@@ -2,6 +2,8 @@
 
 Adapters are Vite plugins that generate the files a host needs to serve your app. Add one to the `plugins` array in `vite.config.mts` and it runs automatically at the end of every production build.
 
+The two server adapters do a little more: if you give them a `middlewarePath`, they also run your middleware during `vite dev` and `vite preview`. Everything else about an adapter is build-time only.
+
 Each adapter handles two things: writing a catch-all fallback so the browser-side router can take over for any URL the server doesn't recognise, and writing any host-specific config files (a `_redirects` rule, a `firebase.json`, a `staticwebapp.config.json`, and so on).
 
 ## Two flavours
@@ -130,7 +132,7 @@ pnpm add express
 
 The routed adapter approach works for any Node.js host: Railway, Render, fly.io, Heroku, a VPS, or anything that can run `node dist/server.mjs`. No host-specific adapter is needed for these -- just use Fastify or Express.
 
-If you need to register Fastify plugins or Express middleware (proxies, auth, rate-limiting) alongside the rooted handlers, see [advanced/server-middleware](../advanced/server-middleware.md).
+If you need to register Fastify plugins or Express middleware (proxies, auth, rate-limiting) alongside the rooted handlers, see [advanced/server-middleware](../advanced/server-middleware.md). That middleware also runs in `vite dev` and `vite preview`, so you don't need a second process to reach your own routes while developing.
 
 ## CI/CD pipelines
 
