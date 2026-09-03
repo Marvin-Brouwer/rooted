@@ -50,6 +50,8 @@ export default createMiddleware(async (app) => {
 
 Files can be `.mts`, `.ts`, `.mjs`, or `.js` -- TypeScript is transpiled with rolldown at build time.
 
+The same files run during `vite dev` and `vite preview` too, inside Vite's own process and on Vite's own port. No second entry point and no `server.proxy` entry. Anything the framework has no route for falls through to Vite.
+
 Full details in [advanced/server-middleware](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/server-middleware.md).
 
 More in the [adapters guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/adapters.md).
