@@ -5,35 +5,10 @@ import { routedAdapter } from '@rooted/adapter'
 
 import { expressDevelopmentServer } from './development-server.mts'
 
+export type { ExpressMiddleware } from './middleware.mts'
+
 import type { AdapterRoutes } from '@rooted/adapter'
-import type { Express } from 'express'
 import type { Plugin } from 'vite'
-
-/**
- * An Express middleware function for use with {@link ExpressAdapterOptions.middlewarePath}.
- * Receives the Express instance and may register middleware or routes on it.
- */
-export type ExpressMiddleware = (app: Express) => Promise<void> | void
-
-/**
- * Identity helper that types a middleware function for the express adapter.
- * Use it as the default export of a file under your `middlewarePath` folder so
- * editors pick up the Express instance type without extra annotations.
- *
- * @example
- * ```ts
- * // src/server-middleware/01-api-proxy.mts
- * import { createMiddleware } from '@rooted-adapters/express'
- * import { createProxyMiddleware } from 'http-proxy-middleware'
- *
- * export default createMiddleware((app) => {
- *   app.use('/api', createProxyMiddleware({ target: process.env.API_URL }))
- * })
- * ```
- */
-export function createMiddleware(handler: ExpressMiddleware): ExpressMiddleware {
-	return handler
-}
 
 /**
  * Options for {@link expressAdapter}.
@@ -64,7 +39,7 @@ export type ExpressAdapterOptions = {
 	 *
 	 * ```ts
 	 * // src/server-middleware/01-api-proxy.mts
-	 * import { createMiddleware } from '@rooted-adapters/express'
+	 * import { createMiddleware } from '@rooted-adapters/express/middleware'
 	 * import { createProxyMiddleware } from 'http-proxy-middleware'
 	 *
 	 * export default createMiddleware((app) => {
@@ -97,7 +72,7 @@ export type ExpressAdapterOptions = {
  * ```ts
  * import { rootedManifest } from '@rooted/application'
  * import { generateRouteManifest } from '@rooted/router/manifest'
- * import { expressAdapter } from '@rooted-adapters/express'
+ * import { expressAdapter } from '@rooted-adapters/express/middleware'
  *
  * export default rootedManifest({
  *   plugins: [

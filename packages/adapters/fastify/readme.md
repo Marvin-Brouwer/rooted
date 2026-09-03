@@ -29,7 +29,7 @@ export default rootedManifest({
 
 ## Adding plugins
 
-If you need to register Fastify plugins (proxies, auth, rate-limiting), point `middlewarePath` at a folder of `.mjs` files. Use the `createMiddleware` helper so editors pick up the Fastify instance type:
+If you need to register Fastify plugins (proxies, auth, rate-limiting), point `middlewarePath` at a folder of `.mjs` files. Use the `createMiddleware` helper so editors pick up the Fastify instance type. It comes from the `/middleware` subpath, which carries no dependencies, so your middleware files don't load the Vite plugin at runtime:
 
 ```ts
 fastifyAdapter({ middlewarePath: './src/server-middleware' })
@@ -37,7 +37,7 @@ fastifyAdapter({ middlewarePath: './src/server-middleware' })
 
 ```ts
 // src/server-middleware/01-api-proxy.mts
-import { createMiddleware } from '@rooted-adapters/fastify'
+import { createMiddleware } from '@rooted-adapters/fastify/middleware'
 import fastifyHttpProxy from '@fastify/http-proxy'
 
 export default createMiddleware(async (app) => {

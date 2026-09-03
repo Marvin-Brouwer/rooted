@@ -32,11 +32,13 @@ If a middleware file throws while loading or registering, the failure is logged 
 
 Each file must export a default function that receives the app instance. The `createMiddleware` helper exported by both adapters is an identity function that types the parameter for you, so editors pick up the Fastify or Express instance without manual annotations.
 
+Import it from the `/middleware` subpath, not the package root. The root is the Vite plugin, so it carries the adapter machinery your middleware files never touch -- they're run by the server, not by Vite. The subpath is the helper and nothing else: it compiles to one identity function with no imports at all, so loading it costs nothing.
+
 **Fastify** -- register a proxy to a backend API:
 
 ```ts
 // src/server-middleware/01-api-proxy.mts
-import { createMiddleware } from '@rooted-adapters/fastify'
+import { createMiddleware } from '@rooted-adapters/fastify/middleware'
 import fastifyHttpProxy from '@fastify/http-proxy'
 
 export default createMiddleware(async (app) => {
@@ -51,7 +53,7 @@ export default createMiddleware(async (app) => {
 
 ```ts
 // src/server-middleware/01-api-proxy.mts
-import { createMiddleware } from '@rooted-adapters/express'
+import { createMiddleware } from '@rooted-adapters/express/middleware'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 
 export default createMiddleware((app) => {

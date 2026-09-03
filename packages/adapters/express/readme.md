@@ -29,7 +29,7 @@ export default rootedManifest({
 
 ## Adding middleware
 
-If you need to register Express middleware (proxies, auth, rate-limiting), point `middlewarePath` at a folder of `.mjs` files. Use the `createMiddleware` helper so editors pick up the Express instance type:
+If you need to register Express middleware (proxies, auth, rate-limiting), point `middlewarePath` at a folder of `.mjs` files. Use the `createMiddleware` helper so editors pick up the Express instance type. It comes from the `/middleware` subpath, which carries no dependencies, so your middleware files don't load the Vite plugin at runtime:
 
 ```ts
 expressAdapter({ middlewarePath: './src/server-middleware' })
@@ -37,7 +37,7 @@ expressAdapter({ middlewarePath: './src/server-middleware' })
 
 ```ts
 // src/server-middleware/01-api-proxy.mts
-import { createMiddleware } from '@rooted-adapters/express'
+import { createMiddleware } from '@rooted-adapters/express/middleware'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 
 export default createMiddleware((app) => {
