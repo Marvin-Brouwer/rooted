@@ -18,7 +18,7 @@
 	],
 	"overrides": [
 		{
-			"files": ["packages/*/tests/**/*.{ts,mts}", "packages/adapters/*/tests/**/*.{ts,mts}"],
+			"files": ["**/tests/**/*.{ts,mts}"],
 			"rules": {
 				"@typescript-eslint/no-explicit-any": "off",
 				"unicorn/no-null": "off",
