@@ -117,7 +117,8 @@ export function staticAdapter(definition: StaticAdapterDefinition): Plugin {
  * {
  *   "base": "/my-app/",
  *   "staticRoutes": ["/categories/", "/privacy/"],
- *   "fallback": "index.html"
+ *   "dynamicRoutes": ["/recipe/:id/"],
+ *   "fallback": "404.html"
  * }
  * ```
  */
@@ -187,7 +188,7 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 				// exist, the base path, and which file to serve as the SPA catch-all fallback.
 				await writeFile(
 					path.join(outputDirectory, 'routes.json'),
-					JSON.stringify({ base: config.base, dynamicRoutes: resolvedRoutes.dynamicPatterns, fallback: '404.html' }, undefined, 2),
+					JSON.stringify({ base: config.base, staticRoutes: resolvedRoutes.staticPaths, dynamicRoutes: resolvedRoutes.dynamicPatterns, fallback: '404.html' }, undefined, 2),
 					'utf8',
 				)
 			}
