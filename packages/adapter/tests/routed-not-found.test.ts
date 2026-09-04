@@ -88,6 +88,33 @@ describe('routedNotFound()', () => {
 		expect(outcome.status).toBe(404)
 	})
 
+	test('judges a non-navigation on the address the caller asked for', async () => {
+		// Arrange -- vite's SPA fallback rewrites url to /index.html before the
+		// post hook runs, so a matcher reading `url` would judge the wrong path
+		const server = serve({ routes: ['/recipe/:id/'] }, '/', 'post')
+
+		// Act
+		const known = await request(server, '/index.html', '*/*', 'GET', '/recipe/42/')
+		const unknown = await request(server, '/index.html', '*/*', 'GET', '/nope/')
+
+		// Assert
+		expect(known.status).toBe(200)
+		expect(unknown.status).toBe(404)
+		expect(unknown.body).toBe('')
+	})
+
+	test('leaves navigations to vite in the post hook', async () => {
+		// Arrange -- vite installs its SPA fallback after this hook, so answering
+		// here would 404 the pages the pre hook just allowed through
+		const server = serve({ routes: ['/recipe/:id/'] }, '/', 'post')
+
+		// Act
+		const outcome = await request(server, '/recipe/42/')
+
+		// Assert
+		expect(outcome).toEqual({ handled: 'next' })
+	})
+
 	test('answers a non-navigation with an empty 404', async () => {
 		// Arrange
 		const server = serve({ routes: ['/recipe/:id/'] })
@@ -153,7 +180,7 @@ describe('routedNotFound()', () => {
 
 type Outcome = { handled: 'next' | 'responded', status?: number, body?: string }
 
-function serve(options: { routes?: string[] }, base = '/') {
+function serve(options: { routes?: string[] }, base = '/', which: 'pre' | 'post' = 'pre') {
 	const config = {
 		root,
 		base,
@@ -161,16 +188,21 @@ function serve(options: { routes?: string[] }, base = '/') {
 		logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 	} as unknown as ResolvedConfig
 
-	let handle: Connect.NextHandleFunction | undefined
+	const registered: Connect.NextHandleFunction[] = []
 	const server = {
 		config,
-		middlewares: { use: (used: Connect.NextHandleFunction) => { handle = used } },
+		middlewares: { use: (used: Connect.NextHandleFunction) => { registered.push(used) } },
 		transformIndexHtml: (_url: string, html: string) => Promise.resolve(html),
 	} as unknown as ViteDevServer
 
 	const plugin = routedNotFound({ name: 'rooted:test-not-found', ...options }) as Plugin
 	;(plugin.configResolved as (resolved: ResolvedConfig) => void)(config)
-	;(plugin.configureServer as (target: ViteDevServer) => void)(server)
+	const postHook = (plugin.configureServer as (target: ViteDevServer) => (() => void) | void)(server)
+	if (which === 'post') {
+		if (typeof postHook !== 'function') throw new Error('no post hook was returned')
+		postHook()
+	}
+	const handle = which === 'pre' ? registered[0] : registered[1]
 	if (!handle) throw new Error('the plugin registered no middleware')
 	return handle
 }
@@ -180,10 +212,11 @@ async function request(
 	url: string,
 	accept = 'text/html',
 	method = 'GET',
+	originalUrl?: string,
 ): Promise<Outcome> {
 	return await new Promise<Outcome>((resolve, reject) => {
 		let body = ''
-		const incoming = { url, method, headers: { accept } } as unknown as IncomingMessage
+		const incoming = { url, originalUrl, method, headers: { accept } } as unknown as IncomingMessage
 		const outgoing = {
 			statusCode: 200,
 			setHeader: () => undefined,

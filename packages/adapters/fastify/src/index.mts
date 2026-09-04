@@ -156,7 +156,9 @@ const { base, dynamicRoutes, fallback } = JSON.parse(
 
 const prefix = base.replace(/\\/$/, '')
 const fallbackHtml = readFileSync(path.join(__dirname, fallback), 'utf8')
-const app = Fastify({ logger: true })
+// Every pattern in routes.json ends in a slash, and a link without one is the
+// same page. Express and vite dev both treat it that way; fastify needs telling.
+const app = Fastify({ logger: true, ignoreTrailingSlash: true })
 ${middlewareBlock}
 // Serves all pre-rendered HTML files and static assets automatically
 await app.register(fastifyStatic, { root: __dirname, prefix: base })
