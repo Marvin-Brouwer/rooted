@@ -189,3 +189,35 @@ export function myHostAdapter(): Plugin {
 ```
 
 Use `staticAdapter` for file-based hosts and `routedAdapter` for server-based hosts. The `setup` callback runs after the fallback file is written and before static routes are pre-rendered. See the TSDOC on `AdapterContext` for the full list of available fields.
+
+### Server-based adapters
+
+`staticAdapter` and `routedAdapter` both only cover the build. That's the whole story for a file-based host, but a host that runs a Node server has a second half: the middleware a user writes should also run while they're developing, otherwise `vite dev` serves the app without any of their own routes and they end up booting a second process by hand.
+
+`nodeMiddlewareServer` is that second half. It does the discovery, the ordering, the loading and the connect-chain fall-through; you supply the framework instance and a handler that calls `next()` for anything it has no route for.
+
+```ts
+import { nodeMiddlewareServer, routedAdapter } from '@rooted/adapter'
+import type { Connect, Plugin } from 'vite'
+
+export function myServerAdapter(options?: MyOptions): Plugin[] {
+  return [
+    routedAdapter({ name: 'rooted:my-server' }),
+    nodeMiddlewareServer<MyApplication>({
+      name: 'rooted:my-server-dev',
+      middlewarePath: options?.middlewarePath,
+      async createServer(middleware) {
+        const app = createMyApplication()
+        for (const { register } of middleware) await register(app)
+        return { handle: app as unknown as Connect.NextHandleFunction }
+      },
+    }),
+  ]
+}
+```
+
+Note the return type. These are two plugins, not one: the build half is `apply: 'build'` and the dev half is `apply: 'serve'`, because a single plugin object would get its `closeBundle` called when the dev server shuts down and would try to run a whole production build. Vite flattens nested arrays in `plugins`, so a `Plugin[]` drops into a config exactly like a single plugin does.
+
+The plugin is inert when `middlewarePath` is undefined, so you can pass the option straight through without guarding it.
+
+See [advanced/server-middleware](../advanced/server-middleware.md) for what this looks like from the app developer's side, including the differences between dev and preview.

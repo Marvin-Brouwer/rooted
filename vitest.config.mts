@@ -58,18 +58,14 @@ export default defineConfig({
 	},
 	test: {
 		globals: true,
-		include: [
-			'packages/*/tests/**/*.test.ts',
-			'packages/*/tests/**/*.spec.ts',
-			// The adapter packages live one level deeper.
-			'packages/adapters/*/tests/**/*.test.ts',
-			'packages/adapters/*/tests/**/*.spec.ts',
-		],
+		// The brace covers packages/<name> and the adapter packages one level
+		// deeper. A bare ** would reach into every nested node_modules.
+		include: ['packages/{*,adapters/*}/tests/**/*.{test,spec}.ts'],
 		// Individual files opt out with a `// @vitest-environment node` docblock.
 		environment: 'happy-dom',
 		coverage: {
 			provider: 'v8',
-			include: ['packages/*/src/**/*.{ts,mts}', 'packages/adapters/*/src/**/*.{ts,mts}'],
+			include: ['packages/{*,adapters/*}/src/**/*.{ts,mts}'],
 			exclude: ['**/*.d.ts', '**/index.ts'],
 		},
 	},
