@@ -1,7 +1,7 @@
 import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { routedAdapter } from '@rooted/adapter'
+import { routedAdapter, routedNotFound } from '@rooted/adapter'
 
 import { expressDevelopmentServer } from './development-server.mts'
 
@@ -117,7 +117,8 @@ export function expressAdapter(options?: ExpressAdapterOptions): Plugin[] {
 				'utf8',
 			)
 		},
-	}), expressDevelopmentServer(options?.middlewarePath)]
+	}), expressDevelopmentServer(options?.middlewarePath),
+	routedNotFound({ name: 'rooted:express-not-found', routes: options?.routes })]
 }
 
 const MIDDLEWARE_EXTENSIONS = /\.(mts|ts|mjs|js)$/
@@ -150,6 +151,7 @@ const { base, dynamicRoutes, fallback } = JSON.parse(
 )
 
 const prefix = base.replace(/\\/$/, '')
+const fallbackHtml = readFileSync(path.join(__dirname, fallback), 'utf8')
 const app = express()
 ${middlewareBlock}
 // Serves all pre-rendered HTML files and static assets automatically
@@ -158,12 +160,17 @@ app.use(base, express.static(__dirname))
 // Parameterized routes: Express uses the same :param syntax as the rooted router
 for (const route of dynamicRoutes) {
   app.get(prefix + route, (_req, res) =>
-    res.sendFile(path.join(__dirname, fallback))
+    res.status(200).type('html').send(fallbackHtml)
   )
 }
 
-// Anything else: SPA shell (browser-side router shows the correct content or 404)
-app.use((_req, res) => res.sendFile(path.join(__dirname, fallback)))
+// Anything else is a real 404. Navigations still get the SPA shell so the
+// browser-side router can render a 404 page; everything else gets an empty
+// body, because answering an image request with HTML only confuses things.
+app.use((req, res) => {
+  if (!(req.headers.accept ?? '').includes('text/html')) return res.status(404).end()
+  res.status(404).type('html').send(fallbackHtml)
+})
 
 const port = Number(process.env.PORT ?? 3000)
 app.listen(port, '0.0.0.0', () => console.log(\`Listening on http://0.0.0.0:\${port}\`))

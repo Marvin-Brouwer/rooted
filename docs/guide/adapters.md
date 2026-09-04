@@ -114,6 +114,10 @@ The Fastify and Express adapters write a `routes.json` and a `server.mjs` to the
 
 `server.mjs` reads that file at startup, registers the dynamic routes, and serves `404.html` as the SPA shell for everything else.
 
+Status codes follow from that list. A path in it, static or dynamic, is a real route and gets a `200`. Anything else gets a real `404`: navigations still receive the shell so the browser-side router can render your 404 page, and requests that don't accept HTML (a missing image, a stylesheet, a `fetch`) get an empty `404` rather than a page of HTML they can't use.
+
+`vite dev` and `vite preview` answer the same way, off the same route list, so a broken link fails in dev instead of looking fine until you deploy. What dev can't tell you about is content: `/recipe/99999/` matches `/recipe/:id/` and gets a `200` in both, because whether recipe 99999 exists is your app's call, not the router's.
+
 Start the server:
 
 ```sh

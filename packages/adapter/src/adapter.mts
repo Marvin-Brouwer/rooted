@@ -176,29 +176,13 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 			// dictionaries) before any route seo is evaluated
 			await seoApi?.prepare()
 
-			// Collect routes from the manifest
-			const manifestStaticPaths = collectStaticRoutePaths(manifestApi)
-			const manifestDynamicPatterns = collectDynamicRoutePatterns(manifestApi)
+			const resolvedRoutes = resolveAdapterRoutes(manifestApi, definition.routes)
 
-			// Split manual routes: no colon = static, colon = dynamic
-			const manualRoutes = definition.routes ?? []
-			const manualStatic = manualRoutes.filter(r => !r.includes(':'))
-			const manualDynamic = manualRoutes.filter(r => r.includes(':'))
-
-			// Merge, deduplicated
-			const staticPathSet = new Set([...manifestStaticPaths, ...manualStatic])
-			const dynamicPatternSet = new Set([...manifestDynamicPatterns, ...manualDynamic])
-
-			if (!manifestApi && staticPathSet.size === 0 && dynamicPatternSet.size === 0) {
+			if (!manifestApi && resolvedRoutes.staticPaths.length === 0 && resolvedRoutes.dynamicPatterns.length === 0) {
 				throw new Error(
 					`[${definition.name}] No routes found. Add generateRouteManifest() to your plugins, ` +
 					`or pass a routes option to the adapter.`,
 				)
-			}
-
-			const resolvedRoutes: ResolvedAdapterRoutes = {
-				staticPaths: [...staticPathSet],
-				dynamicPatterns: [...dynamicPatternSet],
 			}
 
 			if (mode === 'static') {
@@ -279,6 +263,33 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 				await renderer.dispose()
 			}
 		},
+	}
+}
+
+/**
+ * Merges the route manifest with an adapter's manual `routes` option into the
+ * two lists adapters actually work with.
+ *
+ * The build hook and the dev-time not-found handler both go through this, so
+ * `vite dev` and the generated server agree on what counts as a real route.
+ *
+ * Manual routes are split on `:` -- a path without one is a static path, a path
+ * with one is a dynamic pattern.
+ */
+export function resolveAdapterRoutes(
+	manifestApi: RouteManifestApi | undefined,
+	routes: AdapterRoutes | undefined,
+): ResolvedAdapterRoutes {
+	const manualRoutes = routes ?? []
+	return {
+		staticPaths: [...new Set([
+			...collectStaticRoutePaths(manifestApi),
+			...manualRoutes.filter(route => !route.includes(':')),
+		])],
+		dynamicPatterns: [...new Set([
+			...collectDynamicRoutePatterns(manifestApi),
+			...manualRoutes.filter(route => route.includes(':')),
+		])],
 	}
 }
 
