@@ -1,7 +1,7 @@
 import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { routedAdapter } from '@rooted/adapter'
+import { routedAdapter, routedNotFound } from '@rooted/adapter'
 
 import { fastifyDevelopmentServer } from './development-server.mts'
 
@@ -120,7 +120,8 @@ export function fastifyAdapter(options?: FastifyAdapterOptions): Plugin[] {
 				'utf8',
 			)
 		},
-	}), fastifyDevelopmentServer(options?.middlewarePath)]
+	}), fastifyDevelopmentServer(options?.middlewarePath),
+	routedNotFound({ name: 'rooted:fastify-not-found', routes: options?.routes })]
 }
 
 const MIDDLEWARE_EXTENSIONS = /\.(mts|ts|mjs|js)$/
@@ -154,6 +155,7 @@ const { base, dynamicRoutes, fallback } = JSON.parse(
 )
 
 const prefix = base.replace(/\\/$/, '')
+const fallbackHtml = readFileSync(path.join(__dirname, fallback), 'utf8')
 const app = Fastify({ logger: true })
 ${middlewareBlock}
 // Serves all pre-rendered HTML files and static assets automatically
@@ -162,14 +164,18 @@ await app.register(fastifyStatic, { root: __dirname, prefix: base })
 // Parameterized routes: Fastify matches the pattern, SPA router handles content
 for (const route of dynamicRoutes) {
   app.get(prefix + route, (_req, reply) =>
-    reply.type('text/html').sendFile(fallback, __dirname)
+    reply.code(200).type('text/html').send(fallbackHtml)
   )
 }
 
-// Anything else: SPA shell (browser-side router shows the correct content or 404)
-app.setNotFoundHandler((_req, reply) =>
-  reply.type('text/html').sendFile(fallback, __dirname)
-)
+// Anything else is a real 404. Navigations still get the SPA shell so the
+// browser-side router can render a 404 page; everything else gets an empty
+// body, because answering an image request with HTML only confuses things.
+app.setNotFoundHandler((request, reply) => {
+  if (!(request.headers.accept ?? '').includes('text/html'))
+    return reply.code(404).send()
+  return reply.code(404).type('text/html').send(fallbackHtml)
+})
 
 await app.listen({ port: Number(process.env.PORT ?? 3000), host: '0.0.0.0' })
 `

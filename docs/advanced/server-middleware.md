@@ -83,7 +83,7 @@ The middleware folder is part of the build artifact. You don't need to copy anyt
 
 ## Limits
 
-The middleware runs before the rooted handlers and there is no hook for running things after. If you need a post-handler step (response transformation, logging tail), use Fastify's `onSend` hook or Express's response middleware from inside your middleware file.
+Your middleware runs before the rooted handlers, in dev and in the built server alike, so a route you register wins over the 404 handling. The reverse doesn't exist: there is no hook for running things after. If you need a post-handler step (response transformation, logging tail), use Fastify's `onSend` hook or Express's response middleware from inside your middleware file.
 
 Each file in the folder is treated as a separate middleware entry, so don't drop shared helper files in there -- they get executed as middleware too. Put helpers in a sibling folder (e.g. `src/server-middleware-shared/`) and import them with relative paths; rolldown bundles them into the output `.mjs` automatically.
 
