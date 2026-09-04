@@ -33,6 +33,10 @@
 		".": {
 			"import": "./dist/index.mjs",
 			"types": "./dist/index.d.mts"
+		},
+		"./middleware": {
+			"import": "./dist/middleware.mjs",
+			"types": "./dist/middleware.d.mts"
 		}
 	},
 	"peerDependencies": {
@@ -43,8 +47,12 @@
 		"vite": ">= 8.0.1"
 	},
 	"peerDependenciesMeta": {
-		"@fastify/static": { "optional": false },
-		"fastify": { "optional": false }
+		"@fastify/static": {
+			"optional": false
+		},
+		"fastify": {
+			"optional": false
+		}
 	},
 	"devDependencies": {
 		"@rooted/adapter": "workspace:^",

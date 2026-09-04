@@ -29,7 +29,7 @@ export default rootedManifest({
 
 ## Adding middleware
 
-If you need to register Express middleware (proxies, auth, rate-limiting), point `middlewarePath` at a folder of `.mjs` files. Use the `createMiddleware` helper so editors pick up the Express instance type:
+If you need to register Express middleware (proxies, auth, rate-limiting), point `middlewarePath` at a folder of `.mjs` files. Use the `createMiddleware` helper so editors pick up the Express instance type. It comes from the `/middleware` subpath, which carries no dependencies, so your middleware files don't load the Vite plugin at runtime:
 
 ```ts
 expressAdapter({ middlewarePath: './src/server-middleware' })
@@ -37,7 +37,7 @@ expressAdapter({ middlewarePath: './src/server-middleware' })
 
 ```ts
 // src/server-middleware/01-api-proxy.mts
-import { createMiddleware } from '@rooted-adapters/express'
+import { createMiddleware } from '@rooted-adapters/express/middleware'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 
 export default createMiddleware((app) => {
@@ -46,6 +46,8 @@ export default createMiddleware((app) => {
 ```
 
 Files can be `.mts`, `.ts`, `.mjs`, or `.js` -- TypeScript is transpiled with rolldown at build time.
+
+The same files run during `vite dev` and `vite preview` too, inside Vite's own process and on Vite's own port. No second entry point and no `server.proxy` entry. Anything the framework has no route for falls through to Vite.
 
 Full details in [advanced/server-middleware](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/server-middleware.md).
 

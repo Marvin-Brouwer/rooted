@@ -2,6 +2,8 @@
 
 Adapters are Vite plugins that generate the files a host needs to serve your app. Add one to the `plugins` array in `vite.config.mts` and it runs automatically at the end of every production build.
 
+The two server adapters do a little more: if you give them a `middlewarePath`, they also run your middleware during `vite dev` and `vite preview`. Everything else about an adapter is build-time only.
+
 Each adapter handles two things: writing a catch-all fallback so the browser-side router can take over for any URL the server doesn't recognise, and writing any host-specific config files (a `_redirects` rule, a `firebase.json`, a `staticwebapp.config.json`, and so on).
 
 ## Two flavours
@@ -105,12 +107,19 @@ The Fastify and Express adapters write a `routes.json` and a `server.mjs` to the
 ```json
 {
   "base": "/my-app/",
+  "staticRoutes": ["/categories/", "/privacy/"],
   "dynamicRoutes": ["/products/:id/", "/users/:username/"],
   "fallback": "404.html"
 }
 ```
 
 `server.mjs` reads that file at startup, registers the dynamic routes, and serves `404.html` as the SPA shell for everything else.
+
+Status codes follow from that list. A path in it, static or dynamic, is a real route and gets a `200`. Anything else gets a real `404`: navigations still receive the shell so the browser-side router can render your 404 page, and requests that don't accept HTML (a missing image, a stylesheet, a `fetch`) get an empty `404` rather than a page of HTML they can't use.
+
+Every route has one canonical URL, the one with the trailing slash. `/recipe/42` redirects (`301`) to `/recipe/42/` rather than serving the same page at two addresses. Only paths that really are routes redirect, so a file is never touched, and neither is anything the app doesn't know about: `/nope` is a `404`, not a redirect to another `404`.
+
+`vite dev` and `vite preview` answer the same way, off the same route list, so a broken link fails in dev instead of looking fine until you deploy. In dev this matters twice over, because Vite serves plenty of URLs that are not routes at all - source modules, dependencies, virtual ids, files in `public/`. Those are left to Vite untouched, which is why the redirect is keyed on the route table rather than on "does this path end in a slash". What dev can't tell you about is content: `/recipe/99999/` matches `/recipe/:id/` and gets a `200` in both, because whether recipe 99999 exists is your app's call, not the router's.
 
 Start the server:
 
@@ -130,7 +139,7 @@ pnpm add express
 
 The routed adapter approach works for any Node.js host: Railway, Render, fly.io, Heroku, a VPS, or anything that can run `node dist/server.mjs`. No host-specific adapter is needed for these -- just use Fastify or Express.
 
-If you need to register Fastify plugins or Express middleware (proxies, auth, rate-limiting) alongside the rooted handlers, see [advanced/server-middleware](../advanced/server-middleware.md).
+If you need to register Fastify plugins or Express middleware (proxies, auth, rate-limiting) alongside the rooted handlers, see [advanced/server-middleware](../advanced/server-middleware.md). That middleware also runs in `vite dev` and `vite preview`, so you don't need a second process to reach your own routes while developing.
 
 ## CI/CD pipelines
 
@@ -187,3 +196,35 @@ export function myHostAdapter(): Plugin {
 ```
 
 Use `staticAdapter` for file-based hosts and `routedAdapter` for server-based hosts. The `setup` callback runs after the fallback file is written and before static routes are pre-rendered. See the TSDOC on `AdapterContext` for the full list of available fields.
+
+### Server-based adapters
+
+`staticAdapter` and `routedAdapter` both only cover the build. That's the whole story for a file-based host, but a host that runs a Node server has a second half: the middleware a user writes should also run while they're developing, otherwise `vite dev` serves the app without any of their own routes and they end up booting a second process by hand.
+
+`nodeMiddlewareServer` is that second half. It does the discovery, the ordering, the loading and the connect-chain fall-through; you supply the framework instance and a handler that calls `next()` for anything it has no route for.
+
+```ts
+import { nodeMiddlewareServer, routedAdapter } from '@rooted/adapter'
+import type { Connect, Plugin } from 'vite'
+
+export function myServerAdapter(options?: MyOptions): Plugin[] {
+  return [
+    routedAdapter({ name: 'rooted:my-server' }),
+    nodeMiddlewareServer<MyApplication>({
+      name: 'rooted:my-server-dev',
+      middlewarePath: options?.middlewarePath,
+      async createServer(middleware) {
+        const app = createMyApplication()
+        for (const { register } of middleware) await register(app)
+        return { handle: app as unknown as Connect.NextHandleFunction }
+      },
+    }),
+  ]
+}
+```
+
+Note the return type. These are two plugins, not one: the build half is `apply: 'build'` and the dev half is `apply: 'serve'`, because a single plugin object would get its `closeBundle` called when the dev server shuts down and would try to run a whole production build. Vite flattens nested arrays in `plugins`, so a `Plugin[]` drops into a config exactly like a single plugin does.
+
+The plugin is inert when `middlewarePath` is undefined, so you can pass the option straight through without guarding it.
+
+See [advanced/server-middleware](../advanced/server-middleware.md) for what this looks like from the app developer's side, including the differences between dev and preview.

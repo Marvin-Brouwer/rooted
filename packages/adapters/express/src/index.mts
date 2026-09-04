@@ -1,39 +1,14 @@
 import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { build } from 'rolldown'
+import { routedAdapter, routedNotFound } from '@rooted/adapter'
 
-import { routedAdapter } from '@rooted/adapter'
+import { expressDevelopmentServer } from './development-server.mts'
+
+export type { ExpressMiddleware } from './middleware.mts'
 
 import type { AdapterRoutes } from '@rooted/adapter'
-import type { Express } from 'express'
 import type { Plugin } from 'vite'
-
-/**
- * An Express middleware function for use with {@link ExpressAdapterOptions.middlewarePath}.
- * Receives the Express instance and may register middleware or routes on it.
- */
-export type ExpressMiddleware = (app: Express) => Promise<void> | void
-
-/**
- * Identity helper that types a middleware function for the express adapter.
- * Use it as the default export of a file under your `middlewarePath` folder so
- * editors pick up the Express instance type without extra annotations.
- *
- * @example
- * ```ts
- * // src/server-middleware/01-api-proxy.mts
- * import { createMiddleware } from '@rooted-adapters/express'
- * import { createProxyMiddleware } from 'http-proxy-middleware'
- *
- * export default createMiddleware((app) => {
- *   app.use('/api', createProxyMiddleware({ target: process.env.API_URL }))
- * })
- * ```
- */
-export function createMiddleware(handler: ExpressMiddleware): ExpressMiddleware {
-	return handler
-}
 
 /**
  * Options for {@link expressAdapter}.
@@ -52,6 +27,11 @@ export type ExpressAdapterOptions = {
 	 * order, so numeric prefixes (`01-auth.mts`, `02-proxy.mts`) control load order.
 	 * Middleware runs before the rooted static-file and route handlers.
 	 *
+	 * The same files also run during `vite dev` and `vite preview`, on Vite's own
+	 * port, so you don't need a second process to reach them. Dev loads the
+	 * sources through Vite, preview runs the built `dist/middleware/*.mjs`.
+	 * See the [server middleware guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/server-middleware.md).
+	 *
 	 * @example
 	 * ```ts
 	 * expressAdapter({ middlewarePath: './src/server-middleware' })
@@ -59,7 +39,7 @@ export type ExpressAdapterOptions = {
 	 *
 	 * ```ts
 	 * // src/server-middleware/01-api-proxy.mts
-	 * import { createMiddleware } from '@rooted-adapters/express'
+	 * import { createMiddleware } from '@rooted-adapters/express/middleware'
 	 * import { createProxyMiddleware } from 'http-proxy-middleware'
 	 *
 	 * export default createMiddleware((app) => {
@@ -82,13 +62,17 @@ export type ExpressAdapterOptions = {
  * Users start the server with `node dist/server.mjs`. The `PORT` environment variable
  * controls the port (default: 3000).
  *
+ * Returns two plugins: the build-time adapter, and a dev-time one that runs
+ * `middlewarePath` during `vite dev` and `vite preview`. Vite flattens nested
+ * plugin arrays, so it still goes straight into `plugins` as one entry.
+ *
  * Requires `express >= 5.0.0` in the project.
  *
  * @example `vite.config.ts`
  * ```ts
  * import { rootedManifest } from '@rooted/application'
  * import { generateRouteManifest } from '@rooted/router/manifest'
- * import { expressAdapter } from '@rooted-adapters/express'
+ * import { expressAdapter } from '@rooted-adapters/express/middleware'
  *
  * export default rootedManifest({
  *   plugins: [
@@ -98,13 +82,13 @@ export type ExpressAdapterOptions = {
  * })
  * ```
  */
-export function expressAdapter(options?: ExpressAdapterOptions): Plugin {
-	return routedAdapter({
+export function expressAdapter(options?: ExpressAdapterOptions): Plugin[] {
+	return [routedAdapter({
 		name: 'rooted:express',
 		routes: options?.routes,
-		async setup({ outputDirectory }) {
+		async setup({ outputDirectory, config }) {
 			if (options?.middlewarePath) {
-				const sourceDirectory = path.resolve(process.cwd(), options.middlewarePath)
+				const sourceDirectory = path.resolve(config.root, options.middlewarePath)
 				const files = (await readdir(sourceDirectory)).filter(f => MIDDLEWARE_EXTENSIONS.test(f))
 				if (files.length === 0)
 					throw new Error(
@@ -112,6 +96,8 @@ export function expressAdapter(options?: ExpressAdapterOptions): Plugin {
 					)
 				const middlewareDirectory = path.join(outputDirectory, 'middleware')
 				await mkdir(middlewareDirectory, { recursive: true })
+				// Imported here so vite dev never pays for loading rolldown.
+				const { build } = await import('rolldown')
 				for (const file of files) {
 					await build({
 						input: path.join(sourceDirectory, file),
@@ -131,7 +117,8 @@ export function expressAdapter(options?: ExpressAdapterOptions): Plugin {
 				'utf8',
 			)
 		},
-	})
+	}), expressDevelopmentServer(options?.middlewarePath),
+	routedNotFound({ name: 'rooted:express-not-found', routes: options?.routes })]
 }
 
 const MIDDLEWARE_EXTENSIONS = /\.(mts|ts|mjs|js)$/
@@ -159,25 +146,63 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const { base, dynamicRoutes, fallback } = JSON.parse(
+const { base, staticRoutes, dynamicRoutes, fallback } = JSON.parse(
   readFileSync(path.join(__dirname, 'routes.json'), 'utf8')
 )
 
 const prefix = base.replace(/\\/$/, '')
+const fallbackHtml = readFileSync(path.join(__dirname, fallback), 'utf8')
+
+// One canonical URL per route: /recipe/42 redirects to /recipe/42/. Only paths
+// that really are routes redirect, so files, and anything the app does not know
+// about, are left alone.
+const knownStatic = new Set(staticRoutes)
+const knownDynamic = dynamicRoutes.map(route => route.split('/'))
+const isRoute = (pathname) => {
+  if (pathname === '/' || knownStatic.has(pathname)) return true
+  const parts = pathname.split('/')
+  return knownDynamic.some(pattern =>
+    pattern.length === parts.length &&
+    pattern.every((segment, index) => segment.startsWith(':') ? parts[index] !== '' : segment === parts[index])
+  )
+}
+
+const canonicalRedirect = (rawUrl) => {
+  const [pathname, search] = rawUrl.split('?')
+  if (pathname.endsWith('/') || (pathname.split('/').pop() ?? '').includes('.')) return undefined
+  const inBase = prefix === '' ? pathname
+    : pathname.startsWith(prefix + '/') ? pathname.slice(prefix.length)
+    : undefined
+  if (inBase === undefined || !isRoute(inBase + '/')) return undefined
+  return pathname + '/' + (search ? '?' + search : '')
+}
 const app = express()
 ${middlewareBlock}
+// Canonical slash, after your middleware so an API route it owns is never
+// redirected out from under it.
+app.use((req, res, next) => {
+  const target = (req.method === 'GET' || req.method === 'HEAD') ? canonicalRedirect(req.url) : undefined
+  if (target) return res.redirect(301, target)
+  next()
+})
+
 // Serves all pre-rendered HTML files and static assets automatically
 app.use(base, express.static(__dirname))
 
 // Parameterized routes: Express uses the same :param syntax as the rooted router
 for (const route of dynamicRoutes) {
   app.get(prefix + route, (_req, res) =>
-    res.sendFile(path.join(__dirname, fallback))
+    res.status(200).type('html').send(fallbackHtml)
   )
 }
 
-// Anything else: SPA shell (browser-side router shows the correct content or 404)
-app.use((_req, res) => res.sendFile(path.join(__dirname, fallback)))
+// Anything else is a real 404. Navigations still get the SPA shell so the
+// browser-side router can render a 404 page; everything else gets an empty
+// body, because answering an image request with HTML only confuses things.
+app.use((req, res) => {
+  if (!(req.headers.accept ?? '').includes('text/html')) return res.status(404).end()
+  res.status(404).type('html').send(fallbackHtml)
+})
 
 const port = Number(process.env.PORT ?? 3000)
 app.listen(port, '0.0.0.0', () => console.log(\`Listening on http://0.0.0.0:\${port}\`))

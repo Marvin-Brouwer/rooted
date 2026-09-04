@@ -43,6 +43,10 @@ export default defineConfig({
 				replacement: fileURLToPath(new URL('packages/components/src/_module/components.mts', import.meta.url)),
 			},
 			{
+				find: '@rooted/adapter',
+				replacement: fileURLToPath(new URL('packages/adapter/src/index.mts', import.meta.url)),
+			},
+			{
 				find: '@rooted/router/routes',
 				replacement: fileURLToPath(new URL('packages/router/src/_module/routes.mts', import.meta.url)),
 			},
@@ -54,12 +58,14 @@ export default defineConfig({
 	},
 	test: {
 		globals: true,
-		include: ['packages/*/tests/**/*.test.ts', 'packages/*/tests/**/*.spec.ts'],
+		// The brace covers packages/<name> and the adapter packages one level
+		// deeper. A bare ** would reach into every nested node_modules.
+		include: ['packages/{*,adapters/*}/tests/**/*.{test,spec}.ts'],
 		// Individual files opt out with a `// @vitest-environment node` docblock.
 		environment: 'happy-dom',
 		coverage: {
 			provider: 'v8',
-			include: ['packages/*/src/**/*.{ts,mts}'],
+			include: ['packages/{*,adapters/*}/src/**/*.{ts,mts}'],
 			exclude: ['**/*.d.ts', '**/index.ts'],
 		},
 	},

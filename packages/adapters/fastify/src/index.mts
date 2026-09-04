@@ -1,42 +1,14 @@
 import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { build } from 'rolldown'
+import { routedAdapter, routedNotFound } from '@rooted/adapter'
 
-import { routedAdapter } from '@rooted/adapter'
+import { fastifyDevelopmentServer } from './development-server.mts'
+
+export type { FastifyMiddleware } from './middleware.mts'
 
 import type { AdapterRoutes } from '@rooted/adapter'
-import type { FastifyInstance } from 'fastify'
 import type { Plugin } from 'vite'
-
-/**
- * A Fastify middleware function for use with {@link FastifyAdapterOptions.middlewarePath}.
- * Receives the Fastify instance and may register plugins, hooks, or routes on it.
- */
-export type FastifyMiddleware = (app: FastifyInstance) => Promise<void> | void
-
-/**
- * Identity helper that types a middleware function for the fastify adapter.
- * Use it as the default export of a file under your `middlewarePath` folder so
- * editors pick up the Fastify instance type without extra annotations.
- *
- * @example
- * ```ts
- * // src/server-middleware/01-api-proxy.mts
- * import { createMiddleware } from '@rooted-adapters/fastify'
- * import fastifyHttpProxy from '@fastify/http-proxy'
- *
- * export default createMiddleware(async (app) => {
- *   await app.register(fastifyHttpProxy, {
- *     upstream: process.env.API_URL,
- *     prefix: '/api',
- *   })
- * })
- * ```
- */
-export function createMiddleware(handler: FastifyMiddleware): FastifyMiddleware {
-	return handler
-}
 
 /**
  * Options for {@link fastifyAdapter}.
@@ -56,6 +28,11 @@ export type FastifyAdapterOptions = {
 	 * control load order. Middleware runs before the rooted static-file and route
 	 * handlers.
 	 *
+	 * The same files also run during `vite dev` and `vite preview`, on Vite's own
+	 * port, so you don't need a second process to reach them. Dev loads the
+	 * sources through Vite, preview runs the built `dist/middleware/*.mjs`.
+	 * See the [server middleware guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/server-middleware.md).
+	 *
 	 * @example
 	 * ```ts
 	 * fastifyAdapter({ middlewarePath: './src/server-middleware' })
@@ -63,7 +40,7 @@ export type FastifyAdapterOptions = {
 	 *
 	 * ```ts
 	 * // src/server-middleware/01-api-proxy.mts
-	 * import { createMiddleware } from '@rooted-adapters/fastify'
+	 * import { createMiddleware } from '@rooted-adapters/fastify/middleware'
 	 * import fastifyHttpProxy from '@fastify/http-proxy'
 	 *
 	 * export default createMiddleware(async (app) => {
@@ -88,13 +65,17 @@ export type FastifyAdapterOptions = {
  * Users start the server with `node dist/server.mjs`. The `PORT` environment variable
  * controls the port (default: 3000).
  *
+ * Returns two plugins: the build-time adapter, and a dev-time one that runs
+ * `middlewarePath` during `vite dev` and `vite preview`. Vite flattens nested
+ * plugin arrays, so it still goes straight into `plugins` as one entry.
+ *
  * Requires `fastify >= 5.0.0` and `@fastify/static >= 8.0.0` in the project.
  *
  * @example `vite.config.ts`
  * ```ts
  * import { rootedManifest } from '@rooted/application'
  * import { generateRouteManifest } from '@rooted/router/manifest'
- * import { fastifyAdapter } from '@rooted-adapters/fastify'
+ * import { fastifyAdapter } from '@rooted-adapters/fastify/middleware'
  *
  * export default rootedManifest({
  *   plugins: [
@@ -104,13 +85,13 @@ export type FastifyAdapterOptions = {
  * })
  * ```
  */
-export function fastifyAdapter(options?: FastifyAdapterOptions): Plugin {
-	return routedAdapter({
+export function fastifyAdapter(options?: FastifyAdapterOptions): Plugin[] {
+	return [routedAdapter({
 		name: 'rooted:fastify',
 		routes: options?.routes,
-		async setup({ outputDirectory }) {
+		async setup({ outputDirectory, config }) {
 			if (options?.middlewarePath) {
-				const sourceDirectory = path.resolve(process.cwd(), options.middlewarePath)
+				const sourceDirectory = path.resolve(config.root, options.middlewarePath)
 				const files = (await readdir(sourceDirectory)).filter(f => MIDDLEWARE_EXTENSIONS.test(f))
 				if (files.length === 0)
 					throw new Error(
@@ -118,6 +99,8 @@ export function fastifyAdapter(options?: FastifyAdapterOptions): Plugin {
 					)
 				const middlewareDirectory = path.join(outputDirectory, 'middleware')
 				await mkdir(middlewareDirectory, { recursive: true })
+				// Imported here so vite dev never pays for loading rolldown.
+				const { build } = await import('rolldown')
 				for (const file of files) {
 					await build({
 						input: path.join(sourceDirectory, file),
@@ -137,7 +120,8 @@ export function fastifyAdapter(options?: FastifyAdapterOptions): Plugin {
 				'utf8',
 			)
 		},
-	})
+	}), fastifyDevelopmentServer(options?.middlewarePath),
+	routedNotFound({ name: 'rooted:fastify-not-found', routes: options?.routes })]
 }
 
 const MIDDLEWARE_EXTENSIONS = /\.(mts|ts|mjs|js)$/
@@ -166,27 +150,64 @@ import Fastify from 'fastify'
 import fastifyStatic from '@fastify/static'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const { base, dynamicRoutes, fallback } = JSON.parse(
+const { base, staticRoutes, dynamicRoutes, fallback } = JSON.parse(
   readFileSync(path.join(__dirname, 'routes.json'), 'utf8')
 )
 
 const prefix = base.replace(/\\/$/, '')
+const fallbackHtml = readFileSync(path.join(__dirname, fallback), 'utf8')
+
+// One canonical URL per route: /recipe/42 redirects to /recipe/42/. Only paths
+// that really are routes redirect, so files, and anything the app does not know
+// about, are left alone.
+const knownStatic = new Set(staticRoutes)
+const knownDynamic = dynamicRoutes.map(route => route.split('/'))
+const isRoute = (pathname) => {
+  if (pathname === '/' || knownStatic.has(pathname)) return true
+  const parts = pathname.split('/')
+  return knownDynamic.some(pattern =>
+    pattern.length === parts.length &&
+    pattern.every((segment, index) => segment.startsWith(':') ? parts[index] !== '' : segment === parts[index])
+  )
+}
+
+const canonicalRedirect = (rawUrl) => {
+  const [pathname, search] = rawUrl.split('?')
+  if (pathname.endsWith('/') || (pathname.split('/').pop() ?? '').includes('.')) return undefined
+  const inBase = prefix === '' ? pathname
+    : pathname.startsWith(prefix + '/') ? pathname.slice(prefix.length)
+    : undefined
+  if (inBase === undefined || !isRoute(inBase + '/')) return undefined
+  return pathname + '/' + (search ? '?' + search : '')
+}
 const app = Fastify({ logger: true })
 ${middlewareBlock}
+// Canonical slash, after your middleware so an API route it owns is never
+// redirected out from under it.
+app.addHook('onRequest', (request, reply, done) => {
+  const target = canonicalRedirect(request.url)
+  if (target) return reply.redirect(target, 301)
+  done()
+})
+
 // Serves all pre-rendered HTML files and static assets automatically
 await app.register(fastifyStatic, { root: __dirname, prefix: base })
 
 // Parameterized routes: Fastify matches the pattern, SPA router handles content
 for (const route of dynamicRoutes) {
   app.get(prefix + route, (_req, reply) =>
-    reply.type('text/html').sendFile(fallback, __dirname)
+    reply.code(200).type('text/html').send(fallbackHtml)
   )
 }
 
-// Anything else: SPA shell (browser-side router shows the correct content or 404)
-app.setNotFoundHandler((_req, reply) =>
-  reply.type('text/html').sendFile(fallback, __dirname)
-)
+// Anything else is a real 404. Navigations still get the SPA shell so the
+// browser-side router can render a 404 page; everything else gets an empty
+// body, because answering an image request with HTML only confuses things.
+app.setNotFoundHandler((request, reply) => {
+  if (!(request.headers.accept ?? '').includes('text/html'))
+    return reply.code(404).send()
+  return reply.code(404).type('text/html').send(fallbackHtml)
+})
 
 await app.listen({ port: Number(process.env.PORT ?? 3000), host: '0.0.0.0' })
 `
