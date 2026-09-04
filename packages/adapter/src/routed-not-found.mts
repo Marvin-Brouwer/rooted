@@ -68,40 +68,60 @@ export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 		},
 
 		configureServer(server) {
-			// Registered before Vite's own middlewares, because its SPA fallback
-			// answers 200 for everything and never calls next().
+			// Two middlewares, because neither position can do the whole job.
+			//
+			// Navigations have to be caught before Vite: its SPA fallback answers
+			// 200 for any URL and never calls next(), so there is nothing left to
+			// correct afterwards.
 			server.middlewares.use((request, response, next) => {
-				if (request.method !== 'GET' && request.method !== 'HEAD') return next()
+				const target = routeOf(request, config)
+				if (!target || !wantsHtml(request)) return next()
+				if (matcher()(target.pathname)) return next()
 
-				const url = request.url ?? '/'
-				const pathname = stripBase(url.split('?')[0].split('#')[0], config.base)
-				if (pathname === undefined) return next()
-				if (INTERNAL_PREFIXES.some(prefix => pathname.startsWith(prefix))) return next()
-				if (matcher()(pathname)) return next()
-
-				// Anything Vite itself can serve -- source modules, assets, public
-				// files -- is not ours to judge. Only navigations reach the router.
-				if (!wantsHtml(request)) return next()
-
-				void serveNotFound(server, config, url, response, next)
+				void respond(server, config, target.url, response, next, 404)
 			})
+
+			// Everything else has to be judged after Vite, because only Vite knows
+			// whether a path is one of its own: a source module, a dependency, a
+			// file in public/. Reaching here means it declined to serve it.
+			return () => {
+				server.middlewares.use((request, response, next) => {
+					const target = routeOf(request, config)
+					if (!target) return next()
+					// Vite installs its SPA fallback after this hook, not before, so
+					// navigations have not been served yet. They were already judged
+					// on the way in; leave them to it.
+					if (wantsHtml(request)) return next()
+
+					// A route is a route whatever the caller asked for, the same as
+					// the generated server, where the router matches before anything
+					// looks at Accept.
+					if (matcher()(target.pathname)) return void respond(server, config, target.url, response, next, 200)
+
+					// Not a route and not a file. An empty 404 beats a page of HTML
+					// that an <img> or a fetch cannot use.
+					response.statusCode = 404
+					response.end()
+				})
+			}
 		},
 	}
 }
 
 // ---------------------------------------------------------------------------
 
-async function serveNotFound(
+async function respond(
 	server: ViteDevServer,
 	config: ResolvedConfig,
 	url: string,
 	response: Parameters<Connect.NextHandleFunction>[1],
 	next: Connect.NextFunction,
+	status: number,
 ) {
 	try {
 		const shell = await readFile(path.join(config.root, 'index.html'), 'utf8')
 		const html = await server.transformIndexHtml(url, shell)
-		response.statusCode = 404
+		response.statusCode = status
 		response.setHeader('Content-Type', 'text/html; charset=utf-8')
 		response.end(html)
 	}
@@ -109,6 +129,21 @@ async function serveNotFound(
 		// Better to fall through to Vite than to take the page down over this.
 		next(error)
 	}
+}
+
+/** The request's in-base pathname, or undefined when it isn't ours to answer. */
+function routeOf(
+	request: { url?: string, originalUrl?: string, method?: string, headers: Record<string, unknown> },
+	config: ResolvedConfig,
+): { url: string, pathname: string } | undefined {
+	if (request.method !== 'GET' && request.method !== 'HEAD') return undefined
+	// Vite's SPA fallback rewrites `url` to /index.html before the post hook
+	// runs, so judge the address the caller actually asked for.
+	const url = request.originalUrl ?? request.url ?? '/'
+	const pathname = stripBase(url.split('?')[0].split('#')[0], config.base)
+	if (pathname === undefined) return undefined
+	if (INTERNAL_PREFIXES.some(prefix => pathname.startsWith(prefix))) return undefined
+	return { url, pathname }
 }
 
 /**
