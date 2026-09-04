@@ -146,14 +146,46 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const { base, dynamicRoutes, fallback } = JSON.parse(
+const { base, staticRoutes, dynamicRoutes, fallback } = JSON.parse(
   readFileSync(path.join(__dirname, 'routes.json'), 'utf8')
 )
 
 const prefix = base.replace(/\\/$/, '')
 const fallbackHtml = readFileSync(path.join(__dirname, fallback), 'utf8')
+
+// One canonical URL per route: /recipe/42 redirects to /recipe/42/. Only paths
+// that really are routes redirect, so files, and anything the app does not know
+// about, are left alone.
+const knownStatic = new Set(staticRoutes)
+const knownDynamic = dynamicRoutes.map(route => route.split('/'))
+const isRoute = (pathname) => {
+  if (pathname === '/' || knownStatic.has(pathname)) return true
+  const parts = pathname.split('/')
+  return knownDynamic.some(pattern =>
+    pattern.length === parts.length &&
+    pattern.every((segment, index) => segment.startsWith(':') ? parts[index] !== '' : segment === parts[index])
+  )
+}
+
+const canonicalRedirect = (rawUrl) => {
+  const [pathname, search] = rawUrl.split('?')
+  if (pathname.endsWith('/') || (pathname.split('/').pop() ?? '').includes('.')) return undefined
+  const inBase = prefix === '' ? pathname
+    : pathname.startsWith(prefix + '/') ? pathname.slice(prefix.length)
+    : undefined
+  if (inBase === undefined || !isRoute(inBase + '/')) return undefined
+  return pathname + '/' + (search ? '?' + search : '')
+}
 const app = express()
 ${middlewareBlock}
+// Canonical slash, after your middleware so an API route it owns is never
+// redirected out from under it.
+app.use((req, res, next) => {
+  const target = (req.method === 'GET' || req.method === 'HEAD') ? canonicalRedirect(req.url) : undefined
+  if (target) return res.redirect(301, target)
+  next()
+})
+
 // Serves all pre-rendered HTML files and static assets automatically
 app.use(base, express.static(__dirname))
 

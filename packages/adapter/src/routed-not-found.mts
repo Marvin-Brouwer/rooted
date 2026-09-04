@@ -76,6 +76,10 @@ export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 			server.middlewares.use((request, response, next) => {
 				const target = routeOf(request, config)
 				if (!target || !wantsHtml(request)) return next()
+				// Someone can navigate straight to a file. Whether it exists is
+				// vite's business, not the route table's.
+				if (looksLikeFile(target.pathname)) return next()
+				if (redirect(response, target, matcher())) return
 				if (matcher()(target.pathname)) return next()
 
 				void respond(server, config, target.url, response, next, 404)
@@ -90,16 +94,20 @@ export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 					if (!target) return next()
 					// Vite installs its SPA fallback after this hook, not before, so
 					// navigations have not been served yet. They were already judged
-					// on the way in; leave them to it.
-					if (wantsHtml(request)) return next()
+					// on the way in; leave them to it. A file is the exception: it
+					// had to reach vite first, and getting here means vite had
+					// nothing to serve, so it really is missing.
+					if (wantsHtml(request) && !looksLikeFile(target.pathname)) return next()
+					if (redirect(response, target, matcher())) return
 
 					// A route is a route whatever the caller asked for, the same as
 					// the generated server, where the router matches before anything
 					// looks at Accept.
 					if (matcher()(target.pathname)) return void respond(server, config, target.url, response, next, 200)
 
-					// Not a route and not a file. An empty 404 beats a page of HTML
-					// that an <img> or a fetch cannot use.
+					// Missing. A navigation still gets the shell to render a 404
+					// page; an <img> or a fetch gets an empty body it can act on.
+					if (wantsHtml(request)) return void respond(server, config, target.url, response, next, 404)
 					response.statusCode = 404
 					response.end()
 				})
@@ -109,6 +117,25 @@ export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * Sends the canonical slash form when the URL is a route written without one.
+ * Only real routes redirect, so a vite module id or a file is never touched.
+ */
+function redirect(
+	response: Parameters<Connect.NextHandleFunction>[1],
+	target: { url: string, pathname: string },
+	matches: (pathname: string) => boolean,
+): boolean {
+	if (target.pathname.endsWith('/') || looksLikeFile(target.pathname)) return false
+	if (!matches(`${target.pathname}/`)) return false
+
+	const [pathname, search] = target.url.split('?')
+	response.statusCode = 301
+	response.setHeader('Location', `${pathname}/${search ? `?${search}` : ''}`)
+	response.end()
+	return true
+}
 
 async function respond(
 	server: ViteDevServer,
@@ -147,21 +174,21 @@ function routeOf(
 }
 
 /**
- * Builds a matcher with the same semantics as the generated server's router:
- * a `:param` matches exactly one non-empty segment.
+ * Builds a matcher with the same semantics as the generated servers: a `:param`
+ * matches exactly one non-empty segment, and the path is compared as written.
+ * Kept deliberately in step with the matcher in the generated `server.mjs`.
  */
 function createRouteMatcher(routes: { staticPaths: string[], dynamicPatterns: string[] }) {
 	const staticPaths = new Set(['/', ...routes.staticPaths.map(withTrailingSlash)])
-	const patterns = routes.dynamicPatterns.map(pattern => new RegExp(
-		`^${withTrailingSlash(pattern)
-			.split('/')
-			.map(segment => segment.startsWith(':') ? '[^/]+' : escapeRegExp(segment))
-			.join('/')}$`,
-	))
+	const dynamicPatterns = routes.dynamicPatterns.map(pattern => withTrailingSlash(pattern).split('/'))
 
 	return (pathname: string) => {
-		const candidate = withTrailingSlash(pathname)
-		return staticPaths.has(candidate) || patterns.some(pattern => pattern.test(candidate))
+		if (staticPaths.has(pathname)) return true
+		const parts = pathname.split('/')
+		return dynamicPatterns.some(pattern =>
+			pattern.length === parts.length
+			&& pattern.every((segment, index) => segment.startsWith(':') ? parts[index] !== '' : segment === parts[index]),
+		)
 	}
 }
 
@@ -169,8 +196,9 @@ function withTrailingSlash(value: string): string {
 	return value.endsWith('/') ? value : `${value}/`
 }
 
-function escapeRegExp(value: string): string {
-	return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
+/** A path whose last segment carries an extension is a file, not a route. */
+function looksLikeFile(pathname: string): boolean {
+	return (pathname.split('/').pop() ?? '').includes('.')
 }
 
 /** Returns undefined when the URL sits outside the configured base. */

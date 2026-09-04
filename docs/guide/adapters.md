@@ -107,6 +107,7 @@ The Fastify and Express adapters write a `routes.json` and a `server.mjs` to the
 ```json
 {
   "base": "/my-app/",
+  "staticRoutes": ["/categories/", "/privacy/"],
   "dynamicRoutes": ["/products/:id/", "/users/:username/"],
   "fallback": "404.html"
 }
@@ -116,9 +117,9 @@ The Fastify and Express adapters write a `routes.json` and a `server.mjs` to the
 
 Status codes follow from that list. A path in it, static or dynamic, is a real route and gets a `200`. Anything else gets a real `404`: navigations still receive the shell so the browser-side router can render your 404 page, and requests that don't accept HTML (a missing image, a stylesheet, a `fetch`) get an empty `404` rather than a page of HTML they can't use.
 
-A link without its trailing slash is the same page: `/recipe/42` and `/recipe/42/` both resolve. The Fastify server is configured with `ignoreTrailingSlash` to match Express and dev, which would otherwise disagree with both.
+Every route has one canonical URL, the one with the trailing slash. `/recipe/42` redirects (`301`) to `/recipe/42/` rather than serving the same page at two addresses. Only paths that really are routes redirect, so a file is never touched, and neither is anything the app doesn't know about: `/nope` is a `404`, not a redirect to another `404`.
 
-`vite dev` and `vite preview` answer the same way, off the same route list, so a broken link fails in dev instead of looking fine until you deploy. One cosmetic difference remains: a static route requested without its trailing slash redirects (`301`) under Express, where Fastify and dev serve it directly. Both end on the same page. What dev can't tell you about is content: `/recipe/99999/` matches `/recipe/:id/` and gets a `200` in both, because whether recipe 99999 exists is your app's call, not the router's.
+`vite dev` and `vite preview` answer the same way, off the same route list, so a broken link fails in dev instead of looking fine until you deploy. In dev this matters twice over, because Vite serves plenty of URLs that are not routes at all - source modules, dependencies, virtual ids, files in `public/`. Those are left to Vite untouched, which is why the redirect is keyed on the route table rather than on "does this path end in a slash". What dev can't tell you about is content: `/recipe/99999/` matches `/recipe/:id/` and gets a `200` in both, because whether recipe 99999 exists is your app's call, not the router's.
 
 Start the server:
 

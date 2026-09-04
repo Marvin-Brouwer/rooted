@@ -64,6 +64,52 @@ describe('routedNotFound()', () => {
 		expect(outcome).toEqual({ handled: 'next' })
 	})
 
+	test('redirects a route written without its trailing slash', async () => {
+		// Arrange
+		const server = serve({ routes: ['/categories/', '/recipe/:id/'] })
+
+		// Act
+		const staticRoute = await request(server, '/categories')
+		const dynamicRoute = await request(server, '/recipe/42')
+
+		// Assert
+		expect(staticRoute).toMatchObject({ status: 301, location: '/categories/' })
+		expect(dynamicRoute).toMatchObject({ status: 301, location: '/recipe/42/' })
+	})
+
+	test('keeps the query string on the redirect', async () => {
+		// Arrange
+		const server = serve({ routes: ['/recipe/:id/'] })
+
+		// Act
+		const outcome = await request(server, '/recipe/42?sort=name&page=2')
+
+		// Assert
+		expect(outcome.location).toBe('/recipe/42/?sort=name&page=2')
+	})
+
+	test('never redirects a path that is not a route', async () => {
+		// Arrange -- an extensionless vite module id must survive untouched
+		const server = serve({ routes: ['/recipe/:id/'] })
+
+		// Act
+		const outcome = await request(server, '/src/some-module')
+
+		// Assert
+		expect(outcome.location).toBeUndefined()
+	})
+
+	test('leaves a file to vite, which knows whether it exists', async () => {
+		// Arrange
+		const server = serve({ routes: ['/recipe/:id/'] })
+
+		// Act -- a file can be navigated to directly, so this arrives as html
+		const outcome = await request(server, '/icon.svg')
+
+		// Assert
+		expect(outcome).toEqual({ handled: 'next' })
+	})
+
 	test('answers an unknown navigation with 404 and the shell', async () => {
 		// Arrange
 		const server = serve({ routes: ['/recipe/:id/'] })
@@ -113,6 +159,19 @@ describe('routedNotFound()', () => {
 
 		// Assert
 		expect(outcome).toEqual({ handled: 'next' })
+	})
+
+	test('404s a missing file that was navigated to, once vite has declined it', async () => {
+		// Arrange -- the pre hook waves files through so vite can serve the real
+		// ones; reaching the post hook means there was nothing to serve
+		const server = serve({ routes: ['/recipe/:id/'] }, '/', 'post')
+
+		// Act
+		const outcome = await request(server, '/missing.png')
+
+		// Assert -- a navigation, so the shell comes back for the router to render
+		expect(outcome.status).toBe(404)
+		expect(outcome.body).toContain('id="app"')
 	})
 
 	test('answers a non-navigation with an empty 404', async () => {
@@ -178,7 +237,7 @@ describe('routedNotFound()', () => {
 
 // ---------------------------------------------------------------------------
 
-type Outcome = { handled: 'next' | 'responded', status?: number, body?: string }
+type Outcome = { handled: 'next' | 'responded', status?: number, body?: string, location?: string }
 
 function serve(options: { routes?: string[] }, base = '/', which: 'pre' | 'post' = 'pre') {
 	const config = {
@@ -217,12 +276,18 @@ async function request(
 	return await new Promise<Outcome>((resolve, reject) => {
 		let body = ''
 		const incoming = { url, originalUrl, method, headers: { accept } } as unknown as IncomingMessage
+		const headers = new Map<string, string>()
 		const outgoing = {
 			statusCode: 200,
-			setHeader: () => undefined,
+			setHeader: (key: string, value: string) => { headers.set(key.toLowerCase(), value) },
 			end: (chunk?: string) => {
 				body += chunk ?? ''
-				resolve({ handled: 'responded', status: outgoing.statusCode, body })
+				resolve({
+					handled: 'responded',
+					status: outgoing.statusCode,
+					body,
+					...headers.has('location') ? { location: headers.get('location') } : {},
+				})
 			},
 		} as unknown as ServerResponse & { statusCode: number }
 		handle(incoming, outgoing, error => error ? reject(error as Error) : resolve({ handled: 'next' }))
