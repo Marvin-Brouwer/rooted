@@ -2,14 +2,14 @@ import { createReadStream } from 'node:fs'
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { SeoApi } from '@rooted/application'
+import { seoPluginName, type SeoApi } from '@rooted/seo'
+
 import type { Logger, Plugin, ResolvedConfig } from 'vite'
 
 const UNSPLASH_URL_RE = /^https:\/\/unsplash\.com\/photos\/([\w-]+)/
 const UNSPLASH_ID_RE = /([A-Za-z0-9_-]{11})$/
 const VIRTUAL_PREFIX = '\0ri:'
 const MIDDLEWARE_PATH = '/__ri__/'
-const SEO_PLUGIN_NAME = 'rooted:seo'
 
 const DEFAULT_WIDTHS = [400, 800, 1200, 1920]
 
@@ -70,7 +70,7 @@ export function responsiveImages({ accessKey, deploymentUrl }: ResponsiveImagesO
 			isDevelopment = config.command === 'serve'
 			logger = config.logger
 
-			const seoPlugin = config.plugins.find(p => p.name === SEO_PLUGIN_NAME)
+			const seoPlugin = config.plugins.find(p => p.name === seoPluginName)
 			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 
 			if (!accessKey) {

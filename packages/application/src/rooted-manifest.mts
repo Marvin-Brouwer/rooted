@@ -6,16 +6,14 @@ import { analyzer } from 'vite-bundle-analyzer'
 import { ManifestOptions, type VitePWAOptions } from 'vite-plugin-pwa'
 
 import { cssLoader } from '@rooted/components/css-loader'
+import { llmsTxtPlugin, robotsPlugin, seoPlugin, type SeoOptions } from '@rooted/seo'
 import { ArrayElement } from '@rooted/util'
 
 type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
-import { llmsTxtPlugin } from '../plugins/llms-txt.mts'
 import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
 import { pwaPreset } from '../plugins/pwa-preset.mts'
-import { robotsPlugin } from '../plugins/robots.mts'
-import { SeoOptions, seoPlugin } from '../plugins/seo.mts'
 
 import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
 
@@ -93,10 +91,15 @@ function resolveBase(url: string | undefined): string | undefined {
  * robots.txt, PWA preset, import-cycle detector) plus your own `plugins` and
  * `resolve` overrides.
  *
+ * Route SEO is not included, because this package knows nothing about routing.
+ * If you use the router, add `routeSeoPlugin()` from `@rooted/seo/router` to
+ * `plugins`, next to `generateRouteManifest()`.
+ *
  * @example
  * ```ts
  * import { rootedManifest } from '@rooted/application'
  * import { generateRouteManifest } from '@rooted/router/manifest'
+ * import { routeSeoPlugin } from '@rooted/seo/router'
  *
  * import { seo } from './src/seo.mts'
  *
@@ -112,6 +115,7 @@ function resolveBase(url: string | undefined): string | undefined {
  *       glob: './src/** /_routes.mts',
  *       routeManifestPath: './src/_routes.g.mts',
  *     }),
+ *     routeSeoPlugin(),
  *   ],
  * })
  * ```

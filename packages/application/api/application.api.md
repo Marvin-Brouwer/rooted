@@ -4,17 +4,13 @@
 
 ```ts
 
-import { AdditionalSitemap } from '@rooted/adapter';
 import { ArrayElement } from '@rooted/util';
 import { BuildEnvironmentOptions } from 'vite';
 import { ManifestOptions } from 'vite-plugin-pwa';
-import { SeoApi } from '@rooted/adapter';
-import { SitemapEntry } from '@rooted/adapter';
+import { SeoOptions } from '@rooted/seo';
 import { UserConfig } from 'vite';
 import { UserConfigFnObject } from 'vite';
 import { VitePWAOptions } from 'vite-plugin-pwa';
-
-export { AdditionalSitemap }
 
 // @public
 export type CodeSplittingGroups = NonNullable<CodeSplittingOptions['groups']>;
@@ -25,22 +21,6 @@ export type CodeSplittingOptions = NonNullable<Exclude<OutputOptions['codeSplitt
 // @public
 export type DetectorOptions = {
     importCycle?: ImportCycleOptions;
-};
-
-// @public
-export type LlmsTxtOptions = {
-    intro?: string;
-    sections?: LlmsTxtSection[];
-};
-
-// @public
-export type LlmsTxtSection = {
-    title: string;
-    entries: Array<{
-        title: string;
-        url: string;
-        description?: string;
-    }>;
 };
 
 // @public
@@ -61,19 +41,6 @@ export type RootedApplicationManifest = {
 
 // @public
 export function rootedManifest(manifest: RootedApplicationManifest): UserConfigFnObject;
-
-export { SeoApi }
-
-// @public (undocumented)
-export type SeoOptions = {
-    homeRouteFiles?: string[];
-    defaultOgImage?: string;
-    titleSuffix?: string;
-    robots?: RobotsOptions | false;
-    llmsTxt?: LlmsTxtOptions | false;
-};
-
-export { SitemapEntry }
 
 // (No @packageDocumentation comment for this package)
 

@@ -2,11 +2,12 @@ import fs from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { SeoApi } from '@rooted/adapter'
+import { seoPluginName } from '@rooted/seo'
+
+import type { SeoApi } from '@rooted/seo'
 import type { PluginOption, ResolvedConfig } from 'vite'
 
 const DEFAULT_ICON_PATH = 'public/icon.svg'
-const SEO_PLUGIN_NAME = 'rooted:seo'
 
 /**
  * Generates PWA icon assets from the project's `public/icon.svg` using the
@@ -37,7 +38,7 @@ export function pwaAssetsPlugin(skip: boolean, deploymentUrl: string | undefined
 
 		configResolved(config) {
 			viteConfig = config
-			const seoPlugin = config.plugins.find(p => p.name === SEO_PLUGIN_NAME)
+			const seoPlugin = config.plugins.find(p => p.name === seoPluginName)
 			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 		},
 

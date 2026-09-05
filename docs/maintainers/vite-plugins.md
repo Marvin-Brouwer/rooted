@@ -2,6 +2,8 @@
 
 Some `@rooted/*` packages ship a Vite plugin next to their browser code: `@rooted/router` has the route manifest generator, `@rooted/components` has the CSS loader, `@rooted/localization` has the hreflang plugin, `@rooted/markdown` has the `.md` transform.
 
+`@rooted/seo` is a different shape: it's plugin-only, with no `src/` and no browser build, so both its entry points come out of `plugins/_module/`. A package that ships nothing to the browser doesn't need the two-build split described below.
+
 Those two halves run in different places. The browser half ends up in a user's bundle. The plugin half runs in Node during `vite dev` and `vite build` and must never reach a bundle. That split is the reason for most of what follows.
 
 Read [adding a new package](./adding-packages.md) first if the package doesn't exist yet.
@@ -91,6 +93,8 @@ It costs install weight but never bundle weight, since nothing in `src/` imports
 ### Name it consistently
 
 `'vite-plugin:rooted-<what>'`. It shows up in Vite's output and in `config.plugins` lookups, which is how `localizationSeo` finds the manifest plugin's `api`.
+
+The SEO plugins predate that convention and use `rooted:seo` and `rooted:route-seo` instead. Don't rename them; the strings are a cross-package contract. Do export them, the way `@rooted/seo` exports `seoPluginName`, `routeSeoPluginName` and `routeManifestPluginName`. A plugin name that other packages look up should never be a literal in more than one file.
 
 ### Strip the query before matching an id
 

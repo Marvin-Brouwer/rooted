@@ -5,7 +5,23 @@ SEO in rooted has two halves:
 1. **Per-route metadata.** Each route declares its `title`, `description`, and a few sitemap fields. The router applies these at runtime as the page changes.
 2. **Build-time tooling.** When you build for production, rooted writes `sitemap.xml`, `robots.txt`, and `llms.txt` based on the routes it finds. It also injects per-route meta tags into the static HTML shipped for each route.
 
-Both halves are wired through `@rooted/application`'s `rootedManifest` helper. You don't have to touch them separately.
+Most of it is wired through `@rooted/application`'s `rootedManifest` helper, with one plugin you add yourself if you use the router.
+
+The build-time half lives in `@rooted/seo`, split across two entry points. `@rooted/seo` itself knows nothing about routing: meta tag injection, sitemap generation, `robots.txt`. `@rooted/seo/router` supplies the parts that read your routes: each page's metadata and the pages themselves.
+
+`rootedManifest` wires up the first for you. It doesn't wire up the second, because `@rooted/application` knows nothing about routing, and that's what keeps routing optional. If you use the router, add the plugin next to `generateRouteManifest()`:
+
+```ts
+import { generateRouteManifest } from '@rooted/router/manifest'
+import { routeSeoPlugin } from '@rooted/seo/router'
+
+plugins: [
+  generateRouteManifest({ glob: './src/**/_routes.mts', routeManifestPath: './src/_routes.g.mts' }),
+  routeSeoPlugin(),
+]
+```
+
+`@rooted/seo/router` and `@rooted/router` come as a pair; importing the one without the other won't type check.
 
 ## Per-route metadata
 
@@ -66,6 +82,8 @@ At build time the function runs as if the browser were at the page being generat
 Two paths:
 
 - **At build time**, the SEO plugin renders one HTML file per static route. Each file gets the route's `<title>`, description, canonical link, and Open Graph tags injected. Crawlers see the right tags without running JavaScript.
+
+  The plugin doesn't read your routes to do this. It asks whoever registered a page and metadata provider, and `routeSeoPlugin` is what registers them from the route manifest. That's why the routing-free half works on its own, and it's the seam to use if your pages come from somewhere other than routes.
 - **At runtime**, when the router navigates to a new route, it updates `document.title` and the existing meta tags in place. This happens inside the router; you don't have to wire it up.
 
 You can pass router-specific SEO options through the router itself:
@@ -89,6 +107,7 @@ Wire up the manifest in `vite.config.mts`:
 ```ts
 import { rootedManifest } from '@rooted/application'
 import { generateRouteManifest } from '@rooted/router/manifest'
+import { routeSeoPlugin } from '@rooted/seo/router'
 
 import { seo } from './src/seo.mts'
 
@@ -109,6 +128,7 @@ export default rootedManifest({
       glob: './src/**/_routes.mts',
       routeManifestPath: './src/_routes.g.mts',
     }),
+    routeSeoPlugin(),
   ],
 })
 ```
@@ -118,7 +138,7 @@ The `webManifest` is the standard PWA manifest. `webManifest.url` is the deploym
 ## `seo` options
 
 ```ts
-import type { SeoOptions } from '@rooted/application'
+import type { SeoOptions } from '@rooted/seo'
 
 export const seo: SeoOptions = {
   titleSuffix: ' | My App',     // appended to every route title
@@ -133,7 +153,7 @@ export const seo: SeoOptions = {
 `llms.txt` is a Markdown file that summarises the site for language models. The default behaviour writes a list of every static route with a `title`. You can override the section structure when you have a real content backend:
 
 ```ts
-import type { SeoOptions } from '@rooted/application'
+import type { SeoOptions } from '@rooted/seo'
 
 export const seo: SeoOptions = {
   llmsTxt: {
@@ -167,10 +187,10 @@ Set `llmsTxt: false` to skip the file entirely.
 The SEO plugin exposes a small inter-plugin API for registering additional sitemaps (for example one for icons or a content sitemap generated from a CMS). You retrieve it through the resolved Vite config:
 
 ```ts
-import type { SeoApi } from '@rooted/application'
+import { seoPluginName, type SeoApi } from '@rooted/seo'
 
-const seoPlugin = resolvedConfig.plugins.find(p => p.name === 'rooted:seo')
-const seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
+const plugin = resolvedConfig.plugins.find(p => p.name === seoPluginName)
+const seoApi = (plugin as { api?: SeoApi } | undefined)?.api
 seoApi?.addSitemap({
   name: 'icons',
   entries: [
@@ -179,7 +199,21 @@ seoApi?.addSitemap({
 })
 ```
 
-This is most useful from another Vite plugin's `configResolved` or `buildStart` hook.
+This is most useful from another Vite plugin's `configResolved` or `buildStart` hook. Plugins find each other by name rather than by importing, so `seoPluginName` is the contract; use the constant instead of writing the string.
+
+`SeoApi` has a few other seams, all registered the same way:
+
+| Method | What it does |
+|---|---|
+| `addSitemap` | Registers an extra sitemap, listed in `sitemap-index.xml`. |
+| `addPageProvider` | Supplies the pages, by static path. Feeds both `sitemap.xml` and `llms.txt`. |
+| `addRouteSeoProvider` | Supplies a page's metadata for `injectRouteHtml`. |
+| `getPages` / `getPageSeo` | Read back what the providers supplied. |
+| `addRouteHeadLinks` | Adds `<link>` tags to a page's head, used by hreflang. |
+| `addRouteHtmlTransform` | Free-form HTML transform, after meta tags and head links. |
+| `addPrepareTask` | Async work that must finish before any metadata is read. |
+
+`gitLastModified(file, root)` is exported too. It's what the sitemap uses for `lastmod`: the newest `git log` date for a file, falling back to its mtime when it isn't tracked.
 
 ## What you don't have to do
 
@@ -187,4 +221,4 @@ This is most useful from another Vite plugin's `configResolved` or `buildStart` 
 - You don't write `robots.txt` yourself. The defaults are sensible. Pass `seo.robots` to override them.
 - You don't have to update `<meta>` tags by hand. The router does it when navigating.
 
-If you need behaviour rooted's tooling doesn't support, the surface area is small. The relevant code is in [`packages/application/plugins`](../../packages/application/plugins).
+If you need behaviour rooted's tooling doesn't support, the surface area is small. The relevant code is in [`packages/seo/plugins`](../../packages/seo/plugins).

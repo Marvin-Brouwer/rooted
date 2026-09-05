@@ -1,26 +1,17 @@
-import { execFile } from 'node:child_process'
-import { stat, writeFile } from 'node:fs/promises'
+import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { promisify } from 'node:util'
 
 import { glob } from 'tinyglobby'
 
-import { resolveRouteSeo } from '@rooted/adapter'
-
+import { gitLastModified } from './git-last-modified.mts'
+import { seoPluginName } from './plugin-names.mts'
 import { injectCanonical, injectHeadLinks, injectMetaTags, injectOgTags, injectRootJsonLd } from './seo-html.mts'
 import { buildSitemapIndexXml, buildSitemapXml } from './seo-sitemap.mts'
 
-import type { LlmsTxtOptions } from './llms-txt.mts'
 import type { RobotsOptions } from './robots.mts'
-import type { AdditionalSitemap, RouteHeadLinkProvider, RouteHtmlTransform, SeoApi, SeoPrepareTask, SitemapEntry } from '@rooted/adapter'
-import type { RouteManifestApi } from '@rooted/router/manifest'
-import type { RouteSeoMetadata } from '@rooted/router/routes'
+import type { AdditionalSitemap, LlmsTxtOptions, PageEntry, PageProvider, PageSeoMetadata, RouteHeadLinkProvider, RouteHtmlTransform, RouteSeoProvider, SeoApi, SeoPrepareTask, SitemapEntry } from './seo-api.mts'
 import type { Plugin, ResolvedConfig } from 'vite'
 import type { ManifestOptions } from 'vite-plugin-pwa'
-
-const execFileAsync = promisify(execFile)
-
-const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
 
 const DEFAULT_HOME_ROUTE_FILES = [
 	'./src/navigation/application.mts',
@@ -87,10 +78,12 @@ export function seoPlugin(
 	options: SeoOptions | undefined,
 ): Plugin {
 	let config: ResolvedConfig
-	let manifestApi: RouteManifestApi | undefined
 
 	const additionalSitemaps = new Map<string, AdditionalSitemap>()
 	const headLinkProviders: RouteHeadLinkProvider[] = []
+	const routeSeoProviders: RouteSeoProvider[] = []
+	const pageProviders: PageProvider[] = []
+	let collectedPages: Promise<PageEntry[]> | undefined
 	const htmlTransforms: RouteHtmlTransform[] = []
 	const prepareTasks: SeoPrepareTask[] = []
 	let prepared: Promise<void> | undefined
@@ -105,6 +98,27 @@ export function seoPlugin(
 		?? (deploymentUrl ? new URL('pwa-512x512.png', deploymentUrl).href : undefined)
 	const titleSuffix = options?.titleSuffix
 
+	function getPages(): Promise<PageEntry[]> {
+		return collectedPages ??= (async () => {
+			const byPath = new Map<string, PageEntry>()
+			for (const provider of pageProviders) {
+				for (const page of await provider()) {
+					if (byPath.has(page.path)) continue
+					byPath.set(page.path, page)
+				}
+			}
+			return [...byPath.values()]
+		})()
+	}
+
+	function routeSeo(staticPath: string): PageSeoMetadata | undefined {
+		for (const provider of routeSeoProviders) {
+			const seo = provider(staticPath)
+			if (seo !== undefined) return seo
+		}
+		return undefined
+	}
+
 	function toLocation(staticPath: string): string {
 		return deploymentUrl
 			? new URL(staticPath.slice(1), deploymentUrl).href
@@ -112,7 +126,7 @@ export function seoPlugin(
 	}
 
 	return {
-		name: 'rooted:seo',
+		name: seoPluginName,
 		apply: 'build',
 
 		api: {
@@ -124,8 +138,8 @@ export function seoPlugin(
 				const file = additionalSitemaps.size > 0 ? 'sitemap-index.xml' : 'sitemap.xml'
 				return new URL(file, deploymentUrl).href
 			},
-			injectRouteHtml(html: string, seo: RouteSeoMetadata | undefined, staticPath: string): string {
-				let result = injectMetaTags(html, seo, toLocation(staticPath), defaultOgImage, titleSuffix)
+			injectRouteHtml(html: string, staticPath: string): string {
+				let result = injectMetaTags(html, routeSeo(staticPath), toLocation(staticPath), defaultOgImage, titleSuffix)
 				const links = headLinkProviders.flatMap(provider => provider(staticPath) ?? [])
 				if (links.length > 0) {
 					result = injectHeadLinks(result, links.map(link => ({ rel: link.rel, hreflang: link.hreflang, href: toLocation(link.path) })))
@@ -142,6 +156,14 @@ export function seoPlugin(
 			addRouteHeadLinks(provider: RouteHeadLinkProvider): void {
 				headLinkProviders.push(provider)
 			},
+			addRouteSeoProvider(provider: RouteSeoProvider): void {
+				routeSeoProviders.push(provider)
+			},
+			addPageProvider(provider: PageProvider): void {
+				pageProviders.push(provider)
+			},
+			getPages,
+			getPageSeo: routeSeo,
 			addRouteHtmlTransform(transform: RouteHtmlTransform): void {
 				htmlTransforms.push(transform)
 			},
@@ -153,8 +175,6 @@ export function seoPlugin(
 
 		configResolved(resolved) {
 			config = resolved
-			const manifestPlugin = resolved.plugins.find(p => p.name === MANIFEST_PLUGIN_NAME)
-			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
 		},
 
 		async closeBundle() {
@@ -168,7 +188,17 @@ export function seoPlugin(
 			const homeDates = await Promise.all(homeFiles.map((f: string) => gitLastModified(f, config.root)))
 			const homeLastModified = homeDates.toSorted().at(-1)
 
-			const entries = await buildSitemapEntries(manifestApi, homeLastModified, toLocation, config.root)
+			const entries = new Map<string, SitemapEntry>()
+			if (homeLastModified !== undefined) {
+				const loc = toLocation('/')
+				entries.set(loc, { loc, lastmod: homeLastModified })
+			}
+			for (const { path: staticPath, excludeFromSitemap, ...entry } of await getPages()) {
+				if (excludeFromSitemap) continue
+				const loc = toLocation(staticPath)
+				if (entries.has(loc)) continue
+				entries.set(loc, { loc, ...entry })
+			}
 
 			if (entries.size > 0) {
 				await writeFile(
@@ -183,51 +213,6 @@ export function seoPlugin(
 			}
 		},
 	}
-}
-
-async function buildSitemapEntries(
-	manifestApi: RouteManifestApi | undefined,
-	homeLastModified: string | undefined,
-	toLocation: (path: string) => string,
-	root: string,
-): Promise<Map<string, SitemapEntry>> {
-	const entries = new Map<string, SitemapEntry>()
-
-	if (homeLastModified !== undefined) {
-		const loc = toLocation('/')
-		entries.set(loc, { loc, lastmod: homeLastModified })
-	}
-
-	if (manifestApi) {
-		for (const route of manifestApi.routes) {
-			if (!Object.hasOwn(route, 'getMetadata')) continue
-			const metadata = route.getMetadata()
-			// staticPaths includes constant-token routes unrolled to concrete paths
-			const staticPaths = metadata.staticPaths
-			if (staticPaths === false) continue
-
-			const sourceFile = manifestApi.routeSourceFiles.get(route)
-			const lastmod = await gitLastModified(sourceFile, root)
-
-			for (const staticPath of staticPaths) {
-				const loc = toLocation(staticPath)
-				if (entries.has(loc)) continue
-
-				// Lazy seo resolvers are evaluated per generated page
-				const seo = await resolveRouteSeo(route, staticPath)
-				if (seo?.excludeFromSitemap) continue
-
-				entries.set(loc, {
-					loc,
-					lastmod,
-					changeFrequency: seo?.changeFrequency,
-					priority: seo?.priority,
-				})
-			}
-		}
-	}
-
-	return entries
 }
 
 async function writeAdditionalSitemaps(
@@ -261,23 +246,4 @@ async function writeAdditionalSitemaps(
 		buildSitemapIndexXml(indexEntries),
 		'utf8',
 	)
-}
-
-async function gitLastModified(filePath: string | undefined, cwd: string): Promise<string> {
-	if (filePath) {
-		try {
-			const { stdout } = await execFileAsync(
-				'git', ['log', '-1', '--format=%aI', '--', filePath],
-				{ cwd },
-			)
-			const iso = stdout.trim()
-			if (iso) return new Date(iso).toISOString().slice(0, 10)
-		}
-		catch {
-			// not a git repo or file untracked, fall through to stat
-		}
-	}
-
-	const fileStat = filePath ? await stat(filePath) : undefined
-	return (fileStat?.mtime ?? new Date()).toISOString().slice(0, 10)
 }

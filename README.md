@@ -168,7 +168,9 @@ See the [`recipe-book` example](./examples/recipe-book) for a full vertical-slic
 | [`@rooted/events`](./packages/events) | Typed event helpers and global error utilities. |
 | [`@rooted/store`](./packages/store) | A small synchronous store with `update` and `change` events. Not reactive. |
 | [`@rooted/storage`](./packages/storage) | Typed wrappers around `localStorage`, `sessionStorage`, and cookies. |
-| [`@rooted/application`](./packages/application) | Build-time configuration and SEO plugins (sitemap, llms.txt, per-route meta). |
+| [`@rooted/application`](./packages/application) | Build-time configuration: the Vite config wrapper, the PWA preset, and the import cycle detector. |
+| [`@rooted/seo`](./packages/seo) | Build-time SEO: meta tags, Open Graph, sitemaps, `robots.txt`, and `llms.txt`. |
+| [`@rooted/adapter`](./packages/adapter) | Base package for deployment adapters. Prerendering and the shared build work. |
 | [`@rooted/util`](./packages/util) | Shared utilities (seeded IDs, client-side checks, dev helpers). |
 
 

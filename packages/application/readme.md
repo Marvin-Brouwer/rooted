@@ -1,6 +1,10 @@
 # [`@rooted/application`](https://www.npmjs.com/package/@rooted/application)
 
-Build-time configuration, SEO plugins (sitemap, llms.txt, per-route meta), and Vite adapters for the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework.
+Build-time configuration for the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework. The `rootedManifest` Vite config wrapper, the PWA preset, and the import cycle detector.
+
+It wires up the SEO plugins from [`@rooted/seo`](https://www.npmjs.com/package/@rooted/seo) and whichever `@rooted-adapters/*` package you install, so most apps configure both through here rather than importing them.
+
+Route SEO is the exception. This package knows nothing about routing, so if you use the router you add `routeSeoPlugin()` from `@rooted/seo/router` to your own `plugins`.
 
 > [!IMPORTANT]
 > This package is still in alpha.

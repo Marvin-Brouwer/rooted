@@ -1,16 +1,14 @@
 import { access, constants, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { resolveRouteSeo } from './resolve-route-seo.mts'
+import { routeManifestPluginName, seoPluginName } from '@rooted/seo'
+
 import { createStaticRenderer, injectSnapshot } from './static-renderer.mts'
 
-import type { SeoApi } from './seo-api.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
-import type { RouteSeoMetadata } from '@rooted/router/routes'
+import type { SeoApi } from '@rooted/seo'
 import type { Plugin, ResolvedConfig } from 'vite'
 
-const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
-const SEO_PLUGIN_NAME = 'rooted:seo'
 
 /**
  * A flat list of route paths/patterns for adapters that don't use `generateRouteManifest`.
@@ -40,18 +38,8 @@ export type AdapterContext = {
 	/** The Vite resolved config. */
 	config: ResolvedConfig
 	/**
-	 * Route manifest API. Use this to iterate static routes and generate
-	 * host-specific artifacts (e.g. a server route config).
-	 */
-	manifestApi: RouteManifestApi | undefined
-	/**
-	 * SEO plugin API. Use this to inject meta tags, retrieve the sitemap URL,
-	 * or register additional sitemaps from within the adapter's `setup` hook.
-	 */
-	seoApi: SeoApi | undefined
-	/**
 	 * Merged route lists from the route manifest and any manual `routes` option.
-	 * Use this instead of `manifestApi` to support both manifest and manual routes.
+	 * Covers both manifest routes and manual ones.
 	 */
 	resolvedRoutes: ResolvedAdapterRoutes
 }
@@ -96,7 +84,7 @@ export type RoutedAdapterDefinition = {
 	routes?: AdapterRoutes
 	/**
 	 * Called before static routes are processed.
-	 * `context.manifestApi` and the auto-written `routes.json` are both available here.
+	 * `context.resolvedRoutes` and the auto-written `routes.json` are both available here.
 	 * Use this to generate any framework-specific server config.
 	 */
 	setup?(context: AdapterContext): Promise<void> | void
@@ -124,7 +112,7 @@ export function staticAdapter(definition: StaticAdapterDefinition): Plugin {
  * HTML, what the base path is, and which file to serve as the SPA fallback.
  *
  * Use `setup` to generate any framework-specific routing config from
- * `context.manifestApi`.
+ * `context.resolvedRoutes`.
  *
  * @example `routes.json` written automatically
  * ```json
@@ -159,9 +147,9 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 
 		configResolved(resolved) {
 			config = resolved
-			const manifestPlugin = resolved.plugins.find(p => p.name === MANIFEST_PLUGIN_NAME)
+			const manifestPlugin = resolved.plugins.find(p => p.name === routeManifestPluginName)
 			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
-			const seoPlugin = resolved.plugins.find(p => p.name === SEO_PLUGIN_NAME)
+			const seoPlugin = resolved.plugins.find(p => p.name === seoPluginName)
 			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
 		},
 
@@ -222,24 +210,12 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 				)
 			}
 
-			await definition.setup?.({ outputDirectory, indexHtml, config, manifestApi, seoApi, resolvedRoutes })
+			await definition.setup?.({ outputDirectory, indexHtml, config, resolvedRoutes })
 
 			// Inject root-level SEO (JSON-LD, canonical, og:url/type/image) into index.html
 			const rootHtml = seoApi ? seoApi.injectRootHtml(indexHtml) : indexHtml
 			if (rootHtml !== indexHtml) {
 				await writeFile(indexHtmlPath, rootHtml, 'utf8')
-			}
-
-			// Build SEO lookup from manifest so manifest routes get per-route meta
-			// injection; lazy seo resolvers are evaluated per generated page
-			const seoByPath = new Map<string, RouteSeoMetadata | undefined>()
-			for (const route of manifestApi?.routes ?? []) {
-				if (!Object.hasOwn(route, 'getMetadata')) continue
-				const meta = route.getMetadata()
-				if (meta.staticPaths === false) continue
-				for (const staticPath of meta.staticPaths) {
-					seoByPath.set(staticPath, await resolveRouteSeo(route, staticPath))
-				}
 			}
 
 			const staticRoutes: Array<{ staticPath: string, routeDirectory: string }> = []
@@ -252,7 +228,7 @@ function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'
 				await mkdir(routeDirectory, { recursive: true })
 
 				const html = seoApi
-					? seoApi.injectRouteHtml(indexHtml, seoByPath.get(staticPath), staticPath)
+					? seoApi.injectRouteHtml(indexHtml, staticPath)
 					: indexHtml
 				await writeFile(path.join(routeDirectory, 'index.html'), html, 'utf8')
 				staticRoutes.push({ staticPath, routeDirectory })

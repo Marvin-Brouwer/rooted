@@ -8,6 +8,7 @@ import { normalizePath } from 'vite'
 
 import { CodeSplittingGroups, rootedManifest } from '@rooted/application'
 import { generateRouteManifest } from '@rooted/router/manifest'
+import { routeSeoPlugin } from '@rooted/seo/router'
 
 import packageJson from './package.json' with { type: 'json' }
 import { markdownPlugin } from './plugins/markdown.mts'
@@ -62,6 +63,7 @@ export default rootedManifest({
 			glob: './src/**/_routes.mts',
 			routeManifestPath: './src/_routes.g.mts',
 		}),
+		routeSeoPlugin(),
 		azureStaticWebappAdapter(),
 	],
 	codeSplitting: {

@@ -300,7 +300,7 @@ The cost of the other approach is real and permanent: a slug per locale per rout
 
 ### If you do need translated slugs
 
-Define the routes per locale yourself, one pattern each, rather than composing with `localization.parameter`. The automatic alternate grouping only covers routes built with the token, so supply the alternates yourself through `addRouteHeadLinks` on the `SeoApi` from `@rooted/adapter`, which is the same seam `localizationSeo` uses.
+Define the routes per locale yourself, one pattern each, rather than composing with `localization.parameter`. The automatic alternate grouping only covers routes built with the token, so supply the alternates yourself through `addRouteHeadLinks` on the `SeoApi` from `@rooted/seo`, which is the same seam `localizationSeo` uses.
 
 Everything else in the package keeps working, because none of it depends on the token: `text` reads the locale from the URL, and `load`, `branch` and `localized` all go through `currentLocale`. You'd be replacing the routing half, not the localization half.
 

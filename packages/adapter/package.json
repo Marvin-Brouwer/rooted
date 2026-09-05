@@ -42,6 +42,7 @@
 		"happy-dom": "^20.11.12"
 	},
 	"devDependencies": {
+		"@rooted/seo": "workspace:^",
 		"@rooted/development": "workspace:*",
 		"@rooted/router": "workspace:^",
 		"@rooted/tsdown": "workspace:^",

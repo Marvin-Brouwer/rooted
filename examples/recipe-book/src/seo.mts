@@ -1,6 +1,6 @@
 import packageJson from '../package.json' with { type: 'json' }
 
-import type { SeoOptions } from '@rooted/application'
+import type { SeoOptions } from '@rooted/seo'
 
 const baseUrl = packageJson.homepage.slice(0, -1)
 

@@ -6,7 +6,7 @@ import { localizationSeo } from '../plugins/hreflang.mts'
 import { dictionary } from '../src/dictionary.mts'
 import { configureLocalization } from '../src/localization.mts'
 
-import type { RouteHeadLink, RouteHeadLinkProvider, RouteHtmlTransform, SeoPrepareTask } from '@rooted/adapter'
+import type { RouteHeadLink, RouteHeadLinkProvider, RouteHtmlTransform, SeoPrepareTask } from '@rooted/seo'
 import type { ResolvedConfig } from 'vite'
 
 const localization = configureLocalization({
