@@ -126,15 +126,17 @@ Every route has one canonical URL, the one with the trailing slash. `/recipe/42`
 
 Static hosts don't all behave the same, and dev mirrors whichever one you picked rather than showing you a flattering version of it.
 
-| | Static route | Dynamic `:param` route | Unknown path |
+| Adapter | Static route | Dynamic `:param` route | Unknown path |
 |---|---|---|---|
 | `fastify`, `express` | 200 | 200 | 404 + shell |
-| a static host with routing config | 200 | 200 | 404 + shell |
-| a static host without it | 200 | **404** + shell | 404 + shell |
+| `netlify-hosting`, `cloudflare-pages`, `gitlab-pages`, `firebase-hosting`, `vercel-static` | 200 | 200 | 404 + shell |
+| `azure-static-webapp`, `github-pages`, `git-pages`, `codeberg-pages`, `aws-s3`, `azure-blob`, `cloudflare-r2`, `gcp-cloud-storage`, `scaleway-object-storage`, `static-site` | 200 | **404** + shell | 404 + shell |
 
-The middle column is the one to watch. A host that only serves files has no rule for `/products/42/`: there's no directory there, so it falls through to `404.html`. The page still renders, because the browser-side router takes over, but the response is a 404 and dev says so rather than pretending otherwise. Same for the canonical redirect - `/categories` redirects because the host has a directory to redirect to, `/products/42` doesn't because it hasn't.
+The middle column is the one to watch. A host in the bottom row only serves files and has no rule for `/products/42/`: there's no directory there, so it falls through to `404.html`. The page still renders, because the browser-side router takes over, but the response is a 404 and dev says so rather than pretending otherwise. Same for the canonical redirect - `/categories` redirects because the host has a directory to redirect to, `/products/42` doesn't because it hasn't.
 
-If that matters for your site, pick a host whose adapter writes routing config, or accept the 404 and move on. It's a status code, not a broken page.
+`azure-static-webapp` is in the bottom row for a reason worth knowing: Azure only supports a wildcard at the end of a route, so a rule for `/products/:id/` would also claim `/products/42/extra/` and hand out a 200 for a path that isn't a route. See [issue #311](https://github.com/Marvin-Brouwer/rooted/issues/311).
+
+If the middle column matters for your site, pick a host from the middle row, or accept the 404 and move on. It's a status code, not a broken page.
 
 Start the server:
 

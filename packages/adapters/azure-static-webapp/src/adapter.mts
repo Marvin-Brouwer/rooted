@@ -26,6 +26,13 @@ export type AzureStaticWebappAdapterOptions = {
  * - Everything else returns a `404` response that serves `404.html`, matching the
  *   standard SPA behaviour: the shell loads and the client-side router takes over.
  *
+ * "Everything else" includes your `:param` routes, so `/recipe/42/` renders but
+ * answers `404`. That's why this adapter leaves `dynamicRoutes` at its default.
+ * Azure only supports a wildcard at the end of a route and has no per-segment
+ * match, so a `/recipe/*` rule would also claim `/recipe/42/extra/`, trading a
+ * wrong `404` on a real page for a wrong `200` on a path that isn't one. See
+ * [issue #311](https://github.com/Marvin-Brouwer/rooted/issues/311).
+ *
  * @example `vite.config.ts`
  * ```ts
  * import { rootedManifest } from '@rooted/application'
