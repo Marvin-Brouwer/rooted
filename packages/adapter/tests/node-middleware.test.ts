@@ -187,7 +187,7 @@ describe('nodeMiddlewareServer()', () => {
 		const built = path.join(root, 'dist', 'middleware')
 		await mkdir(built, { recursive: true })
 		await writeFile(path.join(built, '01-built.mjs'), registerSource('built'), 'utf8')
-		const { options, applications, modes } = testOptions()
+		const { options, applications } = testOptions()
 		const server = createPreviewServer()
 
 		// Act
@@ -195,8 +195,8 @@ describe('nodeMiddlewareServer()', () => {
 		await request(server, '/api/ping')
 
 		// Assert
+		// Loading from dist/middleware is what only the preview path does.
 		expect(applications[0].registered).toEqual(['built'])
-		expect(modes).toEqual(['preview'])
 	})
 
 	test('preview warns instead of throwing when there is no build yet', async () => {
@@ -240,15 +240,13 @@ async function writeMiddleware(fileName: string, marker: string) {
 function testOptions() {
 	const config = createConfig()
 	const applications: TestApplication[] = []
-	const modes: string[] = []
 	const close = vi.fn()
 
 	const createServer = vi.fn<NodeMiddlewareServerOptions<TestApplication>['createServer']>(
-		async (middleware, context) => {
+		async (middleware) => {
 			const application: TestApplication = { registered: [] }
 			applications.push(application)
-			modes.push(context.mode)
-			for (const { register } of middleware) await register(application)
+			for (const register of middleware) await register(application)
 			return {
 				handle(request, response, next) {
 					if (request.url?.startsWith('/api')) {
@@ -268,7 +266,7 @@ function testOptions() {
 		createServer,
 	}
 
-	return { options, config, createServer, applications, modes, close }
+	return { options, config, createServer, applications, close }
 }
 
 function createConfig(): ResolvedConfig {

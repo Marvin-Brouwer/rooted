@@ -4,7 +4,6 @@ import { pathToFileURL } from 'node:url'
 
 import { toPosixPath } from '../utility/request-url.mts'
 
-import type { MiddlewareModule } from './middleware-module.mts'
 import type { ResolvedConfig, ViteDevServer } from 'vite'
 
 /** The extensions the build hook hands to rolldown. Dev reads the same set. */
@@ -25,7 +24,7 @@ export async function loadSources<TApplication>(
 	name: string,
 	config: ResolvedConfig,
 	reload: boolean,
-): Promise<Array<MiddlewareModule<TApplication>>> {
+): Promise<Array<(application: TApplication) => Promise<void>>> {
 	// Imported here rather than at the top of the module: @rooted/adapter is
 	// loaded by runtime consumers of the adapter packages, and they shouldn't
 	// pay for vite. This only ever runs inside a dev server, where it's loaded.
@@ -34,15 +33,15 @@ export async function loadSources<TApplication>(
 	const runnable = isRunnableDevEnvironment(environment)
 	if (reload && runnable) environment.runner.clearCache()
 
-	const modules: Array<MiddlewareModule<TApplication>> = []
+	const modules: Array<(application: TApplication) => Promise<void>> = []
 	for (const file of await listMiddlewareFiles(directory, SOURCE_EXTENSIONS, name, config)) {
 		// ssrLoadModule is the older spelling of the same thing; it's the
 		// fallback for anyone who swapped in a non-runnable ssr environment.
 		const loaded = runnable
 			? await environment.runner.import<Record<string, unknown>>(toPosixPath(file))
 			: await server.ssrLoadModule(toPosixPath(file))
-		const module = toMiddlewareModule<TApplication>(loaded, file, name, config)
-		if (module) modules.push(module)
+		const register = toRegisterFunction<TApplication>(loaded, file, name, config)
+		if (register) modules.push(register)
 	}
 	return modules
 }
@@ -56,12 +55,12 @@ export async function loadBuilt<TApplication>(
 	directory: string,
 	name: string,
 	config: ResolvedConfig,
-): Promise<Array<MiddlewareModule<TApplication>>> {
-	const modules: Array<MiddlewareModule<TApplication>> = []
+): Promise<Array<(application: TApplication) => Promise<void>>> {
+	const modules: Array<(application: TApplication) => Promise<void>> = []
 	for (const file of await listMiddlewareFiles(directory, BUILT_EXTENSIONS, name, config)) {
 		const loaded = await import(pathToFileURL(file).href) as Record<string, unknown>
-		const module = toMiddlewareModule<TApplication>(loaded, file, name, config)
-		if (module) modules.push(module)
+		const register = toRegisterFunction<TApplication>(loaded, file, name, config)
+		if (register) modules.push(register)
 	}
 	return modules
 }
@@ -84,27 +83,28 @@ async function listMiddlewareFiles(
 		.map(entry => path.join(directory, entry))
 }
 
-function toMiddlewareModule<TApplication>(
+/**
+ * Wraps a loaded file's default export so a throw is logged rather than taking
+ * the server with it. Returns undefined for a file that exports nothing usable.
+ */
+function toRegisterFunction<TApplication>(
 	loaded: Record<string, unknown>,
 	file: string,
 	name: string,
 	config: ResolvedConfig,
-): MiddlewareModule<TApplication> | undefined {
+): ((application: TApplication) => Promise<void>) | undefined {
 	const register = loaded.default
 	if (typeof register !== 'function') {
 		config.logger.warn(`[${name}] "${path.basename(file)}" has no default export, skipping it.`)
 		return undefined
 	}
 
-	return {
-		file,
-		async register(application) {
-			try {
-				await (register as (application: TApplication) => Promise<void> | void)(application)
-			}
-			catch (error) {
-				config.logger.error(`[${name}] "${path.basename(file)}" failed to register: ${String(error)}`)
-			}
-		},
+	return async (application) => {
+		try {
+			await (register as (application: TApplication) => Promise<void> | void)(application)
+		}
+		catch (error) {
+			config.logger.error(`[${name}] "${path.basename(file)}" failed to register: ${String(error)}`)
+		}
 	}
 }

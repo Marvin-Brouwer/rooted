@@ -1,10 +1,6 @@
-import path from 'node:path'
+import { developmentMiddleware } from './node-middleware/development.mts'
+import { previewMiddleware } from './node-middleware/preview.mts'
 
-import { createMiddlewareChain } from './node-middleware/chain.mts'
-import { loadBuilt, loadSources } from './node-middleware/loader.mts'
-import { toPosixPath } from './utility/request-url.mts'
-
-import type { MiddlewareModule } from './node-middleware/middleware-module.mts'
 import type { Connect, Plugin, ResolvedConfig } from 'vite'
 
 /**
@@ -21,17 +17,12 @@ export type NodeMiddlewareHandler = {
 	close?(): Promise<void> | void
 }
 
-/** Where the middleware came from, and so what it can assume. */
-export type NodeMiddlewareMode = 'dev' | 'preview'
-
 /**
  * Passed to {@link NodeMiddlewareServerOptions.createServer}.
  */
 export type NodeMiddlewareContext = {
 	/** The Vite resolved config. Use `config.logger` rather than `console`. */
 	config: ResolvedConfig
-	/** `'dev'` runs the middleware sources, `'preview'` runs the built files. */
-	mode: NodeMiddlewareMode
 }
 
 /**
@@ -53,11 +44,14 @@ export type NodeMiddlewareServerOptions<TApplication> = {
 	 * Create the framework instance, register `middleware` in the order given,
 	 * and return a connect handler for it.
 	 *
+	 * Each entry is one middleware file's default export, already wrapped so a
+	 * throw is logged rather than taking the server down.
+	 *
 	 * Register your fall-through before looping over `middleware`, so it wins
 	 * over any hook the user's own middleware adds.
 	 */
 	createServer(
-		middleware: ReadonlyArray<MiddlewareModule<TApplication>>,
+		middleware: ReadonlyArray<(application: TApplication) => Promise<void>>,
 		context: NodeMiddlewareContext,
 	): Promise<NodeMiddlewareHandler> | NodeMiddlewareHandler
 }
@@ -77,6 +71,9 @@ export type NodeMiddlewareServerOptions<TApplication> = {
  * request. It doesn't patch individual routes, because most frameworks won't
  * let you add routes after boot, but it does avoid restarting the process.
  *
+ * `routedAdapter` composes this for you when you give it `createServer`. Reach
+ * for it directly only when you're building an adapter by hand.
+ *
  * @example
  * ```ts
  * nodeMiddlewareServer<Express>({
@@ -85,7 +82,7 @@ export type NodeMiddlewareServerOptions<TApplication> = {
  *   async createServer(middleware) {
  *     const { default: express } = await import('express')
  *     const app = express()
- *     for (const { register } of middleware) await register(app)
+ *     for (const register of middleware) await register(app)
  *     return { handle: app as unknown as Connect.NextHandleFunction }
  *   },
  * })
@@ -105,32 +102,11 @@ export function nodeMiddlewareServer<TApplication>(
 		},
 
 		configureServer(server) {
-			if (!options.middlewarePath) return
-			const directory = path.resolve(config.root, options.middlewarePath)
-			const chain = createMiddlewareChain(options, config, 'dev', reload =>
-				loadSources(server, directory, options.name, config, reload))
-
-			server.watcher.add(directory)
-			server.watcher.on('all', (_event, changed) => {
-				if (toPosixPath(path.dirname(changed)) !== toPosixPath(directory)) return
-				config.logger.info(`[${options.name}] middleware changed, rebuilding`)
-				void chain.reset()
-			})
-			server.httpServer?.once('close', () => void chain.reset())
-
-			// Registered directly rather than from the returned post hook, so it
-			// lands ahead of Vite's transform and static middlewares. /api has to
-			// win over the SPA fallback, the same way it does in the built server.
-			server.middlewares.use(chain.handle)
+			developmentMiddleware(options, config)(server)
 		},
 
 		configurePreviewServer(server) {
-			if (!options.middlewarePath) return
-			const outputDirectory = path.resolve(config.root, config.environments.client.build.outDir)
-			const chain = createMiddlewareChain(options, config, 'preview', () =>
-				loadBuilt(path.join(outputDirectory, 'middleware'), options.name, config))
-
-			server.middlewares.use(chain.handle)
+			previewMiddleware(options, config)(server)
 		},
 	}
 }

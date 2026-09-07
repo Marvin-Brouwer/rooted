@@ -7,8 +7,11 @@ import { pathToFileURL } from 'node:url'
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
-import { fastifyDevelopmentServer } from '../src/development-server.mts'
+import { nodeMiddlewareServer } from '@rooted/adapter'
 
+import { createFastifyServer } from '../src/development-server.mts'
+
+import type { FastifyInstance } from 'fastify'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import type { Connect, Plugin, ResolvedConfig, ViteDevServer } from 'vite'
@@ -26,7 +29,7 @@ afterEach(async () => {
 	await rm(root, { recursive: true, force: true })
 })
 
-describe('fastifyDevelopmentServer()', () => {
+describe('createFastifyServer()', () => {
 	test('serves a route a middleware registered', async () => {
 		// Arrange
 		await writeMiddleware('01-api.mjs', `
@@ -154,7 +157,13 @@ async function listen(fallback = defaultFallback) {
 		ssrLoadModule: (url: string) => import(pathToFileURL(url).href),
 	} as unknown as ViteDevServer
 
-	const plugin = fastifyDevelopmentServer('./middleware') as Plugin
+	// Composed the way the adapter composes it, so the test exercises the
+	// same plugin an app would get.
+	const plugin = nodeMiddlewareServer<FastifyInstance>({
+		name: 'rooted:fastify-dev',
+		middlewarePath: './middleware',
+		createServer: createFastifyServer,
+	}) as Plugin
 	;(plugin.configResolved as (resolved: ResolvedConfig) => void)(config)
 	;(plugin.configureServer as (target: ViteDevServer) => void)(server)
 	if (!handle) throw new Error('the plugin registered no middleware')

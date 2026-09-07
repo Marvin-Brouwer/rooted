@@ -1,14 +1,7 @@
-import { access, constants, mkdir, readFile, writeFile } from 'node:fs/promises'
-import path from 'node:path'
+import { createAdapter } from './adapter/create.mts'
 
-import { routeManifestPluginName, seoPluginName } from '@rooted/seo'
-
-import { resolveAdapterRoutes } from './utility/adapter-routes.mts'
-
-import type { RouteManifestApi } from '@rooted/router/manifest'
-import type { SeoApi } from '@rooted/seo'
+import type { NodeMiddlewareServerOptions } from './node-middleware.mts'
 import type { Plugin, ResolvedConfig } from 'vite'
-
 
 /**
  * A flat list of route paths/patterns for adapters that don't use `generateRouteManifest`.
@@ -72,8 +65,11 @@ export type StaticAdapterDefinition = {
 /**
  * Definition for a server-based host (Fastify, Express, Azure Web Apps, ...).
  * Pass to {@link routedAdapter}.
+ *
+ * `TApplication` is the framework instance type, and only matters if you supply
+ * `createServer`.
  */
-export type RoutedAdapterDefinition = {
+export type RoutedAdapterDefinition<TApplication = unknown> = {
 	/** Vite plugin name, e.g. `'rooted:fastify'`. */
 	name: string
 	/**
@@ -82,6 +78,18 @@ export type RoutedAdapterDefinition = {
 	 * Paths without `:param` are pre-rendered; paths with `:param` are dynamic.
 	 */
 	routes?: AdapterRoutes
+	/**
+	 * The adapter's own `middlewarePath` option, relative to the Vite project
+	 * root. When set, the folder is transpiled into `<outDir>/middleware` at
+	 * build time and run by `createServer` during dev and preview.
+	 */
+	middlewarePath?: string
+	/**
+	 * Builds the framework instance that runs `middlewarePath` during
+	 * `vite dev` and `vite preview`. Leave it out and the middleware only runs
+	 * in the generated server. See {@link nodeMiddlewareServer}.
+	 */
+	createServer?: NodeMiddlewareServerOptions<TApplication>['createServer']
 	/**
 	 * Called before static routes are processed.
 	 * `context.resolvedRoutes` and the auto-written `routes.json` are both available here.
@@ -101,18 +109,24 @@ export type RoutedAdapterDefinition = {
  * Vite inter-plugin communication -- no manual wiring needed.
  */
 export function staticAdapter(definition: StaticAdapterDefinition): Plugin {
-	return createAdapter(definition, 'static')
+	return createAdapter({ ...definition, mode: 'static' })[0]
 }
 
 /**
  * Base adapter for server-based hosts.
  *
- * Does everything {@link staticAdapter} does except writing a fallback file.
- * Instead, writes `routes.json` so the server knows which paths have pre-rendered
- * HTML, what the base path is, and which file to serve as the SPA fallback.
+ * Does everything {@link staticAdapter} does, and also writes `routes.json` so
+ * the server knows which paths have pre-rendered HTML, what the base path is,
+ * and which file to serve as the SPA fallback.
  *
  * Use `setup` to generate any framework-specific routing config from
  * `context.resolvedRoutes`.
+ *
+ * Returns several plugins: the build-time one, the not-found handler that gives
+ * `vite dev` and `vite preview` the same 404s and canonical redirects as the
+ * generated server, and -- when you pass `createServer` -- the one that runs
+ * `middlewarePath` on Vite's own port. Vite flattens nested plugin arrays, so
+ * the result still goes straight into `plugins` as one entry.
  *
  * @example `routes.json` written automatically
  * ```json
@@ -124,139 +138,8 @@ export function staticAdapter(definition: StaticAdapterDefinition): Plugin {
  * }
  * ```
  */
-export function routedAdapter(definition: RoutedAdapterDefinition): Plugin {
-	return createAdapter(definition, 'routed')
-}
-
-// ---------------------------------------------------------------------------
-
-type InternalDefinition = {
-	name: string
-	fallbackFileName?: string
-	routes?: AdapterRoutes
-	setup?(context: AdapterContext): Promise<void> | void
-}
-
-function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'): Plugin {
-	let config: ResolvedConfig
-	let manifestApi: RouteManifestApi | undefined
-	let seoApi: SeoApi | undefined
-
-	return {
-		name: definition.name,
-		apply: 'build',
-
-		configResolved(resolved) {
-			config = resolved
-			const manifestPlugin = resolved.plugins.find(p => p.name === routeManifestPluginName)
-			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
-			const seoPlugin = resolved.plugins.find(p => p.name === seoPluginName)
-			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
-		},
-
-		async closeBundle() {
-			const outputDirectory = config.build.outDir
-			const indexHtmlPath = path.join(outputDirectory, 'index.html')
-
-			// Skip environments that don't produce index.html (e.g. the SW environment from VitePWA)
-			if (!await checkFileExists(indexHtmlPath)) return
-			const indexHtml = await readFile(indexHtmlPath, 'utf8')
-
-			// Let plugins finish async work (e.g. preloading lazily imported
-			// dictionaries) before any route seo is evaluated
-			await seoApi?.prepare()
-
-			const resolvedRoutes = resolveAdapterRoutes(manifestApi, definition.routes)
-
-			if (!manifestApi && resolvedRoutes.staticPaths.length === 0 && resolvedRoutes.dynamicPatterns.length === 0) {
-				throw new Error(
-					`[${definition.name}] No routes found. Add generateRouteManifest() to your plugins, ` +
-					`or pass a routes option to the adapter.`,
-				)
-			}
-
-			if (mode === 'static') {
-				const fallbackFileName = definition.fallbackFileName ?? '404.html'
-				// Fallback handles dynamic routes -- leave it as a plain shell so the JS router
-				// can handle any URL. Never inject pre-rendered content here.
-				await writeFile(path.join(outputDirectory, fallbackFileName), indexHtml, 'utf8')
-			}
-			else {
-				// Write 404.html as the SPA shell fallback -- same as staticAdapter, captured
-				// before root SEO is applied to index.html so crawlers don't get root-page
-				// metadata for dynamic or unknown routes.
-				await writeFile(path.join(outputDirectory, '404.html'), indexHtml, 'utf8')
-				// Write a routing manifest so the server knows which dynamic route patterns
-				// exist, the base path, and which file to serve as the SPA catch-all fallback.
-				await writeFile(
-					path.join(outputDirectory, 'routes.json'),
-					JSON.stringify({ base: config.base, staticRoutes: resolvedRoutes.staticPaths, dynamicRoutes: resolvedRoutes.dynamicPatterns, fallback: '404.html' }, undefined, 2),
-					'utf8',
-				)
-			}
-
-			await definition.setup?.({ outputDirectory, indexHtml, config, resolvedRoutes })
-
-			// Inject root-level SEO (JSON-LD, canonical, og:url/type/image) into index.html
-			const rootHtml = seoApi ? seoApi.injectRootHtml(indexHtml) : indexHtml
-			if (rootHtml !== indexHtml) {
-				await writeFile(indexHtmlPath, rootHtml, 'utf8')
-			}
-
-			const staticRoutes: Array<{ staticPath: string, routeDirectory: string }> = []
-
-			for (const staticPath of resolvedRoutes.staticPaths) {
-				const segments = staticPath.split('/').filter(Boolean)
-				if (segments.length === 0) continue
-
-				const routeDirectory = path.join(outputDirectory, ...segments)
-				await mkdir(routeDirectory, { recursive: true })
-
-				const html = seoApi
-					? seoApi.injectRouteHtml(indexHtml, staticPath)
-					: indexHtml
-				await writeFile(path.join(routeDirectory, 'index.html'), html, 'utf8')
-				staticRoutes.push({ staticPath, routeDirectory })
-			}
-
-			// SSG pre-render pass -- boot the app once in happy-dom, navigate to each
-			// static route, and inject the resulting body HTML into the shell files.
-			// Imported here so that loading an adapter, which every vite.config
-			// using one does, doesn't drag happy-dom in with it (issue #291).
-			const { createStaticRenderer, injectSnapshot } = await import('./static-renderer.mts')
-			const renderer = await createStaticRenderer(config, outputDirectory)
-				.catch((error: unknown) => {
-					config.logger.warn(`[static-renderer] Setup error: ${String(error)}`)
-				})
-
-			if (renderer) {
-				for (const { staticPath, routeDirectory } of staticRoutes) {
-					const snapshot = await renderer.render(staticPath)
-					if (!snapshot) continue
-
-					const htmlPath = path.join(routeDirectory, 'index.html')
-					const html = await readFile(htmlPath, 'utf8')
-					await writeFile(htmlPath, injectSnapshot(html, snapshot), 'utf8')
-				}
-				await renderer.dispose()
-			}
-		},
-	}
-}
-
-/**
- * Merges the route manifest with an adapter's manual `routes` option into the
- * two lists adapters actually work with.
- *
- * The build hook and the dev-time not-found handler both go through this, so
- * `vite dev` and the generated server agree on what counts as a real route.
- *
- * Manual routes are split on `:` -- a path without one is a static path, a path
- * with one is a dynamic pattern.
- */
-
-async function checkFileExists(filePath: string): Promise<boolean> {
-	return await access(filePath, constants.F_OK)
-		.then(() => true)
-		.catch(() => false)
+export function routedAdapter<TApplication = unknown>(
+	definition: RoutedAdapterDefinition<TApplication>,
+): Plugin[] {
+	return createAdapter({ ...definition, mode: 'routed' })
 }

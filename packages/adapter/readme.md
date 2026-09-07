@@ -27,26 +27,24 @@ export function myHostAdapter(): Plugin {
 
 ## Server adapters
 
-`routedAdapter` covers the build. If your host runs a Node server and you accept a folder of user middleware, pair it with `nodeMiddlewareServer` so the same files run during `vite dev` and `vite preview`. It handles discovery, ordering, loading and the connect-chain fall-through; you supply the framework instance.
+If your host runs a Node server and you accept a folder of user middleware, give `routedAdapter` a `middlewarePath` and a `createServer`. It then runs the same files during `vite dev` and `vite preview`, handling discovery, ordering, loading and the connect-chain fall-through; you supply the framework instance.
 
 ```ts
-import { nodeMiddlewareServer, routedAdapter } from '@rooted/adapter'
+import { routedAdapter } from '@rooted/adapter'
 import type { Connect, Plugin } from 'vite'
 
 export function myServerAdapter(options?: MyOptions): Plugin[] {
-  return [
-    routedAdapter({ name: 'rooted:my-server', /* ... */ }),
-    nodeMiddlewareServer<MyApplication>({
-      name: 'rooted:my-server-dev',
-      middlewarePath: options?.middlewarePath,
-      async createServer(middleware) {
-        const app = createMyApplication()
-        for (const { register } of middleware) await register(app)
-        // Must call next() for anything it has no route for.
-        return { handle: app as unknown as Connect.NextHandleFunction }
-      },
-    }),
-  ]
+  return routedAdapter<MyApplication>({
+    name: 'rooted:my-server',
+    middlewarePath: options?.middlewarePath,
+    async createServer(middleware) {
+      const app = createMyApplication()
+      for (const register of middleware) await register(app)
+      // Must call next() for anything it has no route for.
+      return { handle: app as unknown as Connect.NextHandleFunction }
+    },
+    /* ... */
+  })
 }
 ```
 

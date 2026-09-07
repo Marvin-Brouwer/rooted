@@ -7,8 +7,11 @@ import { pathToFileURL } from 'node:url'
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
-import { expressDevelopmentServer } from '../src/development-server.mts'
+import { nodeMiddlewareServer } from '@rooted/adapter'
 
+import { createExpressServer } from '../src/development-server.mts'
+
+import type { Express } from 'express'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import type { Connect, Plugin, ResolvedConfig, ViteDevServer } from 'vite'
@@ -26,7 +29,7 @@ afterEach(async () => {
 	await rm(root, { recursive: true, force: true })
 })
 
-describe('expressDevelopmentServer()', () => {
+describe('createExpressServer()', () => {
 	test('serves a route a middleware registered', async () => {
 		// Arrange
 		await writeMiddleware('01-api.mjs', `
@@ -112,7 +115,13 @@ async function listen() {
 		ssrLoadModule: (url: string) => import(pathToFileURL(url).href),
 	} as unknown as ViteDevServer
 
-	const plugin = expressDevelopmentServer('./middleware') as Plugin
+	// Composed the way the adapter composes it, so the test exercises the
+	// same plugin an app would get.
+	const plugin = nodeMiddlewareServer<Express>({
+		name: 'rooted:express-dev',
+		middlewarePath: './middleware',
+		createServer: createExpressServer,
+	}) as Plugin
 	;(plugin.configResolved as (resolved: ResolvedConfig) => void)(config)
 	;(plugin.configureServer as (target: ViteDevServer) => void)(server)
 	if (!handle) throw new Error('the plugin registered no middleware')

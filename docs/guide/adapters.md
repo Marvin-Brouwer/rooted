@@ -201,33 +201,32 @@ Route and SEO details are not among them. `AdapterContext` gives you `resolvedRo
 
 ### Server-based adapters
 
-`staticAdapter` and `routedAdapter` both only cover the build. That's the whole story for a file-based host, but a host that runs a Node server has a second half: the middleware a user writes should also run while they're developing, otherwise `vite dev` serves the app without any of their own routes and they end up booting a second process by hand.
+A host that runs a Node server has a second half beyond the build: the middleware a user writes should also run while they're developing, otherwise `vite dev` serves the app without any of their own routes and they end up booting a second process by hand.
 
-`nodeMiddlewareServer` is that second half. It does the discovery, the ordering, the loading and the connect-chain fall-through; you supply the framework instance and a handler that calls `next()` for anything it has no route for.
+`routedAdapter` covers that when you give it `middlewarePath` and `createServer`. It does the discovery, the ordering, the loading and the connect-chain fall-through; you supply the framework instance and a handler that calls `next()` for anything it has no route for.
 
 ```ts
-import { nodeMiddlewareServer, routedAdapter } from '@rooted/adapter'
+import { routedAdapter } from '@rooted/adapter'
 import type { Connect, Plugin } from 'vite'
 
 export function myServerAdapter(options?: MyOptions): Plugin[] {
-  return [
-    routedAdapter({ name: 'rooted:my-server' }),
-    nodeMiddlewareServer<MyApplication>({
-      name: 'rooted:my-server-dev',
-      middlewarePath: options?.middlewarePath,
-      async createServer(middleware) {
-        const app = createMyApplication()
-        for (const { register } of middleware) await register(app)
-        return { handle: app as unknown as Connect.NextHandleFunction }
-      },
-    }),
-  ]
+  return routedAdapter<MyApplication>({
+    name: 'rooted:my-server',
+    middlewarePath: options?.middlewarePath,
+    async createServer(middleware) {
+      const app = createMyApplication()
+      for (const register of middleware) await register(app)
+      return { handle: app as unknown as Connect.NextHandleFunction }
+    },
+  })
 }
 ```
 
-Note the return type. These are two plugins, not one: the build half is `apply: 'build'` and the dev half is `apply: 'serve'`, because a single plugin object would get its `closeBundle` called when the dev server shuts down and would try to run a whole production build. Vite flattens nested arrays in `plugins`, so a `Plugin[]` drops into a config exactly like a single plugin does.
+Note the return type. That's several plugins, not one: the build half is `apply: 'build'` and the serve halves are `apply: 'serve'`, because a single plugin object would get its `closeBundle` called when the dev server shuts down and would try to run a whole production build. Vite flattens nested arrays in `plugins`, so a `Plugin[]` drops into a config exactly like a single plugin does.
 
-The plugin is inert when `middlewarePath` is undefined, so you can pass the option straight through without guarding it.
+You get three plugins with a `createServer` and two without: `rooted:my-server` builds, `rooted:my-server-dev` runs the middleware, and `rooted:my-server-not-found` gives dev and preview the same 404s and canonical redirects as the generated server. The middleware plugin is inert when `middlewarePath` is undefined, so you can pass the option straight through without guarding it.
+
+`nodeMiddlewareServer` and `routedNotFound` are still exported if you'd rather compose them yourself; `routedAdapter` is just their canonical composition.
 
 See [advanced/server-middleware](../advanced/server-middleware.md) for what this looks like from the app developer's side, including the differences between dev and preview.
 

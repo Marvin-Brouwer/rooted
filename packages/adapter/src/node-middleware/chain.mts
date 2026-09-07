@@ -1,9 +1,4 @@
-import type {
-	NodeMiddlewareHandler,
-	NodeMiddlewareMode,
-	NodeMiddlewareServerOptions,
-} from '../node-middleware.mts'
-import type { MiddlewareModule } from './middleware-module.mts'
+import type { NodeMiddlewareHandler, NodeMiddlewareServerOptions } from '../node-middleware.mts'
 import type { Connect, ResolvedConfig } from 'vite'
 
 /** A framework instance behind a connect handler, rebuildable on demand. */
@@ -22,8 +17,7 @@ export type MiddlewareChain = {
 export function createMiddlewareChain<TApplication>(
 	options: NodeMiddlewareServerOptions<TApplication>,
 	config: ResolvedConfig,
-	mode: NodeMiddlewareMode,
-	load: (reload: boolean) => Promise<Array<MiddlewareModule<TApplication>>>,
+	load: (reload: boolean) => Promise<Array<(application: TApplication) => Promise<void>>>,
 ): MiddlewareChain {
 	let pending: Promise<NodeMiddlewareHandler | undefined> | undefined
 	let built = false
@@ -34,7 +28,7 @@ export function createMiddlewareChain<TApplication>(
 		try {
 			const middleware = await load(reload)
 			if (middleware.length === 0) return undefined
-			return await options.createServer(middleware, { config, mode })
+			return await options.createServer(middleware, { config })
 		}
 		catch (error) {
 			config.logger.error(`[${options.name}] Could not start the middleware server: ${String(error)}`)
