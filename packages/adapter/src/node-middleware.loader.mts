@@ -1,0 +1,110 @@
+import { readdir } from 'node:fs/promises'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+
+import { toPosixPath } from './utility/request-url.mts'
+
+import type { MiddlewareModule, NodeMiddlewareServerOptions } from './node-middleware.types.mts'
+import type { ResolvedConfig, ViteDevServer } from 'vite'
+
+/** The extensions the build hook hands to rolldown. Dev reads the same set. */
+const SOURCE_EXTENSIONS = /\.(mts|ts|mjs|js)$/
+/** What the build hook writes into `dist/middleware`, and all preview can run. */
+const BUILT_EXTENSIONS = /\.mjs$/
+
+/**
+ * Loads the middleware sources through Vite, so TypeScript works with no
+ * bundling step.
+ *
+ * `reload` clears the runner's cache first. Without it the runner hands back the
+ * module it already has and a rebuild after an edit does nothing.
+ */
+export async function loadSources<TApplication>(
+	server: ViteDevServer,
+	directory: string,
+	options: NodeMiddlewareServerOptions<TApplication>,
+	config: ResolvedConfig,
+	reload: boolean,
+): Promise<Array<MiddlewareModule<TApplication>>> {
+	// Imported here rather than at the top of the module: @rooted/adapter is
+	// loaded by runtime consumers of the adapter packages, and they shouldn't
+	// pay for vite. This only ever runs inside a dev server, where it's loaded.
+	const { isRunnableDevEnvironment } = await import('vite')
+	const environment = server.environments.ssr
+	const runnable = isRunnableDevEnvironment(environment)
+	if (reload && runnable) environment.runner.clearCache()
+
+	const modules: Array<MiddlewareModule<TApplication>> = []
+	for (const file of await listMiddlewareFiles(directory, SOURCE_EXTENSIONS, options, config)) {
+		// ssrLoadModule is the older spelling of the same thing; it's the
+		// fallback for anyone who swapped in a non-runnable ssr environment.
+		const loaded = runnable
+			? await environment.runner.import<Record<string, unknown>>(toPosixPath(file))
+			: await server.ssrLoadModule(toPosixPath(file))
+		const module = toMiddlewareModule<TApplication>(loaded, file, options, config)
+		if (module) modules.push(module)
+	}
+	return modules
+}
+
+/**
+ * Loads the built `dist/middleware/*.mjs` files, which is all preview can do:
+ * there is no module runner there. It shows you the last build, not your
+ * working tree.
+ */
+export async function loadBuilt<TApplication>(
+	directory: string,
+	options: NodeMiddlewareServerOptions<TApplication>,
+	config: ResolvedConfig,
+): Promise<Array<MiddlewareModule<TApplication>>> {
+	const modules: Array<MiddlewareModule<TApplication>> = []
+	for (const file of await listMiddlewareFiles(directory, BUILT_EXTENSIONS, options, config)) {
+		const loaded = await import(pathToFileURL(file).href) as Record<string, unknown>
+		const module = toMiddlewareModule<TApplication>(loaded, file, options, config)
+		if (module) modules.push(module)
+	}
+	return modules
+}
+
+/** Flat listing, lexicographic, matching the order the generated server uses. */
+async function listMiddlewareFiles<TApplication>(
+	directory: string,
+	extensions: RegExp,
+	options: NodeMiddlewareServerOptions<TApplication>,
+	config: ResolvedConfig,
+): Promise<string[]> {
+	const entries = await readdir(directory).catch(() => undefined)
+	if (!entries) {
+		config.logger.warn(`[${options.name}] No middleware folder at "${directory}", skipping it.`)
+		return []
+	}
+	return entries
+		.filter(entry => extensions.test(entry))
+		.sort()
+		.map(entry => path.join(directory, entry))
+}
+
+function toMiddlewareModule<TApplication>(
+	loaded: Record<string, unknown>,
+	file: string,
+	options: NodeMiddlewareServerOptions<TApplication>,
+	config: ResolvedConfig,
+): MiddlewareModule<TApplication> | undefined {
+	const register = loaded.default
+	if (typeof register !== 'function') {
+		config.logger.warn(`[${options.name}] "${path.basename(file)}" has no default export, skipping it.`)
+		return undefined
+	}
+
+	return {
+		file,
+		async register(application) {
+			try {
+				await (register as (application: TApplication) => Promise<void> | void)(application)
+			}
+			catch (error) {
+				config.logger.error(`[${options.name}] "${path.basename(file)}" failed to register: ${String(error)}`)
+			}
+		},
+	}
+}

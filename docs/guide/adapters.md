@@ -230,3 +230,12 @@ Note the return type. These are two plugins, not one: the build half is `apply: 
 The plugin is inert when `middlewarePath` is undefined, so you can pass the option straight through without guarding it.
 
 See [advanced/server-middleware](../advanced/server-middleware.md) for what this looks like from the app developer's side, including the differences between dev and preview.
+
+`@rooted/adapter` also exports the pieces those plugins are built from, so a custom adapter doesn't have to re-derive them:
+
+- `resolveAdapterRoutes` merges the route manifest with the adapter's manual `routes` option into the two lists everything else works from.
+- `createRouteMatcher` turns those lists into a predicate with the same `:param` semantics as the generated server's router. `looksLikeFile` and `withTrailingSlash` come with it.
+- `requestTarget` gives you the in-base pathname of a request, or nothing when it isn't yours to answer: a write, something outside `base`, or one of Vite's own URLs. `wantsHtml` and `stripBase` are there too.
+- `buildServerPreamble` and `buildMiddlewareBlock` emit the opening of a generated `server.mjs`, so a new server adapter only writes the part its framework does differently.
+
+The last one matters more than it looks. The route table in the generated server and the matcher in dev have to agree on what counts as a route, or a link works in one and 404s in the other, so they're deliberately built from the same place.

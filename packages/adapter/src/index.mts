@@ -1,4 +1,8 @@
 export * from './adapter.mts'
 export * from './node-middleware-server.mts'
 export * from './routed-not-found.mts'
+export * from './utility/adapter-routes.mts'
+export * from './utility/request-url.mts'
+export * from './utility/route-matcher.mts'
+export * from './utility/server-preamble.mts'
 export type { StaticRenderer } from './static-renderer.mts'

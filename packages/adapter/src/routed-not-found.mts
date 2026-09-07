@@ -1,16 +1,13 @@
-import { readFile } from 'node:fs/promises'
-import path from 'node:path'
+import { routeManifestPluginName } from '@rooted/seo'
 
-import { resolveAdapterRoutes } from './adapter.mts'
+import { redirectToCanonical, respondWithShell } from './routed-not-found.response.mts'
+import { resolveAdapterRoutes } from './utility/adapter-routes.mts'
+import { requestTarget, wantsHtml } from './utility/request-url.mts'
+import { createRouteMatcher, looksLikeFile } from './utility/route-matcher.mts'
 
 import type { AdapterRoutes } from './adapter.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
-import type { Connect, Plugin, ResolvedConfig, ViteDevServer } from 'vite'
-
-const MANIFEST_PLUGIN_NAME = 'vite-plugin:generate-rooted-route-manifest'
-
-/** Vite's own plumbing. None of it is an app route. */
-const INTERNAL_PREFIXES = ['/@', '/node_modules/', '/__vite', '/favicon.ico']
+import type { Plugin, ResolvedConfig } from 'vite'
 
 /**
  * Options for {@link routedNotFound}.
@@ -23,14 +20,14 @@ export type RoutedNotFoundOptions = {
 }
 
 /**
- * Makes `vite dev` answer unknown URLs the way the generated server does:
- * a real 404, with the app shell for navigations and an empty body for
- * everything else.
+ * Makes `vite dev` answer URLs the way the generated server does: one canonical
+ * address per route, and a real 404 for anything that isn't one.
  *
  * Without this, Vite's SPA fallback hands out the shell with a 200 for any URL
  * at all, so a typo in a link looks fine in dev and 404s in production. Known
  * routes -- the static paths and `:param` patterns the manifest knows about --
- * are left alone and still render normally.
+ * are left alone and still render normally, and a route written without its
+ * trailing slash gets a 301 to the canonical form.
  *
  * It can't tell you about content that doesn't exist, only about routes that
  * don't. `/recipe/99999/` matches `/recipe/:id/` and gets a 200 here exactly as
@@ -63,7 +60,7 @@ export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 
 		configResolved(resolved) {
 			config = resolved
-			const manifestPlugin = resolved.plugins.find(plugin => plugin.name === MANIFEST_PLUGIN_NAME)
+			const manifestPlugin = resolved.plugins.find(plugin => plugin.name === routeManifestPluginName)
 			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
 		},
 
@@ -74,15 +71,15 @@ export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 			// 200 for any URL and never calls next(), so there is nothing left to
 			// correct afterwards.
 			server.middlewares.use((request, response, next) => {
-				const target = routeOf(request, config)
+				const target = requestTarget(request, config)
 				if (!target || !wantsHtml(request)) return next()
 				// Someone can navigate straight to a file. Whether it exists is
 				// vite's business, not the route table's.
 				if (looksLikeFile(target.pathname)) return next()
-				if (redirect(response, target, matcher())) return
+				if (redirectToCanonical(response, target, matcher())) return
 				if (matcher()(target.pathname)) return next()
 
-				void respond(server, config, target.url, response, next, 404)
+				void respondWithShell(server, config, target.url, response, next, 404)
 			})
 
 			// Everything else has to be judged after Vite, because only Vite knows
@@ -90,7 +87,7 @@ export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 			// file in public/. Reaching here means it declined to serve it.
 			return () => {
 				server.middlewares.use((request, response, next) => {
-					const target = routeOf(request, config)
+					const target = requestTarget(request, config)
 					if (!target) return next()
 					// Vite installs its SPA fallback after this hook, not before, so
 					// navigations have not been served yet. They were already judged
@@ -98,120 +95,24 @@ export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 					// had to reach vite first, and getting here means vite had
 					// nothing to serve, so it really is missing.
 					if (wantsHtml(request) && !looksLikeFile(target.pathname)) return next()
-					if (redirect(response, target, matcher())) return
+					if (redirectToCanonical(response, target, matcher())) return
 
 					// A route is a route whatever the caller asked for, the same as
 					// the generated server, where the router matches before anything
 					// looks at Accept.
-					if (matcher()(target.pathname)) return void respond(server, config, target.url, response, next, 200)
+					if (matcher()(target.pathname)) {
+						return void respondWithShell(server, config, target.url, response, next, 200)
+					}
 
 					// Missing. A navigation still gets the shell to render a 404
 					// page; an <img> or a fetch gets an empty body it can act on.
-					if (wantsHtml(request)) return void respond(server, config, target.url, response, next, 404)
+					if (wantsHtml(request)) {
+						return void respondWithShell(server, config, target.url, response, next, 404)
+					}
 					response.statusCode = 404
 					response.end()
 				})
 			}
 		},
 	}
-}
-
-// ---------------------------------------------------------------------------
-
-/**
- * Sends the canonical slash form when the URL is a route written without one.
- * Only real routes redirect, so a vite module id or a file is never touched.
- */
-function redirect(
-	response: Parameters<Connect.NextHandleFunction>[1],
-	target: { url: string, pathname: string },
-	matches: (pathname: string) => boolean,
-): boolean {
-	if (target.pathname.endsWith('/') || looksLikeFile(target.pathname)) return false
-	if (!matches(`${target.pathname}/`)) return false
-
-	const [pathname, search] = target.url.split('?')
-	response.statusCode = 301
-	response.setHeader('Location', `${pathname}/${search ? `?${search}` : ''}`)
-	response.end()
-	return true
-}
-
-async function respond(
-	server: ViteDevServer,
-	config: ResolvedConfig,
-	url: string,
-	response: Parameters<Connect.NextHandleFunction>[1],
-	next: Connect.NextFunction,
-	status: number,
-) {
-	try {
-		const shell = await readFile(path.join(config.root, 'index.html'), 'utf8')
-		const html = await server.transformIndexHtml(url, shell)
-		response.statusCode = status
-		response.setHeader('Content-Type', 'text/html; charset=utf-8')
-		response.end(html)
-	}
-	catch (error) {
-		// Better to fall through to Vite than to take the page down over this.
-		next(error)
-	}
-}
-
-/** The request's in-base pathname, or undefined when it isn't ours to answer. */
-function routeOf(
-	request: { url?: string, originalUrl?: string, method?: string, headers: Record<string, unknown> },
-	config: ResolvedConfig,
-): { url: string, pathname: string } | undefined {
-	if (request.method !== 'GET' && request.method !== 'HEAD') return undefined
-	// Vite's SPA fallback rewrites `url` to /index.html before the post hook
-	// runs, so judge the address the caller actually asked for.
-	const url = request.originalUrl ?? request.url ?? '/'
-	const pathname = stripBase(url.split('?')[0].split('#')[0], config.base)
-	if (pathname === undefined) return undefined
-	if (INTERNAL_PREFIXES.some(prefix => pathname.startsWith(prefix))) return undefined
-	return { url, pathname }
-}
-
-/**
- * Builds a matcher with the same semantics as the generated servers: a `:param`
- * matches exactly one non-empty segment, and the path is compared as written.
- * Kept deliberately in step with the matcher in the generated `server.mjs`.
- */
-function createRouteMatcher(routes: { staticPaths: string[], dynamicPatterns: string[] }) {
-	const staticPaths = new Set(['/', ...routes.staticPaths.map(withTrailingSlash)])
-	const dynamicPatterns = routes.dynamicPatterns.map(pattern => withTrailingSlash(pattern).split('/'))
-
-	return (pathname: string) => {
-		if (staticPaths.has(pathname)) return true
-		const parts = pathname.split('/')
-		return dynamicPatterns.some(pattern =>
-			pattern.length === parts.length
-			&& pattern.every((segment, index) => segment.startsWith(':') ? parts[index] !== '' : segment === parts[index]),
-		)
-	}
-}
-
-function withTrailingSlash(value: string): string {
-	return value.endsWith('/') ? value : `${value}/`
-}
-
-/** A path whose last segment carries an extension is a file, not a route. */
-function looksLikeFile(pathname: string): boolean {
-	return (pathname.split('/').pop() ?? '').includes('.')
-}
-
-/** Returns undefined when the URL sits outside the configured base. */
-function stripBase(pathname: string, base: string): string | undefined {
-	const prefix = base.replace(/\/$/, '')
-	if (prefix === '') return pathname
-	if (pathname === prefix) return '/'
-	if (!pathname.startsWith(`${prefix}/`)) return undefined
-	return pathname.slice(prefix.length)
-}
-
-/** A navigation, as opposed to a script, style, image or fetch. */
-function wantsHtml(request: { headers: Record<string, unknown> }): boolean {
-	const accept = request.headers.accept
-	return typeof accept === 'string' && accept.includes('text/html')
 }
