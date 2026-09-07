@@ -23,10 +23,16 @@ export type FirebaseHostingAdapterOptions = {
  * Writes `firebase.json` to the Vite project root (not the output directory).
  * Always written -- the build controls the deployment config.
  *
- * When routes are available (via `generateRouteManifest` or the `routes` option),
- * specific rewrite rules are generated for parameterized routes before the catch-all.
- * Firebase uses glob syntax: `*` matches a single path segment. The rooted `:param`
- * syntax maps to `*` per segment.
+ * One rewrite rule is generated per parameterized route, so `/recipe/42/` serves
+ * the SPA shell and the browser-side router renders it. Firebase uses glob
+ * syntax where `*` matches a single path segment, so the rooted `:param` maps
+ * to one `*` each.
+ *
+ * There is no catch-all rewrite. Firebase resolves a request in a fixed order --
+ * redirects, exact-match static content, configured rewrites, then the custom
+ * 404 page -- so with the catch-all gone an unmatched path falls through to
+ * `404.html` with a real `404`. A `{ "source": "**" }` rule would sit in front
+ * of that and answer `200` for every typo, which is what it used to do.
  *
  * `"trailingSlash": true` is always included since the rooted router enforces trailing slashes.
  *
@@ -48,6 +54,8 @@ export function firebaseHostingAdapter(options?: FirebaseHostingAdapterOptions):
 	return staticAdapter({
 		name: 'rooted:firebase-hosting',
 		routes: options?.routes,
+		// The rewrites below are what Firebase matches :param routes with.
+		dynamicRoutes: 'routed',
 		async setup({ config, resolvedRoutes }) {
 			const outDirectory = path.relative(config.root, config.build.outDir) || 'dist'
 
@@ -59,10 +67,7 @@ export function firebaseHostingAdapter(options?: FirebaseHostingAdapterOptions):
 					public: outDirectory,
 					trailingSlash: true,
 					ignore: ['firebase.json', '**/.*'],
-					rewrites: [
-						...dynamicRewrites,
-						{ source: '**', destination: '/404.html' },
-					],
+					rewrites: dynamicRewrites,
 				},
 			}
 
