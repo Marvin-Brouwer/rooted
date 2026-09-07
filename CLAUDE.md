@@ -22,6 +22,17 @@ When writing TSDOC on functionality, follow these rules:
 
 Keep in mind, the target audience is developers that actually use this when coding.
 
+## Code structure
+
+Read [coding style](./docs/maintainers/coding-style.md) before adding files, in particular "one job per file" and "copying between packages". The short version, because these are the ones that keep getting missed:
+
+- `index.mts` and `src/_module/*.mts` are barrels. They re-export and nothing else, so put the implementation in a sibling file named after what it does.
+- A `// ------` divider in a source file means it wants splitting. Don't use one to organise a file that's already too big.
+- Past roughly 150 lines of source, work out what the second job is. Shared types belong in their own `*.types.mts` so the imports don't go circular.
+- Don't copy code between packages. Put it where both can import it: for adapters that's `@rooted/adapter` under `src/utility/`, exported from the package. That goes for generated code too, not just modules.
+
+Check this before opening a pull request, not after review asks.
+
 ## Generated files
 
 Never manually edit generated files. If something looks wrong in a generated file, fix the source that produces it instead.
@@ -53,7 +64,7 @@ Always use [Conventional Commits](https://www.conventionalcommits.org/) format f
 ```
 
 Allowed types: `feat`, `fix`, `docs`, `ci`, `test`, `chore`, `perf`, `revert`. That list is enforced by `.repo/config/conventions/commitlint.config.mjs`, so anything else (`refactor`, `build`, `style`) gets rejected. Use `chore` for internal restructuring with no observable behaviour change, and `fix`/`feat` when there is one.
-Scope is optional but encouraged — use the package name or area (e.g. `router`, `components`, `release`).
+Scope is optional but encouraged, use the package name or area (e.g. `router`, `components`, `release`).
 
 Examples:
 

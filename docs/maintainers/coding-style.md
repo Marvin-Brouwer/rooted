@@ -84,3 +84,23 @@ This is partly aesthetic and partly practical: small PRs review faster, break le
 ESLint catches the rules that are worth catching at edit time: unused locals and parameters, missing imports, style consistency, `no-explicit-any`. Run it before opening a PR.
 
 What ESLint isn't for: opinions about how a function should be structured, or whether a name is good. The reviewer does that.
+
+## One job per file
+
+A module does one thing. When it starts doing two, split it, and let the file names say what each half is for.
+
+Three signals that it already happened:
+
+- **A `// ------` divider.** If a file needs a rule drawn across it to separate "the thing" from "the machinery", that line is the split point, not a heading. Use it to find the seam and then delete it.
+- **An entry point with code in it.** `index.mts`, and `src/_module/*.mts`, are barrels. They re-export and nothing else. A plugin, an options type and a code generator living in the same `index.mts` is three files wearing one name.
+- **Length.** There's no hard limit, but past roughly 150 lines of source it's worth asking what the second job is. Some files earn their length; most don't.
+
+Types that more than one module needs go in their own `*.types.mts`. Leaving them in whichever file happened to define them is how import cycles start.
+
+## Copying between packages
+
+Before copying anything from one package into another, put it somewhere both can import instead.
+
+For the adapters that place is `@rooted/adapter`, under `src/utility/`, exported from the package so third-party adapters get it too. The same applies to generated code: `buildServerPreamble` exists because the Fastify and Express `server.mjs` templates were 63 identical lines out of 90, and two copies of a route table drift into two servers that disagree about what a route is.
+
+This is not about saving lines. It's that duplicated logic gets fixed once and stays broken in the other copy, and nobody notices until the two halves are far enough apart to be a bug report.
