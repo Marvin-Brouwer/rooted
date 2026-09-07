@@ -26,7 +26,7 @@ Keep in mind, the target audience is developers that actually use this when codi
 
 Read [coding style](./docs/maintainers/coding-style.md) before adding files, in particular "one job per file" and "copying between packages". The short version, because these are the ones that keep getting missed:
 
-- `index.mts` and `src/_module/*.mts` are barrels. They re-export and nothing else, so put the implementation in a sibling file named after what it does.
+- There is no `index.mts` here. A package's public entry is `src/_module/<name>.mts`, and it is a barrel: a `@module` doc block and re-exports, nothing else. The implementation goes in a sibling file named after what it does.
 - A `// ------` divider in a source file means it wants splitting. Don't use one to organise a file that's already too big.
 - Past roughly 150 lines of source, work out what the second job is.
 - Name the split for what it is. Dotted names (`route.match.mts`) are one subject that got long; a folder beside its entry (`component.mts` with `component/`) is one entry point whose parts do different jobs. Short names inside, no barrel, imported by path.

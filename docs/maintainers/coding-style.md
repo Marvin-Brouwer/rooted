@@ -92,8 +92,10 @@ A module does one thing. When it starts doing two, split it, and let the file na
 Three signals that it already happened:
 
 - **A `// ------` divider.** If a file needs a rule drawn across it to separate "the thing" from "the machinery", that line is the split point, not a heading. Use it to find the seam and then delete it.
-- **An entry point with code in it.** `index.mts`, and `src/_module/*.mts`, are barrels. They re-export and nothing else. A plugin, an options type and a code generator living in the same `index.mts` is three files wearing one name.
+- **An entry point with code in it.** The public entry of a package is `src/_module/<name>.mts`, and it is a barrel: a `@module` doc block and re-exports, nothing else. A plugin, an options type and a code generator sharing one entry file is three files wearing one name.
 - **Length.** There's no hard limit, but past roughly 150 lines of source it's worth asking what the second job is. Some files earn their length; most don't.
+
+There is no `index.mts` in this repo. Entries live in `src/_module/`, named for the package or the subpath they serve, and `tsdown.config.mts` globs `src/_module/*.mts` so adding a subpath is a file plus a key in `exports`. See [adding packages](./adding-packages.md) for the full layout.
 
 When a file splits, how the pieces are named says which kind of split it was.
 
