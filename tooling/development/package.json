@@ -21,6 +21,6 @@
 		"@microsoft/api-extractor": "^7.59.0",
 		"@types/node": "^26.4.1",
 		"tree-kill": "^1.2.2",
-		"tsx": "^4.23.12"
+		"tsx": "^4.23.13"
 	}
 }
