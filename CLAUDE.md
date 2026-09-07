@@ -29,6 +29,7 @@ Read [coding style](./docs/maintainers/coding-style.md) before adding files, in 
 - `index.mts` and `src/_module/*.mts` are barrels. They re-export and nothing else, so put the implementation in a sibling file named after what it does.
 - A `// ------` divider in a source file means it wants splitting. Don't use one to organise a file that's already too big.
 - Past roughly 150 lines of source, work out what the second job is.
+- Name the split for what it is. Dotted names (`route.match.mts`) are one subject that got long; a folder beside its entry (`component.mts` with `component/`) is one entry point whose parts do different jobs. Short names inside, no barrel, imported by path.
 - Types go next to the function whose signature they are. One that's genuinely shared gets its own file named for the concept, the way `packages/elements/src/children.mts` does. Never a `*.types.mts` bucket.
 - Don't copy code between packages. Put it where both can import it: for adapters that's `@rooted/adapter` under `src/utility/`, exported from the package. That goes for generated code too, not just modules.
 

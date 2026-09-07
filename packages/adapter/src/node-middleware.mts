@@ -1,10 +1,10 @@
 import path from 'node:path'
 
-import { createMiddlewareChain } from './node-middleware.chain.mts'
-import { loadBuilt, loadSources } from './node-middleware.loader.mts'
+import { createMiddlewareChain } from './node-middleware/chain.mts'
+import { loadBuilt, loadSources } from './node-middleware/loader.mts'
 import { toPosixPath } from './utility/request-url.mts'
 
-import type { MiddlewareModule } from './middleware-module.mts'
+import type { MiddlewareModule } from './node-middleware/middleware-module.mts'
 import type { Connect, Plugin, ResolvedConfig } from 'vite'
 
 /**

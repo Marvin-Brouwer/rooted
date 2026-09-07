@@ -6,9 +6,9 @@ import { pathToFileURL } from 'node:url'
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
-import { nodeMiddlewareServer } from '../src/node-middleware-server.mts'
+import { nodeMiddlewareServer } from '../src/node-middleware.mts'
 
-import type { NodeMiddlewareServerOptions } from '../src/node-middleware-server.mts'
+import type { NodeMiddlewareServerOptions } from '../src/node-middleware.mts'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Connect, Plugin, PreviewServer, ResolvedConfig, ViteDevServer } from 'vite'
 

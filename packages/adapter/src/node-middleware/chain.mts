@@ -1,9 +1,9 @@
-import type { MiddlewareModule } from './middleware-module.mts'
 import type {
 	NodeMiddlewareHandler,
 	NodeMiddlewareMode,
 	NodeMiddlewareServerOptions,
-} from './node-middleware-server.mts'
+} from '../node-middleware.mts'
+import type { MiddlewareModule } from './middleware-module.mts'
 import type { Connect, ResolvedConfig } from 'vite'
 
 /** A framework instance behind a connect handler, rebuildable on demand. */

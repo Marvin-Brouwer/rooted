@@ -2,7 +2,7 @@ import { readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { toPosixPath } from './utility/request-url.mts'
+import { toPosixPath } from '../utility/request-url.mts'
 
 import type { MiddlewareModule } from './middleware-module.mts'
 import type { ResolvedConfig, ViteDevServer } from 'vite'

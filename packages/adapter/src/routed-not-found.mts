@@ -1,6 +1,6 @@
 import { routeManifestPluginName } from '@rooted/seo'
 
-import { redirectToCanonical, respondWithShell } from './routed-not-found.response.mts'
+import { redirectToCanonical, respondWithShell } from './routed-not-found/response.mts'
 import { resolveAdapterRoutes } from './utility/adapter-routes.mts'
 import { requestTarget, wantsHtml } from './utility/request-url.mts'
 import { createRouteMatcher, looksLikeFile } from './utility/route-matcher.mts'

@@ -1,9 +1,9 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { looksLikeFile } from './utility/route-matcher.mts'
+import { looksLikeFile } from '../utility/route-matcher.mts'
 
-import type { RequestTarget } from './utility/request-url.mts'
+import type { RequestTarget } from '../utility/request-url.mts'
 import type { Connect, ResolvedConfig, ViteDevServer } from 'vite'
 
 type ServerResponse = Parameters<Connect.NextHandleFunction>[1]
