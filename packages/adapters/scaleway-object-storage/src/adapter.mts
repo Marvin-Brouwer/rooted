@@ -30,7 +30,7 @@ export type ScalewayObjectStorageAdapterOptions = {
  * })
  * ```
  */
-export function scalewayObjectStorageAdapter(options?: ScalewayObjectStorageAdapterOptions): Plugin {
+export function scalewayObjectStorageAdapter(options?: ScalewayObjectStorageAdapterOptions): Plugin[] {
 	return staticAdapter({
 		name: 'rooted:scaleway-object-storage',
 		fallbackFileName: 'error.html',

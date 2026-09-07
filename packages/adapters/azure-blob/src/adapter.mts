@@ -31,6 +31,6 @@ export type AzureBlobAdapterOptions = {
  * })
  * ```
  */
-export function azureBlobAdapter(options?: AzureBlobAdapterOptions): Plugin {
+export function azureBlobAdapter(options?: AzureBlobAdapterOptions): Plugin[] {
 	return staticAdapter({ name: 'rooted:azure-blob', routes: options?.routes })
 }

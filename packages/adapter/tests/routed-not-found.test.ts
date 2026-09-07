@@ -233,13 +233,79 @@ describe('routedNotFound()', () => {
 		// Assert
 		expect(outcome).toEqual({ handled: 'next' })
 	})
+
+	describe("on a host that only serves files (dynamicRoutes: 'fallback')", () => {
+		test('answers a dynamic route with the shell and a 404', async () => {
+			// Arrange -- the host has no rule for /recipe/42/, so it serves
+			// 404.html: the page renders, the status doesn't lie
+			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'fallback' })
+
+			// Act
+			const outcome = await request(server, '/recipe/42/')
+
+			// Assert
+			expect(outcome.handled).toBe('responded')
+			expect(outcome.status).toBe(404)
+		})
+
+		test('still lets a pre-rendered static path through with a 200', async () => {
+			// Arrange
+			const server = serve({ routes: ['/categories/'], dynamicRoutes: 'fallback' })
+
+			// Act
+			const outcome = await request(server, '/categories/')
+
+			// Assert
+			expect(outcome).toEqual({ handled: 'next' })
+		})
+
+		test('redirects a static path written without its slash, because the host has a directory there', async () => {
+			// Arrange
+			const server = serve({ routes: ['/categories/'], dynamicRoutes: 'fallback' })
+
+			// Act
+			const outcome = await request(server, '/categories')
+
+			// Assert
+			expect(outcome.status).toBe(301)
+			expect(outcome.location).toBe('/categories/')
+		})
+
+		test('does not redirect a dynamic route, because the host has nothing to redirect to', async () => {
+			// Arrange
+			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'fallback' })
+
+			// Act
+			const outcome = await request(server, '/recipe/42')
+
+			// Assert
+			expect(outcome.handled).toBe('responded')
+			expect(outcome.status).toBe(404)
+			expect(outcome.location).toBeUndefined()
+		})
+
+		test('answers a dynamic route with a 404 after vite declined it too', async () => {
+			// Arrange
+			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'fallback' }, '/', 'post')
+
+			// Act -- */* is what fetch sends by default
+			const outcome = await request(server, '/recipe/42/', '*/*')
+
+			// Assert
+			expect(outcome.status).toBe(404)
+		})
+	})
 })
 
 // ---------------------------------------------------------------------------
 
 type Outcome = { handled: 'next' | 'responded', status?: number, body?: string, location?: string }
 
-function serve(options: { routes?: string[] }, base = '/', which: 'pre' | 'post' = 'pre') {
+function serve(
+	options: { routes?: string[], dynamicRoutes?: 'routed' | 'fallback' },
+	base = '/',
+	which: 'pre' | 'post' = 'pre',
+) {
 	const config = {
 		root,
 		base,

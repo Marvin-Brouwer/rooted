@@ -1,11 +1,10 @@
 import { routeManifestPluginName } from '@rooted/seo'
 
 import { developmentNotFound } from './routed-not-found/development.mts'
+import { createMatcherCache } from './routed-not-found/matchers.mts'
 import { previewNotFound } from './routed-not-found/preview.mts'
-import { resolveAdapterRoutes } from './utility/adapter-routes.mts'
-import { createRouteMatcher } from './utility/route-matcher.mts'
 
-import type { AdapterRoutes } from './adapter.mts'
+import type { AdapterRoutes, DynamicRouteSupport } from './adapter.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Plugin, ResolvedConfig } from 'vite'
 
@@ -17,10 +16,15 @@ export type RoutedNotFoundOptions = {
 	name: string
 	/** The adapter's manual `routes` option, merged with the route manifest. */
 	routes?: AdapterRoutes
+	/**
+	 * What the host does with a `:param` route. See {@link DynamicRouteSupport}.
+	 * Defaults to `'routed'`.
+	 */
+	dynamicRoutes?: DynamicRouteSupport
 }
 
 /**
- * Makes `vite dev` and `vite preview` answer URLs the way the generated server
+ * Makes `vite dev` and `vite preview` answer URLs the way the deployed site
  * does: one canonical address per route, and a real 404 for anything that isn't
  * one.
  *
@@ -31,32 +35,21 @@ export type RoutedNotFoundOptions = {
  * trailing slash gets a 301 to the canonical form.
  *
  * It can't tell you about content that doesn't exist, only about routes that
- * don't. `/recipe/99999/` matches `/recipe/:id/` and gets a 200 here exactly as
- * it does in the generated server; whether recipe 99999 exists is the app's
- * call, not the router's.
+ * don't. `/recipe/99999/` matches `/recipe/:id/` and gets the same answer here
+ * as it does on the host; whether recipe 99999 exists is the app's call, not
+ * the router's.
  *
- * `routedAdapter` composes this for you. Reach for it directly only when you're
- * building an adapter by hand.
+ * `staticAdapter` and `routedAdapter` compose this for you. Reach for it
+ * directly only when you're building an adapter by hand.
  */
 export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 	let config: ResolvedConfig
 	let manifestApi: RouteManifestApi | undefined
-	// A sentinel, not undefined: with no manifest plugin `routes` is undefined
-	// too, and the matcher would never be built.
-	let cachedFor: unknown = Symbol('unresolved')
-	let matches: (pathname: string) => boolean
-
-	// The manifest is empty until buildStart, and the manifest plugin swaps in a
-	// fresh array whenever a route file is added or removed, so key the matcher
-	// on that array rather than building it once.
-	function matcher() {
-		const routes = manifestApi?.routes
-		if (routes !== cachedFor) {
-			cachedFor = routes
-			matches = createRouteMatcher(resolveAdapterRoutes(manifestApi, options.routes))
-		}
-		return matches
-	}
+	const matchers = createMatcherCache(
+		() => manifestApi,
+		options.routes,
+		options.dynamicRoutes ?? 'routed',
+	)
 
 	return {
 		name: options.name,
@@ -69,7 +62,7 @@ export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 		},
 
 		configureServer(server) {
-			return developmentNotFound(config, matcher)(server)
+			return developmentNotFound(config, matchers)(server)
 		},
 
 		configurePreviewServer(server) {

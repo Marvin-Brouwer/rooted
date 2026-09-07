@@ -40,7 +40,7 @@ export type AzureStaticWebappAdapterOptions = {
  * })
  * ```
  */
-export function azureStaticWebappAdapter(options?: AzureStaticWebappAdapterOptions): Plugin {
+export function azureStaticWebappAdapter(options?: AzureStaticWebappAdapterOptions): Plugin[] {
 	return staticAdapter({
 		name: 'rooted:azure-static-webapp',
 		routes: options?.routes,

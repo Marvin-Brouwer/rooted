@@ -2,20 +2,22 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
 import { requestTarget, wantsHtml } from '../utility/request-url.mts'
-import { createRouteMatcher } from '../utility/route-matcher.mts'
 
+import { createMatchers } from './matchers.mts'
 import { redirectToCanonical } from './response.mts'
 
 import type { Connect, PreviewServer, ResolvedConfig } from 'vite'
 
 type ServerResponse = Parameters<Connect.NextHandleFunction>[1]
 
-/** The shape `routedAdapter` writes to `routes.json`. */
+/** The shape an adapter writes to `routes.json`. */
 type RouteTable = {
 	base: string
 	staticRoutes: string[]
 	dynamicRoutes: string[]
 	fallback: string
+	/** What the host answers for a matched dynamic route. Older builds have no field. */
+	dynamicStatus?: 200 | 404
 }
 
 /**
@@ -44,22 +46,21 @@ export function previewNotFound(name: string, config: ResolvedConfig) {
 			return
 		}
 
-		// Two matchers, because preview has to tell them apart the way the
-		// generated server does: a static route has a real prerendered file and
-		// belongs to Vite's static middleware; a dynamic one gets the shell.
-		const isStatic = createRouteMatcher({ staticPaths: table.staticRoutes, dynamicPatterns: [] })
-		const isRoute = createRouteMatcher({ staticPaths: table.staticRoutes, dynamicPatterns: table.dynamicRoutes })
+		const matchers = createMatchers(
+			{ staticPaths: table.staticRoutes, dynamicPatterns: table.dynamicRoutes },
+			table.dynamicStatus === 404 ? 'fallback' : 'routed',
+		)
 
 		server.middlewares.use((request, response, next) => {
 			const target = requestTarget(request, config)
 			if (!target) return next()
-			if (redirectToCanonical(response, target, isRoute)) return
+			if (redirectToCanonical(response, target, matchers.shouldRedirect)) return
 
 			// Vite's html fallback already pointed this at the prerendered file.
-			if (isStatic(target.pathname)) return next()
+			if (matchers.isStatic(target.pathname)) return next()
 			// A dynamic route. The generated server sends the fallback shell here
 			// rather than index.html, so the root page's SEO doesn't leak onto it.
-			if (isRoute(target.pathname)) return send(response, 200, table.html)
+			if (matchers.isRoute(target.pathname)) return send(response, matchers.dynamicStatus, table.html)
 
 			// Not a route, and Vite already declined it. A navigation still gets
 			// the shell so the browser-side router can render a 404 page; an

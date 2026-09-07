@@ -3,7 +3,7 @@ import { routedNotFound } from '../routed-not-found.mts'
 
 import { buildPlugin } from './build.mts'
 
-import type { AdapterContext, AdapterRoutes } from '../adapter.mts'
+import type { AdapterContext, AdapterRoutes, DynamicRouteSupport } from '../adapter.mts'
 import type { NodeMiddlewareServerOptions } from '../node-middleware.mts'
 import type { Plugin } from 'vite'
 
@@ -11,6 +11,7 @@ import type { Plugin } from 'vite'
 export type InternalDefinition<TApplication> = {
 	name: string
 	mode: 'static' | 'routed'
+	dynamicRoutes: DynamicRouteSupport
 	fallbackFileName?: string
 	routes?: AdapterRoutes
 	middlewarePath?: string
@@ -37,9 +38,11 @@ export function createAdapter<TApplication>(definition: InternalDefinition<TAppl
 		}))
 	}
 
-	if (definition.mode === 'routed') {
-		plugins.push(routedNotFound({ name: `${definition.name}-not-found`, routes: definition.routes }))
-	}
+	plugins.push(routedNotFound({
+		name: `${definition.name}-not-found`,
+		routes: definition.routes,
+		dynamicRoutes: definition.dynamicRoutes,
+	}))
 
 	return plugins
 }

@@ -34,7 +34,7 @@ export type NetlifyHostingAdapterOptions = {
  * })
  * ```
  */
-export function netlifyHostingAdapter(options?: NetlifyHostingAdapterOptions): Plugin {
+export function netlifyHostingAdapter(options?: NetlifyHostingAdapterOptions): Plugin[] {
 	return staticAdapter({
 		name: 'rooted:netlify-hosting',
 		routes: options?.routes,

@@ -37,7 +37,7 @@ export type GitLabPagesAdapterOptions = {
  * })
  * ```
  */
-export function gitlabPagesAdapter(options?: GitLabPagesAdapterOptions): Plugin {
+export function gitlabPagesAdapter(options?: GitLabPagesAdapterOptions): Plugin[] {
 	return staticAdapter({
 		name: 'rooted:gitlab-pages',
 		routes: options?.routes,

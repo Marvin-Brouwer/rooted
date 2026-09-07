@@ -63,15 +63,21 @@ export function buildPlugin<TApplication>(definition: InternalDefinition<TApplic
 			// don't get root-page metadata for dynamic or unknown routes.
 			await writeFile(path.join(outputDirectory, fallbackFileName), indexHtml, 'utf8')
 
-			if (definition.mode === 'routed') {
-				// Write a routing manifest so the server knows which dynamic route patterns
-				// exist, the base path, and which file to serve as the SPA catch-all fallback.
-				await writeFile(
-					path.join(outputDirectory, 'routes.json'),
-					JSON.stringify({ base: config.base, staticRoutes: resolvedRoutes.staticPaths, dynamicRoutes: resolvedRoutes.dynamicPatterns, fallback: fallbackFileName }, undefined, 2),
-					'utf8',
-				)
-			}
+			// A routing manifest, so the generated server knows which dynamic route
+			// patterns exist, the base path, and which file to serve as the SPA
+			// catch-all. `vite preview` reads the same file, which is why a static
+			// adapter writes one too even though nothing deployed reads it.
+			await writeFile(
+				path.join(outputDirectory, 'routes.json'),
+				JSON.stringify({
+					base: config.base,
+					staticRoutes: resolvedRoutes.staticPaths,
+					dynamicRoutes: resolvedRoutes.dynamicPatterns,
+					fallback: fallbackFileName,
+					dynamicStatus: definition.dynamicRoutes === 'routed' ? 200 : 404,
+				}, undefined, 2),
+				'utf8',
+			)
 
 			if (definition.middlewarePath) {
 				await buildMiddlewareFiles({

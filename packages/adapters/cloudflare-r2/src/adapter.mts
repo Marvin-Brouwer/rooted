@@ -33,6 +33,6 @@ export type CloudflareR2AdapterOptions = {
  * })
  * ```
  */
-export function cloudflareR2Adapter(options?: CloudflareR2AdapterOptions): Plugin {
+export function cloudflareR2Adapter(options?: CloudflareR2AdapterOptions): Plugin[] {
 	return staticAdapter({ name: 'rooted:cloudflare-r2', routes: options?.routes })
 }

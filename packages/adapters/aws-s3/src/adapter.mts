@@ -36,6 +36,6 @@ export type AwsS3AdapterOptions = {
  * })
  * ```
  */
-export function awsS3Adapter(options?: AwsS3AdapterOptions): Plugin {
+export function awsS3Adapter(options?: AwsS3AdapterOptions): Plugin[] {
 	return staticAdapter({ name: 'rooted:aws-s3', routes: options?.routes })
 }

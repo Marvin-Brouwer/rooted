@@ -44,7 +44,7 @@ export type FirebaseHostingAdapterOptions = {
  * })
  * ```
  */
-export function firebaseHostingAdapter(options?: FirebaseHostingAdapterOptions): Plugin {
+export function firebaseHostingAdapter(options?: FirebaseHostingAdapterOptions): Plugin[] {
 	return staticAdapter({
 		name: 'rooted:firebase-hosting',
 		routes: options?.routes,

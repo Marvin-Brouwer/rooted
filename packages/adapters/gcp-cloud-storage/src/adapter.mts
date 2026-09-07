@@ -30,6 +30,6 @@ export type GcpCloudStorageAdapterOptions = {
  * })
  * ```
  */
-export function gcpCloudStorageAdapter(options?: GcpCloudStorageAdapterOptions): Plugin {
+export function gcpCloudStorageAdapter(options?: GcpCloudStorageAdapterOptions): Plugin[] {
 	return staticAdapter({ name: 'rooted:gcp-cloud-storage', routes: options?.routes })
 }

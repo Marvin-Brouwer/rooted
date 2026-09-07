@@ -41,7 +41,7 @@ export type VercelStaticAdapterOptions = {
  * })
  * ```
  */
-export function vercelStaticAdapter(options?: VercelStaticAdapterOptions): Plugin {
+export function vercelStaticAdapter(options?: VercelStaticAdapterOptions): Plugin[] {
 	return staticAdapter({
 		name: 'rooted:vercel-static',
 		routes: options?.routes,

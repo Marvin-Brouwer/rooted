@@ -47,7 +47,7 @@ export type GitHubPagesAdapterOptions = {
  * })
  * ```
  */
-export function githubPagesAdapter(options?: GitHubPagesAdapterOptions): Plugin {
+export function githubPagesAdapter(options?: GitHubPagesAdapterOptions): Plugin[] {
 	return staticAdapter({
 		name: 'rooted:github-pages',
 		routes: options?.routes,

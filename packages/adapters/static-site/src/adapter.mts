@@ -39,7 +39,7 @@ export type StaticSiteAdapterOptions = {
  * })
  * ```
  */
-export function staticSiteAdapter(options?: StaticSiteAdapterOptions): Plugin {
+export function staticSiteAdapter(options?: StaticSiteAdapterOptions): Plugin[] {
 	return staticAdapter({
 		name: 'rooted:static-site',
 		fallbackFileName: options?.fallbackFileName,

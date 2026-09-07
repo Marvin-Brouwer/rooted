@@ -36,7 +36,7 @@ export type CloudflarePagesAdapterOptions = {
  * })
  * ```
  */
-export function cloudflarePagesAdapter(options?: CloudflarePagesAdapterOptions): Plugin {
+export function cloudflarePagesAdapter(options?: CloudflarePagesAdapterOptions): Plugin[] {
 	return staticAdapter({
 		name: 'rooted:cloudflare-pages',
 		routes: options?.routes,

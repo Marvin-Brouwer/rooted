@@ -30,6 +30,6 @@ export type CodebergPagesAdapterOptions = {
  * })
  * ```
  */
-export function codebergPagesAdapter(options?: CodebergPagesAdapterOptions): Plugin {
+export function codebergPagesAdapter(options?: CodebergPagesAdapterOptions): Plugin[] {
 	return staticAdapter({ name: 'rooted:codeberg-pages', routes: options?.routes })
 }

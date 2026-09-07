@@ -32,6 +32,6 @@ export type GitPagesAdapterOptions = {
  * })
  * ```
  */
-export function gitPagesAdapter(options?: GitPagesAdapterOptions): Plugin {
+export function gitPagesAdapter(options?: GitPagesAdapterOptions): Plugin[] {
 	return staticAdapter({ name: 'rooted:git-pages', routes: options?.routes })
 }

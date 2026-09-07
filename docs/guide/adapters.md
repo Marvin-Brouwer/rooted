@@ -109,17 +109,32 @@ The Fastify and Express adapters write a `routes.json` and a `server.mjs` to the
   "base": "/my-app/",
   "staticRoutes": ["/categories/", "/privacy/"],
   "dynamicRoutes": ["/products/:id/", "/users/:username/"],
-  "fallback": "404.html"
+  "fallback": "404.html",
+  "dynamicStatus": 200
 }
 ```
 
-`server.mjs` reads that file at startup, registers the dynamic routes, and serves `404.html` as the SPA shell for everything else.
+`server.mjs` reads that file at startup, registers the dynamic routes, and serves `404.html` as the SPA shell for everything else. Static adapters write it too, even though nothing deployed reads it, because `vite preview` answers from it.
 
 Status codes follow from that list. A path in it, static or dynamic, is a real route and gets a `200`. Anything else gets a real `404`: navigations still receive the shell so the browser-side router can render your 404 page, and requests that don't accept HTML (a missing image, a stylesheet, a `fetch`) get an empty `404` rather than a page of HTML they can't use.
 
 Every route has one canonical URL, the one with the trailing slash. `/recipe/42` redirects (`301`) to `/recipe/42/` rather than serving the same page at two addresses. Only paths that really are routes redirect, so a file is never touched, and neither is anything the app doesn't know about: `/nope` is a `404`, not a redirect to another `404`.
 
 `vite dev` and `vite preview` answer the same way, off the same route list, so a broken link fails in dev instead of looking fine until you deploy. In dev this matters twice over, because Vite serves plenty of URLs that are not routes at all - source modules, dependencies, virtual ids, files in `public/`. Those are left to Vite untouched, which is why the redirect is keyed on the route table rather than on "does this path end in a slash". What dev can't tell you about is content: `/recipe/99999/` matches `/recipe/:id/` and gets a `200` in both, because whether recipe 99999 exists is your app's call, not the router's.
+
+### What each host answers
+
+Static hosts don't all behave the same, and dev mirrors whichever one you picked rather than showing you a flattering version of it.
+
+| | Static route | Dynamic `:param` route | Unknown path |
+|---|---|---|---|
+| `fastify`, `express` | 200 | 200 | 404 + shell |
+| a static host with routing config | 200 | 200 | 404 + shell |
+| a static host without it | 200 | **404** + shell | 404 + shell |
+
+The middle column is the one to watch. A host that only serves files has no rule for `/products/42/`: there's no directory there, so it falls through to `404.html`. The page still renders, because the browser-side router takes over, but the response is a 404 and dev says so rather than pretending otherwise. Same for the canonical redirect - `/categories` redirects because the host has a directory to redirect to, `/products/42` doesn't because it hasn't.
+
+If that matters for your site, pick a host whose adapter writes routing config, or accept the 404 and move on. It's a status code, not a broken page.
 
 Start the server:
 
@@ -179,9 +194,12 @@ import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { Plugin } from 'vite'
 
-export function myHostAdapter(): Plugin {
+export function myHostAdapter(): Plugin[] {
   return staticAdapter({
     name: 'rooted:my-host',
+    // Set this to 'routed' if the config you write below makes the host
+    // match :param routes itself. It defaults to 'fallback'.
+    dynamicRoutes: 'fallback',
     async setup({ outputDirectory, resolvedRoutes }) {
       // resolvedRoutes.staticPaths  -- pre-rendered paths
       // resolvedRoutes.dynamicPatterns  -- :param patterns
@@ -196,6 +214,8 @@ export function myHostAdapter(): Plugin {
 ```
 
 Use `staticAdapter` for file-based hosts and `routedAdapter` for server-based hosts. The `setup` callback runs after the fallback file is written and before static routes are pre-rendered. See the TSDOC on `AdapterContext` for the full list of available fields.
+
+Both return `Plugin[]`, and both include the not-found handler that makes `vite dev` and `vite preview` answer the way your host will. You get that by writing the adapter; there's nothing to wire up. `dynamicRoutes` is what tells it which of the two behaviours in the table above your host has.
 
 Route and SEO details are not among them. `AdapterContext` gives you `resolvedRoutes`, which merges the manifest routes with any listed manually, and that's the supported way to see what pages exist. SEO injection happens through `@rooted/seo` before the HTML reaches your adapter, so there's nothing to wire up.
 

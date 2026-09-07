@@ -21,6 +21,18 @@ export type ResolvedAdapterRoutes = {
 }
 
 /**
+ * What a host does with a `:param` route, and so what `vite dev` and
+ * `vite preview` should answer for one.
+ *
+ * `'routed'` means the adapter writes config the host matches them with, so a
+ * dynamic route answers 200. `'fallback'` means the host only serves files: it
+ * has no rule for `/recipe/42/`, so it serves the fallback shell with a 404.
+ * The page still renders, because the browser-side router takes over, but the
+ * status is a 404 and dev says so rather than pretending otherwise.
+ */
+export type DynamicRouteSupport = 'routed' | 'fallback'
+
+/**
  * Context passed to {@link StaticAdapterDefinition.setup} and {@link RoutedAdapterDefinition.setup}.
  */
 export type AdapterContext = {
@@ -55,6 +67,14 @@ export type StaticAdapterDefinition = {
 	 * Paths without `:param` are pre-rendered; paths with `:param` are dynamic.
 	 */
 	routes?: AdapterRoutes
+	/**
+	 * What this host does with a `:param` route. See {@link DynamicRouteSupport}.
+	 *
+	 * Defaults to `'fallback'`, which is what a host does with no routing config
+	 * written for it. Set it to `'routed'` if your `setup` writes rules the host
+	 * matches dynamic routes with.
+	 */
+	dynamicRoutes?: DynamicRouteSupport
 	/**
 	 * Called after the fallback file is written, before static routes are processed.
 	 * Use this to write any additional host-specific files (e.g. `.nojekyll`).
@@ -107,9 +127,18 @@ export type RoutedAdapterDefinition<TApplication = unknown> = {
  *
  * Automatically connects to `generateRouteManifest` and the SEO plugin via
  * Vite inter-plugin communication -- no manual wiring needed.
+ *
+ * Returns two plugins: the build-time one, and a not-found handler that makes
+ * `vite dev` and `vite preview` answer the way the host will. Vite flattens
+ * nested plugin arrays, so the result still goes straight into `plugins` as one
+ * entry.
  */
-export function staticAdapter(definition: StaticAdapterDefinition): Plugin {
-	return createAdapter({ ...definition, mode: 'static' })[0]
+export function staticAdapter(definition: StaticAdapterDefinition): Plugin[] {
+	return createAdapter({
+		...definition,
+		mode: 'static',
+		dynamicRoutes: definition.dynamicRoutes ?? 'fallback',
+	})
 }
 
 /**
@@ -141,5 +170,5 @@ export function staticAdapter(definition: StaticAdapterDefinition): Plugin {
 export function routedAdapter<TApplication = unknown>(
 	definition: RoutedAdapterDefinition<TApplication>,
 ): Plugin[] {
-	return createAdapter({ ...definition, mode: 'routed' })
+	return createAdapter({ ...definition, mode: 'routed', dynamicRoutes: 'routed' })
 }

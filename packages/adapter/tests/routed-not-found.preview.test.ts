@@ -108,12 +108,50 @@ describe('routedNotFound() in preview', () => {
 		expect(outcome.status).toBe(404)
 		expect(outcome.body).toContain('the fallback shell')
 	})
+
+	describe('on a host that only serves files (dynamicStatus 404)', () => {
+		test('serves the shell for a dynamic route, with the 404 the host would send', async () => {
+			// Arrange
+			await buildOutput({ staticRoutes: [], dynamicRoutes: ['/recipe/:id/'], dynamicStatus: 404 })
+
+			// Act
+			const outcome = await request(await preview(), '/recipe/42/')
+
+			// Assert
+			expect(outcome.status).toBe(404)
+			expect(outcome.body).toContain('the fallback shell')
+		})
+
+		test('does not redirect a dynamic route written without its slash', async () => {
+			// Arrange -- there is no directory to redirect to on such a host
+			await buildOutput({ staticRoutes: [], dynamicRoutes: ['/recipe/:id/'], dynamicStatus: 404 })
+
+			// Act
+			const outcome = await request(await preview(), '/recipe/42')
+
+			// Assert
+			expect(outcome.status).toBe(404)
+			expect(outcome.location).toBeUndefined()
+		})
+
+		test('still redirects a static path written without its slash', async () => {
+			// Arrange
+			await buildOutput({ staticRoutes: ['/categories/'], dynamicRoutes: [], dynamicStatus: 404 })
+
+			// Act
+			const outcome = await request(await preview(), '/categories')
+
+			// Assert
+			expect(outcome.status).toBe(301)
+			expect(outcome.location).toBe('/categories/')
+		})
+	})
 })
 
 // ---------------------------------------------------------------------------
 
 async function buildOutput(
-	routes: { staticRoutes: string[], dynamicRoutes: string[] },
+	routes: { staticRoutes: string[], dynamicRoutes: string[], dynamicStatus?: 200 | 404 },
 	fallback = '404.html',
 ) {
 	const outputDirectory = path.join(root, 'dist')
