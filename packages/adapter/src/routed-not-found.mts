@@ -1,5 +1,6 @@
 import { routeManifestPluginName } from '@rooted/seo'
 
+import { previewNotFound } from './routed-not-found/preview.mts'
 import { redirectToCanonical, respondWithShell } from './routed-not-found/response.mts'
 import { resolveAdapterRoutes } from './utility/adapter-routes.mts'
 import { requestTarget, wantsHtml } from './utility/request-url.mts'
@@ -64,6 +65,10 @@ export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
 		},
 
+		configurePreviewServer(server) {
+			return previewNotFound(options.name, config)(server)
+		},
+
 		configureServer(server) {
 			// Two middlewares, because neither position can do the whole job.
 			//
@@ -89,11 +94,12 @@ export function routedNotFound(options: RoutedNotFoundOptions): Plugin {
 				server.middlewares.use((request, response, next) => {
 					const target = requestTarget(request, config)
 					if (!target) return next()
-					// Vite installs its SPA fallback after this hook, not before, so
-					// navigations have not been served yet. They were already judged
-					// on the way in; leave them to it. A file is the exception: it
-					// had to reach vite first, and getting here means vite had
-					// nothing to serve, so it really is missing.
+					// Vite's html fallback runs before this hook and only rewrites
+					// the url; indexHtmlMiddleware, which actually sends the page,
+					// runs after. So navigations reach here unsent, and they were
+					// already judged on the way in: leave them to it. A file is the
+					// exception. It had to reach vite first, and getting here means
+					// vite had nothing to serve, so it really is missing.
 					if (wantsHtml(request) && !looksLikeFile(target.pathname)) return next()
 					if (redirectToCanonical(response, target, matcher())) return
 
