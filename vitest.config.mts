@@ -44,7 +44,7 @@ export default defineConfig({
 			},
 			{
 				find: '@rooted/adapter',
-				replacement: fileURLToPath(new URL('packages/adapter/src/index.mts', import.meta.url)),
+				replacement: fileURLToPath(new URL('packages/adapter/src/_module/adapter.mts', import.meta.url)),
 			},
 			{
 				find: '@rooted/router/routes',

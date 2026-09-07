@@ -7,7 +7,8 @@ import { describe, expect, test } from 'vitest'
 
 import { createMiddleware } from '../src/middleware.mts'
 
-const middlewareSource = fileURLToPath(new URL('../src/middleware.mts', import.meta.url))
+const middlewareSources = ['../src/middleware.mts', '../src/_module/middleware.mts']
+	.map(source => fileURLToPath(new URL(source, import.meta.url)))
 
 describe('createMiddleware()', () => {
 	test('hands the middleware straight back', () => {
@@ -24,7 +25,7 @@ describe('createMiddleware()', () => {
 	// This entry is imported by the built server and by anything else running a
 	// middleware file. A value import here would put the vite plugin, and
 	// whatever it drags along, on that startup path again (issue #291).
-	test('has no runtime imports', async () => {
+	test.each(middlewareSources)('%s has no runtime imports', async (middlewareSource) => {
 		// Arrange
 		const source = await readFile(middlewareSource, 'utf8')
 
