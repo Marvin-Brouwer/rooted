@@ -24,7 +24,7 @@
 		"@rooted/application": "workspace:^",
 		"@rooted/seo": "workspace:^",
 		"@types/html-minifier-terser": "^7.0.2",
-		"@varlock/vite-integration": "^1.5.0",
+		"@varlock/vite-integration": "^1.5.1",
 		"gray-matter": "^4.0.3",
 		"html-minifier-terser": "^7.2.0",
 		"marked": "^18.0.11",
