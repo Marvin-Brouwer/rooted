@@ -24,8 +24,13 @@ export type VercelStaticAdapterOptions = {
  * controls the deployment config.
  *
  * Vercel serves pre-rendered HTML files automatically (it finds `/categories/index.html`
- * for `/categories/`), so rewrites are only generated for parameterized routes and
- * the final catch-all. The destination is `404.html` -- the plain SPA shell.
+ * for `/categories/`), so rewrites are only generated for parameterized routes.
+ * The destination is `404.html` -- the plain SPA shell.
+ *
+ * There is no catch-all rewrite. Vercel serves a `404.html` in the output
+ * directory "as the 404 page when a route does not match any other static
+ * file", so dropping the catch-all is what gets an unknown path a real `404`.
+ * A `/(.*)` rule in front of it answers `200` for everything instead.
  *
  * @example `vite.config.ts`
  * ```ts
@@ -45,6 +50,8 @@ export function vercelStaticAdapter(options?: VercelStaticAdapterOptions): Plugi
 	return staticAdapter({
 		name: 'rooted:vercel-static',
 		routes: options?.routes,
+		// The rewrites below are what Vercel matches :param routes with.
+		dynamicRoutes: 'routed',
 		async setup({ config, resolvedRoutes }) {
 			const dynamicRewrites: VercelRewrite[] = resolvedRoutes.dynamicPatterns
 				.map(p => ({
@@ -52,12 +59,7 @@ export function vercelStaticAdapter(options?: VercelStaticAdapterOptions): Plugi
 					destination: '/404.html',
 				}))
 
-			const vercelConfig: VercelConfig = {
-				rewrites: [
-					...dynamicRewrites,
-					{ source: '/(.*)', destination: '/404.html' },
-				],
-			}
+			const vercelConfig: VercelConfig = { rewrites: dynamicRewrites }
 
 			await writeFile(
 				path.join(config.root, 'vercel.json'),
