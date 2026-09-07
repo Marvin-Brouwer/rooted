@@ -95,7 +95,11 @@ Three signals that it already happened:
 - **An entry point with code in it.** `index.mts`, and `src/_module/*.mts`, are barrels. They re-export and nothing else. A plugin, an options type and a code generator living in the same `index.mts` is three files wearing one name.
 - **Length.** There's no hard limit, but past roughly 150 lines of source it's worth asking what the second job is. Some files earn their length; most don't.
 
-Types that more than one module needs go in their own `*.types.mts`. Leaving them in whichever file happened to define them is how import cycles start.
+Types live next to the function whose signature they are. Don't collect them into a `*.types.mts` bucket: that groups them by what they are rather than by what they're about, so the file has no subject and nothing in it explains anything about anything else in it.
+
+A type several modules genuinely share gets its own file, named after the concept. `packages/elements/src/children.mts` is the pattern: `ElementChild` and `ElementChildren` live there because children are a thing worth naming, not because they happen to be types.
+
+Import cycles are not a reason to reach for a bucket. Type-only imports are erased, so two files importing each other's types is not a cycle at runtime. If the cycle is real, it's the values that are tangled, and the fix is to pass the function what it actually needs.
 
 ## Copying between packages
 

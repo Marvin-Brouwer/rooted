@@ -4,10 +4,63 @@ import { createMiddlewareChain } from './node-middleware.chain.mts'
 import { loadBuilt, loadSources } from './node-middleware.loader.mts'
 import { toPosixPath } from './utility/request-url.mts'
 
-import type { NodeMiddlewareServerOptions } from './node-middleware.types.mts'
-import type { Plugin, ResolvedConfig } from 'vite'
+import type { MiddlewareModule } from './middleware-module.mts'
+import type { Connect, Plugin, ResolvedConfig } from 'vite'
 
-export type * from './node-middleware.types.mts'
+/**
+ * What {@link NodeMiddlewareServerOptions.createServer} hands back.
+ */
+export type NodeMiddlewareHandler = {
+	/**
+	 * The connect handler that gets plugged into Vite's chain. It has to call
+	 * `next()` for anything the framework has no route for, or nothing else on
+	 * the page gets served.
+	 */
+	handle: Connect.NextHandleFunction
+	/** Called when a middleware file changes, or when the server shuts down. */
+	close?(): Promise<void> | void
+}
+
+/** Where the middleware came from, and so what it can assume. */
+export type NodeMiddlewareMode = 'dev' | 'preview'
+
+/**
+ * Passed to {@link NodeMiddlewareServerOptions.createServer}.
+ */
+export type NodeMiddlewareContext = {
+	/** The Vite resolved config. Use `config.logger` rather than `console`. */
+	config: ResolvedConfig
+	/** `'dev'` runs the middleware sources, `'preview'` runs the built files. */
+	mode: NodeMiddlewareMode
+}
+
+/**
+ * Options for {@link nodeMiddlewareServer}.
+ *
+ * Nothing here knows about a specific framework. The adapter package supplies
+ * that in `createServer`, which is why this lives in `@rooted/adapter` without
+ * dragging Fastify or Express in with it.
+ */
+export type NodeMiddlewareServerOptions<TApplication> = {
+	/** Vite plugin name, e.g. `'rooted:fastify-dev'`. */
+	name: string
+	/**
+	 * The adapter's `middlewarePath` option, resolved against the Vite project
+	 * root. The plugin does nothing when it's undefined.
+	 */
+	middlewarePath: string | undefined
+	/**
+	 * Create the framework instance, register `middleware` in the order given,
+	 * and return a connect handler for it.
+	 *
+	 * Register your fall-through before looping over `middleware`, so it wins
+	 * over any hook the user's own middleware adds.
+	 */
+	createServer(
+		middleware: ReadonlyArray<MiddlewareModule<TApplication>>,
+		context: NodeMiddlewareContext,
+	): Promise<NodeMiddlewareHandler> | NodeMiddlewareHandler
+}
 
 /**
  * Runs a routed adapter's `middlewarePath` files during `vite dev` and
@@ -55,7 +108,7 @@ export function nodeMiddlewareServer<TApplication>(
 			if (!options.middlewarePath) return
 			const directory = path.resolve(config.root, options.middlewarePath)
 			const chain = createMiddlewareChain(options, config, 'dev', reload =>
-				loadSources(server, directory, options, config, reload))
+				loadSources(server, directory, options.name, config, reload))
 
 			server.watcher.add(directory)
 			server.watcher.on('all', (_event, changed) => {
@@ -75,7 +128,7 @@ export function nodeMiddlewareServer<TApplication>(
 			if (!options.middlewarePath) return
 			const outputDirectory = path.resolve(config.root, config.environments.client.build.outDir)
 			const chain = createMiddlewareChain(options, config, 'preview', () =>
-				loadBuilt(path.join(outputDirectory, 'middleware'), options, config))
+				loadBuilt(path.join(outputDirectory, 'middleware'), options.name, config))
 
 			server.middlewares.use(chain.handle)
 		},

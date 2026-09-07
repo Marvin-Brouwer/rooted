@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url'
 
 import { toPosixPath } from './utility/request-url.mts'
 
-import type { MiddlewareModule, NodeMiddlewareServerOptions } from './node-middleware.types.mts'
+import type { MiddlewareModule } from './middleware-module.mts'
 import type { ResolvedConfig, ViteDevServer } from 'vite'
 
 /** The extensions the build hook hands to rolldown. Dev reads the same set. */
@@ -22,7 +22,7 @@ const BUILT_EXTENSIONS = /\.mjs$/
 export async function loadSources<TApplication>(
 	server: ViteDevServer,
 	directory: string,
-	options: NodeMiddlewareServerOptions<TApplication>,
+	name: string,
 	config: ResolvedConfig,
 	reload: boolean,
 ): Promise<Array<MiddlewareModule<TApplication>>> {
@@ -35,13 +35,13 @@ export async function loadSources<TApplication>(
 	if (reload && runnable) environment.runner.clearCache()
 
 	const modules: Array<MiddlewareModule<TApplication>> = []
-	for (const file of await listMiddlewareFiles(directory, SOURCE_EXTENSIONS, options, config)) {
+	for (const file of await listMiddlewareFiles(directory, SOURCE_EXTENSIONS, name, config)) {
 		// ssrLoadModule is the older spelling of the same thing; it's the
 		// fallback for anyone who swapped in a non-runnable ssr environment.
 		const loaded = runnable
 			? await environment.runner.import<Record<string, unknown>>(toPosixPath(file))
 			: await server.ssrLoadModule(toPosixPath(file))
-		const module = toMiddlewareModule<TApplication>(loaded, file, options, config)
+		const module = toMiddlewareModule<TApplication>(loaded, file, name, config)
 		if (module) modules.push(module)
 	}
 	return modules
@@ -54,28 +54,28 @@ export async function loadSources<TApplication>(
  */
 export async function loadBuilt<TApplication>(
 	directory: string,
-	options: NodeMiddlewareServerOptions<TApplication>,
+	name: string,
 	config: ResolvedConfig,
 ): Promise<Array<MiddlewareModule<TApplication>>> {
 	const modules: Array<MiddlewareModule<TApplication>> = []
-	for (const file of await listMiddlewareFiles(directory, BUILT_EXTENSIONS, options, config)) {
+	for (const file of await listMiddlewareFiles(directory, BUILT_EXTENSIONS, name, config)) {
 		const loaded = await import(pathToFileURL(file).href) as Record<string, unknown>
-		const module = toMiddlewareModule<TApplication>(loaded, file, options, config)
+		const module = toMiddlewareModule<TApplication>(loaded, file, name, config)
 		if (module) modules.push(module)
 	}
 	return modules
 }
 
 /** Flat listing, lexicographic, matching the order the generated server uses. */
-async function listMiddlewareFiles<TApplication>(
+async function listMiddlewareFiles(
 	directory: string,
 	extensions: RegExp,
-	options: NodeMiddlewareServerOptions<TApplication>,
+	name: string,
 	config: ResolvedConfig,
 ): Promise<string[]> {
 	const entries = await readdir(directory).catch(() => undefined)
 	if (!entries) {
-		config.logger.warn(`[${options.name}] No middleware folder at "${directory}", skipping it.`)
+		config.logger.warn(`[${name}] No middleware folder at "${directory}", skipping it.`)
 		return []
 	}
 	return entries
@@ -87,12 +87,12 @@ async function listMiddlewareFiles<TApplication>(
 function toMiddlewareModule<TApplication>(
 	loaded: Record<string, unknown>,
 	file: string,
-	options: NodeMiddlewareServerOptions<TApplication>,
+	name: string,
 	config: ResolvedConfig,
 ): MiddlewareModule<TApplication> | undefined {
 	const register = loaded.default
 	if (typeof register !== 'function') {
-		config.logger.warn(`[${options.name}] "${path.basename(file)}" has no default export, skipping it.`)
+		config.logger.warn(`[${name}] "${path.basename(file)}" has no default export, skipping it.`)
 		return undefined
 	}
 
@@ -103,7 +103,7 @@ function toMiddlewareModule<TApplication>(
 				await (register as (application: TApplication) => Promise<void> | void)(application)
 			}
 			catch (error) {
-				config.logger.error(`[${options.name}] "${path.basename(file)}" failed to register: ${String(error)}`)
+				config.logger.error(`[${name}] "${path.basename(file)}" failed to register: ${String(error)}`)
 			}
 		},
 	}

@@ -28,7 +28,8 @@ Read [coding style](./docs/maintainers/coding-style.md) before adding files, in 
 
 - `index.mts` and `src/_module/*.mts` are barrels. They re-export and nothing else, so put the implementation in a sibling file named after what it does.
 - A `// ------` divider in a source file means it wants splitting. Don't use one to organise a file that's already too big.
-- Past roughly 150 lines of source, work out what the second job is. Shared types belong in their own `*.types.mts` so the imports don't go circular.
+- Past roughly 150 lines of source, work out what the second job is.
+- Types go next to the function whose signature they are. One that's genuinely shared gets its own file named for the concept, the way `packages/elements/src/children.mts` does. Never a `*.types.mts` bucket.
 - Don't copy code between packages. Put it where both can import it: for adapters that's `@rooted/adapter` under `src/utility/`, exported from the package. That goes for generated code too, not just modules.
 
 Check this before opening a pull request, not after review asks.

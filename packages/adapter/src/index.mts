@@ -1,4 +1,5 @@
 export * from './adapter.mts'
+export * from './middleware-module.mts'
 export * from './node-middleware-server.mts'
 export * from './routed-not-found.mts'
 export * from './utility/adapter-routes.mts'
