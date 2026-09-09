@@ -8,6 +8,7 @@ import { Aria } from '@rooted/components/elements';
 import { Component } from '@rooted/components';
 import { createComponent } from '@rooted/components/elements';
 import { CssClasses } from '@rooted/components/elements';
+import { ElementChildren } from '@rooted/components/elements';
 import { GenericComponent } from '@rooted/components';
 import { TupleResult } from '@rooted/util';
 
@@ -42,7 +43,7 @@ export const Link: Component<LinkOptions>;
 export type LinkOptions = {
     href: string | Url | Path;
     classes?: CssClasses;
-    children?: string | Node | Node[];
+    children?: ElementChildren;
     target?: string;
     rel?: string;
     aria?: Aria;
