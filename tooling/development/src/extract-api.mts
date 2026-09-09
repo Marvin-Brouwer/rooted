@@ -23,6 +23,19 @@ export async function extractApi(packageRoot: string) {
 	const configFile = await readFile(configFilePath, 'utf8')
 	const { $schema: _, ...baseConfig } = JSON.parse(configFile) as Record<string, unknown> & { $schema?: unknown, apiReport?: Record<string, unknown> }
 
+	// API Extractor analyses the built `.d.mts` files, so it has to resolve `@rooted/*` imports
+	// to `dist` too. Our tsconfigs set `customConditions: ["source"]` so that editing a package
+	// and typechecking its dependents doesn't need a build in between, but that hands API
+	// Extractor an `.mts` source file it refuses to read (`ae-wrong-input-file-type`).
+	// API Extractor drops `outDir` and `declarationDir` for the same reason; it just doesn't
+	// know about this one.
+	const tsconfigFile = await readFile(path.join(packageRoot, 'tsconfig.json'), 'utf8')
+	const tsconfig = JSON.parse(tsconfigFile) as { compilerOptions?: Record<string, unknown> }
+	const overrideTsconfig = {
+		...tsconfig,
+		compilerOptions: { ...tsconfig.compilerOptions, customConditions: [] },
+	}
+
 	let allSucceeded = true
 	for (const moduleName of modules) {
 		console.log(`\nExtracting API: ${moduleName}`)
@@ -32,7 +45,7 @@ export async function extractApi(packageRoot: string) {
 				...baseConfig,
 				projectFolder: packageRoot,
 				mainEntryPointFilePath: `<projectFolder>/dist/${moduleName}.d.mts`,
-				compiler: { tsconfigFilePath: `<projectFolder>/tsconfig.json` },
+				compiler: { tsconfigFilePath: `<projectFolder>/tsconfig.json`, overrideTsconfig },
 				apiReport: {
 					...baseConfig.apiReport,
 					enabled: true,
