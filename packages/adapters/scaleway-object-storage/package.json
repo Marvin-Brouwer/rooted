@@ -31,8 +31,8 @@
 	},
 	"exports": {
 		".": {
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.mts"
+			"import": "./dist/scaleway-object-storage.mjs",
+			"types": "./dist/scaleway-object-storage.d.mts"
 		}
 	},
 	"peerDependencies": {

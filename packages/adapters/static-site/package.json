@@ -31,8 +31,8 @@
 	},
 	"exports": {
 		".": {
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.mts"
+			"import": "./dist/static-site.mjs",
+			"types": "./dist/static-site.d.mts"
 		}
 	},
 	"peerDependencies": {

@@ -31,8 +31,8 @@
 	},
 	"exports": {
 		".": {
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.mts"
+			"import": "./dist/codeberg-pages.mjs",
+			"types": "./dist/codeberg-pages.d.mts"
 		}
 	},
 	"peerDependencies": {

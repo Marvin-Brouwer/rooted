@@ -31,8 +31,8 @@
 	},
 	"exports": {
 		".": {
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.mts"
+			"import": "./dist/aws-s3.mjs",
+			"types": "./dist/aws-s3.d.mts"
 		}
 	},
 	"peerDependencies": {

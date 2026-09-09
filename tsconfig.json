@@ -21,6 +21,7 @@
 		"**/dist",
 		"docs",
 		"temp",
-		"packages/*/tests"
+		"packages/*/tests",
+		"packages/adapters/*/tests"
 	]
 }
