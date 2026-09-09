@@ -12,11 +12,7 @@ export type LinkOptions = {
 	href: string | Url | Path
 	/** CSS class name applied to the rendered `<a>` element. */
 	classes?: CssClasses
-	/**
-	 * Content rendered inside the anchor. A string, a `Node`, or an array mixing
-	 * the two. `undefined` and `null` entries are skipped, so `optional()` works
-	 * here.
-	 */
+	/** {@inheritdoc ElementChildren} */
 	children?: ElementChildren
 	/**
 	 * Maps to the `<a>` element's `target` attribute.
