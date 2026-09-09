@@ -25,4 +25,27 @@ export function myHostAdapter(): Plugin {
 }
 ```
 
+## Server adapters
+
+If your host runs a Node server and you accept a folder of user middleware, give `routedAdapter` a `middlewarePath` and a `createServer`. It then runs the same files during `vite dev` and `vite preview`, handling discovery, ordering, loading and the connect-chain fall-through; you supply the framework instance.
+
+```ts
+import { routedAdapter } from '@rooted/adapter'
+import type { Connect, Plugin } from 'vite'
+
+export function myServerAdapter(options?: MyOptions): Plugin[] {
+  return routedAdapter<MyApplication>({
+    name: 'rooted:my-server',
+    middlewarePath: options?.middlewarePath,
+    async createServer(middleware) {
+      const app = createMyApplication()
+      for (const register of middleware) await register(app)
+      // Must call next() for anything it has no route for.
+      return { handle: app as unknown as Connect.NextHandleFunction }
+    },
+    /* ... */
+  })
+}
+```
+
 More in the [adapters guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/adapters.md).

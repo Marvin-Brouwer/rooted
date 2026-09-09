@@ -31,8 +31,8 @@
 	},
 	"exports": {
 		".": {
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.mts"
+			"import": "./dist/gitlab-pages.mjs",
+			"types": "./dist/gitlab-pages.d.mts"
 		}
 	},
 	"peerDependencies": {

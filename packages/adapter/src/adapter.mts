@@ -1,14 +1,7 @@
-import { access, constants, mkdir, readFile, writeFile } from 'node:fs/promises'
-import path from 'node:path'
+import { createAdapter } from './adapter/create.mts'
 
-import { routeManifestPluginName, seoPluginName } from '@rooted/seo'
-
-import { createStaticRenderer, injectSnapshot } from './static-renderer.mts'
-
-import type { RouteManifestApi } from '@rooted/router/manifest'
-import type { SeoApi } from '@rooted/seo'
+import type { NodeMiddlewareServerOptions } from './node-middleware.mts'
 import type { Plugin, ResolvedConfig } from 'vite'
-
 
 /**
  * A flat list of route paths/patterns for adapters that don't use `generateRouteManifest`.
@@ -26,6 +19,18 @@ export type ResolvedAdapterRoutes = {
 	/** Dynamic route patterns in Express `:param` format. */
 	dynamicPatterns: string[]
 }
+
+/**
+ * What a host does with a `:param` route, and so what `vite dev` and
+ * `vite preview` should answer for one.
+ *
+ * `'routed'` means the adapter writes config the host matches them with, so a
+ * dynamic route answers 200. `'fallback'` means the host only serves files: it
+ * has no rule for `/recipe/42/`, so it serves the fallback shell with a 404.
+ * The page still renders, because the browser-side router takes over, but the
+ * status is a 404 and dev says so rather than pretending otherwise.
+ */
+export type DynamicRouteSupport = 'routed' | 'fallback'
 
 /**
  * Context passed to {@link StaticAdapterDefinition.setup} and {@link RoutedAdapterDefinition.setup}.
@@ -63,6 +68,14 @@ export type StaticAdapterDefinition = {
 	 */
 	routes?: AdapterRoutes
 	/**
+	 * What this host does with a `:param` route. See {@link DynamicRouteSupport}.
+	 *
+	 * Defaults to `'fallback'`, which is what a host does with no routing config
+	 * written for it. Set it to `'routed'` if your `setup` writes rules the host
+	 * matches dynamic routes with.
+	 */
+	dynamicRoutes?: DynamicRouteSupport
+	/**
 	 * Called after the fallback file is written, before static routes are processed.
 	 * Use this to write any additional host-specific files (e.g. `.nojekyll`).
 	 */
@@ -72,8 +85,11 @@ export type StaticAdapterDefinition = {
 /**
  * Definition for a server-based host (Fastify, Express, Azure Web Apps, ...).
  * Pass to {@link routedAdapter}.
+ *
+ * `TApplication` is the framework instance type, and only matters if you supply
+ * `createServer`.
  */
-export type RoutedAdapterDefinition = {
+export type RoutedAdapterDefinition<TApplication = unknown> = {
 	/** Vite plugin name, e.g. `'rooted:fastify'`. */
 	name: string
 	/**
@@ -82,6 +98,18 @@ export type RoutedAdapterDefinition = {
 	 * Paths without `:param` are pre-rendered; paths with `:param` are dynamic.
 	 */
 	routes?: AdapterRoutes
+	/**
+	 * The adapter's own `middlewarePath` option, relative to the Vite project
+	 * root. When set, the folder is transpiled into `<outDir>/middleware` at
+	 * build time and run by `createServer` during dev and preview.
+	 */
+	middlewarePath?: string
+	/**
+	 * Builds the framework instance that runs `middlewarePath` during
+	 * `vite dev` and `vite preview`. Leave it out and the middleware only runs
+	 * in the generated server. See {@link nodeMiddlewareServer}.
+	 */
+	createServer?: NodeMiddlewareServerOptions<TApplication>['createServer']
 	/**
 	 * Called before static routes are processed.
 	 * `context.resolvedRoutes` and the auto-written `routes.json` are both available here.
@@ -99,211 +127,48 @@ export type RoutedAdapterDefinition = {
  *
  * Automatically connects to `generateRouteManifest` and the SEO plugin via
  * Vite inter-plugin communication -- no manual wiring needed.
+ *
+ * Returns two plugins: the build-time one, and a not-found handler that makes
+ * `vite dev` and `vite preview` answer the way the host will. Vite flattens
+ * nested plugin arrays, so the result still goes straight into `plugins` as one
+ * entry.
  */
-export function staticAdapter(definition: StaticAdapterDefinition): Plugin {
-	return createAdapter(definition, 'static')
+export function staticAdapter(definition: StaticAdapterDefinition): Plugin[] {
+	return createAdapter({
+		...definition,
+		mode: 'static',
+		dynamicRoutes: definition.dynamicRoutes ?? 'fallback',
+	})
 }
 
 /**
  * Base adapter for server-based hosts.
  *
- * Does everything {@link staticAdapter} does except writing a fallback file.
- * Instead, writes `routes.json` so the server knows which paths have pre-rendered
- * HTML, what the base path is, and which file to serve as the SPA fallback.
+ * Does everything {@link staticAdapter} does, and also writes `routes.json` so
+ * the server knows which paths have pre-rendered HTML, what the base path is,
+ * and which file to serve as the SPA fallback.
  *
  * Use `setup` to generate any framework-specific routing config from
  * `context.resolvedRoutes`.
+ *
+ * Returns several plugins: the build-time one, the not-found handler that gives
+ * `vite dev` and `vite preview` the same 404s and canonical redirects as the
+ * generated server, and -- when you pass `createServer` -- the one that runs
+ * `middlewarePath` on Vite's own port. Vite flattens nested plugin arrays, so
+ * the result still goes straight into `plugins` as one entry.
  *
  * @example `routes.json` written automatically
  * ```json
  * {
  *   "base": "/my-app/",
  *   "staticRoutes": ["/categories/", "/privacy/"],
- *   "fallback": "index.html"
+ *   "dynamicRoutes": ["/recipe/:id/"],
+ *   "fallback": "404.html"
  * }
  * ```
  */
-export function routedAdapter(definition: RoutedAdapterDefinition): Plugin {
-	return createAdapter(definition, 'routed')
-}
-
-// ---------------------------------------------------------------------------
-
-type InternalDefinition = {
-	name: string
-	fallbackFileName?: string
-	routes?: AdapterRoutes
-	setup?(context: AdapterContext): Promise<void> | void
-}
-
-function createAdapter(definition: InternalDefinition, mode: 'static' | 'routed'): Plugin {
-	let config: ResolvedConfig
-	let manifestApi: RouteManifestApi | undefined
-	let seoApi: SeoApi | undefined
-
-	return {
-		name: definition.name,
-		apply: 'build',
-
-		configResolved(resolved) {
-			config = resolved
-			const manifestPlugin = resolved.plugins.find(p => p.name === routeManifestPluginName)
-			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
-			const seoPlugin = resolved.plugins.find(p => p.name === seoPluginName)
-			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
-		},
-
-		async closeBundle() {
-			const outputDirectory = config.build.outDir
-			const indexHtmlPath = path.join(outputDirectory, 'index.html')
-
-			// Skip environments that don't produce index.html (e.g. the SW environment from VitePWA)
-			if (!await checkFileExists(indexHtmlPath)) return
-			const indexHtml = await readFile(indexHtmlPath, 'utf8')
-
-			// Let plugins finish async work (e.g. preloading lazily imported
-			// dictionaries) before any route seo is evaluated
-			await seoApi?.prepare()
-
-			// Collect routes from the manifest
-			const manifestStaticPaths = collectStaticRoutePaths(manifestApi)
-			const manifestDynamicPatterns = collectDynamicRoutePatterns(manifestApi)
-
-			// Split manual routes: no colon = static, colon = dynamic
-			const manualRoutes = definition.routes ?? []
-			const manualStatic = manualRoutes.filter(r => !r.includes(':'))
-			const manualDynamic = manualRoutes.filter(r => r.includes(':'))
-
-			// Merge, deduplicated
-			const staticPathSet = new Set([...manifestStaticPaths, ...manualStatic])
-			const dynamicPatternSet = new Set([...manifestDynamicPatterns, ...manualDynamic])
-
-			if (!manifestApi && staticPathSet.size === 0 && dynamicPatternSet.size === 0) {
-				throw new Error(
-					`[${definition.name}] No routes found. Add generateRouteManifest() to your plugins, ` +
-					`or pass a routes option to the adapter.`,
-				)
-			}
-
-			const resolvedRoutes: ResolvedAdapterRoutes = {
-				staticPaths: [...staticPathSet],
-				dynamicPatterns: [...dynamicPatternSet],
-			}
-
-			if (mode === 'static') {
-				const fallbackFileName = definition.fallbackFileName ?? '404.html'
-				// Fallback handles dynamic routes -- leave it as a plain shell so the JS router
-				// can handle any URL. Never inject pre-rendered content here.
-				await writeFile(path.join(outputDirectory, fallbackFileName), indexHtml, 'utf8')
-			}
-			else {
-				// Write 404.html as the SPA shell fallback -- same as staticAdapter, captured
-				// before root SEO is applied to index.html so crawlers don't get root-page
-				// metadata for dynamic or unknown routes.
-				await writeFile(path.join(outputDirectory, '404.html'), indexHtml, 'utf8')
-				// Write a routing manifest so the server knows which dynamic route patterns
-				// exist, the base path, and which file to serve as the SPA catch-all fallback.
-				await writeFile(
-					path.join(outputDirectory, 'routes.json'),
-					JSON.stringify({ base: config.base, dynamicRoutes: resolvedRoutes.dynamicPatterns, fallback: '404.html' }, undefined, 2),
-					'utf8',
-				)
-			}
-
-			await definition.setup?.({ outputDirectory, indexHtml, config, resolvedRoutes })
-
-			// Inject root-level SEO (JSON-LD, canonical, og:url/type/image) into index.html
-			const rootHtml = seoApi ? seoApi.injectRootHtml(indexHtml) : indexHtml
-			if (rootHtml !== indexHtml) {
-				await writeFile(indexHtmlPath, rootHtml, 'utf8')
-			}
-
-			const staticRoutes: Array<{ staticPath: string, routeDirectory: string }> = []
-
-			for (const staticPath of resolvedRoutes.staticPaths) {
-				const segments = staticPath.split('/').filter(Boolean)
-				if (segments.length === 0) continue
-
-				const routeDirectory = path.join(outputDirectory, ...segments)
-				await mkdir(routeDirectory, { recursive: true })
-
-				const html = seoApi
-					? seoApi.injectRouteHtml(indexHtml, staticPath)
-					: indexHtml
-				await writeFile(path.join(routeDirectory, 'index.html'), html, 'utf8')
-				staticRoutes.push({ staticPath, routeDirectory })
-			}
-
-			// SSG pre-render pass -- boot the app once in happy-dom, navigate to each
-			// static route, and inject the resulting body HTML into the shell files
-			const renderer = await createStaticRenderer(config, outputDirectory)
-				.catch((error: unknown) => {
-					config.logger.warn(`[static-renderer] Setup error: ${String(error)}`)
-				})
-
-			if (renderer) {
-				for (const { staticPath, routeDirectory } of staticRoutes) {
-					const snapshot = await renderer.render(staticPath)
-					if (!snapshot) continue
-
-					const htmlPath = path.join(routeDirectory, 'index.html')
-					const html = await readFile(htmlPath, 'utf8')
-					await writeFile(htmlPath, injectSnapshot(html, snapshot), 'utf8')
-				}
-				await renderer.dispose()
-			}
-		},
-	}
-}
-
-function collectStaticRoutePaths(manifestApi: RouteManifestApi | undefined): string[] {
-	const paths: string[] = []
-	for (const route of manifestApi?.routes ?? []) {
-		if (!Object.hasOwn(route, 'getMetadata')) continue
-		const metadata = route.getMetadata()
-		// staticPaths includes constant-token routes unrolled to concrete paths
-		if (metadata.staticPaths === false) continue
-		for (const staticPath of metadata.staticPaths) {
-			const segments = staticPath.split('/').filter(Boolean)
-			if (segments.length === 0) continue
-			paths.push(staticPath)
-		}
-	}
-	return paths
-}
-
-function collectDynamicRoutePatterns(manifestApi: RouteManifestApi | undefined): string[] {
-	const patterns: string[] = []
-	for (const route of manifestApi?.routes ?? []) {
-		if (!Object.hasOwn(route, 'getMetadata')) continue
-		const metadata = route.getMetadata()
-		// Routes that unroll to concrete paths are fully prerendered, not dynamic
-		if (metadata.staticPaths !== false) continue
-		if (metadata.hasErrors) continue
-		patterns.push(buildRoutePattern(route))
-	}
-	return patterns
-}
-
-// Builds a URL pattern string from a route's parts using :key for parameters.
-// Wildcard tokens also use :key -- the catch-all handler covers segments they miss.
-function buildRoutePattern(route: RouteManifestApi['routes'][number]): string {
-	let pattern = ''
-	for (const part of route.getMetadata().routeParts) {
-		if (typeof part === 'string') {
-			pattern += part
-		} else if (Object.hasOwn(part, 'getMetadata')) {
-			pattern += buildRoutePattern(part as RouteManifestApi['routes'][number])
-		} else {
-			// Parameter token -- always has a `key` property
-			pattern += `:${(part as { key: string }).key}`
-		}
-	}
-	return pattern
-}
-
-async function checkFileExists(filePath: string): Promise<boolean> {
-	return await access(filePath, constants.F_OK)
-		.then(() => true)
-		.catch(() => false)
+export function routedAdapter<TApplication = unknown>(
+	definition: RoutedAdapterDefinition<TApplication>,
+): Plugin[] {
+	return createAdapter({ ...definition, mode: 'routed', dynamicRoutes: 'routed' })
 }
