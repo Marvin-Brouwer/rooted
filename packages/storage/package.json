@@ -46,7 +46,11 @@
 		"clean": "rm -rf dist",
 		"extract-api": "rooted-development extract-api"
 	},
+	"peerDependencies": {
+		"@rooted/util": "workspace:^"
+	},
 	"devDependencies": {
-		"@rooted/development": "workspace:*"
+		"@rooted/development": "workspace:*",
+		"@rooted/util": "workspace:^"
 	}
 }

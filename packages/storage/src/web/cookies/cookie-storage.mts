@@ -1,6 +1,7 @@
 import { jsonStringify, safeJsonParse } from '../../serializer.mts'
 
 import { buildCookieString, parseCookieHeader } from './cookie-helper.mts'
+import { resolveCookiePath } from './cookie-path.mts'
 
 /**
  * Re-export of {@link globalThis.CookieSameSite} so you have a single
@@ -17,12 +18,16 @@ export type CookieSameSite = globalThis.CookieSameSite
  * future TypeScript lib updates (`partitioned` for example) come along
  * for free.
  *
+ * `path` is resolved against the app base rather than the origin, so
+ * `'/settings'` in an app served from `/my-repo/` becomes `/my-repo/settings`.
+ * Leave it off and the cookie gets the app root.
+ *
  * @example
  * ```ts
  * cookieStorage.set<{ id: number }>({
  *   name: 'session',
  *   value: { id: 7 },
- *   path: '/',
+ *   path: '/account',
  *   sameSite: 'lax',
  * })
  * ```
@@ -39,6 +44,11 @@ export type CookieInit<T = unknown> = Omit<globalThis.CookieInit, 'value'> & {
  * - a `set({ ... })` overload that forwards cookie attributes (`domain`,
  *   `path`, `expires`, `sameSite`, ...) to the browser,
  * - `names()` and `all()` for bulk reads.
+ *
+ * Every write gets a `Path`. Without one the browser scopes the cookie to the
+ * directory of the page that set it, so a cookie written on `/recipes/pancakes`
+ * would be invisible on the rest of the site. The default is the app root
+ * (Vite's `BASE_URL`), and a `path` you pass is read relative to it.
  *
  * Typed reads run through a JSON reviver that drops `__proto__`,
  * `constructor`, and `prototype` keys at any depth, so a hostile cookie
@@ -57,11 +67,10 @@ export type CookieInit<T = unknown> = Omit<globalThis.CookieInit, 'value'> & {
  * cookieStorage.set<{ id: number }>({
  *   name: 'session',
  *   value: { id: 7 },
- *   path: '/',
  *   sameSite: 'lax',
  * })
  *
- * cookieStorage.removeItem('session', { path: '/' })
+ * cookieStorage.removeItem('session')
  * ```
  */
 export type CookieStorage = {
@@ -71,8 +80,8 @@ export type CookieStorage = {
 	 */
 	getItem(name: string): string | undefined
 	/**
-	 * Write a raw string value with no serialization and no attributes.
-	 * Equivalent to `document.cookie = 'name=value'`.
+	 * Write a raw string value with no serialization. The only attribute is
+	 * the `Path`, which is the app root.
 	 */
 	setItem(name: string, value: string): void
 	/**
@@ -89,14 +98,16 @@ export type CookieStorage = {
 	/**
 	 * Typed write with full cookie attributes. Use this form when you
 	 * need to set `domain`, `path`, `expires`, `sameSite`, or any other
-	 * attribute.
+	 * attribute. `path` is resolved against the app base; leave it off to
+	 * get the app root.
 	 */
 	set<T>(init: CookieInit<T>): void
 	/**
 	 * Delete a cookie by writing it with an empty value and `Expires=epoch`.
-	 * Pass `domain` and `path` when the cookie was originally written with
-	 * them. The browser matches on the whole tuple, so omitting them
-	 * leaves the original cookie in place.
+	 * The browser matches on the whole name/domain/path tuple. `path` gets
+	 * the same treatment it does on write, so a cookie you set without one
+	 * is removed without one too, but you still need to pass `domain` when
+	 * the cookie was written with it.
 	 */
 	removeItem(name: string, options?: Pick<CookieInit, 'domain' | 'path'>): void
 	/** Every cookie name currently visible to `document.cookie`. */
@@ -115,6 +126,12 @@ function writeCookieHeader(serialized: string): void {
 	document.cookie = serialized
 }
 
+function writeCookie(init: globalThis.CookieInit): void {
+	// Resolve after the spread: `removeItem` always passes a `path` key, so a
+	// default spread in front of it would be overwritten by its `undefined`.
+	writeCookieHeader(buildCookieString({ ...init, path: resolveCookiePath(init.path) }))
+}
+
 function readAll(): Map<string, string> {
 	const header = getCookieHeader()
 	if (header === undefined) return new Map()
@@ -126,7 +143,7 @@ function getItem(name: string): string | undefined {
 }
 
 function setItem(name: string, value: string): void {
-	writeCookieHeader(buildCookieString({ name, value }))
+	writeCookie({ name, value })
 }
 
 function get<T = unknown>(name: string): T | undefined {
@@ -145,7 +162,7 @@ function get<T = unknown>(name: string): T | undefined {
 function set<T>(nameOrInit: string | CookieInit<T>, value?: T): void {
 	if (typeof nameOrInit === 'string') {
 		const serialized = typeof value === 'string' ? value : jsonStringify(value)
-		writeCookieHeader(buildCookieString({ name: nameOrInit, value: serialized }))
+		writeCookie({ name: nameOrInit, value: serialized })
 		return
 	}
 
@@ -153,17 +170,17 @@ function set<T>(nameOrInit: string | CookieInit<T>, value?: T): void {
 		? nameOrInit.value
 		: jsonStringify(nameOrInit.value)
 
-	writeCookieHeader(buildCookieString({ ...nameOrInit, value: serialized }))
+	writeCookie({ ...nameOrInit, value: serialized })
 }
 
 function removeItem(name: string, options?: Pick<CookieInit, 'domain' | 'path'>): void {
-	writeCookieHeader(buildCookieString({
+	writeCookie({
 		name,
 		value: '',
 		domain: options?.domain,
 		path: options?.path,
 		expires: 0,
-	}))
+	})
 }
 
 function names(): string[] {

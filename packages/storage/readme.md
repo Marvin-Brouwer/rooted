@@ -20,9 +20,10 @@ const theme = localStorage.get<'dark' | 'light'>('theme')
 cookieStorage.set({
   name: 'session',
   value: { id: 7 },
-  path: '/',
   sameSite: 'lax',
 })
 ```
+
+Cookies default to a `Path` of the app root, so they're readable everywhere in the app rather than only under the page that set them.
 
 More in the [storage guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/storage.md).

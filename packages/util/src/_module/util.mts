@@ -7,6 +7,7 @@
 
 /* eslint-disable unicorn/prevent-abbreviations */
 
+export * from '../base-url.mts'
 export * from '../is-client.mts'
 export * from '../optional.mts'
 export * from '../seeded-id.mts'
