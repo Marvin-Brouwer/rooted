@@ -52,28 +52,31 @@ Cookies are different from the other two. They have an expiry, a path, a `SameSi
 ```ts
 import { cookieStorage } from '@rooted/storage/web'
 
-// Plain set: name + value, no attributes.
+// Plain set: name + value. The path is filled in for you.
 cookieStorage.set('locale', 'en-GB')
 
 // Full init: pass attributes through to the browser.
 cookieStorage.set({
   name: 'session',
   value: { id: 7 },
-  path: '/',
+  path: '/account',
   sameSite: 'lax',
   secure: true,
 })
 
 const locale = cookieStorage.get<string>('locale')
 
-cookieStorage.removeItem('session', { path: '/' })
+cookieStorage.removeItem('session', { path: '/account' })
 ```
 
 A few things to know:
 
 - The init form accepts everything in the standard `CookieInit`: `domain`, `path`, `expires`, `sameSite`, `secure`, and any new field the browser adds.
 - `get<T>` parses JSON, just like `localStorage.get`. Strings come back as strings. Objects come back as their original shape.
-- `removeItem(name, { domain, path })` matches on the whole tuple. If you set a cookie with `path: '/'`, you must remove it with `path: '/'`. Otherwise the browser keeps it.
+- Every cookie gets a `Path`, and it defaults to the app root. Leave it off and the cookie is readable everywhere in the app. Without one the browser would scope the cookie to the directory of the page that set it, so a cookie written on `/recipes/pancakes` would be invisible on `/`, which is rarely what anyone means.
+- The app root comes from Vite's `base`, so an app served from `/my-repo/` gets `Path=/my-repo` and doesn't share cookies with a different app on the same host. If `base` is a full CDN URL or a relative `./`, there is nothing to derive it from and the path falls back to `/`.
+- A `path` you pass yourself is read relative to the app too, the same way `@rooted/router` reads an href. In an app served from `/my-repo/`, `path: '/settings'`, `path: 'settings'` and `path: '/my-repo/settings'` all end up as `/my-repo/settings`. There is no way to write a cookie outside the app base through this API: a path pointing outside it (`https://...`, or anything with a `..` segment) throws in development and falls back to the app root in production.
+- `removeItem(name, { domain, path })` matches on the whole tuple. The `path` is resolved the same way it is on write, so a cookie you set without one is removed without one too. You do still need to pass `domain` when the cookie was written with it.
 - `names()` returns the list of cookie names visible to the page. `all()` returns a `Map<string, string>` of every cookie's raw value.
 
 ## Combining with a store

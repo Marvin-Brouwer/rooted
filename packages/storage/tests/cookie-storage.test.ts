@@ -34,9 +34,11 @@ function restoreCookieProperty(): void {
 }
 
 function clearCookies(): void {
+	// Writes carry a `Path` now, and the browser matches deletions on it, so
+	// this has to name the same one `cookieStorage` uses by default.
 	for (const entry of document.cookie.split(';')) {
 		const name = entry.split('=')[0]?.trim()
-		if (name) document.cookie = `${name}=; Expires=${new Date(0).toUTCString()}`
+		if (name) document.cookie = `${name}=; Path=/; Expires=${new Date(0).toUTCString()}`
 	}
 }
 
@@ -49,6 +51,7 @@ afterEach(() => {
 	restoreCookieProperty()
 	clearCookies()
 	vi.restoreAllMocks()
+	vi.unstubAllEnvs()
 })
 
 describe('cookieStorage — getItem / setItem', () => {
@@ -155,7 +158,67 @@ describe('cookieStorage — set with CookieInit', () => {
 
 		cookieStorage.set({ name: 'x', value: 'plain' })
 
-		expect(setter.mock.calls[0][0]).toBe('x=plain')
+		expect(setter.mock.calls[0][0]).toBe('x=plain; Path=/')
+	})
+})
+
+describe('cookieStorage — cookie path', () => {
+	function spyOnCookieWrites() {
+		const setter = vi.fn<(value: string) => void>()
+		Object.defineProperty(document, 'cookie', {
+			configurable: true,
+			get: () => '',
+			set: setter,
+		})
+		return setter
+	}
+
+	test('setItem writes the app root as the path', () => {
+		// Arrange
+		vi.stubEnv('BASE_URL', '/my-repo/')
+		const setter = spyOnCookieWrites()
+
+		// Act
+		cookieStorage.setItem('token', 'abc123')
+
+		// Assert
+		expect(setter.mock.calls[0][0]).toBe('token=abc123; Path=/my-repo')
+	})
+
+	test('set writes the app root as the path', () => {
+		// Arrange
+		vi.stubEnv('BASE_URL', '/my-repo/')
+		const setter = spyOnCookieWrites()
+
+		// Act
+		cookieStorage.set('count', 42)
+
+		// Assert
+		expect(setter.mock.calls[0][0]).toBe('count=42; Path=/my-repo')
+	})
+
+	test('a path in the CookieInit form is resolved against the app root', () => {
+		// Arrange
+		vi.stubEnv('BASE_URL', '/my-repo/')
+		const setter = spyOnCookieWrites()
+
+		// Act
+		cookieStorage.set({ name: 'session', value: 'abc', path: '/settings' })
+
+		// Assert
+		expect(setter.mock.calls[0][0]).toBe('session=abc; Path=/my-repo/settings')
+	})
+
+	test('removeItem writes the same path a write would', () => {
+		// Arrange
+		vi.stubEnv('BASE_URL', '/my-repo/')
+		const setter = spyOnCookieWrites()
+
+		// Act
+		cookieStorage.removeItem('session')
+
+		// Assert
+		expect(setter.mock.calls[0][0]).toContain('Path=/my-repo')
 	})
 })
 

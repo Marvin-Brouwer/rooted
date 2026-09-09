@@ -1,3 +1,5 @@
+import { baseUrl } from '@rooted/util'
+
 import { buildPathForRoute } from './href.route.mts'
 
 import type { AnyRoute, PathParameterDictionary, RouteParameterDictionary } from './route.mts'
@@ -79,7 +81,7 @@ export class Url extends HrefBase {
 }
 
 /** The app base URL set by Vite (e.g. `/my-repo/`). Always ends with `/`. */
-const appBase: string = import.meta.env?.BASE_URL ?? '/'
+const appBase: string = baseUrl()
 const basePath = Path.fromString(appBase)
 
 /** Constructs a {@link Url} from a string. @__PURE__ */

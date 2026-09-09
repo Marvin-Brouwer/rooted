@@ -787,6 +787,9 @@ importers:
       '@rooted/development':
         specifier: workspace:*
         version: link:../../tooling/development
+      '@rooted/util':
+        specifier: workspace:^
+        version: link:../util
 
   packages/store:
     devDependencies:

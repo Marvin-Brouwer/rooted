@@ -8,6 +8,9 @@
 export type ArrayElement<T> = T extends readonly (infer U)[] ? U : T;
 
 // @public
+export function baseUrl(): string;
+
+// @public
 export function error(error: unknown): ErrorTuple;
 
 // @public (undocumented)
