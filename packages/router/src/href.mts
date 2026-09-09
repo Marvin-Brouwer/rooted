@@ -80,10 +80,6 @@ export class Url extends HrefBase {
 	public get password() { return this.url.password.length === 0 ? undefined : this.url.password }
 }
 
-/** The app base URL set by Vite (e.g. `/my-repo/`). Always ends with `/`. */
-const appBase: string = baseUrl()
-const basePath = Path.fromString(appBase)
-
 /** Constructs a {@link Url} from a string. @__PURE__ */
 export function url(href: string) {
 	return Url.fromString(href)
@@ -93,7 +89,7 @@ export function url(href: string) {
 export function path(href: string, includeBasePath = true) {
 	if (!includeBasePath) return Path.fromString(href)
 
-	return join(basePath, Path.fromString(href))
+	return join(Path.fromString(baseUrl()), Path.fromString(href))
 }
 
 const multiSlashPattern = /\/{2,}/g
@@ -160,12 +156,14 @@ export function forAny(target: AnyRoute | URL | Location | Url | Path, dictionar
 	if (typeof Location !== 'undefined' && target instanceof Location) return Url.fromLocation(target)
 
 	const routePath = buildPathForRoute(target as AnyRoute, dictionary!)
+	const appBase = baseUrl()
 	return Path.fromString(appBase.length > 1 ? appBase.slice(0, -1) + routePath : routePath)
 }
 
 /** Returns a {@link Path} representing the current `location.pathname`, with the app base stripped. @__PURE__ */
 export function current() {
 	const raw = Path.fromLocation(location)
+	const appBase = baseUrl()
 	if (appBase.length > 1 && raw.pathOnly.startsWith(appBase.slice(0, -1))) {
 		return Path.fromString('/' + raw.pathOnly.slice(appBase.length))
 	}
