@@ -31,6 +31,7 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/static-site.mts",
 			"import": "./dist/static-site.mjs",
 			"types": "./dist/static-site.d.mts"
 		}

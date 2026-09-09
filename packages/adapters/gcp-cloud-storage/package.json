@@ -31,6 +31,7 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/gcp-cloud-storage.mts",
 			"import": "./dist/gcp-cloud-storage.mjs",
 			"types": "./dist/gcp-cloud-storage.d.mts"
 		}

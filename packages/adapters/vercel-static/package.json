@@ -31,6 +31,7 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/vercel-static.mts",
 			"import": "./dist/vercel-static.mjs",
 			"types": "./dist/vercel-static.d.mts"
 		}

@@ -1,11 +1,12 @@
 {
 	"extends": "./base.json",
 	"compilerOptions": {
+		"customConditions": ["source"],
 		"declaration": true,
 		"declarationMap": true,
 		"emitDeclarationOnly": true,
 		"noEmit": false,
-		"lib": ["ES2024"],
-		"types": ["node"]
+		"lib": ["ES2024", "DOM"],
+		"types": ["node", "vite/client"]
 	}
 }

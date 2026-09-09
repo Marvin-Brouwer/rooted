@@ -31,6 +31,7 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/firebase-hosting.mts",
 			"import": "./dist/firebase-hosting.mjs",
 			"types": "./dist/firebase-hosting.d.mts"
 		}
