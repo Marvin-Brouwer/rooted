@@ -15,6 +15,13 @@ export function generateRouteManifest(options: Options): Plugin_2<RouteManifestA
 export function hash(files: string[], version: string): string;
 
 // @public
+export type Options = {
+    glob: string;
+    routeManifestPath: string;
+    routeExport?: string;
+};
+
+// @public
 export type RouteManifestApi = {
     routes: AnyRoute[];
     routeManifestPath: string;

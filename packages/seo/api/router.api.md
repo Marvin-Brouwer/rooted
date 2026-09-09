@@ -9,6 +9,9 @@ import { RouteManifestApi } from '@rooted/router/manifest';
 import { RouteSeoMetadata } from '@rooted/router/routes';
 
 // @public
+export type ManifestRoute = RouteManifestApi['routes'][number];
+
+// @public
 export function resolveRouteSeo(route: ManifestRoute, staticPath: string): Promise<RouteSeoMetadata | undefined>;
 
 // @public

@@ -11,6 +11,16 @@ import { EventBuilder } from '@rooted/elements/events';
 // @public
 export function application<T extends Component>(component: T, options?: ApplicationOptions): GenericComponent;
 
+// @public
+export type ApplicationOptions = RootSelector;
+
+// @public (undocumented)
+export type RootSelector = {
+    selector: string;
+} | {
+    element: Element;
+};
+
 // (No @packageDocumentation comment for this package)
 
 ```
