@@ -80,6 +80,8 @@ export class Url extends HrefBase {
 	public get password() { return this.url.password.length === 0 ? undefined : this.url.password }
 }
 
+const basePath = Path.fromString(baseUrl())
+
 /** Constructs a {@link Url} from a string. @__PURE__ */
 export function url(href: string) {
 	return Url.fromString(href)
@@ -89,7 +91,7 @@ export function url(href: string) {
 export function path(href: string, includeBasePath = true) {
 	if (!includeBasePath) return Path.fromString(href)
 
-	return join(Path.fromString(baseUrl()), Path.fromString(href))
+	return join(basePath, Path.fromString(href))
 }
 
 const multiSlashPattern = /\/{2,}/g
