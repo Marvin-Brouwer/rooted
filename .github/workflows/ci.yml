@@ -30,6 +30,9 @@ jobs:
       - name: Build
         run: pnpm build:ci
 
+      - name: Check bundles
+        run: pnpm exec rooted-pipeline bundle-check
+
       - name: Typecheck
         run: pnpm typecheck
 

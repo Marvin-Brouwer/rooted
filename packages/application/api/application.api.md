@@ -23,6 +23,18 @@ export type DetectorOptions = {
     importCycle?: ImportCycleOptions;
 };
 
+// @public (undocumented)
+export type ImportCycleOptions = {
+    when?: 'development' | 'production' | 'always' | 'never';
+    mode?: 'error' | 'warn';
+};
+
+// @public (undocumented)
+export type OutputOptions = ArrayElement<NonNullable<RolldownOptions['output']>>;
+
+// @public (undocumented)
+export type RolldownOptions = NonNullable<BuildEnvironmentOptions['rolldownOptions']>;
+
 // @public
 export type RootedApplicationManifest = {
     resolve?: UserConfig['resolve'];
@@ -41,6 +53,12 @@ export type RootedApplicationManifest = {
 
 // @public
 export function rootedManifest(manifest: RootedApplicationManifest): UserConfigFnObject;
+
+// @public (undocumented)
+export type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number];
+
+// @public (undocumented)
+export type TreeshakeOptions = ArrayElement<NonNullable<RolldownOptions['treeshake']>>;
 
 // (No @packageDocumentation comment for this package)
 

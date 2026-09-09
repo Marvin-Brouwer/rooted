@@ -8,16 +8,31 @@
 export type ArrayElement<T> = T extends readonly (infer U)[] ? U : T;
 
 // @public
+export function error(error: unknown): ErrorTuple;
+
+// @public (undocumented)
+export function error(error: Error): ErrorTuple;
+
+// @public
 export type ErrorTuple = [success: false, value: never, error: Error];
 
 // @public
 export function isClient(): boolean;
 
 // @public
+export function isError<T>(value: TupleResult<T>): value is ErrorTuple;
+
+// @public
+export function isSuccess<T>(value: TupleResult<T>): value is SuccessTuple<T>;
+
+// @public
 export function optional<T>(condition: boolean | null | undefined, value: T): T | undefined;
 
 // @public
 export function seededId(name: string): string;
+
+// @public
+export function success<T>(value: T): SuccessTuple<T>;
 
 // @public
 export type SuccessTuple<T> = [success: true, value: T];
@@ -34,6 +49,21 @@ export const tupleResult: {
     value: typeof value;
     unTuple: typeof unTuple;
 };
+
+// @public
+export function unTuple(tupleResult: ErrorTuple): void;
+
+// @public (undocumented)
+export function unTuple<T>(tupleResult: SuccessTuple<T>): T;
+
+// @public (undocumented)
+export function unTuple<T>(tupleResult: TupleResult<T>): T;
+
+// @public
+export function value<_T>(tupleResult: ErrorTuple): Error;
+
+// @public (undocumented)
+export function value<T>(tupleResult: SuccessTuple<T>): T;
 
 // (No @packageDocumentation comment for this package)
 

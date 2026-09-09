@@ -1,4 +1,4 @@
-import * as href_ from './href.mts'
+import { current, forAny, join, path, url } from './href.mts'
 export type { Url, Path } from './href.mts'
 
 /**
@@ -17,9 +17,9 @@ export type { Url, Path } from './href.mts'
  * @__PURE__
  */
 export const href = {
-	get url() { return href_.url },
-	get path() { return href_.path },
-	get join() { return href_.join },
-	get current() { return href_.current },
-	get for() { return href_.forAny },
+	get url() { return url },
+	get path() { return path },
+	get join() { return join },
+	get current() { return current },
+	get for() { return forAny },
 } as const

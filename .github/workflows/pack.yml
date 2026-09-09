@@ -63,6 +63,9 @@ jobs:
       - name: Build
         run: pnpm build:ci
 
+      - name: Check bundles
+        run: pnpm exec rooted-pipeline bundle-check
+
       # Stamp a prerelease version so the preview never collides with a real release.
       # PR format:       <ver>-pr<number>.<short-sha>  e.g. 0.1.0-pr7.a1b2c3d
       # Dispatch format: <ver>-preview.<short-sha>      e.g. 0.1.0-preview.a1b2c3d
