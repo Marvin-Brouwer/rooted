@@ -31,8 +31,8 @@
 	},
 	"exports": {
 		".": {
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.mts"
+			"import": "./dist/netlify-hosting.mjs",
+			"types": "./dist/netlify-hosting.d.mts"
 		}
 	},
 	"peerDependencies": {

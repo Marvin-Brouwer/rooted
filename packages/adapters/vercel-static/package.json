@@ -31,8 +31,8 @@
 	},
 	"exports": {
 		".": {
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.mts"
+			"import": "./dist/vercel-static.mjs",
+			"types": "./dist/vercel-static.d.mts"
 		}
 	},
 	"peerDependencies": {

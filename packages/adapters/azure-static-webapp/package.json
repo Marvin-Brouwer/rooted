@@ -31,8 +31,8 @@
 	},
 	"exports": {
 		".": {
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.mts"
+			"import": "./dist/azure-static-webapp.mjs",
+			"types": "./dist/azure-static-webapp.d.mts"
 		}
 	},
 	"peerDependencies": {

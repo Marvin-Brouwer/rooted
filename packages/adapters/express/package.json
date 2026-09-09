@@ -31,8 +31,12 @@
 	},
 	"exports": {
 		".": {
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.mts"
+			"import": "./dist/express.mjs",
+			"types": "./dist/express.d.mts"
+		},
+		"./middleware": {
+			"import": "./dist/middleware.mjs",
+			"types": "./dist/middleware.d.mts"
 		}
 	},
 	"peerDependencies": {
@@ -42,7 +46,9 @@
 		"vite": ">= 8.0.1"
 	},
 	"peerDependenciesMeta": {
-		"express": { "optional": false }
+		"express": {
+			"optional": false
+		}
 	},
 	"devDependencies": {
 		"@rooted/adapter": "workspace:^",

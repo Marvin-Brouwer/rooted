@@ -84,3 +84,35 @@ This is partly aesthetic and partly practical: small PRs review faster, break le
 ESLint catches the rules that are worth catching at edit time: unused locals and parameters, missing imports, style consistency, `no-explicit-any`. Run it before opening a PR.
 
 What ESLint isn't for: opinions about how a function should be structured, or whether a name is good. The reviewer does that.
+
+## One job per file
+
+A module does one thing. When it starts doing two, split it, and let the file names say what each half is for.
+
+Three signals that it already happened:
+
+- **A `// ------` divider.** If a file needs a rule drawn across it to separate "the thing" from "the machinery", that line is the split point, not a heading. Use it to find the seam and then delete it.
+- **An entry point with code in it.** The public entry of a package is `src/_module/<name>.mts`, and it is a barrel: a `@module` doc block and re-exports, nothing else. A plugin, an options type and a code generator sharing one entry file is three files wearing one name.
+- **Length.** There's no hard limit, but past roughly 150 lines of source it's worth asking what the second job is. Some files earn their length; most don't.
+
+There is no `index.mts` in this repo. Entries live in `src/_module/`, named for the package or the subpath they serve, and `tsdown.config.mts` globs `src/_module/*.mts` so adding a subpath is a file plus a key in `exports`. See [adding packages](./adding-packages.md) for the full layout.
+
+When a file splits, how the pieces are named says which kind of split it was.
+
+Dotted names are for one subject that got long: `route.mts`, `route.match.mts`, `route.tokens.mts` in the router are all about routes, and reading one tells you roughly what the others hold. A folder is for one entry point with parts that do different jobs: `component.mts` sits next to `component/`, which holds the styles, the classes and the generic component it leans on. `node-middleware.mts` and `node-middleware/` are the same shape, with the loader and the chain in the folder.
+
+The folder gets short names, no barrel, and is imported by path. If you find yourself writing `thing.this.mts` and `thing.that.mts` for parts that have nothing to say to each other, it wanted a folder.
+
+Types live next to the function whose signature they are. Don't collect them into a `*.types.mts` bucket: that groups them by what they are rather than by what they're about, so the file has no subject and nothing in it explains anything about anything else in it.
+
+A type several modules genuinely share gets its own file, named after the concept. `packages/elements/src/children.mts` is the pattern: `ElementChild` and `ElementChildren` live there because children are a thing worth naming, not because they happen to be types.
+
+Import cycles are not a reason to reach for a bucket. Type-only imports are erased, so two files importing each other's types is not a cycle at runtime. If the cycle is real, it's the values that are tangled, and the fix is to pass the function what it actually needs.
+
+## Copying between packages
+
+Before copying anything from one package into another, put it somewhere both can import instead.
+
+For the adapters that place is `@rooted/adapter`, under `src/utility/`, exported from the package so third-party adapters get it too. The same applies to generated code: `buildServerPreamble` exists because the Fastify and Express `server.mjs` templates were 63 identical lines out of 90, and two copies of a route table drift into two servers that disagree about what a route is.
+
+This is not about saving lines. It's that duplicated logic gets fixed once and stays broken in the other copy, and nobody notices until the two halves are far enough apart to be a bug report.

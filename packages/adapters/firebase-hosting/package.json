@@ -31,8 +31,8 @@
 	},
 	"exports": {
 		".": {
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.mts"
+			"import": "./dist/firebase-hosting.mjs",
+			"types": "./dist/firebase-hosting.d.mts"
 		}
 	},
 	"peerDependencies": {
