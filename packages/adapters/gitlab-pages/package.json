@@ -31,6 +31,7 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/gitlab-pages.mts",
 			"import": "./dist/gitlab-pages.mjs",
 			"types": "./dist/gitlab-pages.d.mts"
 		}

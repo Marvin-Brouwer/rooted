@@ -31,6 +31,7 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/adapter.mts",
 			"import": "./dist/adapter.mjs",
 			"types": "./dist/adapter.d.mts"
 		}

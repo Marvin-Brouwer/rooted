@@ -31,6 +31,7 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/scaleway-object-storage.mts",
 			"import": "./dist/scaleway-object-storage.mjs",
 			"types": "./dist/scaleway-object-storage.d.mts"
 		}

@@ -31,6 +31,7 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/cloudflare-pages.mts",
 			"import": "./dist/cloudflare-pages.mjs",
 			"types": "./dist/cloudflare-pages.d.mts"
 		}

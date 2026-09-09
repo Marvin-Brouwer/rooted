@@ -31,10 +31,12 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/fastify.mts",
 			"import": "./dist/fastify.mjs",
 			"types": "./dist/fastify.d.mts"
 		},
 		"./middleware": {
+			"source": "./src/_module/middleware.mts",
 			"import": "./dist/middleware.mjs",
 			"types": "./dist/middleware.d.mts"
 		}

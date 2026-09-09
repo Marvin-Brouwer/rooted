@@ -31,10 +31,12 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/express.mts",
 			"import": "./dist/express.mjs",
 			"types": "./dist/express.d.mts"
 		},
 		"./middleware": {
+			"source": "./src/_module/middleware.mts",
 			"import": "./dist/middleware.mjs",
 			"types": "./dist/middleware.d.mts"
 		}

@@ -1,8 +1,0 @@
-{
-	"extends": "../../.repo/config/ts/library-plugin.json",
-	"compilerOptions": {
-		"outDir": "./dist",
-		"rootDir": "./plugins"
-	},
-	"include": ["plugins"]
-}

@@ -31,6 +31,7 @@
 	},
 	"exports": {
 		".": {
+			"source": "./src/_module/cloudflare-r2.mts",
 			"import": "./dist/cloudflare-r2.mjs",
 			"types": "./dist/cloudflare-r2.d.mts"
 		}

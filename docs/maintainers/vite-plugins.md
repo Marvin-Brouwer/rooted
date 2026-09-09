@@ -47,6 +47,8 @@ packages/<name>/
 
 The Node-side code gets typechecked separately from the browser code. Without this the plugin either can't see `node:fs` or the browser entry can see it, and one of those is a bug waiting to happen.
 
+`library-plugin.json` already sets `lib: ["ES2024", "DOM"]` and `types: ["node", "vite/client"]`, so repeating them like the example does is belt and braces. They're there because plugin code resolves other `@rooted/*` packages to source, and that source uses DOM globals and `import.meta.env`.
+
 ### 2. A second tsdown config
 
 ```ts
@@ -78,7 +80,7 @@ Only the first config gets `onSuccess`. Both emit into one flat `dist/`, so entr
 }
 ```
 
-`.repo/config/ts/library.json` sets `customConditions: ["source"]`. Leave the condition out and the workspace resolves to `dist`, so you develop against whatever was built last and edits to the plugin appear to do nothing.
+`.repo/config/ts/library.json` and `.repo/config/ts/library-plugin.json` both set `customConditions: ["source"]`. Leave the condition out and the workspace resolves to `dist`, so you develop against whatever was built last and edits to the plugin appear to do nothing.
 
 ### 4. Dependencies in the right place
 
