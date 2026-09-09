@@ -1,5 +1,5 @@
 import { component } from '@rooted/components'
-import { Aria, CssClasses } from '@rooted/components/elements'
+import { Aria, CssClasses, ElementChildren } from '@rooted/components/elements'
 
 import { Path, Url } from './href.mts'
 import { navigate } from './navigation.mts'
@@ -12,11 +12,8 @@ export type LinkOptions = {
 	href: string | Url | Path
 	/** CSS class name applied to the rendered `<a>` element. */
 	classes?: CssClasses
-	/**
-	 * Content rendered inside the anchor.
-	 * Pass a plain string, a single DOM {@link Node}, or an array of nodes.
-	 */
-	children?: string | Node | Node[]
+	/** {@inheritdoc ElementChildren} */
+	children?: ElementChildren
 	/**
 	 * Maps to the `<a>` element's `target` attribute.
 	 * When set, SPA navigation is skipped and the browser handles the link natively.
@@ -52,14 +49,17 @@ export type LinkOptions = {
  * })
  * ```
  *
- * @example Link wrapping rich content with a CSS class
+ * @example Link mixing a label with an element, and a CSS class
  * ```ts
  * create(Link, {
  *   href: `/categories/${slug}/`,
- *   className: 'category-card',
+ *   classes: styles.categoryCard,
  *   children: [
- *     create('div', { className: 'name', textContent: label }),
- *     create('p',   { className: 'count', textContent: `${n} recipes` }),
+ *     label,
+ *     element('span', {
+ *       classes: styles.count,
+ *       textContent: `${recipeCount} recipes`,
+ *     }),
  *   ],
  * })
  * ```

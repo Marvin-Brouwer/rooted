@@ -1,9 +1,12 @@
 import { defineConfig } from 'tsdown'
 
+import { inheritdocPlugin } from '@rooted/tsdown'
+
 export default defineConfig([
 	{
 		entry: ['src/_module/*.mts'],
 		format: ['esm'],
+		plugins: [inheritdocPlugin()],
 		platform: 'browser',
 		treeshake: { moduleSideEffects: 'no-external' },
 		dts: true,
