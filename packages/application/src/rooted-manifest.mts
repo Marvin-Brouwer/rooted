@@ -10,7 +10,7 @@ type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtim
 
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
 import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
-import { pwaPreset } from '../plugins/pwa-preset.mts'
+import { buildWebManifest, pwaPreset } from '../plugins/pwa-preset.mts'
 
 import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
 
@@ -125,6 +125,10 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 		const analyzerMode = environment.command === 'build' && process.argv.includes('--analyze')
 
 		const skipPwaGenerator = analyzerMode || process.argv.includes('--no-pwa')
+		const skipPwaAssets = !!manifest.icon || skipPwaGenerator
+
+		// Shared on purpose: the assets plugin lists the icons it generates in here.
+		const webManifest = buildWebManifest(manifest)
 
 		return {
 			appType: 'spa',
@@ -184,8 +188,8 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						analyzerMode: 'static',
 					},
 				),
-				pwaPreset({ manifest, skipPwaGenerator, minify, runtimeCaching: manifest.runtimeCaching }),
-				pwaAssetsPlugin(!!manifest.icon || skipPwaGenerator, manifest.webManifest.url),
+				pwaPreset({ manifest, webManifest, skipPwaGenerator, minify, runtimeCaching: manifest.runtimeCaching }),
+				pwaAssetsPlugin({ webManifest, skip: skipPwaAssets, deploymentUrl: manifest.webManifest.url }),
 				seoPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo),
 				manifest.seo?.robots !== false && robotsPlugin(manifest.webManifest.url, manifest.seo?.robots),
 				manifest.seo?.llmsTxt !== false && llmsTxtPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo?.llmsTxt || undefined),
