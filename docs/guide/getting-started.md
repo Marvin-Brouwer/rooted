@@ -138,6 +138,13 @@ export default defineConfig({
 })
 ```
 
+The plugin writes `src/_routes.g.mts` on build, so it isn't there yet on a fresh checkout. Reference the ambient types so TypeScript still resolves the import:
+
+```ts
+// src/vite-env.d.ts
+/// <reference types="@rooted/router/types" />
+```
+
 ```ts
 // src/main.mts
 import { application } from '@rooted/components/application'

@@ -86,6 +86,13 @@ export default {
 
 The plugin writes `src/_routes.g.mts` with one big `appRoutes` export. Treat the generated file as build output. Don't edit it, and add it to your `.gitignore` if you don't want it in source control.
 
+Because it's build output, it doesn't exist yet on a fresh checkout, which upsets TypeScript (and sometimes the TS server). Reference the ambient types once and the import resolves either way:
+
+```ts
+// src/vite-env.d.ts
+/// <reference types="@rooted/router/types" />
+```
+
 You then pass `appRoutes` to the `router(...)`:
 
 ```ts
