@@ -8,6 +8,7 @@ import { NavigateEvent } from './navigate-event.mts'
 import { RouteMatch } from './route.match.mts'
 import { isRoute, routeMetadata } from './route.metadata.mts'
 import { AnyRoute, route } from './route.mts'
+import { renderWithViewTransition } from './router.view-transition.mts'
 import { getSavedScrollPosition } from './scroll.mts'
 import { applyRouteSeoMeta, type RouterSeoOptions } from './seo-meta.mts'
 
@@ -164,10 +165,8 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 			}
 
 			function applyTransition(render: () => void) {
-				if (viewTransition && isClient() && 'startViewTransition' in document)
-					(document as Document & { startViewTransition(callback: () => void): void }).startViewTransition(render)
-				else
-					render()
+				if (viewTransition) renderWithViewTransition(render)
+				else render()
 			}
 
 			async function update(incomingState?: unknown) {
