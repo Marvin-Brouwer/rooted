@@ -1,6 +1,3 @@
-import { existsSync } from 'node:fs'
-import path from 'node:path'
-
 import { defineConfig } from 'vite'
 import { analyzer } from 'vite-bundle-analyzer'
 import { ManifestOptions, type VitePWAOptions } from 'vite-plugin-pwa'
@@ -66,8 +63,9 @@ export type RootedApplicationManifest = {
 	/**
 	 * Path (relative to Vite root) to the source SVG used to generate PWA icons.
 	 * Example: `'public/icon.svg'`
-	 * When omitted, `public/icon.svg` is used automatically if the file exists.
-	 * If neither is available, icons fall back to `[{ src: 'icon.svg', sizes: 'any' }]`.
+	 * When omitted, `public/icon.svg` under the Vite root is used automatically if
+	 * the file exists. If neither is available, icons fall back to
+	 * `[{ src: 'icon.svg', sizes: 'any' }]` and the build warns about it.
 	 */
 	icon?: string
 	seo?: SeoOptions
@@ -127,7 +125,6 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 		const analyzerMode = environment.command === 'build' && process.argv.includes('--analyze')
 
 		const skipPwaGenerator = analyzerMode || process.argv.includes('--no-pwa')
-		const autoIcon = !manifest.icon && existsSync(path.resolve(process.cwd(), 'public/icon.svg'))
 
 		return {
 			appType: 'spa',
@@ -187,7 +184,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						analyzerMode: 'static',
 					},
 				),
-				pwaPreset({ manifest, skipPwaGenerator, minify, autoIcon, runtimeCaching: manifest.runtimeCaching }),
+				pwaPreset({ manifest, skipPwaGenerator, minify, runtimeCaching: manifest.runtimeCaching }),
 				pwaAssetsPlugin(!!manifest.icon || skipPwaGenerator, manifest.webManifest.url),
 				seoPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo),
 				manifest.seo?.robots !== false && robotsPlugin(manifest.webManifest.url, manifest.seo?.robots),

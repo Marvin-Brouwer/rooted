@@ -1,13 +1,12 @@
-import fs from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import { seoPluginName } from '@rooted/seo'
 
+import { DEFAULT_ICON_PATH, findDefaultIcon } from './pwa-icon.mts'
+
 import type { SeoApi } from '@rooted/seo'
 import type { PluginOption, ResolvedConfig } from 'vite'
-
-const DEFAULT_ICON_PATH = 'public/icon.svg'
 
 /**
  * Generates PWA icon assets from the project's `public/icon.svg` using the
@@ -45,8 +44,14 @@ export function pwaAssetsPlugin(skip: boolean, deploymentUrl: string | undefined
 		async buildStart() {
 			if (skip) return
 
-			const svgPath = path.resolve(viteConfig.root, DEFAULT_ICON_PATH)
-			if (!fs.existsSync(svgPath)) return
+			const svgPath = findDefaultIcon(viteConfig.root)
+			if (!svgPath) {
+				viteConfig.logger.warn(
+					`[rooted:pwa-assets] no ${DEFAULT_ICON_PATH} in ${viteConfig.root}, so no PWA icons were generated. `
+					+ 'Add that file, or set `icon` in the rooted manifest to generate from somewhere else.',
+				)
+				return
+			}
 
 			const [
 				{ instructions },
