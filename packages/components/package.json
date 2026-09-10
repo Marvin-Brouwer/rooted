@@ -53,7 +53,7 @@
 			"import": "./dist/css-loader.mjs",
 			"types": "./dist/css-loader.d.mts"
 		},
-		"./styles": {
+		"./types": {
 			"types": "./plugins/styles.d.ts"
 		}
 	},

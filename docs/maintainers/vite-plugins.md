@@ -134,7 +134,7 @@ const shouldMinify = options.minify ?? config.command === 'build'
 A plugin that makes `import x from './thing.md'` work has to tell TypeScript what that import is. Those declarations ship unbuilt, with their own export key pointing straight at the `.d.ts`:
 
 ```json
-"./vite/types": {
+"./types": {
 	"types": "./plugins/markdown.d.ts"
 }
 ```
@@ -142,10 +142,10 @@ A plugin that makes `import x from './thing.md'` work has to tell TypeScript wha
 Add the file to `"files"` in `package.json`, since it isn't in `dist`. Forget that and the export key points at a file the tarball doesn't contain, so `pnpm lint` fails on it. Consumers pull it in with a triple-slash reference in their env declarations:
 
 ```ts
-/// <reference types="@rooted/markdown/vite/types" />
+/// <reference types="@rooted/markdown/types" />
 ```
 
-Keep the declaration thin and let the real type live in the package, the way `@rooted/components`'s `./styles` does:
+Keep the declaration thin and let the real type live in the package, the way `@rooted/components`'s `./types` does:
 
 ```ts
 declare module '*.md' {
