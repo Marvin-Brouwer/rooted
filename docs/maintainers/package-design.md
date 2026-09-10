@@ -66,7 +66,7 @@ Imports `components` for `localized`, which is a component so its `popstate` sub
 
 ## `@rooted/markdown`
 
-Build-time markdown. A Vite plugin (`@rooted/markdown/vite`) turns `.md` files into modules with a `frontmatter` and an `html` export, and a `Markdown` component renders that HTML. Ambient `*.md` types ship unbuilt at `@rooted/markdown/vite/types`.
+Build-time markdown. A Vite plugin (`@rooted/markdown/vite`) turns `.md` files into modules with a `frontmatter` and an `html` export, and a `Markdown` component renders that HTML. Ambient `*.md` types ship unbuilt at `@rooted/markdown/types`.
 
 Its own package rather than part of `components` because it drags in `marked`, `gray-matter` and a minifier. Those are Node-only and never reach the bundle, but apps with no markdown shouldn't install them at all. Nothing else in rooted depends on it.
 

@@ -25,6 +25,7 @@
 	},
 	"files": [
 		"dist",
+		"plugins/styles.d.ts",
 		"readme.md"
 	],
 	"engines": {
@@ -52,7 +53,7 @@
 			"import": "./dist/css-loader.mjs",
 			"types": "./dist/css-loader.d.mts"
 		},
-		"./css-loader/styles": {
+		"./types": {
 			"types": "./plugins/styles.d.ts"
 		}
 	},

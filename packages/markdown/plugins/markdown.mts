@@ -46,7 +46,7 @@ const minifyOptions: MinifyOptions = {
  * Imports carrying a query (`./about.md?raw`, `?url`) are left alone for Vite
  * to handle.
  *
- * Reference `@rooted/markdown/vite/types` from your env declarations so
+ * Reference `@rooted/markdown/types` from your env declarations so
  * TypeScript knows what a `.md` import is.
  */
 export function rootedMarkdown(options: MarkdownPluginOptions = {}): Plugin {

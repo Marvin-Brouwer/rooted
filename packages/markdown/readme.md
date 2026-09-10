@@ -22,7 +22,7 @@ export default rootedManifest({
 Add the ambient types to your env declarations so `.md` imports typecheck:
 
 ```ts
-/// <reference types="@rooted/markdown/vite/types" />
+/// <reference types="@rooted/markdown/types" />
 ```
 
 Then import a file and render it:

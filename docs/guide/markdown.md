@@ -29,7 +29,7 @@ Then tell TypeScript what a `.md` import is, in whichever file holds your ambien
 ```ts
 // src/vite-env.d.ts
 /// <reference types="vite/client" />
-/// <reference types="@rooted/markdown/vite/types" />
+/// <reference types="@rooted/markdown/types" />
 ```
 
 Each `.md` file becomes a module with two exports. The YAML frontmatter block becomes `frontmatter`, and everything after it is rendered to HTML as `html`:

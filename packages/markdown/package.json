@@ -45,7 +45,7 @@
 			"import": "./dist/vite.mjs",
 			"types": "./dist/vite.d.mts"
 		},
-		"./vite/types": {
+		"./types": {
 			"types": "./plugins/markdown.d.ts"
 		}
 	},
