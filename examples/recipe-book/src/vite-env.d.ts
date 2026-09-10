@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-/// <reference types="@rooted/components/css-loader/styles" />
+/// <reference types="@rooted/components/styles" />
 
 /// <reference types="../types/environment.g.d.ts" />
 

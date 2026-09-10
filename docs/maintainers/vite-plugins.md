@@ -145,7 +145,7 @@ Add the file to `"files"` in `package.json`, since it isn't in `dist`. Forget th
 /// <reference types="@rooted/markdown/vite/types" />
 ```
 
-Keep the declaration thin and let the real type live in the package, the way `@rooted/components`'s `./css-loader/styles` does:
+Keep the declaration thin and let the real type live in the package, the way `@rooted/components`'s `./styles` does:
 
 ```ts
 declare module '*.md' {
