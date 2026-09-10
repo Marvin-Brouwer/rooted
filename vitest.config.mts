@@ -43,6 +43,10 @@ export default defineConfig({
 				replacement: fileURLToPath(new URL('packages/components/src/_module/components.mts', import.meta.url)),
 			},
 			{
+				find: '@rooted/seo',
+				replacement: fileURLToPath(new URL('packages/seo/plugins/_module/seo.mts', import.meta.url)),
+			},
+			{
 				find: '@rooted/adapter',
 				replacement: fileURLToPath(new URL('packages/adapter/src/_module/adapter.mts', import.meta.url)),
 			},

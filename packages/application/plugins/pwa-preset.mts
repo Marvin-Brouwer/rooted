@@ -1,4 +1,4 @@
-import { VitePWA, type VitePWAOptions } from 'vite-plugin-pwa'
+import { VitePWA, type ManifestOptions, type VitePWAOptions } from 'vite-plugin-pwa'
 
 type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 
@@ -16,15 +16,31 @@ const imageCacheEntry: RuntimeCaching = {
 	},
 }
 
+/**
+ * The web manifest, minus the icons: those depend on the Vite root, which nobody
+ * knows yet at this point, so `pwaAssetsPlugin` fills them in from its `config` hook.
+ */
+export function buildWebManifest(manifest: RootedApplicationManifest): Partial<ManifestOptions> {
+	return {
+		name: 'Rooted Template',
+		short_name: 'template',
+		description: 'Template @rooted/* application.',
+		theme_color: '#ffffff',
+		background_color: '#f8faf2',
+		display: 'standalone',
+		...manifest.webManifest,
+	}
+}
+
 export type PwaOptions = {
 	manifest: RootedApplicationManifest
+	webManifest: Partial<ManifestOptions>
 	skipPwaGenerator: boolean
 	minify: boolean
-	autoIcon: boolean
 	runtimeCaching: RuntimeCaching[] | undefined
 }
 export function pwaPreset(
-	{ manifest, skipPwaGenerator, minify, autoIcon, runtimeCaching }: PwaOptions,
+	{ manifest, webManifest, skipPwaGenerator, minify, runtimeCaching }: PwaOptions,
 ) {
 	return VitePWA({
 		// Utility for speeding up build times
@@ -45,24 +61,6 @@ export function pwaPreset(
 				overrideManifestIcons: true,
 			},
 		}),
-		manifest: {
-			name: 'Rooted Template',
-			short_name: 'template',
-			description: 'Template @rooted/* application.',
-			theme_color: '#ffffff',
-			background_color: '#f8faf2',
-			display: 'standalone',
-			...(!manifest.icon && {
-				icons: manifest.webManifest.icons ?? (autoIcon
-					? [
-						{ src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
-						{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-						{ src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
-						{ src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-					]
-					: [{ src: 'icon.svg', sizes: 'any' }]),
-			}),
-			...manifest.webManifest,
-		},
+		manifest: webManifest,
 	})
 }
