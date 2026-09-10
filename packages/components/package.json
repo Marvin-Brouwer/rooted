@@ -25,6 +25,7 @@
 	},
 	"files": [
 		"dist",
+		"plugins/styles.d.ts",
 		"readme.md"
 	],
 	"engines": {
