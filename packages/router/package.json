@@ -26,6 +26,7 @@
 	},
 	"files": [
 		"dist",
+		"plugins/routes.d.ts",
 		"readme.md"
 	],
 	"engines": {
@@ -52,6 +53,9 @@
 			"source": "./plugins/_module/manifest.mts",
 			"import": "./dist/manifest.mjs",
 			"types": "./dist/manifest.d.mts"
+		},
+		"./types": {
+			"types": "./plugins/routes.d.ts"
 		}
 	},
 	"scripts": {
