@@ -77,6 +77,16 @@ ci(release): switch to OIDC trusted publishing
 docs: add guide for publishing new @rooted/* packages
 ```
 
+## Rewriting history
+
+Don't amend commits and don't force push, unless you're asked to.
+
+Pull requests get squash merged, so the branch history costs nothing at merge time and is worth a lot before it. Each round of review feedback should land as its own commit: a reviewer can then see what changed since they last looked, instead of being handed a rewritten branch and having to re-read the whole diff. Amending also invalidates anyone else's checkout of the branch.
+
+So: new work, or a fix responding to a review comment, is a new commit. `git push` without `--force`.
+
+The exception is when you're asked to. "Squash these", "amend that", "clean up the branch before I look at it" are all fine, and so is fixing a commit that hasn't been pushed yet.
+
 ## Pull request titles
 
 Always use [Conventional Commits](https://www.conventionalcommits.org/) format for PR titles:

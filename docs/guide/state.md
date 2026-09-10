@@ -71,7 +71,7 @@ A store fires two event types:
 - `'update'` fires every time `update` is called, even if nothing changed.
 - `'change'` fires only when the structural hash of the state actually differs.
 
-Both forms require an `AbortSignal`. Pass the component's `signal` so the listener cleans up on unmount.
+Inside a component, pass the component's `signal` so the listener cleans up on unmount.
 
 ```ts
 onMount({ signal }) {
@@ -80,6 +80,20 @@ onMount({ signal }) {
   })
 }
 ```
+
+At module scope there is no unmount, so leave the signal out. The listener is cleaned up when the page unloads instead.
+
+```ts
+export const themeStore = createStore<Theme>('light')
+
+themeStore.on('change', ({ detail }) => {
+  cookieStorage.set('theme', detail.state)
+})
+```
+
+Pass your own signal here if you want to be able to unsubscribe later. That is a real use case and it works.
+
+What isn't worth writing is `new AbortController().signal` for a controller you never keep a reference to. It only fills the parameter. Nothing ever aborts it, so the listener is never cleaned up, and you miss the page cleanup you would have got by leaving the signal out.
 
 `detail.state` is a frozen snapshot. Read it directly. Don't keep a reference around expecting it to stay current; it won't.
 

@@ -5,7 +5,7 @@ import { isDevelopment } from '@rooted/util/dev'
 import { create } from '../component-factory.mts'
 import { ComponentConstructor, ComponentContext } from '../component.mts'
 import { devHelper } from '../dev-helper.mts'
-import { pageSignal } from '../page-context.mts'
+import { pageAbortSignal } from '../page-abort-signal.mts'
 import { RootedElement } from '../rooted-element.mts'
 
 import { applyContentStyleFallback, applyScope } from './styles.mts'
@@ -82,7 +82,7 @@ export class GenericComponent extends RootedElement {
 		// Re-create to cover remounting
 		this.abortController?.abort('remounted')
 		this.abortController = new AbortController()
-		pageSignal.addEventListener('abort', reason => this.abortController.abort(reason), {
+		pageAbortSignal.addEventListener('abort', reason => this.abortController.abort(reason), {
 			// Un register on unmount if the page is still alive
 			signal: this.abortController.signal,
 		})

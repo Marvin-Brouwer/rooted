@@ -792,6 +792,10 @@ importers:
         version: link:../util
 
   packages/store:
+    dependencies:
+      '@rooted/util':
+        specifier: workspace:*
+        version: link:../util
     devDependencies:
       '@rooted/development':
         specifier: workspace:*
