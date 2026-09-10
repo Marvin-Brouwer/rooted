@@ -16,7 +16,13 @@ const counter = createStore({ count: 0 })
 
 counter.update(state => { state.count += 1 })
 
+// inside a component, pass the component's signal so the listener dies with it
 counter.on('change', signal, ({ detail }) => {
+  console.log(detail.state.count)
+})
+
+// at module scope, leave the signal out and it's cleaned up on page unload
+counter.on('change', ({ detail }) => {
   console.log(detail.state.count)
 })
 ```

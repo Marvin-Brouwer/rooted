@@ -10,6 +10,9 @@ export type ArrayElement<T> = T extends readonly (infer U)[] ? U : T;
 // @public
 export function baseUrl(): string;
 
+// @internal
+export function createGlobalAbortSignal(): AbortSignal;
+
 // @public
 export function error(error: unknown): ErrorTuple;
 

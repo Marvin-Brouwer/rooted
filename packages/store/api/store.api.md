@@ -32,12 +32,17 @@ export type ReadonlyState<T> = T extends ((...arguments_: never) => unknown) ? T
 export type Store<TState extends StateType | Array<StateType>> = {
     readonly value: ReadonlyState<TState>;
     update(setter: (currentValue: TState) => SetterResult<TState>): void;
-    on(event: 'update', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void;
-    on(event: 'change', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void;
+    on(event: 'update', signal: AbortSignal, handler: StoreEventHandler<TState>): void;
+    on(event: 'update', handler: StoreEventHandler<TState>): void;
+    on(event: 'change', signal: AbortSignal, handler: StoreEventHandler<TState>): void;
+    on(event: 'change', handler: StoreEventHandler<TState>): void;
 };
 
 // @public (undocumented)
 export type StoreEvent<TState> = CustomEvent<StoreEventDetail<TState>>;
+
+// @public
+export type StoreEventHandler<TState> = (event: StoreEvent<TState>) => void;
 
 // (No @packageDocumentation comment for this package)
 

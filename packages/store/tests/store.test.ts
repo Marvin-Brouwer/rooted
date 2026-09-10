@@ -154,6 +154,90 @@ describe('createStore — signal cleanup', () => {
 	})
 })
 
+describe('createStore — subscribing without a signal', () => {
+	test('receives update events', () => {
+		// Arrange
+		const store = createStore({ count: 0 })
+		const handler = vi.fn()
+		store.on('update', handler)
+
+		// Act
+		store.update((s) => {
+			s.count = 1
+		})
+
+		// Assert
+		expect(handler).toHaveBeenCalledTimes(1)
+	})
+
+	test('receives change events', () => {
+		// Arrange
+		const store = createStore({ count: 0 })
+		const handler = vi.fn()
+		store.on('change', handler)
+
+		// Act
+		store.update((s) => {
+			s.count = 1
+		})
+
+		// Assert
+		expect(handler).toHaveBeenCalledTimes(1)
+	})
+
+	test('keeps listening across repeated updates', () => {
+		// Arrange
+		const store = createStore({ count: 0 })
+		const handler = vi.fn()
+		store.on('change', handler)
+
+		// Act
+		for (let index = 1; index <= 3; index++) {
+			store.update((s) => {
+				s.count = index
+			})
+		}
+
+		// Assert
+		expect(handler).toHaveBeenCalledTimes(3)
+	})
+
+	test('is unaffected by an aborted signal on another listener', () => {
+		// Arrange
+		const store = createStore({ count: 0 })
+		const controller = new AbortController()
+		const withoutSignal = vi.fn()
+		const withSignal = vi.fn()
+		store.on('change', withoutSignal)
+		store.on('change', controller.signal, withSignal)
+
+		// Act
+		controller.abort()
+		store.update((s) => {
+			s.count = 1
+		})
+
+		// Assert
+		expect(withSignal).not.toHaveBeenCalled()
+		expect(withoutSignal).toHaveBeenCalledTimes(1)
+	})
+
+	test('passes the state snapshot on the event detail', () => {
+		// Arrange
+		const store = createStore({ count: 0 })
+		const handler = vi.fn()
+		store.on('change', handler)
+
+		// Act
+		store.update((s) => {
+			s.count = 7
+		})
+
+		// Assert
+		expect(handler.mock.calls[0][0].detail.state).toEqual({ count: 7 })
+	})
+})
+
 describe('hashState — key ordering', () => {
 	test('objects with same keys in different insertion order produce same change hash', () => {
 		// Build two stores whose state is semantically identical but key-ordered differently

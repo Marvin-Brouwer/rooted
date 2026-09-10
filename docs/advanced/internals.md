@@ -35,11 +35,13 @@ For example, a component's `.title { ... }` becomes `[r="abc123"] .title { ... }
 
 Every component has its own `AbortController`. The controller's signal is what you pull off the mount context as `signal`. Every listener you register with that signal cleans up when the component unmounts, with no extra bookkeeping.
 
-There's also a single page-level signal, `pageSignal`, that aborts on the `pagehide` event but only when the page is permanently unloaded (not when it goes into bfcache). Every component's controller is chained to it. So:
+There's also a page-level signal, `pageAbortSignal`, that aborts on the `pagehide` event but only when the page is permanently unloaded (not when it goes into bfcache). Every component's controller is chained to it. So:
 
 - Component unmounts. The component's controller aborts. Its listeners go away. The page signal stays alive.
 - Page is destroyed. The page signal aborts. Every component controller aborts. Every listener goes away.
 - Page enters bfcache. Nothing aborts. When the user comes back, the page is restored and listeners are still there.
+
+`@rooted/store` has its own copy of that arrangement, `storeAbortSignal`, which is what a store subscription listens on when the caller passes no signal. Both come from `createGlobalAbortSignal` in `@rooted/util`, which wires one `pagehide` listener and hands back a signal. They're deliberately separate: stores work without the rest of the framework, and neither package should be able to abort the other's listeners.
 
 That last point matters. If you want to invalidate state on bfcache restore, listen for the `pageshow` event and check `event.persisted`.
 

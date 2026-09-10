@@ -1,9 +1,15 @@
 import { deepClone, deepFreeze } from './deepClone.mts'
 import { hashState } from './hash.mts'
+import { storeAbortSignal } from './store-abort-signal.mts'
 
 type StoreEventDetail<TState> = { state: ReadonlyState<TState> }
 
 export type StoreEvent<TState> = CustomEvent<StoreEventDetail<TState>>
+
+/**
+ * Handler passed to {@link Store.on}. Gets the dispatched event; the new state sits on `event.detail.state`.
+ */
+export type StoreEventHandler<TState> = (event: StoreEvent<TState>) => void
 
 /**
  * The set of value types a {@link Store} may hold. Covers all common serialisable primitives, objects, dates, arrays thereof, and `undefined` (for stores created without an initial value).
@@ -59,15 +65,27 @@ export type Store<TState extends StateType | Array<StateType>> = {
 	/**
 	 * Subscribes to `'update'` events, which fire on **every** call to {@link Store.update} regardless of whether the state changed.
 	 *
-	 * The `signal` is required and controls listener lifetime. Pass the component's `signal` to ensure cleanup on unmount.
+	 * The `signal` controls listener lifetime. Inside a component, pass the component's `signal` so the listener is cleaned up on unmount.
 	 */
-	on(event: 'update', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void
+	on(event: 'update', signal: AbortSignal, handler: StoreEventHandler<TState>): void
+	/**
+	 * Subscribes to `'update'` events for as long as the store itself lives.
+	 *
+	 * Use this at module scope, where there's no unmount to hang cleanup off. The listener is cleaned up when the page unloads instead. Inside a component, use the overload that takes the component's `signal` instead.
+	 */
+	on(event: 'update', handler: StoreEventHandler<TState>): void
 	/**
 	 * Subscribes to `'change'` events, which fire only when the **state hash differs** from the previous value (structural change detected).
 	 *
-	 * The `signal` is required and controls listener lifetime. Pass the component's `signal` to ensure cleanup on unmount.
+	 * The `signal` controls listener lifetime. Inside a component, pass the component's `signal` so the listener is cleaned up on unmount.
 	 */
-	on(event: 'change', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void
+	on(event: 'change', signal: AbortSignal, handler: StoreEventHandler<TState>): void
+	/**
+	 * Subscribes to `'change'` events for as long as the store itself lives.
+	 *
+	 * Use this at module scope, where there's no unmount to hang cleanup off. The listener is cleaned up when the page unloads instead. Inside a component, use the overload that takes the component's `signal` instead.
+	 */
+	on(event: 'change', handler: StoreEventHandler<TState>): void
 }
 
 class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget implements Store<TState> {
@@ -110,11 +128,28 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 		}
 	}
 
-	on(event: 'change' | 'update', signal: AbortSignal, handler: (event: StoreEvent<TState>) => void): void {
+	/** Subscribes to `'change'` until the page unloads. */
+	on(event: 'change', handler: StoreEventHandler<TState>): void
+	/** Subscribes to `'change'` until `signal` aborts. */
+	on(event: 'change', signal: AbortSignal, handler: StoreEventHandler<TState>): void
+	/** Subscribes to `'update'` until the page unloads. */
+	on(event: 'update', handler: StoreEventHandler<TState>): void
+	/** Subscribes to `'update'` until `signal` aborts. */
+	on(event: 'update', signal: AbortSignal, handler: StoreEventHandler<TState>): void
+	on(
+		event: 'change' | 'update',
+		signalOrHandler: AbortSignal | StoreEventHandler<TState>,
+		handler?: StoreEventHandler<TState>,
+	): void {
+		if (typeof signalOrHandler === 'function') {
+			this.addEventListener(event, signalOrHandler as EventListener, { signal: storeAbortSignal })
+			return
+		}
+
 		this.addEventListener(
 			event,
 			handler as EventListener,
-			{ signal },
+			{ signal: signalOrHandler },
 		)
 	}
 }
@@ -139,6 +174,9 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
  * const counter = createStore({ count: 0 })
  * counter.update(s => { s.count++ })
  * counter.on('change', signal, ({ detail }) => render(detail.state))
+ *
+ * // At module scope there's no signal to pass. Leave it out and it's cleaned up on page unload.
+ * counter.on('change', ({ detail }) => localStorage.setItem('count', String(detail.state.count)))
  * ```
  */
 export function createStore<T extends StateType | Array<StateType>>(): Store<T | undefined>
