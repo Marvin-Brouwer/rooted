@@ -215,6 +215,16 @@ export class GenericComponent extends RootedElement {
 
 RootedElement.register(GenericComponent)
 
-const sheet = new CSSStyleSheet()
-await sheet.replace(`${GenericComponent.tagName}, ${GenericComponent.tagName}[r] { display: contents !important; }`)
-document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
+// Browsers without constructable stylesheets fall through to applyContentStyleFallback.
+if ('adoptedStyleSheets' in document) {
+	try {
+		// replaceSync, not replace: a top-level await flushes the microtask queue between the
+		// register() above and application(), mounting pre-rendered hosts while they're still connected.
+		const sheet = new CSSStyleSheet()
+		sheet.replaceSync(`${GenericComponent.tagName}, ${GenericComponent.tagName}[r] { display: contents !important; }`)
+		document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
+	}
+	catch (error) {
+		if (isDevelopment()) console.error('[rooted] Could not install the host style sheet', error)
+	}
+}

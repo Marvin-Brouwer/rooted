@@ -28,7 +28,11 @@ function getDisplayStyle(element: Element) {
 
 // In case the style didn't take
 export function applyContentStyleFallback(element: HTMLElement) {
-	if (getDisplayStyle(element) === 'contents') return
+	const display = getDisplayStyle(element)
+
+	// An empty answer means the environment can't compute style at all, which is the case during
+	// pre-rendering. That is not the same as the rule having missed, so leave the element alone.
+	if (!display || display === 'contents') return
 
 	element.style.setProperty('display', 'contents', 'important')
 }
