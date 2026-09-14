@@ -232,16 +232,17 @@ There is also a state-only overload that pushes history state without changing t
 navigate({ modal: 'confirm' })
 ```
 
-Both overloads take an options object. Pass `replace` to overwrite the current history entry instead of adding one:
+Calling `navigate` adds a history entry. `navigate.replace` overwrites the current one instead, and takes the same arguments:
 
 ```ts
-navigate('/en/', { replace: true })
+navigate.replace('/en/')
+navigate.replace({ modal: 'confirm' })
 ```
 
 That's what a redirect wants. A landing page that sends visitors to their remembered locale should not leave itself in history, or Back returns to it and immediately redirects forward again:
 
 ```ts
-navigate(href.for(HomeRoute, { locale: remembered }), { replace: true })
+navigate.replace(href.for(HomeRoute, { locale: remembered }))
 ```
 
 ## Gates

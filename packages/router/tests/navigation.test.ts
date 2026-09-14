@@ -61,12 +61,12 @@ describe('navigate()', () => {
 		expect(location.pathname).toBe('/categories/italian/')
 	})
 
-	test('replaces the current entry instead of pushing when replace is set', () => {
+	test('replaces the current entry instead of pushing when called through replace', () => {
 		// Arrange
 		const entriesBefore = history.length
 
 		// Act
-		navigate('/en/', { replace: true })
+		navigate.replace('/en/')
 
 		// Assert
 		expect(location.pathname).toBe('/en/')
@@ -96,12 +96,12 @@ describe('navigate()', () => {
 		expect(events[0].state).toEqual({ modal: 'confirm', id: 42 })
 	})
 
-	test('replaces the current entry for a state-only navigation when replace is set', () => {
+	test('replaces the current entry for a state-only navigation through replace', () => {
 		// Arrange
 		const entriesBefore = history.length
 
 		// Act
-		navigate({ modal: 'confirm' }, { replace: true })
+		navigate.replace({ modal: 'confirm' })
 
 		// Assert
 		expect(location.pathname).toBe('/start/')

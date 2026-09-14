@@ -1,18 +1,42 @@
 import { Path, Url } from './href.mts'
 
 /**
- * Options for {@link navigate}.
+ * The two ways to name a navigation target: a URL to go to, or history state on
+ * its own. Shared by {@link navigate} and `navigate.replace`.
  */
-export type NavigateOptions = {
+export type NavigateCall = {
 	/**
-	 * Replace the current history entry instead of pushing a new one.
-	 *
-	 * This is what a redirect wants. If a redirect pushes, Back lands on the page
-	 * that redirects and the user gets bounced straight forward again.
-	 *
-	 * Defaults to `false`.
+	 * Navigate to a path:
+	 * ```ts
+	 * navigate('/categories/italian/')
+	 * ```
 	 */
-	replace?: boolean
+	(href: string | Url | Path): void
+	/** @deprecated Use `href.url()` or `href.path()` to construct the target. */
+	(href: URL): void
+	/**
+	 * Write arbitrary history state without changing the URL. Useful for modal
+	 * or drawer state that doesn't need its own path:
+	 * ```ts
+	 * navigate({ modal: 'confirm', id: 42 })
+	 * ```
+	 */
+	<T extends object>(state: T): void
+}
+
+/** The shape of {@link navigate}: callable on its own, plus a `replace` sibling. */
+export type Navigate = NavigateCall & {
+	/**
+	 * Overwrites the current history entry instead of adding one, then
+	 * re-evaluates the URL the same way {@link navigate} does.
+	 *
+	 * This is what a redirect wants. If a redirect pushes, Back lands on the
+	 * page that redirects and the user gets bounced straight forward again:
+	 * ```ts
+	 * navigate.replace(href.for(HomeRoute, { locale: remembered }))
+	 * ```
+	 */
+	readonly replace: NavigateCall
 }
 
 /**
@@ -20,35 +44,27 @@ export type NavigateOptions = {
  * dispatching a `popstate` event so the router re-evaluates the current URL.
  * No full-page reload occurs.
  *
- * **URL navigation.** Push a new path into history:
+ * Calling `navigate` pushes a new history entry. Call {@link Navigate.replace}
+ * to overwrite the current one instead:
+ *
  * ```ts
  * navigate('/categories/italian/')
- * ```
- *
- * **State-only.** Push arbitrary history state without changing the URL.
- * Useful for modal or drawer state that doesn't need its own path:
- * ```ts
- * navigate({ modal: 'confirm', id: 42 })
- * ```
- *
- * Both take an optional {@link NavigateOptions}. Pass `replace` to overwrite the
- * current history entry instead of adding one, which is what you want for a
- * redirect:
- * ```ts
- * navigate(href.for(HomeRoute, { locale: remembered }), { replace: true })
+ * navigate.replace('/en/')
  * ```
  *
  * @see {@link Link} for a component that calls `navigate` on click
  */
-export function navigate(href: string | Url | Path, options?: NavigateOptions): void
-/** @deprecated */
-export function navigate(href: URL, options?: NavigateOptions): void
-export function navigate<T extends object>(state: T, options?: NavigateOptions): void
-export function navigate(hrefOrState: string | Url | Path | URL | object, options?: NavigateOptions): void {
+export const navigate = Object.freeze(Object.assign(
+	(hrefOrState: string | Url | Path | URL | object) => write(hrefOrState, false),
+	{ replace: (hrefOrState: string | Url | Path | URL | object) => write(hrefOrState, true) },
+)) as Navigate
+
+/** Writes to history and tells the router about it. The only difference between push and replace. */
+function write(hrefOrState: string | Url | Path | URL | object, replace: boolean): void {
 	const href = resolveHref(hrefOrState)
 	const state = href === undefined ? hrefOrState : undefined
 
-	if (options?.replace === true) history.replaceState(state, '', href)
+	if (replace) history.replaceState(state, '', href)
 	else history.pushState(state, '', href)
 
 	globalThis.dispatchEvent(new PopStateEvent('popstate', { state }))
