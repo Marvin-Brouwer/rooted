@@ -18,7 +18,10 @@ export type NavigateCall = {
 	 * Write arbitrary history state without changing the URL. Useful for modal
 	 * or drawer state that doesn't need its own path:
 	 * ```ts
-	 * navigate({ modal: 'confirm', id: 42 })
+	 * navigate({
+	 *   modal: 'confirm',
+	 *   id: 42
+	 * })
 	 * ```
 	 */
 	<T extends object>(state: T): void
@@ -33,7 +36,9 @@ export type Navigate = NavigateCall & {
 	 * This is what a redirect wants. If a redirect pushes, Back lands on the
 	 * page that redirects and the user gets bounced straight forward again:
 	 * ```ts
-	 * navigate.replace(href.for(HomeRoute, { locale: remembered }))
+	 * navigate.replace(href.for(HomeRoute, {
+	 *   locale: remembered
+	 * }))
 	 * ```
 	 */
 	readonly replace: NavigateCall

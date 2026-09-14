@@ -223,26 +223,34 @@ create(Link, {
 import { navigate } from '@rooted/router'
 
 navigate('/about/')
-navigate(href.for(ArticleRoute, { id: 42 }))
+navigate(href.for(ArticleRoute, {
+  id: 42
+}))
 ```
 
 There is also a state-only overload that pushes history state without changing the URL. Useful for modal state that should be back-button- aware:
 
 ```ts
-navigate({ modal: 'confirm' })
+navigate({
+  modal: 'confirm'
+})
 ```
 
 Calling `navigate` adds a history entry. `navigate.replace` overwrites the current one instead, and takes the same arguments:
 
 ```ts
 navigate.replace('/en/')
-navigate.replace({ modal: 'confirm' })
+navigate.replace({
+  modal: 'confirm'
+})
 ```
 
 That's what a redirect wants. A landing page that sends visitors to their remembered locale should not leave itself in history, or Back returns to it and immediately redirects forward again:
 
 ```ts
-navigate.replace(href.for(HomeRoute, { locale: remembered }))
+navigate.replace(href.for(HomeRoute, {
+  locale: remembered
+}))
 ```
 
 ## Gates
