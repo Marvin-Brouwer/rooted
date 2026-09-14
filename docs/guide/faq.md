@@ -91,7 +91,7 @@ Probably one of:
 
 ## I want a back/forward button to restore scroll position
 
-It does, by default. The router saves the scroll position before every push navigation and restores it on `popstate`. If you want to opt out:
+It does, by default. The router writes the scroll position onto the history entry every push navigation leaves behind, and scrolls back to it when you return. If you want to opt out:
 
 ```ts
 create(Router, {
@@ -100,6 +100,22 @@ create(Router, {
 ```
 
 If your app uses a custom scroll container instead of `window`, set `scrollBehavior.target` to that element.
+
+Two limits worth knowing about.
+
+Only pushes save, so an entry you left with the back or forward button carries no position. Go back and then forward again and that page starts at the top. It's a real gap, not a design choice; [#332](https://github.com/Marvin-Brouwer/rooted/issues/332) has the reasoning.
+
+A back that changes nothing but the query string or the hash isn't a route change, so the router doesn't touch the scroll position at all. If your page wants it back, ask for it:
+
+```ts
+import { href, restoreScrollPosition } from '@rooted/router'
+
+on('window', 'popstate', () => {
+  if (href.current().query.has('page')) restoreScrollPosition()
+})
+```
+
+While saving is on, the router sets `history.scrollRestoration = 'manual'`, because it restores scroll itself and doesn't want the browser doing it too. It puts your value back when it unmounts.
 
 ## The page comes back blank when I hit the back button
 

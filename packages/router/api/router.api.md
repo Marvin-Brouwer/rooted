@@ -109,6 +109,9 @@ export class Path extends HrefBase {
 }
 
 // @public
+export function restoreScrollPosition(target?: Element): boolean;
+
+// @public
 export type RouterOptions = {
     viewTransition?: boolean;
     scrollBehavior?: {
