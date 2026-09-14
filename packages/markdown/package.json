@@ -60,7 +60,7 @@
 	"dependencies": {
 		"gray-matter": "^4.0.3",
 		"html-minifier-terser": "^7.2.0",
-		"marked": "^18.0.11"
+		"marked": "^18.0.12"
 	},
 	"peerDependencies": {
 		"@rooted/components": "workspace:^",
