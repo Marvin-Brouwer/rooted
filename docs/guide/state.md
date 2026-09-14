@@ -46,7 +46,7 @@ export const themeStore = createStore.from<Theme>(() => {
 })
 ```
 
-Be clear about what this does and doesn't buy you. At module scope the factory runs at import time, the same as the value form, so nothing is deferred. What you get is the fold: one expression at the call site instead of a named function plus a call. Where it does defer is a store built conditionally, or inside `onMount`, where the factory doesn't run until the store does. And for an async first value it is the only option, since `createStore` takes concrete state only.
+At module scope the factory runs at import time, the same as passing a value, so nothing is deferred. What you gain is one expression at the call site instead of a named function and a call to it. It defers only where the store itself does: built conditionally, or inside `onMount`, the factory waits along with it. For an async first value it's the only option, since `createStore` takes concrete state only.
 
 An async factory gives you a promise for the store, so you have to `await` it:
 
