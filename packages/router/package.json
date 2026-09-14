@@ -67,7 +67,7 @@
 		"extract-api": "rooted-development extract-api"
 	},
 	"dependencies": {
-		"happy-dom": "^20.14.0",
+		"happy-dom": "^20.14.3",
 		"jiti": "^2.7.0",
 		"tinyglobby": "^0.2.17"
 	},
@@ -83,6 +83,6 @@
 		"@rooted/tsdown": "workspace:^",
 		"@types/node": "^26.5.1",
 		"tsx": "^4.23.13",
-		"vite": "^8.2.2"
+		"vite": "^8.3.0"
 	}
 }
