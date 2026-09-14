@@ -57,13 +57,19 @@ export type MatchableRoute = {
 };
 
 // @public
-export function navigate(href: string | Url | Path): void;
+export type Navigate = NavigateCall & {
+    readonly replace: NavigateCall;
+};
 
-// @public @deprecated (undocumented)
-export function navigate(href: URL): void;
+// @public
+export const navigate: Navigate;
 
-// @public (undocumented)
-export function navigate<T extends object>(state: T): void;
+// @public
+export type NavigateCall = {
+    (href: string | Url | Path): void;
+    (href: URL): void;
+    <T extends object>(state: T): void;
+};
 
 // @public
 export class NavigateEvent extends CustomEvent<never> {
