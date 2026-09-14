@@ -57,13 +57,13 @@ export type MatchableRoute = {
 };
 
 // @public
-export function navigate(href: string | Url | Path): void;
+export function navigate(href: string | Url | Path, options?: NavigateOptions): void;
 
 // @public @deprecated (undocumented)
-export function navigate(href: URL): void;
+export function navigate(href: URL, options?: NavigateOptions): void;
 
 // @public (undocumented)
-export function navigate<T extends object>(state: T): void;
+export function navigate<T extends object>(state: T, options?: NavigateOptions): void;
 
 // @public
 export class NavigateEvent extends CustomEvent<never> {
@@ -76,6 +76,11 @@ export class NavigateEvent extends CustomEvent<never> {
 
 // @public
 export type NavigateHandler = (event: NavigateEvent) => void;
+
+// @public
+export type NavigateOptions = {
+    replace?: boolean;
+};
 
 // @public
 export class NavigationErrorEvent extends CustomEvent<Error> {

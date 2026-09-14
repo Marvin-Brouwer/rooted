@@ -232,6 +232,18 @@ There is also a state-only overload that pushes history state without changing t
 navigate({ modal: 'confirm' })
 ```
 
+Both overloads take an options object. Pass `replace` to overwrite the current history entry instead of adding one:
+
+```ts
+navigate('/en/', { replace: true })
+```
+
+That's what a redirect wants. A landing page that sends visitors to their remembered locale should not leave itself in history, or Back returns to it and immediately redirects forward again:
+
+```ts
+navigate(href.for(HomeRoute, { locale: remembered }), { replace: true })
+```
+
 ## Gates
 
 A gate is a self-managing component that mounts and unmounts a piece of UI based on whether a route matches. Gates run independently of the router. They are the right tool when one shell needs to show different sub-content at different URLs.
