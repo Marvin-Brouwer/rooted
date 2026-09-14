@@ -28,13 +28,11 @@ const name = createStore<string>()         // Store<string | undefined>
 const status = createStore<'idle' | 'navigating'>('idle')
 ```
 
-State has to be concrete, though. A bare function and a bare promise are both rejected: the first is a factory and the second is something to await, and `createStore.from` handles both. Either one nested on a property of object state is fine.
+A bare function or promise is the one thing it won't take, because both mean something else: a function is a factory, and a promise is something to await. `createStore.from` takes those. Nested on a property of object state, either is fine.
 
-### Working the initial state out
+### Starting from a factory
 
-`createStore.from` takes a factory instead of a value. It runs once, while the store is being built.
-
-Reach for it when the first value takes more than an expression, so you don't end up with a helper at module scope that gets called once on the line below it and looks reusable when it isn't:
+`createStore.from` takes a function and uses what it returns. Use it when the first value takes more than an expression to work out, so you don't need a helper at module scope that exists to be called once on the line below it:
 
 ```ts
 export const themeStore = createStore.from<Theme>(() => {
@@ -46,9 +44,9 @@ export const themeStore = createStore.from<Theme>(() => {
 })
 ```
 
-At module scope the factory runs at import time, the same as passing a value, so nothing is deferred. What you gain is one expression at the call site instead of a named function and a call to it. It defers only where the store itself does: built conditionally, or inside `onMount`, the factory waits along with it. For an async first value it's the only option, since `createStore` takes concrete state only.
+The factory runs when the store is built, which at module scope is import time, the same as passing a value. It only buys you time where the store itself does: inside `onMount`, or behind a condition.
 
-An async factory gives you a promise for the store, so you have to `await` it:
+An async factory gives you a promise for the store instead of the store:
 
 ```ts
 const settings = await createStore.from(async () => {
@@ -57,9 +55,9 @@ const settings = await createStore.from(async () => {
 })
 ```
 
-Worth knowing before you reach for it: there's no half-built store in the meantime, so everything reading it waits for that `await`. At module scope that means a top-level await, which makes the whole module async for everyone importing it. Most of the time a synchronous factory with a sensible default, updated once the fetch lands, is easier to live with.
+Everything reading that store waits for the `await`, and at module scope it makes the module async for everyone importing it. A synchronous factory with a sensible default, updated once the fetch lands, is usually easier to live with.
 
-One wrinkle: an explicit type parameter and an async factory don't combine. `createStore.from<Theme>(async () => 'dark')` doesn't compile, because the synchronous overload is tried first and widens the literal before the async one gets a look. Annotate the factory's return type instead, which is what you'd write anyway:
+For an async factory, annotate its return type rather than passing a type parameter. `createStore.from<Theme>(async () => 'dark')` doesn't compile:
 
 ```ts
 const theme = await createStore.from(async (): Promise<Theme> => 'dark')
