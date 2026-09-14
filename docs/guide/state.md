@@ -30,15 +30,23 @@ const status = createStore<'idle' | 'navigating'>('idle')
 
 State has to be concrete, though. A bare function and a bare promise are both rejected: the first is a factory and the second is something to await, and `createStore.from` handles both. Either one nested on a property of object state is fine.
 
-### Reading the initial state from somewhere
+### Working the initial state out
 
-`createStore.from` takes a factory instead of a value. It runs once, while the store is being built, so nothing is read until the store actually exists.
+`createStore.from` takes a factory instead of a value. It runs once, while the store is being built.
+
+Reach for it when the first value takes more than an expression, so you don't end up with a helper at module scope that gets called once on the line below it and looks reusable when it isn't:
 
 ```ts
-export const theme = createStore.from(() => cookieStorage.get<Theme>('theme') ?? 'light')
+export const themeStore = createStore.from<Theme>(() => {
+  const stored = cookieStorage.get<string>('theme')
+  if (stored === 'system' || stored === 'light' || stored === 'dark') return stored
+  // Back-compat: older versions wrote 'auto'
+  if (stored === 'auto') return 'system'
+  return 'system'
+})
 ```
 
-That saves the named helper that exists only to be called on the line above, and it keeps the read out of module-parse time.
+Be clear about what this does and doesn't buy you. At module scope the factory runs at import time, the same as the value form, so nothing is deferred. What you get is the fold: one expression at the call site instead of a named function plus a call. Where it does defer is a store built conditionally, or inside `onMount`, where the factory doesn't run until the store does. And for an async first value it is the only option, since `createStore` takes concrete state only.
 
 An async factory gives you a promise for the store, so you have to `await` it:
 

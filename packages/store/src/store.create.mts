@@ -7,7 +7,9 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
 /**
  * The factory form of `createStore`, reachable as `createStore.from`.
  *
- * Takes a factory instead of a value. It runs once, while the store is being built, so nothing is read until the store actually exists. That saves the named helper that exists only to be called on the line above, and it keeps the read out of module-parse time.
+ * Takes a factory instead of a value. It runs once, while the store is being built. Reach for it when the first value takes more than an expression to work out, so you don't need a helper at module scope that gets called once on the line below it.
+ *
+ * It doesn't defer anything on its own: at module scope the factory runs at import time, the same as passing a value. A store built conditionally or inside `onMount` is where the factory waits along with it.
  *
  * An async factory hands back a promise for the store rather than the store, so `await` it. There's no half-built store in between. At module scope that means a top-level `await`, which makes the whole module async for everyone importing it, so a synchronous factory with a sensible default is usually the easier thing to live with.
  *
@@ -17,8 +19,12 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
  *
  * @example
  * ```ts
- * // Read from storage, once, when the store is built.
- * export const theme = createStore.from(() => cookieStorage.get<Theme>('theme') ?? 'light')
+ * // Worth a factory: more than an expression, and the helper would exist only to be called here.
+ * export const theme = createStore.from<Theme>(() => {
+ *   const stored = cookieStorage.get<string>('theme')
+ *   if (stored === 'system' || stored === 'light' || stored === 'dark') return stored
+ *   return 'system'
+ * })
  *
  * // Narrow past the widening with an explicit type parameter.
  * const nav = createStore.from<'idle' | 'navigating'>(() => 'idle')
@@ -75,8 +81,8 @@ const createStoreFrom = (<T extends StateType | Array<StateType>>(
  * // At module scope there's no signal to pass. Leave it out and it's cleaned up on page unload.
  * counter.on('change', ({ detail }) => localStorage.setItem('count', String(detail.state.count)))
  *
- * // State that has to be read first belongs on `from`.
- * const servings = createStore.from(() => localStorage.get<number>(key) ?? 4)
+ * // A read that fits in an expression stays here. `createStore.from` is for the ones that don't.
+ * const servings = createStore(localStorage.get<number>(key) ?? 4)
  * ```
  */
 export function createStore<T extends StateType | Array<StateType>>(): Store<T | undefined>

@@ -90,14 +90,14 @@ import { localStorage } from '@rooted/storage/web'
 const KEY = 'theme'
 type Theme = 'dark' | 'light'
 
-export const theme = createStore.from(() => localStorage.get<Theme>(KEY) ?? 'light')
+export const theme = createStore<Theme>(localStorage.get<Theme>(KEY) ?? 'light')
 
 theme.on('change', ({ detail }) => {
   localStorage.set(KEY, detail.state)
 })
 ```
 
-`createStore.from` runs the factory while the store is being built, so the read happens there rather than as a side effect of parsing the module. This is module scope, so the subscription leaves the signal out and is cleaned up on page unload. See [state](./state.md#subscribing) for when to pass one.
+This is module scope, so the subscription leaves the signal out and is cleaned up on page unload. See [state](./state.md#subscribing) for when to pass one.
 
 The recipe-book example does this for the per-recipe servings count. See [`recipe.mts`][recipe-mts] for the full pattern.
 
