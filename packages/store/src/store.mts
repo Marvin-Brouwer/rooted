@@ -40,21 +40,22 @@ export type StateType = StatePrimitive | StateObject | undefined | null
 /**
  * A recursively-readonly view of a state value.
  *
- * Marks every nested object, array, tuple, `Map`, `Set`, `Date`, `RegExp`, and `Error` as readonly. Stops at functions (there's no meaningful "readonly function") and primitives.
+ * Marks every nested object, array, tuple, `Map`, `Set`, `Date`, `RegExp`, and `Error` as readonly. Stops at functions (there's no meaningful "readonly function"), promises (the snapshot holds the caller's promise, not a copy of it) and primitives.
  */
 export type ReadonlyState<T> =
 	T extends (...arguments_: never) => unknown ? T :
-		T extends Date | RegExp | Error ? Readonly<T> :
-			T extends Map<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> :
-				T extends ReadonlyMap<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> :
-					T extends Set<infer V> ? ReadonlySet<ReadonlyState<V>> :
-						T extends ReadonlySet<infer V> ? ReadonlySet<ReadonlyState<V>> :
-							T extends ReadonlyArray<infer V>
-								? number extends T['length']
-									? ReadonlyArray<ReadonlyState<V>>
-									: { readonly [K in keyof T]: ReadonlyState<T[K]> }
-								: T extends object ? { readonly [K in keyof T]: ReadonlyState<T[K]> }
-									: T
+		T extends PromiseLike<unknown> ? T :
+			T extends Date | RegExp | Error ? Readonly<T> :
+				T extends Map<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> :
+					T extends ReadonlyMap<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> :
+						T extends Set<infer V> ? ReadonlySet<ReadonlyState<V>> :
+							T extends ReadonlySet<infer V> ? ReadonlySet<ReadonlyState<V>> :
+								T extends ReadonlyArray<infer V>
+									? number extends T['length']
+										? ReadonlyArray<ReadonlyState<V>>
+										: { readonly [K in keyof T]: ReadonlyState<T[K]> }
+									: T extends object ? { readonly [K in keyof T]: ReadonlyState<T[K]> }
+										: T
 
 type SetterResult<TState> = TState extends object ? Partial<TState> | void : TState | void
 

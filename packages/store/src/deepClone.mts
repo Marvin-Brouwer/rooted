@@ -1,9 +1,11 @@
+import { isThenable } from './thenable.mts'
+
 /**
  * Returns a deep copy of `value`.
  *
  * What gets cloned: plain objects, arrays, `Date`, `Map`, `Set`, class instances, and any symbol-keyed properties on them. Cycles are handled.
  *
- * Functions stay shared by reference.
+ * Functions stay shared by reference, and so do promises. A promise's state lives in internal slots no copy can reach, so a structural copy of one is a dead object that throws the moment you await it. Sharing the reference is the only thing that works. The check is a callable `then`, so any thenable counts, not just a native `Promise`.
  *
  * Class instances are cloned structurally: a new object is created with the same prototype (so `instanceof` still works) and own properties are copied across. The trade-offs are real: private fields (`#field`) are lost, the constructor isn't re-run (no derived state, no observers re-wired), identity changes (`clone !== original`), and any `WeakMap`/`WeakSet` entries keyed on the original won't see the clone. If your class carries behaviour the clone needs to keep, prefer plain data.
  *
@@ -19,6 +21,8 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 	if (value === null || typeof value !== 'object') return value
 	const object = value as object
 	if (seen.has(object)) return seen.get(object) as T
+
+	if (isThenable(value)) return value
 
 	if (value instanceof Date) return new Date(value.getTime()) as unknown as T
 
@@ -75,6 +79,8 @@ function cloneOwnProperties(source: object, target: object, seen: WeakMap<object
  * Recursively freezes a value in place. Cycles are handled via a `seen` set.
  *
  * Plain objects, arrays, class instances, `Date`, `RegExp`, `Error`, `Map`, and `Set` get `Object.freeze`d along with their reachable contents. `Map` and `Set` mutating methods (`set`, `add`, `delete`, `clear`) are shadowed with own properties that throw a `TypeError`, since `Object.freeze` alone can't reach the internal slots those methods use.
+ *
+ * Functions and promises are left alone. `deepClone` shares both by reference, so freezing one here would reach back into the value the caller still holds.
  */
 export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): T {
 	// eslint-disable-next-line unicorn/no-null
@@ -82,6 +88,8 @@ export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): 
 	const object = value as object
 	if (seen.has(object)) return value
 	seen.add(object)
+
+	if (isThenable(value)) return value
 
 	if (value instanceof Date || value instanceof RegExp || value instanceof Error) {
 		Object.freeze(value)

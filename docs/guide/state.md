@@ -192,7 +192,7 @@ The honest list:
 - Class instances in state are cloned structurally. The prototype is preserved so `instanceof` keeps working, but the constructor isn't re-run, private fields (`#field`) are lost, identity changes, and any `WeakMap`/`WeakSet` entries keyed on the original won't see the clone. If your class carries behaviour the snapshot needs to keep, prefer plain data.
 - `Map` and `Set` snapshots throw a `TypeError` on `.set` / `.add` / `.delete` / `.clear`, since `Object.freeze` can't reach their internal slots and we'd rather fail loudly than silently mutate.
 - State is concrete: no bare functions, no bare promises. `createStore.from` covers both, and a function or promise nested on a property is still fine.
-- A promise nested in state does not survive snapshotting. `deepClone` copies it structurally, and a copied promise throws on `await`. See [#333](https://github.com/Marvin-Brouwer/rooted/issues/333).
+- A promise nested in state is shared between snapshots, not copied. There's no way to copy one: a promise's state lives in internal slots that a structural copy can't reach. So every snapshot hands you the same promise object, and anything with a callable `then` counts, not just a native `Promise`.
 - There is no time-travel debugging or middleware ecosystem. If you need those, this isn't the tool.
 
 This is intentional. The store is small enough to read in one sitting.

@@ -1,21 +1,24 @@
-const functionIdentities = new WeakMap<Function, number>()
-let nextFunctionIdentity = 0
+import { isThenable } from './thenable.mts'
 
-// Functions can't be serialised, but they have identity. Give each function reference a stable id so the same function hashes the same and a different function reference changes the hash.
-function functionIdentity(value: Function): string {
-	let id = functionIdentities.get(value)
+const referenceIdentities = new WeakMap<object, number>()
+let nextReferenceIdentity = 0
+
+// Functions and promises can't be serialised, but they have identity. Give each reference a stable id so the same one hashes the same and a different one changes the hash. The ids come from a single counter; nothing reads them apart from the comparison between two hashes.
+function referenceIdentity(value: object, kind: string): string {
+	let id = referenceIdentities.get(value)
 	if (id === undefined) {
-		id = ++nextFunctionIdentity
-		functionIdentities.set(value, id)
+		id = ++nextReferenceIdentity
+		referenceIdentities.set(value, id)
 	}
-	return `[Function#${id}]`
+	return `[${kind}#${id}]`
 }
 
 function hashReplacer(_key: string, value: unknown): unknown {
 	// eslint-disable-next-line unicorn/no-null
 	if (value === null) return value
 	if (value === undefined) return value
-	if (typeof value === 'function') return functionIdentity(value)
+	if (typeof value === 'function') return referenceIdentity(value, 'Function')
+	if (isThenable(value)) return referenceIdentity(value, 'Promise')
 	if (typeof value === 'bigint') return value.toString()
 	if (value instanceof Date) return value.toISOString()
 	if (Array.isArray(value)) return value
