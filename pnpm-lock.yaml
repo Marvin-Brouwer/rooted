@@ -37,8 +37,8 @@ importers:
         specifier: ^74.0.0
         version: 74.0.0(eslint@10.3.0(jiti@2.7.0))
       happy-dom:
-        specifier: ^20.14.0
-        version: 20.14.0
+        specifier: ^20.14.3
+        version: 20.14.3
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -47,7 +47,7 @@ importers:
         version: 3.1.0(typescript@6.0.3)
       oxlint:
         specifier: ^1.82.0
-        version: 1.82.0(oxlint-tsgolint@7.0.2001)(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.0)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))
+        version: 1.82.0(oxlint-tsgolint@7.0.2001)(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.3)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))
       tsdown:
         specifier: ^0.23.0
         version: 0.23.0(tsx@4.23.13)(typescript@6.0.3)
@@ -56,13 +56,13 @@ importers:
         version: 6.0.3
       vite-plus:
         specifier: ^0.3.1
-        version: 0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.0)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)
+        version: 0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.3)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)
       vitepress:
         specifier: ^1.6.4
         version: 1.6.4(@algolia/client-search@5.56.0)(@types/node@26.5.1)(change-case@5.4.4)(lightningcss@1.33.0)(postcss@8.5.28)(search-insights@2.17.3)(terser@5.51.2)(typescript@6.0.3)
       vitest:
         specifier: ^5.0.0
-        version: 5.0.0(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(happy-dom@20.14.0)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))
+        version: 5.0.0(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(happy-dom@20.14.3)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))
 
   examples/recipe-book:
     dependencies:
@@ -116,8 +116,8 @@ importers:
   packages/adapter:
     dependencies:
       happy-dom:
-        specifier: ^20.14.0
-        version: 20.14.0
+        specifier: ^20.14.3
+        version: 20.14.3
     devDependencies:
       '@rooted/development':
         specifier: workspace:*
@@ -729,8 +729,8 @@ importers:
   packages/router:
     dependencies:
       happy-dom:
-        specifier: ^20.14.0
-        version: 20.14.0
+        specifier: ^20.14.3
+        version: 20.14.3
       jiti:
         specifier: ^2.7.0
         version: 2.7.0
@@ -3403,9 +3403,6 @@ packages:
   '@types/node@12.20.55':
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
 
-  '@types/node@26.4.1':
-    resolution: {integrity: sha512-k97ENvZWtvA6yqz5/FS6a7duDgOPEeOQOc2iKS/nY6mX6qJUKtLnWzQS+Xj6tXweyj6ZcTAK2Qecetnvi9nCLA==}
-
   '@types/node@26.5.1':
     resolution: {integrity: sha512-CzNm2FezW4VR/LjG6yUdiEgLE/rAQ9Slj5gCu/C2VrdcW7I0ahNZ8DRbHT7zOZ6r3ONgd/bsQIeSaoDGrd1C6g==}
 
@@ -5001,8 +4998,8 @@ packages:
     engines: {node: '>=0.4.7'}
     hasBin: true
 
-  happy-dom@20.14.0:
-    resolution: {integrity: sha512-4bRh1KzRvKDnFNTlLhzT1RZTpkKhQbQDl9j+7GXszWsvuspYdo29k6OHRf4PwiM6oLb8r/pMWeYiJjkfod5AvQ==}
+  happy-dom@20.14.3:
+    resolution: {integrity: sha512-0KMb/Eh8rsd+aMNkOk5h8LkAjo9Na1aksnEGmsuZf+GXl6UkAdIi0VbUHU7d59lXhNmawODgwwuCMiZpCxwwCw==}
     engines: {node: '>=20.0.0'}
 
   hard-rejection@2.1.0:
@@ -7097,9 +7094,6 @@ packages:
 
   unconfig@7.5.0:
     resolution: {integrity: sha512-oi8Qy2JV4D3UQ0PsopR28CzdQ3S/5A1zwsUwp/rosSbfhJ5z7b90bIyTwi/F7hCLD4SGcZVjDzd4XoUQcEanvA==}
-
-  undici-types@8.3.0:
-    resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
@@ -9857,10 +9851,6 @@ snapshots:
 
   '@types/node@12.20.55': {}
 
-  '@types/node@26.4.1':
-    dependencies:
-      undici-types: 8.3.0
-
   '@types/node@26.5.1':
     dependencies:
       undici-types: 8.9.0
@@ -9985,7 +9975,7 @@ snapshots:
       '@testing-library/dom': 10.4.1
       '@testing-library/user-event': 14.6.7(@testing-library/dom@10.4.1)
       '@vitest/browser': 4.1.11(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))(vitest@5.0.0)
-      vitest: 5.0.0(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(happy-dom@20.14.0)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))
+      vitest: 5.0.0(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(happy-dom@20.14.3)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))
     transitivePeerDependencies:
       - bufferutil
       - msw
@@ -10001,7 +9991,7 @@ snapshots:
       pngjs: 7.0.0
       sirv: 3.0.2
       tinyrainbow: 3.1.1
-      vitest: 4.1.11(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(@voidzero-dev/vite-plus-core@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))(happy-dom@20.14.0)
+      vitest: 4.1.11(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(@voidzero-dev/vite-plus-core@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))(happy-dom@20.14.3)
       ws: 8.21.3
     transitivePeerDependencies:
       - bufferutil
@@ -10018,7 +10008,7 @@ snapshots:
       pngjs: 7.0.0
       sirv: 3.0.2
       tinyrainbow: 3.1.1
-      vitest: 5.0.0(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(happy-dom@20.14.0)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))
+      vitest: 5.0.0(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(happy-dom@20.14.3)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))
       ws: 8.21.3
     transitivePeerDependencies:
       - bufferutil
@@ -11594,9 +11584,9 @@ snapshots:
     optionalDependencies:
       uglify-js: 3.19.3
 
-  happy-dom@20.14.0:
+  happy-dom@20.14.3:
     dependencies:
-      '@types/node': 26.4.1
+      '@types/node': 26.5.1
       '@types/whatwg-mimetype': 3.0.2
       '@types/ws': 8.18.1
       buffer-image-size: 0.6.4
@@ -12447,7 +12437,7 @@ snapshots:
       object-keys: 1.1.1
       safe-push-apply: 1.0.0
 
-  oxfmt@0.66.0(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.0)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)):
+  oxfmt@0.66.0(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.3)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)):
     dependencies:
       tinypool: 2.1.0
     optionalDependencies:
@@ -12470,7 +12460,7 @@ snapshots:
       '@oxfmt/binding-win32-arm64-msvc': 0.66.0
       '@oxfmt/binding-win32-ia32-msvc': 0.66.0
       '@oxfmt/binding-win32-x64-msvc': 0.66.0
-      vite-plus: 0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.0)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)
+      vite-plus: 0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.3)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)
 
   oxlint-tsgolint@7.0.2001:
     optionalDependencies:
@@ -12481,7 +12471,7 @@ snapshots:
       '@oxlint-tsgolint/win32-arm64': 7.0.2001
       '@oxlint-tsgolint/win32-x64': 7.0.2001
 
-  oxlint@1.81.0(oxlint-tsgolint@7.0.2001)(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.0)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)):
+  oxlint@1.81.0(oxlint-tsgolint@7.0.2001)(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.3)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)):
     optionalDependencies:
       '@oxlint/binding-android-arm-eabi': 1.81.0
       '@oxlint/binding-android-arm64': 1.81.0
@@ -12503,9 +12493,9 @@ snapshots:
       '@oxlint/binding-win32-ia32-msvc': 1.81.0
       '@oxlint/binding-win32-x64-msvc': 1.81.0
       oxlint-tsgolint: 7.0.2001
-      vite-plus: 0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.0)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)
+      vite-plus: 0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.3)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)
 
-  oxlint@1.82.0(oxlint-tsgolint@7.0.2001)(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.0)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)):
+  oxlint@1.82.0(oxlint-tsgolint@7.0.2001)(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.3)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)):
     optionalDependencies:
       '@oxlint/binding-android-arm-eabi': 1.82.0
       '@oxlint/binding-android-arm64': 1.82.0
@@ -12527,7 +12517,7 @@ snapshots:
       '@oxlint/binding-win32-ia32-msvc': 1.82.0
       '@oxlint/binding-win32-x64-msvc': 1.82.0
       oxlint-tsgolint: 7.0.2001
-      vite-plus: 0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.0)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)
+      vite-plus: 0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.3)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)
 
   p-each-series@3.0.0: {}
 
@@ -13742,8 +13732,6 @@ snapshots:
       quansync: 1.0.0
       unconfig-core: 7.5.0
 
-  undici-types@8.3.0: {}
-
   undici-types@8.9.0: {}
 
   undici@6.28.0: {}
@@ -13869,7 +13857,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.0)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0):
+  vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.3)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0):
     dependencies:
       '@oxc-project/types': 0.148.0
       '@oxlint/plugins': 1.79.0
@@ -13882,11 +13870,11 @@ snapshots:
       '@vitest/snapshot': 4.1.11
       '@vitest/spy': 4.1.11
       '@vitest/utils': 4.1.11
-      oxfmt: 0.66.0(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.0)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))
-      oxlint: 1.81.0(oxlint-tsgolint@7.0.2001)(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.0)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))
+      oxfmt: 0.66.0(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.3)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))
+      oxlint: 1.81.0(oxlint-tsgolint@7.0.2001)(vite-plus@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(happy-dom@20.14.3)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))
       oxlint-tsgolint: 7.0.2001
       vite: '@voidzero-dev/vite-plus-core@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0)'
-      vitest: 4.1.11(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(@voidzero-dev/vite-plus-core@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))(happy-dom@20.14.0)
+      vitest: 4.1.11(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(@voidzero-dev/vite-plus-core@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))(happy-dom@20.14.3)
     optionalDependencies:
       '@voidzero-dev/vite-plus-darwin-arm64': 0.3.1
       '@voidzero-dev/vite-plus-darwin-x64': 0.3.1
@@ -14003,7 +13991,7 @@ snapshots:
       - typescript
       - universal-cookie
 
-  vitest@4.1.11(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(@voidzero-dev/vite-plus-core@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))(happy-dom@20.14.0):
+  vitest@4.1.11(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(@voidzero-dev/vite-plus-core@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))(happy-dom@20.14.3):
     dependencies:
       '@vitest/expect': 4.1.11
       '@vitest/mocker': 4.1.11(@voidzero-dev/vite-plus-core@0.3.1(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(typescript@6.0.3)(yaml@2.9.0))
@@ -14028,11 +14016,11 @@ snapshots:
     optionalDependencies:
       '@types/node': 26.5.1
       '@vitest/browser-preview': 4.1.11(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))(vitest@5.0.0)
-      happy-dom: 20.14.0
+      happy-dom: 20.14.3
     transitivePeerDependencies:
       - msw
 
-  vitest@5.0.0(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(happy-dom@20.14.0)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0)):
+  vitest@5.0.0(@types/node@26.5.1)(@vitest/browser-preview@4.1.11)(happy-dom@20.14.3)(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0)):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/mocker': 5.0.0(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))
@@ -14051,7 +14039,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 26.5.1
       '@vitest/browser-preview': 4.1.11(vite@8.2.2(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))(vitest@5.0.0)
-      happy-dom: 20.14.0
+      happy-dom: 20.14.3
     transitivePeerDependencies:
       - msw
 
