@@ -12,16 +12,30 @@ export type StoreEvent<TState> = CustomEvent<StoreEventDetail<TState>>
 export type StoreEventHandler<TState> = (event: StoreEvent<TState>) => void
 
 /**
+ * The single values a {@link Store} may hold, as opposed to the object shapes in {@link StateObject}.
+ */
+export type StatePrimitive = Date | string | boolean | number | bigint
+
+/**
+ * Rules out functions and awaitables by subtracting the keys they carry.
+ *
+ * `Symbol.hasInstance` is the reliable marker: every function type carries it through the `Function` interface, plain data never does. `call`, `apply` and `bind` each rule out functions on their own too, and are here so the intent reads without a lookup. The cost is state that genuinely has one of those three as a property, which gets rejected for a reason nobody could guess.
+ */
+type ConcreteType = { then?: never, call?: never, apply?: never, bind?: never, [Symbol.hasInstance]?: never }
+
+/**
+ * Object state: anything object-shaped that isn't a function or an awaitable on its own. Plain objects, class instances, arrays, `Map`, `Set` and the rest all qualify.
+ */
+export type StateObject = object & ConcreteType
+
+/**
  * The set of value types a {@link Store} may hold. Covers all common serialisable primitives, objects, dates, arrays thereof, and `undefined` (for stores created without an initial value).
  *
  * Two things are ruled out at the top level, because on their own they mean something else. A function is a factory, not state, so pass it to `createStore.from` instead. An awaitable can't be state either: `store.value` is read synchronously, so a promise sitting there never resolves into anything useful, and `createStore.from` awaits one before the store exists.
  *
  * Both are fine nested on a property of object state, which is where they usually belong.
  */
-export type StateType =
-	| Date | string | boolean | number | bigint | undefined | null
-	// `Symbol.hasInstance` is the reliable marker: every function type carries it through the `Function` interface, plain data never does. `call`, `apply` and `bind` each rule out functions on their own too, and are here so the intent reads without a lookup. The cost is state that genuinely has one of those three as a property, which gets rejected for a reason nobody could guess.
-	| (object & { then?: never, call?: never, apply?: never, bind?: never, [Symbol.hasInstance]?: never })
+export type StateType = StatePrimitive | StateObject | undefined | null
 
 /**
  * A recursively-readonly view of a state value.
