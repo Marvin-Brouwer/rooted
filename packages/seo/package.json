@@ -70,6 +70,6 @@
 		"@rooted/development": "workspace:*",
 		"@rooted/router": "workspace:^",
 		"@types/node": "^26.5.1",
-		"vite": "^8.2.2"
+		"vite": "^8.3.0"
 	}
 }
