@@ -1,90 +1,92 @@
 import { type StateType, type Store, StoreImpl } from './store.mts'
 
-/**
- * Starts a store with exactly this value.
- */
-export type StoreValueInit<TState extends StateType | Array<StateType>> = { value: TState, create?: never }
-
-/**
- * Starts a store with whatever `create` returns. It's called once, while the store is being built.
- */
-export type StoreFactoryInit<TState extends StateType | Array<StateType>> = { create: () => TState, value?: never }
-
-/**
- * The argument to `createStore`: either `{ value }` or `{ create() }`, never both.
- *
- * It's a shape rather than a bare value so the two stay apart. `StateType` includes `object`, so a plain factory argument would be ambiguous for anyone whose state is itself a function.
- */
-export type StoreInit<TState extends StateType | Array<StateType>> = StoreFactoryInit<TState> | StoreValueInit<TState>
-
-/**
- * What `createStore` gives you for a {@link StoreFactoryInit}: the store, or a promise for it when the factory is async.
- */
-export type CreatedStore<TState> =
-	// Wrapped in a tuple so a union state type stays one store instead of distributing into a union of stores.
-	[TState] extends [PromiseLike<infer TResolved extends StateType | Array<StateType>>]
-		? Promise<Store<TResolved>>
-		: [TState] extends [StateType | Array<StateType>] ? Store<TState> : never
-
 function isThenable(value: unknown): value is PromiseLike<unknown> {
 	return typeof (value as PromiseLike<unknown> | undefined)?.then === 'function'
 }
 
 /**
- * Creates a new {@link Store}.
+ * The factory form of `createStore`, reachable as `createStore.from`.
  *
- * Takes `{ value }` for state you already have, or `{ create() }` for state that has to be read from somewhere. `create` runs once, while the store is being built, and never again. Nothing runs before that, so a store you never create costs nothing.
+ * Takes a factory instead of a value. It runs once, while the store is being built, so nothing is read until the store actually exists. That saves the named helper that exists only to be called on the line above, and it keeps the read out of module-parse time.
  *
- * Primitive values are widened to their base type. `createStore({ value: true })` returns `Store<boolean>`, not `Store<true>`. Use an explicit type parameter to narrow further: `createStore<'idle' | 'navigating'>({ value: 'idle' })`.
+ * An async factory hands back a promise for the store rather than the store, so `await` it. There's no half-built store in between. At module scope that means a top-level `await`, which makes the whole module async for everyone importing it, so a synchronous factory with a sensible default is usually the easier thing to live with.
+ *
+ * Primitive values are widened to their base type, the same as `createStore`.
+ *
+ * One wrinkle worth knowing: an explicit type parameter and an async factory don't combine. `createStore.from<Theme>(async () => 'dark')` doesn't compile, because the synchronous signature is tried first and widens the literal before the async one gets a look. Annotate the factory's return type instead, which is what you'd write anyway: `createStore.from(async (): Promise<Theme> => 'dark')`.
+ *
+ * @example
+ * ```ts
+ * // Read from storage, once, when the store is built.
+ * export const theme = createStore.from(() => cookieStorage.get<Theme>('theme') ?? 'light')
+ *
+ * // Narrow past the widening with an explicit type parameter.
+ * const nav = createStore.from<'idle' | 'navigating'>(() => 'idle')
+ *
+ * // Async factories give you a promise for the store.
+ * const settings = await createStore.from(async () => {
+ *   const response = await fetch('/settings')
+ *   return await response.json() as Settings
+ * })
+ * ```
+ */
+export type StoreFactory = {
+	(factory: () => boolean): Store<boolean>
+	(factory: () => number): Store<number>
+	(factory: () => string): Store<string>
+	(factory: () => bigint): Store<bigint>
+	<T extends StateType | Array<StateType>>(factory: () => T): Store<T>
+	<T extends StateType | Array<StateType>>(factory: () => PromiseLike<T>): Promise<Store<T>>
+}
+
+// The cast is the same widening any overload implementation does; `StoreFactory` above is the checked contract. Writing it as a typed const rather than an overloaded function declaration is what puts those signatures in the generated API report, where they're the only thing guarding them.
+const createStoreFrom = (<T extends StateType | Array<StateType>>(
+	factory: () => T | PromiseLike<T>,
+): Promise<Store<T>> | Store<T> => {
+	const created = factory()
+	if (!isThenable(created)) return new StoreImpl(created)
+
+	return Promise.resolve(created).then((state) => new StoreImpl(state as T))
+}) as StoreFactory
+
+/**
+ * Creates a new {@link Store} with the given initial state.
+ *
+ * Primitive values are widened to their base type. `createStore(true)` returns `Store<boolean>`, not `Store<true>`. Use an explicit type parameter to narrow further: `createStore<'idle' | 'navigating'>('idle')`.
  *
  * Calling without an argument creates a store with `undefined` as the initial value. The type parameter is required in this form: `createStore<string>()`.
  *
- * An `async create` gives you a promise for the store instead of the store. The flip side is that a factory can't produce a store whose state *is* a promise, because anything thenable it returns gets awaited. `{ value: promise }` does hold the promise, but it isn't much of a workaround: object state is deep-cloned for snapshots and a cloned promise doesn't work. A store of a promise isn't really a thing here.
- *
- * Passing both `value` and `create` doesn't compile. Passing a bare value throws a `TypeError`, which is there for JavaScript callers and for anyone migrating from the version that took one.
+ * State has to be concrete. A bare function is a factory and a promise is something to await, so neither is accepted here: use `createStore.from` for both. Either one nested on a property of object state is fine.
  *
  * @example
  * ```ts
  * // No initial value
- * const store = createStore<string>()                      // Store<string | undefined>
+ * const store = createStore<string>()          // Store<string | undefined>
  *
  * // Primitive state. Widened automatically.
- * const flag = createStore({ value: true })                // Store<boolean>
- * const nav = createStore<'idle' | 'navigating'>({ value: 'idle' })
+ * const flag = createStore(true)               // Store<boolean>
+ * const nav = createStore<'idle' | 'navigating'>('idle')  // Store<'idle' | 'navigating'>
  *
  * // Object state
- * const counter = createStore({ value: { count: 0 } })
+ * const counter = createStore({ count: 0 })
  * counter.update(s => { s.count++ })
  * counter.on('change', signal, ({ detail }) => render(detail.state))
  *
- * // Read from storage, once, when the store is built.
- * const servings = createStore({ create: () => localStorage.get<number>(key) ?? 4 })
+ * // At module scope there's no signal to pass. Leave it out and it's cleaned up on page unload.
+ * counter.on('change', ({ detail }) => localStorage.setItem('count', String(detail.state.count)))
  *
- * // An async factory hands back a promise for the store.
- * const session = await createStore({ async create() { return fetchSession() } })
+ * // State that has to be read first belongs on `from`.
+ * const servings = createStore.from(() => localStorage.get<number>(key) ?? 4)
  * ```
  */
 export function createStore<T extends StateType | Array<StateType>>(): Store<T | undefined>
-export function createStore(init: StoreInit<boolean>): Store<boolean>
-export function createStore(init: StoreInit<number>): Store<number>
-export function createStore(init: StoreInit<string>): Store<string>
-export function createStore(init: StoreInit<bigint>): Store<bigint>
-export function createStore<T extends StateType | Array<StateType>>(init: StoreFactoryInit<T>): CreatedStore<T>
-export function createStore<T extends StateType | Array<StateType>>(init: StoreFactoryInit<Promise<T>>): Promise<Store<T>>
-export function createStore<T extends StateType | Array<StateType>>(init: StoreValueInit<T>): Store<T>
-export function createStore<T extends StateType | Array<StateType>>(
-	init?: StoreInit<T>,
-): Promise<Store<T | undefined>> | Store<T | undefined> {
-	if (init === undefined) return new StoreImpl<T | undefined>(undefined)
-	// eslint-disable-next-line unicorn/no-null
-	if (typeof init !== 'object' || init === null) {
-		throw new TypeError('createStore takes { value } or { create() }, not a bare value')
-	}
-	// Read `create` by type, not with `in`, so a spread that leaves it undefined falls through to `value`.
-	if (typeof init.create !== 'function') return new StoreImpl<T | undefined>(init.value as T)
-
-	const created = init.create()
-	if (!isThenable(created)) return new StoreImpl<T | undefined>(created)
-
-	return Promise.resolve(created).then(value => new StoreImpl<T | undefined>(value as T))
+export function createStore(initial: boolean): Store<boolean>
+export function createStore(initial: number): Store<number>
+export function createStore(initial: string): Store<string>
+export function createStore(initial: bigint): Store<bigint>
+export function createStore<T extends StateType | Array<StateType>>(initial: T): Store<T>
+export function createStore<T extends StateType | Array<StateType>>(initial?: T): Store<T | undefined> {
+	return new StoreImpl(initial)
 }
+
+createStore.from = createStoreFrom

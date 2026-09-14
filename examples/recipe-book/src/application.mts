@@ -25,7 +25,7 @@ export const Application = component({
 	onMount({ append, element, create }) {
 		document.title = 'Recipe Book'
 
-		const progress = createStore<NavigationState>({ value: 'idle' })
+		const progress = createStore<NavigationState>('idle')
 
 		append(
 			element('div', {

@@ -12,7 +12,7 @@ pnpm add @rooted/store
 ```ts
 import { createStore } from '@rooted/store'
 
-const counter = createStore({ value: { count: 0 } })
+const counter = createStore({ count: 0 })
 
 counter.update(state => { state.count += 1 })
 

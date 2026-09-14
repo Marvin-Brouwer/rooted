@@ -8,7 +8,7 @@ import { createStore } from '../src/store.create.mts'
 describe('createStore — subscribing without a signal, on page unload', () => {
 	test('listener is removed when the page is permanently unloaded', () => {
 		// Arrange
-		const store = createStore({ value: { count: 0 } })
+		const store = createStore({ count: 0 })
 		const handler = vi.fn()
 		store.on('change', handler)
 		store.update((s) => {
