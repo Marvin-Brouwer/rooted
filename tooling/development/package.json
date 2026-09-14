@@ -18,7 +18,7 @@
 		"rooted-development": "./bin/bin.cjs"
 	},
 	"devDependencies": {
-		"@microsoft/api-extractor": "^7.59.0",
+		"@microsoft/api-extractor": "^7.59.1",
 		"@types/node": "^26.5.1",
 		"tree-kill": "^1.2.2",
 		"tsx": "^4.23.13"
