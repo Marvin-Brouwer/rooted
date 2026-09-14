@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from 'vitest'
 
 import { deepClone, deepFreeze } from '../src/deepClone.mts'
 import { hashState } from '../src/hash.mts'
-import { createStore } from '../src/store.mts'
+import { createStore } from '../src/store.create.mts'
 
 describe('createStore — value', () => {
 	test('returns initial state', () => {
@@ -888,5 +888,95 @@ describe('createStore — Map, Set and Date in state', () => {
 		// Assert
 		expect(snapshot.d.getUTCFullYear()).toBe(2026)
 		expect(store.value.d.getUTCFullYear()).toBe(2030)
+	})
+})
+
+describe('createStore.from — sync factory', () => {
+	test('state comes from what the factory returns', () => {
+		// Arrange
+		const store = createStore.from(() => ({ count: 3 }))
+
+		// Assert
+		expect(store.value).toEqual({ count: 3 })
+	})
+
+	test('the factory runs exactly once, however often the store is used', () => {
+		// Arrange
+		const factory = vi.fn(() => ({ count: 0 }))
+		const store = createStore.from(factory)
+
+		// Act
+		store.update((state) => { state.count += 1 })
+		void store.value
+		void store.value
+
+		// Assert
+		expect(factory).toHaveBeenCalledTimes(1)
+	})
+
+	test('the factory runs while the store is being built, not before', () => {
+		// Arrange
+		const order: Array<string> = []
+		const factory = () => {
+			order.push('created')
+			return 0
+		}
+
+		// Act
+		order.push('before')
+		createStore.from(factory)
+		order.push('after')
+
+		// Assert
+		expect(order).toEqual(['before', 'created', 'after'])
+	})
+})
+
+describe('createStore.from — async factory', () => {
+	test('an async factory hands back a promise for the store', async () => {
+		// Act
+		const result = createStore.from(async () => ({ count: 3 }))
+
+		// Assert
+		expect(result).toBeInstanceOf(Promise)
+		expect((await result).value).toEqual({ count: 3 })
+	})
+
+	test('the store holds the awaited value, not the promise', async () => {
+		// Arrange
+		const store = await createStore.from(async () => 'ready')
+
+		// Assert
+		expect(store.value).toBe('ready')
+	})
+
+	test('the store is not built until the factory resolves', async () => {
+		// Arrange
+		let resolveState = (_state: number) => {}
+		const pending = new Promise<number>((resolve) => { resolveState = resolve })
+		const settled = vi.fn()
+
+		// Act
+		const result = createStore.from(() => pending).then(settled)
+		await Promise.resolve()
+
+		// Assert
+		expect(settled).not.toHaveBeenCalled()
+		resolveState(3)
+		await result
+		expect(settled).toHaveBeenCalledTimes(1)
+	})
+
+	test('a thenable that is not a promise is awaited too', async () => {
+		// Arrange
+		// A thenable that isn't a promise is the whole point of this test.
+		// eslint-disable-next-line unicorn/no-thenable
+		const thenable = { then: (resolve: (state: number) => void) => resolve(3) }
+
+		// Act
+		const store = await createStore.from(() => thenable as unknown as Promise<number>)
+
+		// Assert
+		expect(store.value).toBe(3)
 	})
 })

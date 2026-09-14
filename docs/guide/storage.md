@@ -92,10 +92,12 @@ type Theme = 'dark' | 'light'
 
 export const theme = createStore<Theme>(localStorage.get<Theme>(KEY) ?? 'light')
 
-theme.on('change', new AbortController().signal, ({ detail }) => {
+theme.on('change', ({ detail }) => {
   localStorage.set(KEY, detail.state)
 })
 ```
+
+This is module scope, so the subscription leaves the signal out and is cleaned up on page unload. See [state](./state.md#subscribing) for when to pass one.
 
 The recipe-book example does this for the per-recipe servings count. See [`recipe.mts`][recipe-mts] for the full pattern.
 

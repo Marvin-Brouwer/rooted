@@ -28,6 +28,41 @@ const name = createStore<string>()         // Store<string | undefined>
 const status = createStore<'idle' | 'navigating'>('idle')
 ```
 
+A bare function or promise is the one thing it won't take, because both mean something else: a function is a factory, and a promise is something to await. `createStore.from` takes those. Nested on a property of object state, either is fine.
+
+### Starting from a factory
+
+`createStore.from` takes a function and uses what it returns. Use it when the first value takes more than an expression to work out, so you don't need a helper at module scope that exists to be called once on the line below it:
+
+```ts
+export const themeStore = createStore.from<Theme>(() => {
+  const stored = cookieStorage.get<string>('theme')
+  if (stored === 'system' || stored === 'light' || stored === 'dark') return stored
+  // Back-compat: older versions wrote 'auto'
+  if (stored === 'auto') return 'system'
+  return 'system'
+})
+```
+
+The factory runs when the store is built, which at module scope is import time, the same as passing a value. It only buys you time where the store itself does: inside `onMount`, or behind a condition.
+
+An async factory gives you a promise for the store instead of the store:
+
+```ts
+const settings = await createStore.from(async () => {
+  const response = await fetch('/settings')
+  return await response.json() as Settings
+})
+```
+
+Everything reading that store waits for the `await`, and at module scope it makes the module async for everyone importing it. A synchronous factory with a sensible default, updated once the fetch lands, is usually easier to live with.
+
+For an async factory, annotate its return type rather than passing a type parameter. `createStore.from<Theme>(async () => 'dark')` doesn't compile:
+
+```ts
+const theme = await createStore.from(async (): Promise<Theme> => 'dark')
+```
+
 ## Reading
 
 `store.value` returns a deeply-frozen snapshot of the current state, typed as `ReadonlyState<T>` so nested mutations are rejected by both TypeScript and the runtime.
@@ -156,6 +191,8 @@ The honest list:
 - Reads materialise a deep-frozen clone the first time after each update and cache it. For very large state trees this is measurable on first read. Updates with no readers pay nothing.
 - Class instances in state are cloned structurally. The prototype is preserved so `instanceof` keeps working, but the constructor isn't re-run, private fields (`#field`) are lost, identity changes, and any `WeakMap`/`WeakSet` entries keyed on the original won't see the clone. If your class carries behaviour the snapshot needs to keep, prefer plain data.
 - `Map` and `Set` snapshots throw a `TypeError` on `.set` / `.add` / `.delete` / `.clear`, since `Object.freeze` can't reach their internal slots and we'd rather fail loudly than silently mutate.
+- State is concrete: no bare functions, no bare promises. `createStore.from` covers both, and a function or promise nested on a property is still fine.
+- A promise nested in state does not survive snapshotting. `deepClone` copies it structurally, and a copied promise throws on `await`. See [#333](https://github.com/Marvin-Brouwer/rooted/issues/333).
 - There is no time-travel debugging or middleware ecosystem. If you need those, this isn't the tool.
 
 This is intentional. The store is small enough to read in one sitting.

@@ -12,9 +12,30 @@ export type StoreEvent<TState> = CustomEvent<StoreEventDetail<TState>>
 export type StoreEventHandler<TState> = (event: StoreEvent<TState>) => void
 
 /**
- * The set of value types a {@link Store} may hold. Covers all common serialisable primitives, objects, dates, arrays thereof, and `undefined` (for stores created without an initial value).
+ * The single values a {@link Store} may hold, as opposed to the object shapes in {@link StateObject}.
  */
-export type StateType = Date | string | boolean | number | bigint | object | undefined | null
+export type StatePrimitive = Date | string | boolean | number | bigint
+
+/**
+ * Rules out functions and awaitables by subtracting the keys they carry.
+ *
+ * `Symbol.hasInstance` is the reliable marker: every function type carries it through the `Function` interface, plain data never does. `call`, `apply` and `bind` each rule out functions on their own too, and are here so the intent reads without a lookup. The cost is state that genuinely has one of those three as a property, which gets rejected for a reason nobody could guess.
+ */
+type ConcreteType = { then?: never, call?: never, apply?: never, bind?: never, [Symbol.hasInstance]?: never }
+
+/**
+ * Object state: anything object-shaped that isn't a function or an awaitable on its own. Plain objects, class instances, arrays, `Map`, `Set` and the rest all qualify.
+ */
+export type StateObject = object & ConcreteType
+
+/**
+ * The set of value types a {@link Store} may hold. Covers all common serialisable primitives, objects, dates, arrays thereof, and `undefined` (for stores created without an initial value).
+ *
+ * Two things are ruled out at the top level, because on their own they mean something else. A function is a factory, not state, so pass it to `createStore.from` instead. An awaitable can't be state either: `store.value` is read synchronously, so a promise sitting there never resolves into anything useful, and `createStore.from` awaits one before the store exists.
+ *
+ * Both are fine nested on a property of object state, which is where they usually belong.
+ */
+export type StateType = StatePrimitive | StateObject | undefined | null
 
 /**
  * A recursively-readonly view of a state value.
@@ -88,7 +109,10 @@ export type Store<TState extends StateType | Array<StateType>> = {
 	on(event: 'change', handler: StoreEventHandler<TState>): void
 }
 
-class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget implements Store<TState> {
+/**
+ * The concrete {@link Store}. Not exported from the package; `createStore` in `store.create.mts` is the only way to build one.
+ */
+export class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget implements Store<TState> {
 	#state: TState
 	#hash: string
 	#snapshot: ReadonlyState<TState> | undefined
@@ -152,39 +176,4 @@ class StoreImpl<TState extends StateType | Array<StateType>> extends EventTarget
 			{ signal: signalOrHandler },
 		)
 	}
-}
-
-/**
- * Creates a new {@link Store} with the given initial state.
- *
- * Primitive values are widened to their base type. `createStore(true)` returns `Store<boolean>`, not `Store<true>`. Use an explicit type parameter to narrow further: `createStore<'idle' | 'navigating'>('idle')`.
- *
- * Calling without an argument creates a store with `undefined` as the initial value. The type parameter is required in this form: `createStore<string>()`.
- *
- * @example
- * ```ts
- * // No initial value
- * const store = createStore<string>()          // Store<string | undefined>
- *
- * // Primitive state. Widened automatically.
- * const flag = createStore(true)               // Store<boolean>
- * const nav = createStore<'idle' | 'navigating'>('idle')  // Store<'idle' | 'navigating'>
- *
- * // Object state
- * const counter = createStore({ count: 0 })
- * counter.update(s => { s.count++ })
- * counter.on('change', signal, ({ detail }) => render(detail.state))
- *
- * // At module scope there's no signal to pass. Leave it out and it's cleaned up on page unload.
- * counter.on('change', ({ detail }) => localStorage.setItem('count', String(detail.state.count)))
- * ```
- */
-export function createStore<T extends StateType | Array<StateType>>(): Store<T | undefined>
-export function createStore(initial: boolean): Store<boolean>
-export function createStore(initial: number): Store<number>
-export function createStore(initial: string): Store<string>
-export function createStore(initial: bigint): Store<bigint>
-export function createStore<T extends StateType | Array<StateType>>(initial: T): Store<T>
-export function createStore<T extends StateType | Array<StateType>>(initial?: T): Store<T | undefined> {
-	return new StoreImpl(initial)
 }

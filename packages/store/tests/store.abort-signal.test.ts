@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest'
 
-import { createStore } from '../src/store.mts'
+import { createStore } from '../src/store.create.mts'
 
 // Dispatching 'pagehide' aborts `storeAbortSignal` for good, so this test
 // lives in its own file. Vitest isolates per file, which keeps it out of the
