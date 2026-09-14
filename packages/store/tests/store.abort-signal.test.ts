@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest'
 
-import { createStore } from '../src/store.mts'
+import { createStore } from '../src/store.create.mts'
 
 // Dispatching 'pagehide' aborts `storeAbortSignal` for good, so this test
 // lives in its own file. Vitest isolates per file, which keeps it out of the
@@ -8,7 +8,7 @@ import { createStore } from '../src/store.mts'
 describe('createStore — subscribing without a signal, on page unload', () => {
 	test('listener is removed when the page is permanently unloaded', () => {
 		// Arrange
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const handler = vi.fn()
 		store.on('change', handler)
 		store.update((s) => {

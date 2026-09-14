@@ -2,16 +2,16 @@ import { describe, expect, test, vi } from 'vitest'
 
 import { deepClone, deepFreeze } from '../src/deepClone.mts'
 import { hashState } from '../src/hash.mts'
-import { createStore } from '../src/store.mts'
+import { createStore } from '../src/store.create.mts'
 
 describe('createStore — value', () => {
 	test('returns initial state', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		expect(store.value).toEqual({ count: 0 })
 	})
 
 	test('value is a frozen snapshot, not the internal reference', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const snapshot = store.value
 		store.update((s) => {
 			s.count = 1
@@ -21,14 +21,14 @@ describe('createStore — value', () => {
 	})
 
 	test('value is frozen', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		expect(Object.isFrozen(store.value)).toBe(true)
 	})
 })
 
 describe('createStore — update', () => {
 	test('applies mutation (void return)', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		store.update((s) => {
 			s.count = 5
 		})
@@ -36,13 +36,13 @@ describe('createStore — update', () => {
 	})
 
 	test('applies partial return (merges into state)', () => {
-		const store = createStore({ a: 1, b: 2 })
+		const store = createStore({ value: { a: 1, b: 2 } })
 		store.update(() => ({ a: 99 }))
 		expect(store.value).toEqual({ a: 99, b: 2 })
 	})
 
 	test('setter sees the post-update state on the next call', () => {
-		const store = createStore({ items: [1, 2, 3] })
+		const store = createStore({ value: { items: [1, 2, 3] } })
 		store.update((s) => {
 			s.items.push(4)
 		})
@@ -52,7 +52,7 @@ describe('createStore — update', () => {
 	})
 
 	test('snapshot is independent of post-update mutations to captured refs', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const snapshot = store.value
 
 		let captured: { count: number } | undefined
@@ -70,7 +70,7 @@ describe('createStore — update', () => {
 
 describe('createStore — update event', () => {
 	test('fires on every update call', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const controller = new AbortController()
 		const handler = vi.fn()
 		store.on('update', controller.signal, handler)
@@ -86,7 +86,7 @@ describe('createStore — update event', () => {
 	})
 
 	test('event detail contains current state', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const controller = new AbortController()
 		const handler = vi.fn()
 		store.on('update', controller.signal, handler)
@@ -102,7 +102,7 @@ describe('createStore — update event', () => {
 
 describe('createStore — change event', () => {
 	test('fires only when hash differs', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const controller = new AbortController()
 		const handler = vi.fn()
 		store.on('change', controller.signal, handler)
@@ -118,7 +118,7 @@ describe('createStore — change event', () => {
 	})
 
 	test('fires again when value changes back', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const controller = new AbortController()
 		const handler = vi.fn()
 		store.on('change', controller.signal, handler)
@@ -136,7 +136,7 @@ describe('createStore — change event', () => {
 
 describe('createStore — signal cleanup', () => {
 	test('listener is removed when signal aborts', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const controller = new AbortController()
 		const handler = vi.fn()
 		store.on('update', controller.signal, handler)
@@ -157,7 +157,7 @@ describe('createStore — signal cleanup', () => {
 describe('createStore — subscribing without a signal', () => {
 	test('receives update events', () => {
 		// Arrange
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const handler = vi.fn()
 		store.on('update', handler)
 
@@ -172,7 +172,7 @@ describe('createStore — subscribing without a signal', () => {
 
 	test('receives change events', () => {
 		// Arrange
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const handler = vi.fn()
 		store.on('change', handler)
 
@@ -187,7 +187,7 @@ describe('createStore — subscribing without a signal', () => {
 
 	test('keeps listening across repeated updates', () => {
 		// Arrange
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const handler = vi.fn()
 		store.on('change', handler)
 
@@ -204,7 +204,7 @@ describe('createStore — subscribing without a signal', () => {
 
 	test('is unaffected by an aborted signal on another listener', () => {
 		// Arrange
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const controller = new AbortController()
 		const withoutSignal = vi.fn()
 		const withSignal = vi.fn()
@@ -224,7 +224,7 @@ describe('createStore — subscribing without a signal', () => {
 
 	test('passes the state snapshot on the event detail', () => {
 		// Arrange
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const handler = vi.fn()
 		store.on('change', handler)
 
@@ -268,7 +268,7 @@ describe('hashState — key ordering', () => {
 
 	test('Date values hash consistently', () => {
 		const date = new Date('2026-01-01T00:00:00.000Z')
-		const store = createStore({ ts: date })
+		const store = createStore({ value: { ts: date } })
 		const controller = new AbortController()
 		const handler = vi.fn()
 		store.on('change', controller.signal, handler)
@@ -323,18 +323,18 @@ describe('createStore — no initial value', () => {
 
 describe('createStore — primitive state', () => {
 	test('value returns the initial primitive', () => {
-		const store = createStore<'idle' | 'navigating'>('idle')
+		const store = createStore<'idle' | 'navigating'>({ value: 'idle' })
 		expect(store.value).toBe('idle')
 	})
 
 	test('update replaces primitive state', () => {
-		const store = createStore<'idle' | 'navigating'>('idle')
+		const store = createStore<'idle' | 'navigating'>({ value: 'idle' })
 		store.update(() => 'navigating')
 		expect(store.value).toBe('navigating')
 	})
 
 	test('change fires when primitive differs', () => {
-		const store = createStore<'idle' | 'navigating'>('idle')
+		const store = createStore<'idle' | 'navigating'>({ value: 'idle' })
 		const controller = new AbortController()
 		const handler = vi.fn()
 		store.on('change', controller.signal, handler)
@@ -345,7 +345,7 @@ describe('createStore — primitive state', () => {
 	})
 
 	test('change does not fire for same primitive value', () => {
-		const store = createStore<'idle' | 'navigating'>('navigating')
+		const store = createStore<'idle' | 'navigating'>({ value: 'navigating' })
 		const controller = new AbortController()
 		const handler = vi.fn()
 		store.on('change', controller.signal, handler)
@@ -357,7 +357,7 @@ describe('createStore — primitive state', () => {
 	})
 
 	test('update fires on every primitive update call', () => {
-		const store = createStore<'idle' | 'navigating'>('idle')
+		const store = createStore<'idle' | 'navigating'>({ value: 'idle' })
 		const controller = new AbortController()
 		const handler = vi.fn()
 		store.on('update', controller.signal, handler)
@@ -371,14 +371,14 @@ describe('createStore — primitive state', () => {
 
 describe('createStore - value caching', () => {
 	test('value returns the same frozen snapshot between updates', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const a = store.value
 		const b = store.value
 		expect(a).toBe(b)
 	})
 
 	test('value returns a fresh snapshot after update', () => {
-		const store = createStore({ count: 0 })
+		const store = createStore({ value: { count: 0 } })
 		const a = store.value
 		store.update((s) => {
 			s.count = 1
@@ -387,7 +387,7 @@ describe('createStore - value caching', () => {
 	})
 
 	test('held snapshot is unaffected by later updates', () => {
-		const store = createStore({ count: 0, nested: { deep: 1 } })
+		const store = createStore({ value: { count: 0, nested: { deep: 1 } } })
 		const a = store.value
 		store.update((s) => {
 			s.nested.deep = 999
@@ -399,8 +399,10 @@ describe('createStore - value caching', () => {
 describe('createStore - functions in state', () => {
 	test('nested functions on state do not throw on update', () => {
 		const store = createStore({
-			items: [1, 2, 3],
-			format() { return `[${this.items.join(', ')}]` },
+			value: {
+				items: [1, 2, 3],
+				format() { return `[${this.items.join(', ')}]` },
+			},
 		})
 		expect(() => {
 			store.update((s) => {
@@ -413,7 +415,7 @@ describe('createStore - functions in state', () => {
 
 	test('functions are shared by reference in snapshots', () => {
 		const function_ = () => 42
-		const store = createStore({ fn: function_ })
+		const store = createStore({ value: { fn: function_ } })
 		expect(store.value.fn).toBe(function_)
 	})
 })
@@ -424,7 +426,7 @@ describe('createStore - symbol-keyed properties', () => {
 	test('symbol-keyed properties survive update + value read', () => {
 		type Branded = { value: number, [brand]: 'tag' }
 		const initial: Branded = { value: 1, [brand]: 'tag' }
-		const store = createStore(initial)
+		const store = createStore({ value: initial })
 
 		store.update((s) => {
 			s.value = 2
@@ -438,7 +440,7 @@ describe('createStore - symbol-keyed properties', () => {
 		const tagged = [1, 2, 3] as Tagged
 		tagged[brand] = 'list'
 
-		const store = createStore({ list: tagged })
+		const store = createStore({ value: { list: tagged } })
 		store.update((s) => {
 			s.list.push(4)
 		})
@@ -638,7 +640,7 @@ describe('hashState — hashedProperties()', () => {
 			cursor: 0,
 			hashedProperties() { return { value: this.value } },
 		}
-		const store = createStore(initial)
+		const store = createStore({ value: initial })
 		const controller = new AbortController()
 		const handler = vi.fn()
 		store.on('change', controller.signal, handler)
@@ -712,7 +714,7 @@ describe('createStore — symbol-keyed values on arrays', () => {
 
 	test('object under a symbol key on an array is frozen in the snapshot', () => {
 		// Arrange
-		const store = createStore(taggedState())
+		const store = createStore({ value: taggedState() })
 
 		// Act
 		const snapshot = store.value
@@ -723,7 +725,7 @@ describe('createStore — symbol-keyed values on arrays', () => {
 
 	test('object under a symbol key on an array is not shared with the live state', () => {
 		// Arrange
-		const store = createStore(taggedState())
+		const store = createStore({ value: taggedState() })
 		const snapshot = store.value
 
 		// Act
@@ -740,7 +742,7 @@ describe('createStore — symbol-keyed values on arrays', () => {
 describe('createStore — function-typed state properties', () => {
 	test('replacing a function with a different reference fires update and change', () => {
 		// Arrange
-		const store = createStore({ fn: () => 1 })
+		const store = createStore({ value: { fn: () => 1 } })
 		const controller = new AbortController()
 		const updates = vi.fn()
 		const changes = vi.fn()
@@ -761,7 +763,7 @@ describe('createStore — function-typed state properties', () => {
 	test('assigning the same function reference fires update but not change', () => {
 		// Arrange
 		const same = () => 1
-		const store = createStore({ fn: same })
+		const store = createStore({ value: { fn: same } })
 		const controller = new AbortController()
 		const updates = vi.fn()
 		const changes = vi.fn()
@@ -783,7 +785,7 @@ describe('createStore — function-typed state properties', () => {
 describe('createStore — frozen snapshots reject writes', () => {
 	test('mutating a nested sub-tree of value throws', () => {
 		// Arrange
-		const store = createStore({ nested: { deep: 1 } })
+		const store = createStore({ value: { nested: { deep: 1 } } })
 		const snapshot = store.value
 
 		// Act
@@ -797,7 +799,7 @@ describe('createStore — frozen snapshots reject writes', () => {
 
 	test('mutating an array element of value throws', () => {
 		// Arrange
-		const store = createStore({ items: [{ id: 1 }] })
+		const store = createStore({ value: { items: [{ id: 1 }] } })
 		const snapshot = store.value
 
 		// Act
@@ -814,9 +816,11 @@ describe('createStore — Map, Set and Date in state', () => {
 	test('reading value does not throw', () => {
 		// Arrange
 		const store = createStore({
-			m: new Map([['k', 1]]),
-			s: new Set([1]),
-			d: new Date('2026-01-01T00:00:00.000Z'),
+			value: {
+				m: new Map([['k', 1]]),
+				s: new Set([1]),
+				d: new Date('2026-01-01T00:00:00.000Z'),
+			},
 		})
 
 		// Act
@@ -829,9 +833,11 @@ describe('createStore — Map, Set and Date in state', () => {
 	test('updating does not throw', () => {
 		// Arrange
 		const store = createStore({
-			m: new Map([['k', 1]]),
-			s: new Set([1]),
-			d: new Date('2026-01-01T00:00:00.000Z'),
+			value: {
+				m: new Map([['k', 1]]),
+				s: new Set([1]),
+				d: new Date('2026-01-01T00:00:00.000Z'),
+			},
 		})
 
 		// Act
@@ -847,7 +853,7 @@ describe('createStore — Map, Set and Date in state', () => {
 
 	test('a Map snapshot is independent of the live state', () => {
 		// Arrange
-		const store = createStore({ m: new Map<string, number>([['k', 1]]) })
+		const store = createStore({ value: { m: new Map<string, number>([['k', 1]]) } })
 		const snapshot = store.value
 
 		// Act
@@ -862,7 +868,7 @@ describe('createStore — Map, Set and Date in state', () => {
 
 	test('a Set snapshot is independent of the live state', () => {
 		// Arrange
-		const store = createStore({ s: new Set<number>([1]) })
+		const store = createStore({ value: { s: new Set<number>([1]) } })
 		const snapshot = store.value
 
 		// Act
@@ -877,7 +883,7 @@ describe('createStore — Map, Set and Date in state', () => {
 
 	test('a Date snapshot is independent of the live state', () => {
 		// Arrange
-		const store = createStore({ d: new Date('2026-01-01T00:00:00.000Z') })
+		const store = createStore({ value: { d: new Date('2026-01-01T00:00:00.000Z') } })
 		const snapshot = store.value
 
 		// Act
@@ -888,5 +894,152 @@ describe('createStore — Map, Set and Date in state', () => {
 		// Assert
 		expect(snapshot.d.getUTCFullYear()).toBe(2026)
 		expect(store.value.d.getUTCFullYear()).toBe(2030)
+	})
+})
+
+describe('createStore — value init', () => {
+	test('object state comes from value', () => {
+		// Arrange
+		const store = createStore({ value: { count: 3 } })
+
+		// Assert
+		expect(store.value).toEqual({ count: 3 })
+	})
+
+	test('primitive state comes from value', () => {
+		// Arrange
+		const store = createStore({ value: 'ready' })
+
+		// Assert
+		expect(store.value).toBe('ready')
+	})
+
+	test('an explicit undefined value starts the store at undefined', () => {
+		// Arrange
+		const store = createStore({ value: undefined })
+
+		// Assert
+		expect(store.value).toBeUndefined()
+	})
+
+	test('a promise passed as a value is not awaited', () => {
+		// Arrange
+		const promise = Promise.resolve(1)
+
+		// Act
+		const store = createStore({ value: promise })
+
+		// Assert
+		expect(store).not.toBeInstanceOf(Promise)
+		expect(store.update).toBeTypeOf('function')
+	})
+
+	test('a bare value throws, to say what to write instead', () => {
+		// Act
+		const create = () => createStore('ready' as unknown as { value: string })
+
+		// Assert
+		expect(create).toThrow(TypeError)
+	})
+})
+
+describe('createStore — create init', () => {
+	test('state comes from what the factory returns', () => {
+		// Arrange
+		const store = createStore({ create: () => ({ count: 3 }) })
+
+		// Assert
+		expect(store.value).toEqual({ count: 3 })
+	})
+
+	test('the factory runs exactly once, however often the store is used', () => {
+		// Arrange
+		const factory = vi.fn(() => ({ count: 0 }))
+		const store = createStore({ create: factory })
+
+		// Act
+		store.update((state) => { state.count += 1 })
+		void store.value
+		void store.value
+
+		// Assert
+		expect(factory).toHaveBeenCalledTimes(1)
+	})
+
+	test('the factory runs while the store is being built, not before', () => {
+		// Arrange
+		const order: Array<string> = []
+		const factory = () => {
+			order.push('created')
+			return 0
+		}
+
+		// Act
+		order.push('before')
+		createStore({ create: factory })
+		order.push('after')
+
+		// Assert
+		expect(order).toEqual(['before', 'created', 'after'])
+	})
+
+	test('a function can be the state itself', () => {
+		// Arrange
+		const state = () => 42
+
+		// Act
+		const store = createStore({ create: (): (() => number) => state })
+
+		// Assert
+		expect(store.value).toBe(state)
+	})
+})
+
+describe('createStore — async create init', () => {
+	test('an async factory hands back a promise for the store', async () => {
+		// Act
+		const result = createStore({ async create() { return { count: 3 } } })
+
+		// Assert
+		expect(result).toBeInstanceOf(Promise)
+		expect((await result).value).toEqual({ count: 3 })
+	})
+
+	test('the store holds the awaited value, not the promise', async () => {
+		// Arrange
+		const store = await createStore({ async create() { return 'ready' } })
+
+		// Assert
+		expect(store.value).toBe('ready')
+	})
+
+	test('the store is not built until the factory resolves', async () => {
+		// Arrange
+		let resolveState = (_state: number) => {}
+		const pending = new Promise<number>((resolve) => { resolveState = resolve })
+		const settled = vi.fn()
+
+		// Act
+		const result = createStore({ create: () => pending }).then(settled)
+		await Promise.resolve()
+
+		// Assert
+		expect(settled).not.toHaveBeenCalled()
+		resolveState(3)
+		await result
+		expect(settled).toHaveBeenCalledTimes(1)
+	})
+
+	test('a thenable that is not a promise is awaited too', async () => {
+		// Arrange
+		// A thenable that isn't a promise is the whole point of this test.
+		// eslint-disable-next-line unicorn/no-thenable
+		const thenable = { then: (resolve: (state: number) => void) => resolve(3) }
+
+		// Act
+		const store = await createStore({ create: () => thenable as unknown as Promise<number> })
+
+		// Assert
+		expect(store.value).toBe(3)
 	})
 })

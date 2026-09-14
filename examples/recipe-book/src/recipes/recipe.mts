@@ -37,7 +37,7 @@ export const Recipe = component<RecipeOptions>({
 		)
 
 		const servingsKey = `servings/${recipe.title}`
-		const servingsStore = createStore(localStorage.get<number>(servingsKey) ?? recipe.servings)
+		const servingsStore = createStore({ value: localStorage.get<number>(servingsKey) ?? recipe.servings })
 
 		const instructionsPanel = element('div', {
 			classes: styles.instructions,

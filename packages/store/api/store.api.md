@@ -5,28 +5,40 @@
 ```ts
 
 // @public
+export type CreatedStore<TState> = [TState] extends [PromiseLike<infer TResolved extends StateType | Array<StateType>>] ? Promise<Store<TResolved>> : [TState] extends [StateType | Array<StateType>] ? Store<TState> : never;
+
+// @public
 export function createStore<T extends StateType | Array<StateType>>(): Store<T | undefined>;
 
 // @public (undocumented)
-export function createStore(initial: boolean): Store<boolean>;
+export function createStore(init: StoreInit<boolean>): Store<boolean>;
 
 // @public (undocumented)
-export function createStore(initial: number): Store<number>;
+export function createStore(init: StoreInit<number>): Store<number>;
 
 // @public (undocumented)
-export function createStore(initial: string): Store<string>;
+export function createStore(init: StoreInit<string>): Store<string>;
 
 // @public (undocumented)
-export function createStore(initial: bigint): Store<bigint>;
+export function createStore(init: StoreInit<bigint>): Store<bigint>;
 
 // @public (undocumented)
-export function createStore<T extends StateType | Array<StateType>>(initial: T): Store<T>;
+export function createStore<T extends StateType | Array<StateType>>(init: StoreFactoryInit<T>): CreatedStore<T>;
+
+// @public (undocumented)
+export function createStore<T extends StateType | Array<StateType>>(init: StoreFactoryInit<Promise<T>>): Promise<Store<T>>;
+
+// @public (undocumented)
+export function createStore<T extends StateType | Array<StateType>>(init: StoreValueInit<T>): Store<T>;
 
 // @public
 export function deepClone<T>(value: T, seen?: WeakMap<object, unknown>): T;
 
 // @public
 export type ReadonlyState<T> = T extends ((...arguments_: never) => unknown) ? T : T extends Date | RegExp | Error ? Readonly<T> : T extends Map<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> : T extends ReadonlyMap<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> : T extends Set<infer V> ? ReadonlySet<ReadonlyState<V>> : T extends ReadonlySet<infer V> ? ReadonlySet<ReadonlyState<V>> : T extends ReadonlyArray<infer V> ? number extends T['length'] ? ReadonlyArray<ReadonlyState<V>> : { readonly [K in keyof T]: ReadonlyState<T[K]>; } : T extends object ? { readonly [K in keyof T]: ReadonlyState<T[K]>; } : T;
+
+// @public
+export type StateType = Date | string | boolean | number | bigint | object | undefined | null;
 
 // @public
 export type Store<TState extends StateType | Array<StateType>> = {
@@ -43,6 +55,21 @@ export type StoreEvent<TState> = CustomEvent<StoreEventDetail<TState>>;
 
 // @public
 export type StoreEventHandler<TState> = (event: StoreEvent<TState>) => void;
+
+// @public
+export type StoreFactoryInit<TState extends StateType | Array<StateType>> = {
+    create: () => TState;
+    value?: never;
+};
+
+// @public
+export type StoreInit<TState extends StateType | Array<StateType>> = StoreFactoryInit<TState> | StoreValueInit<TState>;
+
+// @public
+export type StoreValueInit<TState extends StateType | Array<StateType>> = {
+    value: TState;
+    create?: never;
+};
 
 // (No @packageDocumentation comment for this package)
 

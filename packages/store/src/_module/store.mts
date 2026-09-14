@@ -8,5 +8,8 @@
  * @module
  */
 
-export { createStore, type ReadonlyState, type Store, type StoreEvent, type StoreEventHandler } from '../store.mts'
+export {
+	createStore, type CreatedStore, type StoreFactoryInit, type StoreInit, type StoreValueInit,
+} from '../store.create.mts'
+export { type ReadonlyState, type StateType, type Store, type StoreEvent, type StoreEventHandler } from '../store.mts'
 export { deepClone } from '../deepClone.mts'
