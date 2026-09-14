@@ -53,7 +53,7 @@
 		"@rooted/development": "workspace:*",
 		"@rooted/router": "workspace:^",
 		"@rooted/tsdown": "workspace:^",
-		"@types/node": "^26.4.1",
+		"@types/node": "^26.5.1",
 		"rolldown": "^1.2.0",
 		"tsx": "^4.23.13",
 		"typescript": "^6.0.3",
