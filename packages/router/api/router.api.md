@@ -109,7 +109,7 @@ export class Path extends HrefBase {
 }
 
 // @public
-export function restoreScrollPosition(target?: Element): boolean;
+export function restoreScrollPosition(): boolean;
 
 // @public
 export type RouterOptions = {

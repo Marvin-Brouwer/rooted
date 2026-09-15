@@ -2,13 +2,13 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { path, url } from '../src/href.mts'
 import { navigate } from '../src/navigation.mts'
-import { enableScrollSaving, getSavedScrollPosition } from '../src/scroll.mts'
+import { getSavedScrollPosition, registerScrollSaving, type ScrollRegistration } from '../src/scroll.mts'
 
 /** The `popstate` events dispatched during the current test, in order. */
 let events: PopStateEvent[] = []
 let listener: AbortController
-/** Scroll saving is module state, so every test has to hand back what it switched on. */
-let disableScrollSaving: (() => void) | undefined
+/** The scroll registry is module state, so every test has to hand back what it signed up. */
+let registration: ScrollRegistration | undefined
 
 /** A stand-in for a custom scroll container, which is all the scroll module reads off one. */
 function scrollContainer(scrollTop: number) {
@@ -29,8 +29,8 @@ beforeEach(() => {
 
 afterEach(() => {
 	listener.abort()
-	disableScrollSaving?.()
-	disableScrollSaving = undefined
+	registration?.unregister()
+	registration = undefined
 	vi.restoreAllMocks()
 })
 
@@ -124,7 +124,7 @@ describe('navigate()', () => {
 describe('navigate() scroll saving', () => {
 	test('saves the scroll position onto the entry it leaves, before pushing', () => {
 		// Arrange
-		disableScrollSaving = enableScrollSaving(scrollContainer(540))
+		registration = registerScrollSaving(scrollContainer(540))
 		const replaceState = vi.spyOn(history, 'replaceState')
 		const pushState = vi.spyOn(history, 'pushState')
 
@@ -132,11 +132,11 @@ describe('navigate() scroll saving', () => {
 		navigate('/categories/italian/')
 
 		// Assert
-		expect(getSavedScrollPosition(replaceState.mock.calls[0][0])).toBe(540)
+		expect(getSavedScrollPosition(replaceState.mock.calls[0][0], registration.id)).toBe(540)
 		expect(replaceState.mock.invocationCallOrder[0]).toBeLessThan(pushState.mock.invocationCallOrder[0])
 	})
 
-	test('leaves the entry alone when scroll saving is off', () => {
+	test('leaves the entry alone when no router asked for scroll saving', () => {
 		// Arrange
 		const replaceState = vi.spyOn(history, 'replaceState')
 
@@ -149,12 +149,12 @@ describe('navigate() scroll saving', () => {
 
 	test('saves nothing for a replace, because that entry is being overwritten', () => {
 		// Arrange
-		disableScrollSaving = enableScrollSaving(scrollContainer(540))
+		registration = registerScrollSaving(scrollContainer(540))
 
 		// Act
 		navigate.replace('/en/')
 
 		// Assert
-		expect(getSavedScrollPosition(history.state)).toBeUndefined()
+		expect(getSavedScrollPosition(history.state, registration.id)).toBeUndefined()
 	})
 })

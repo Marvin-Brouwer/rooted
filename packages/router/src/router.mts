@@ -9,7 +9,7 @@ import { RouteMatch } from './route.match.mts'
 import { isRoute, routeMetadata } from './route.metadata.mts'
 import { AnyRoute, route } from './route.mts'
 import { renderWithViewTransition } from './router.view-transition.mts'
-import { enableScrollSaving, getSavedScrollPosition, scrollToPosition } from './scroll.mts'
+import { getSavedScrollPosition, registerScrollSaving, scrollToPosition } from './scroll.mts'
 import { applyRouteSeoMeta, type RouterSeoOptions } from './seo-meta.mts'
 
 import type { ErrorHandler, NavigateHandler } from './navigate-event.mts'
@@ -156,18 +156,14 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 			let lastPath: string | undefined
 
+			let scrollId: string | undefined
 			if (saveScrollBeforeNavigate && isClient()) {
-				// `navigate` is a free function and can't see these options, so hand
-				// them over for as long as this router is mounted. Restoring scroll
-				// ourselves means the browser shouldn't also try.
-				const disableScrollSaving = enableScrollSaving(scrollTarget)
-				const browserScrollRestoration = history.scrollRestoration
-				history.scrollRestoration = 'manual'
-
-				signal.addEventListener('abort', () => {
-					disableScrollSaving()
-					history.scrollRestoration = browserScrollRestoration
-				})
+				// `navigate` is a free function and can't see these options, so this
+				// router joins the registry for as long as it's mounted, and its
+				// position rides along on the history entry under this id.
+				const registration = registerScrollSaving(scrollTarget)
+				scrollId = registration.id
+				signal.addEventListener('abort', registration.unregister)
 			}
 
 			function scrollTo(y: number) {
@@ -193,7 +189,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 				// Read the entry we've landed on rather than the popstate event's
 				// state: same value on a navigation, but it also works on mount,
 				// which is what restores scroll after a reload.
-				const savedScrollY = saveScrollBeforeNavigate ? getSavedScrollPosition(history.state) : undefined
+				const savedScrollY = scrollId === undefined ? undefined : getSavedScrollPosition(history.state, scrollId)
 
 				// Scroll to top on:start
 				if (!savedScrollY && (scrollToTop === 'on:start' || scrollToTop === 'on:start-and-end')) {

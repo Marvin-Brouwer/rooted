@@ -1,5 +1,5 @@
 import { Path, Url } from './href.mts'
-import { saveScrollPosition } from './scroll.mts'
+import { saveScrollPositions } from './scroll.mts'
 
 /**
  * The two ways to name a navigation target: a URL to go to, or history state on
@@ -79,9 +79,7 @@ function write(hrefOrState: string | Url | Path | URL | object, replace: boolean
 		history.replaceState(state, '', href)
 	}
 	else {
-		// Stamp the entry we're leaving before it's no longer the current one,
-		// so back lands where the user left off.
-		saveScrollPosition()
+		saveScrollPositions()
 		history.pushState(state, '', href)
 	}
 

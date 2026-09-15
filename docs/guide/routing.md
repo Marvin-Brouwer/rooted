@@ -265,7 +265,7 @@ on('window', 'popstate', () => {
 })
 ```
 
-It returns `false` when the entry has no saved position, and scrolls nothing. Pass an element to scroll a custom container; it defaults to the one the router was mounted with.
+It takes no arguments: every mounted router is scrolled back to the position saved for it, in whatever container that router was given. It returns `false` when nothing was saved, which includes the case where scroll saving is switched off.
 
 ## Gates
 
