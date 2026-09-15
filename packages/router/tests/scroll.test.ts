@@ -101,7 +101,7 @@ describe('saveScrollOffsets()', () => {
 		saveScrollOffsets()
 
 		// Assert
-		expect(getSavedScrollOffset(history.state, id)).toEqual([420, 35])
+		expect(getSavedScrollOffset(history.state, id)).toEqual([35, 420])
 	})
 
 	test('saves each registered router separately', () => {
@@ -113,8 +113,8 @@ describe('saveScrollOffsets()', () => {
 		saveScrollOffsets()
 
 		// Assert
-		expect(getSavedScrollOffset(history.state, first.id)).toEqual([420, 0])
-		expect(getSavedScrollOffset(history.state, second.id)).toEqual([75, 0])
+		expect(getSavedScrollOffset(history.state, first.id)).toEqual([0, 420])
+		expect(getSavedScrollOffset(history.state, second.id)).toEqual([0, 75])
 	})
 
 	test('keeps the history state that was already there', () => {
@@ -126,7 +126,7 @@ describe('saveScrollOffsets()', () => {
 		saveScrollOffsets()
 
 		// Assert
-		expect(history.state).toEqual({ modal: 'confirm', [ROUTER_KEY]: { [id]: [120, 0] } })
+		expect(history.state).toEqual({ modal: 'confirm', [ROUTER_KEY]: { [id]: [0, 120] } })
 	})
 
 	test('reads the window scroll for a router with no custom container', () => {
@@ -139,7 +139,7 @@ describe('saveScrollOffsets()', () => {
 		saveScrollOffsets()
 
 		// Assert
-		expect(getSavedScrollOffset(history.state, id)).toEqual([66, 12])
+		expect(getSavedScrollOffset(history.state, id)).toEqual([12, 66])
 	})
 
 	test('stops saving for a router that unregistered', () => {
@@ -184,7 +184,7 @@ describe('getSavedScrollOffset()', () => {
 })
 
 describe('scrollToOffset()', () => {
-	test('sets both axes on a container', () => {
+	test('sets both axes on a container, x then y', () => {
 		// Arrange
 		const container = scrollContainer()
 
@@ -192,8 +192,8 @@ describe('scrollToOffset()', () => {
 		scrollToOffset([250, 40], container)
 
 		// Assert
-		expect(container.scrollTop).toBe(250)
-		expect(container.scrollLeft).toBe(40)
+		expect(container.scrollLeft).toBe(250)
+		expect(container.scrollTop).toBe(40)
 	})
 
 	test('scrolls a container back to the origin through scrollTo', () => {
@@ -215,7 +215,7 @@ describe('scrollToOffset()', () => {
 		scrollToOffset([250, 40])
 
 		// Assert
-		expect(scrollTo).toHaveBeenCalledWith({ top: 250, left: 40, behavior: 'instant' })
+		expect(scrollTo).toHaveBeenCalledWith({ top: 40, left: 250, behavior: 'instant' })
 	})
 })
 

@@ -132,7 +132,7 @@ describe('navigate() scroll saving', () => {
 		navigate('/categories/italian/')
 
 		// Assert
-		expect(getSavedScrollOffset(replaceState.mock.calls[0][0], registration.id)).toEqual([540, 0])
+		expect(getSavedScrollOffset(replaceState.mock.calls[0][0], registration.id)).toEqual([0, 540])
 		expect(replaceState.mock.invocationCallOrder[0]).toBeLessThan(pushState.mock.invocationCallOrder[0])
 	})
 

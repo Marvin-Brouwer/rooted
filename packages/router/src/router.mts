@@ -16,7 +16,7 @@ import type { ErrorHandler, NavigateHandler } from './navigate-event.mts'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** Top left, where a route that isn't being restored starts. */
+/** The origin, where a route that isn't being restored starts. */
 const TOP: ScrollOffset = [0, 0]
 
 /**

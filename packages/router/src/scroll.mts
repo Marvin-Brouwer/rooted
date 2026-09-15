@@ -4,12 +4,12 @@ import { isClient } from '@rooted/util'
 const ROUTER_KEY = '@rooted/router'
 
 /**
- * Where something is scrolled to, both axes.
+ * Where something is scrolled to, both axes, in the usual x then y order.
  *
- * Vertical first, because that's the one you nearly always care about, and
- * both are labelled so you don't have to come back here to check.
+ * Both are labelled, so you don't have to come back here to check which way
+ * round they go.
  */
-export type ScrollOffset = [y: number, x: number]
+export type ScrollOffset = [x: number, y: number]
 
 /**
  * The routers currently asking for their scroll offset to be saved, by id.
@@ -81,8 +81,8 @@ export function saveScrollOffsets(): void {
 	const offsets: Record<string, ScrollOffset> = {}
 	for (const [id, { target }] of activeRouters) {
 		offsets[id] = target
-			? [target.scrollTop, target.scrollLeft]
-			: [window.scrollY, window.scrollX]
+			? [target.scrollLeft, target.scrollTop]
+			: [window.scrollX, window.scrollY]
 	}
 
 	history.replaceState({ ...history.state, [ROUTER_KEY]: offsets }, '')
@@ -114,14 +114,14 @@ export function getSavedScrollOffset(state: unknown, routerId: string): ScrollOf
  * @param offset - Where to scroll to. See {@link ScrollOffset}.
  * @param target - A custom scroll container. Omit for `window`.
  */
-export function scrollToOffset([y, x]: ScrollOffset, target?: Element): void {
+export function scrollToOffset([x, y]: ScrollOffset, target?: Element): void {
 	if (!isClient()) return
 
 	if (target) {
-		if (y === 0 && x === 0) target.scrollTo?.({ top: 0, left: 0, behavior: 'instant' })
+		if (x === 0 && y === 0) target.scrollTo?.({ top: 0, left: 0, behavior: 'instant' })
 		else {
-			target.scrollTop = y
 			target.scrollLeft = x
+			target.scrollTop = y
 		}
 	}
 	else {
