@@ -1,5 +1,6 @@
+import { isThenable } from '@rooted/util'
+
 import { type StateType, type Store, StoreImpl } from './store.mts'
-import { isThenable } from './thenable.mts'
 
 /**
  * The factory form of `createStore`, reachable as `createStore.from`.

@@ -1,4 +1,4 @@
-import { isThenable } from './thenable.mts'
+import { isThenable } from '@rooted/util'
 
 const referenceIdentities = new WeakMap<object, number>()
 let nextReferenceIdentity = 0

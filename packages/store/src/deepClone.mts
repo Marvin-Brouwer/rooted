@@ -1,4 +1,4 @@
-import { isThenable } from './thenable.mts'
+import { isThenable } from '@rooted/util'
 
 /**
  * Returns a deep copy of `value`.
