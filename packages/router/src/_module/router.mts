@@ -1,7 +1,7 @@
 /**
  * Routing primitives for the rooted framework. The user-facing surface:
- * `Link`, `navigate`, `href`, `gate`, the navigation events, and the option
- * types for the router itself.
+ * `Link`, `navigate`, `href`, `gate`, `restoreScrollPosition`, the navigation
+ * events, and the option types for the router itself.
  *
  *
  * - [Routing guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/routing.md)
@@ -16,6 +16,8 @@ export * from '../navigation-link.mts'
 export * from '../href.export.mts'
 
 export * from '../gate.mts'
+
+export { restoreScrollPosition } from '../scroll.mts'
 
 export { NavigateEvent, NavigationErrorEvent, type NavigateHandler, type ErrorHandler } from '../navigate-event.mts'
 export type { RouterOptions } from '../router.mts'

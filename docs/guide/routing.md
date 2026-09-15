@@ -175,7 +175,7 @@ create(Router, {
 |--------|--------------|
 | `viewTransition` | Wrap renders in `document.startViewTransition` when available. |
 | `scrollBehavior.scrollToTop` | When to scroll to top: `on:start`, `on:end`, `on:start-and-end` (default), or `skip`. |
-| `scrollBehavior.saveScrollBeforeNavigate` | Save scroll position before push navigations so back/forward restores it. Default `true`. |
+| `scrollBehavior.saveScrollBeforeNavigate` | Save the scroll position onto the entry a push navigation leaves, so back restores it. Default `true`. |
 | `scrollBehavior.target` | A custom scroll container. Defaults to `window`. |
 | `on.navigate` | Fires twice per navigation, with `event.navigationType === 'start'` and `'end'`. |
 | `on.error` | Fires when a route's `resolve` throws. |
@@ -252,6 +252,20 @@ navigate.replace(href.for(HomeRoute, {
   locale: remembered
 }))
 ```
+
+### `restoreScrollPosition`
+
+A push saves the scroll position onto the entry it leaves, and the router scrolls back to it when you return. It only does that for navigations it considers a route change, so a back that changes nothing but the query string or the hash leaves the page where it is. Call `restoreScrollPosition` when you want that one back:
+
+```ts
+import { href, restoreScrollPosition } from '@rooted/router'
+
+on('window', 'popstate', () => {
+  if (href.current().query.has('page')) restoreScrollPosition()
+})
+```
+
+It takes no arguments: every mounted router is scrolled back to the position saved for it, in whatever container that router was given. It returns `false` when nothing was saved, which includes the case where scroll saving is switched off.
 
 ## Gates
 

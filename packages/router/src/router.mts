@@ -9,12 +9,15 @@ import { RouteMatch } from './route.match.mts'
 import { isRoute, routeMetadata } from './route.metadata.mts'
 import { AnyRoute, route } from './route.mts'
 import { renderWithViewTransition } from './router.view-transition.mts'
-import { getSavedScrollPosition } from './scroll.mts'
+import { getSavedScrollOffset, registerScrollSaving, ScrollOffset, scrollToOffset } from './scroll.mts'
 import { applyRouteSeoMeta, type RouterSeoOptions } from './seo-meta.mts'
 
 import type { ErrorHandler, NavigateHandler } from './navigate-event.mts'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+/** The origin, where a route that isn't being restored starts. */
+const TOP: ScrollOffset = [0, 0]
 
 /**
  * Configuration object passed to {@link router}.
@@ -64,7 +67,8 @@ export type RouterOptions = {
 	viewTransition?: boolean
 	scrollBehavior?: {
 		/**
-		 * When to scroll to the top of the page during a navigation.
+		 * When to scroll to the top of the page during a navigation. Both axes,
+		 * so a horizontally scrolled page starts a new route at the left too.
 		 * - `'on:start'`: scroll before the route resolves
 		 * - `'on:end'`: scroll after the route renders
 		 * - `'on:start-and-end'`: scroll both before and after (default)
@@ -72,8 +76,15 @@ export type RouterOptions = {
 		 */
 		scrollToTop?: 'on:start' | 'on:end' | 'on:start-and-end' | 'skip'
 		/**
-		 * When `true` (default), the current scroll position is saved before
-		 * push navigations so it can be restored on back/forward navigation.
+		 * When `true` (default), the scroll position is written onto the history
+		 * entry a push navigation leaves behind, and restored when you come back
+		 * to it.
+		 *
+		 * Only pushes save, so an entry you left with the back or forward button
+		 * carries no position: go back and then forward again and that page starts
+		 * at the top. Setting this also takes over from the browser
+		 * (`history.scrollRestoration = 'manual'`) for as long as the router is
+		 * mounted.
 		 */
 		saveScrollBeforeNavigate?: boolean
 		/**
@@ -135,7 +146,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 	return component<RouterOptions>({
 		name: '@rooted/router',
-		async onMount({ replace, create, on, options, element }) {
+		async onMount({ replace, create, on, options, element, signal }) {
 			const {
 				viewTransition = false,
 				scrollBehavior: {
@@ -149,15 +160,18 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 
 			let lastPath: string | undefined
 
-			function scrollTo(y: number) {
-				if (!isClient()) return
-				if (scrollTarget) {
-					if (y === 0) scrollTarget.scrollTo?.({ top: 0, behavior: 'instant' })
-					else scrollTarget.scrollTop = y
-				}
-				else {
-					window.scrollTo({ top: y, behavior: 'instant' })
-				}
+			let scrollId: string | undefined
+			if (saveScrollBeforeNavigate && isClient()) {
+				// `navigate` is a free function and can't see these options, so this
+				// router joins the registry for as long as it's mounted, and its
+				// position rides along on the history entry under this id.
+				const registration = registerScrollSaving(scrollTarget)
+				scrollId = registration.id
+				signal.addEventListener('abort', registration.unregister)
+			}
+
+			function scrollTo(offset: ScrollOffset) {
+				scrollToOffset(offset, scrollTarget)
 			}
 
 			function renderRoute(element?: Element) {
@@ -169,18 +183,21 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 				else render()
 			}
 
-			async function update(incomingState?: unknown) {
+			async function update() {
 				const target = normalizeHref(href.current)
 
 				if (target.pathOnly === lastPath) return
 				lastPath = target.pathOnly
 
 				const currentHref = target.href
-				const savedScrollY = saveScrollBeforeNavigate ? getSavedScrollPosition(incomingState) : undefined
+				// Read the entry we've landed on rather than the popstate event's
+				// state: same value on a navigation, but it also works on mount,
+				// which is what restores scroll after a reload.
+				const savedOffset = scrollId === undefined ? undefined : getSavedScrollOffset(history.state, scrollId)
 
 				// Scroll to top on:start
-				if (!savedScrollY && (scrollToTop === 'on:start' || scrollToTop === 'on:start-and-end')) {
-					scrollTo(0)
+				if (savedOffset === undefined && (scrollToTop === 'on:start' || scrollToTop === 'on:start-and-end')) {
+					scrollTo(TOP)
 				}
 
 				handlers?.navigate?.(new NavigateEvent('start', currentHref))
@@ -204,15 +221,15 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 				}
 
 				// Scroll restoration after render
-				if (savedScrollY !== undefined) {
-					scrollTo(savedScrollY)
+				if (savedOffset !== undefined) {
+					scrollTo(savedOffset)
 				}
 				else if (scrollToTop === 'on:end' || scrollToTop === 'on:start-and-end') {
-					scrollTo(0)
+					scrollTo(TOP)
 				}
 			}
 
-			on('window', 'popstate', (event: PopStateEvent) => update(event.state))
+			on('window', 'popstate', () => update())
 			await update()
 		},
 	})

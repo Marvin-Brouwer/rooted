@@ -59,6 +59,7 @@ both commands are run from the repository root.
 ## Commit messages
 
 Keep commit message headers (the first line) under 80 characters.
+Body lines must stay under 100 characters, which commitlint enforces on every commit. Break at punctuation to get there, see [Line wrapping](#line-wrapping).
 Always use [Conventional Commits](https://www.conventionalcommits.org/) format for commits:
 
 ```txt
@@ -126,11 +127,15 @@ These rules apply to all prose in the repo (READMEs, docs, comments, PR and comm
 
 ### Line wrapping
 
-Keep each paragraph on a single line. Don't wrap to a virtual column width.
+The unit is the logical paragraph, not the line. Never reflow a paragraph to fit a column width: not 80, not 100, not wherever your editor draws its ruler.
 
 - Paragraphs are separated by a double newline (one blank line).
-- For a hard line break inside a paragraph, end the line with a trailing backslash (` \`) and put the rest on the next line.
-- If a line becomes ridiculously long, only break after a punctuation mark (period, comma, semi-colon, colon). Never break mid-sentence or mid-word.
+- Markdown has no maximum line length. A paragraph is one line, however long it gets, and that is fine as it is.
+- Breaking after a punctuation mark (period, comma, semi-colon, colon) is always allowed, not a last resort. A plain newline inside a markdown paragraph renders as a space, so the break is in the source and nowhere else.
+- Never break mid-sentence or mid-word.
+- For a hard line break, one that should show up in the rendered output, end the line with a trailing backslash (` \`) and put the rest on the next line.
+
+Commit bodies are the exception, and the only one: commitlint rejects a body line over 100 characters. Break after punctuation until every line fits. Markdown has no such limit, so don't carry the habit back into docs.
 
 ## Pull request summary
 

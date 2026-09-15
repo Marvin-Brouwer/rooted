@@ -1,7 +1,6 @@
 # Contributing to rooted
 
-Thank you for your interest in contributing! This document covers everything you
-need to get set up and submit a quality pull request.
+Thank you for your interest in contributing! This document covers everything you need to get set up and submit a quality pull request.
 
 
 ## Contents
@@ -20,8 +19,7 @@ need to get set up and submit a quality pull request.
 
 ## Code of conduct
 
-Be respectful and constructive. Harassment, discrimination, or dismissive
-communication of any kind will not be tolerated.
+Be respectful and constructive. Harassment, discrimination, or dismissive communication of any kind will not be tolerated.
 
 
 ## Getting started
@@ -64,8 +62,7 @@ rooted/
 └── package.json      # monorepo root (scripts, devDependencies)
 ```
 
-Each package under `packages/` is a standalone npm package with its own
-`package.json`, `tsup.config.mts`, and `src/` directory.
+Each package under `packages/` is a standalone npm package with its own `package.json`, `tsup.config.mts`, and `src/` directory.
 
 
 ## Development workflow
@@ -105,16 +102,13 @@ pnpm build
 
 - Target: `ES2022` with `"moduleResolution": "bundler"`.
 - Use `.mts` file extensions for ESM source files.
-- All public APIs must have **TSDoc** comments — see existing source files for
-  the style convention.
+- All public APIs must have **TSDoc** comments — see existing source files for the style convention.
 - Prefer explicit types on exported functions and types.
-- Do not use `any` except in internal glue code where the type is structurally
-  constrained elsewhere.
+- Do not use `any` except in internal glue code where the type is structurally constrained elsewhere.
 
 ### Linting
 
-The project uses ESLint with `@typescript-eslint`, `eslint-plugin-import`, and
-`eslint-plugin-unicorn`.
+The project uses ESLint with `@typescript-eslint`, `eslint-plugin-import`, and `eslint-plugin-unicorn`.
 
 ```sh
 pnpm lint         # lint and auto-fix
@@ -125,8 +119,7 @@ All linting must pass before a PR is merged.
 
 ### Naming
 
-Prefer full, descriptive names over abbreviations in all code — including
-documentation examples, tests, and library source.
+Prefer full, descriptive names over abbreviations in all code — including documentation examples, tests, and library source.
 
 ```ts
 // ❌ abbreviated
@@ -140,11 +133,9 @@ catch (error) { ... }
 const rootElement = document.getElementById('app')
 ```
 
-**Exception:** the `#app` HTML id is a widely-recognised convention and may
-be used as-is in selectors and HTML markup.
+**Exception:** the `#app` HTML id is a widely-recognised convention and may be used as-is in selectors and HTML markup.
 
-If you find an abbreviation in the codebase that you believe should become an
-additional exception, open an issue or PR for discussion before using it.
+If you find an abbreviation in the codebase that you believe should become an additional exception, open an issue or PR for discussion before using it.
 
 ### Style
 
@@ -167,17 +158,14 @@ pnpm test:watch    # re-run on change
 ### Writing tests
 
 - Co-locate test files with the package they test (`packages/<pkg>/tests/`).
-- `.test.ts` is a unit test. `.spec.ts` is a functional test, one that describes
-  behaviour rather than checking a unit in isolation. Both run.
+- `.test.ts` is a unit test. `.spec.ts` is a functional test, one that describes behaviour rather than checking a unit in isolation. Both run.
 - Test the public API surface — avoid testing private internals.
-- Each meaningful behaviour should have its own `test()` block with a descriptive
-  name.
+- Each meaningful behaviour should have its own `test()` block with a descriptive name.
 - If you add a new feature or fix a bug, add or update tests to cover it.
 
 ### Unit tests
 
-This section is about `.test.ts` files. Structure the body of a unit test as
-**arrange, act, assert**, and label the three parts with comments:
+This section is about `.test.ts` files. Structure the body of a unit test as **arrange, act, assert**, and label the three parts with comments:
 
 ```ts
 test('falls back to the default locale when the entry is missing', async () => {
@@ -193,21 +181,17 @@ test('falls back to the default locale when the entry is missing', async () => {
 })
 ```
 
-Arrange sets up whatever the test needs. Act is the single call being tested.
-Assert checks what came back. The value of the split is mostly in Act: if a test
-needs two of them, it's usually two tests, and if you can't point at one, the
-test probably isn't testing anything specific. See Bill Wake's
-[3A – Arrange, Act, Assert](https://xp123.com/3a-arrange-act-assert/), which
-named the pattern.
+Arrange sets up whatever the test needs. Act is the single call being tested. Assert checks what came back.
+The value of the split is mostly in Act: if a test needs two of them, it's usually two tests,
+and if you can't point at one, the test probably isn't testing anything specific.
+See Bill Wake's [3A – Arrange, Act, Assert](https://xp123.com/3a-arrange-act-assert/), which named the pattern.
 
-Leave off a label that doesn't apply rather than inventing something to put
-under it. Plenty of tests have nothing to arrange, and a test that only checks
-ambient state has nothing to act on either.
+Leave off a label that doesn't apply rather than inventing something to put under it.
+Plenty of tests have nothing to arrange, and a test that only checks ambient state has nothing to act on either.
 
 ### Coverage expectations
 
-There is no enforced coverage threshold, but PRs that reduce meaningful coverage
-without justification will be asked to add tests.
+There is no enforced coverage threshold, but PRs that reduce meaningful coverage without justification will be asked to add tests.
 
 
 ## Commit messages
@@ -235,8 +219,7 @@ Common types:
 | `perf` | Performance improvement |
 | `revert` | Reverting a previous commit |
 
-> **Note:** `refactor` is not used in this project. If a code change has no observable behaviour change use `chore`;
-> if it does have one, use one of the other appropriate option.
+> **Note:** `refactor` is not used in this project. If a code change has no observable behaviour change use `chore`; if it does have one, use one of the other appropriate option.
 
 Examples:
 
@@ -246,8 +229,7 @@ fix(components): prevent duplicate style injection on hot reload
 docs: add elements guide for RootedElement
 ```
 
-Keep the summary under 72 characters. Use the body to explain **why**, not
-**what** (the diff already shows what changed).
+Keep the summary under 72 characters. Use the body to explain **why**, not **what** (the diff already shows what changed).
 
 
 ## Submitting a pull request
@@ -275,8 +257,7 @@ Keep the summary under 72 characters. Use the body to explain **why**, not
    - Link any related issues (`Closes #123`).
    - Note any breaking changes.
 
-6. A maintainer will review the PR. Address feedback promptly; PRs with no
-   activity for 30 days may be closed.
+6. A maintainer will review the PR. Address feedback promptly; PRs with no activity for 30 days may be closed.
 
 ### PR checklist
 
@@ -303,13 +284,11 @@ You can check them if not applicable.
 
 ## Reporting bugs
 
-Open a [GitHub issue](https://github.com/Marvin-Brouwer/rooted/issues/new) and
-include:
+Open a [GitHub issue](https://github.com/Marvin-Brouwer/rooted/issues/new) and include:
 
 - A minimal reproduction (code snippet or link to a StackBlitz/CodeSandbox).
 - Expected vs. actual behaviour.
 - Browser name and version (for runtime bugs).
 - Node version (`node -v`) and pnpm version (`pnpm -v`).
 
-Feature requests are welcome too — describe the use case clearly so the
-maintainers can evaluate fit and priority.
+Feature requests are welcome too — describe the use case clearly so the maintainers can evaluate fit and priority.

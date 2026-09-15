@@ -1,4 +1,5 @@
 import { Path, Url } from './href.mts'
+import { saveScrollOffsets } from './scroll.mts'
 
 /**
  * The two ways to name a navigation target: a URL to go to, or history state on
@@ -57,6 +58,11 @@ export type Navigate = NavigateCall & {
  * navigate.replace('/en/')
  * ```
  *
+ * A push saves the current scroll position onto the entry it's leaving, so
+ * back restores it. `replace` doesn't, because it overwrites that entry.
+ * Switch it off with `scrollBehavior.saveScrollBeforeNavigate: false` on the
+ * router.
+ *
  * @see {@link Link} for a component that calls `navigate` on click
  */
 export const navigate = Object.freeze(Object.assign(
@@ -69,8 +75,13 @@ function write(hrefOrState: string | Url | Path | URL | object, replace: boolean
 	const href = resolveHref(hrefOrState)
 	const state = href === undefined ? hrefOrState : undefined
 
-	if (replace) history.replaceState(state, '', href)
-	else history.pushState(state, '', href)
+	if (replace) {
+		history.replaceState(state, '', href)
+	}
+	else {
+		saveScrollOffsets()
+		history.pushState(state, '', href)
+	}
 
 	globalThis.dispatchEvent(new PopStateEvent('popstate', { state }))
 }
