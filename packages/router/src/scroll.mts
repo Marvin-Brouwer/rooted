@@ -1,9 +1,18 @@
 import { isClient } from '@rooted/util'
 
-const SCROLL_KEY = '@rooted/scrollY'
+/** Namespace for the router's own state on a history entry, keyed by router id inside it. */
+const ROUTER_KEY = '@rooted/router'
 
 /**
- * The routers currently asking for their scroll position to be saved, by id.
+ * Where something is scrolled to, both axes.
+ *
+ * Vertical first, because that's the one you nearly always care about, and
+ * both are labelled so you don't have to come back here to check.
+ */
+export type ScrollOffset = [y: number, x: number]
+
+/**
+ * The routers currently asking for their scroll offset to be saved, by id.
  *
  * A router instance can't go into `history.state`, and neither can the element
  * it scrolls, but an instance has identity. So each one gets a stable id on
@@ -21,7 +30,7 @@ let browserScrollRestoration: ScrollRestoration | undefined
 
 /** A router's place in the scroll registry. Hand {@link ScrollRegistration.unregister} to the mount signal. */
 export type ScrollRegistration = {
-	/** The id this router's position is stored under, in `history.state`. */
+	/** The id this router's offset is stored under, inside the entry's `@rooted/router` state. */
 	id: string
 	/** Takes the router back out of the registry, and gives the browser scroll restoration back. */
 	unregister(): void
@@ -37,7 +46,7 @@ export type ScrollRegistration = {
  * @param target - A custom scroll container. Omit for `window`.
  */
 export function registerScrollSaving(target?: Element): ScrollRegistration {
-	const id = `router#${++nextRouterIdentity}`
+	const id = `#${++nextRouterIdentity}`
 	activeRouters.set(id, { target })
 
 	if (isClient() && activeRouters.size === 1) {
@@ -66,55 +75,63 @@ export function registerScrollSaving(target?: Element): ScrollRegistration {
  * Uses `history.replaceState` which does **not** dispatch a `popstate` event,
  * so this is safe to call freely without interfering with other listeners.
  */
-export function saveScrollPositions(): void {
+export function saveScrollOffsets(): void {
 	if (!isClient() || activeRouters.size === 0) return
 
-	const positions: Record<string, number> = {}
+	const offsets: Record<string, ScrollOffset> = {}
 	for (const [id, { target }] of activeRouters) {
-		positions[id] = target ? target.scrollTop : window.scrollY
+		offsets[id] = target
+			? [target.scrollTop, target.scrollLeft]
+			: [window.scrollY, window.scrollX]
 	}
 
-	history.replaceState({ ...history.state, [SCROLL_KEY]: positions }, '')
+	history.replaceState({ ...history.state, [ROUTER_KEY]: offsets }, '')
 }
 
 /**
- * Reads the position saved for one router from a `history.state` object.
+ * Reads the offset saved for one router from a `history.state` object.
  *
  * Returns `undefined` when nothing was saved for it: the initial page load, a
  * push navigation the router wasn't registered for, or an entry written before
  * the router mounted.
  */
-export function getSavedScrollPosition(state: unknown, routerId: string): number | undefined {
+export function getSavedScrollOffset(state: unknown, routerId: string): ScrollOffset | undefined {
 	if (state === null || typeof state !== 'object') return undefined
 
-	const positions = (state as Record<string, unknown>)[SCROLL_KEY]
-	if (positions === null || typeof positions !== 'object') return undefined
+	const routerState = (state as Record<string, unknown>)[ROUTER_KEY]
+	if (routerState === null || typeof routerState !== 'object') return undefined
 
-	const savedScrollY = (positions as Record<string, unknown>)[routerId]
-	return typeof savedScrollY === 'number' ? savedScrollY : undefined
+	const offset = (routerState as Record<string, unknown>)[routerId]
+	if (!Array.isArray(offset) || offset.length !== 2) return undefined
+	if (typeof offset[0] !== 'number' || typeof offset[1] !== 'number') return undefined
+
+	return [offset[0], offset[1]]
 }
 
 /**
- * Scrolls `target` (or the window) to a vertical position, without animation.
+ * Scrolls `target` (or the window) to an offset, without animation.
  *
- * @param y - The offset to scroll to, in pixels.
+ * @param offset - Where to scroll to. See {@link ScrollOffset}.
  * @param target - A custom scroll container. Omit for `window`.
  */
-export function scrollToPosition(y: number, target?: Element): void {
+export function scrollToOffset([y, x]: ScrollOffset, target?: Element): void {
 	if (!isClient()) return
 
 	if (target) {
-		if (y === 0) target.scrollTo?.({ top: 0, behavior: 'instant' })
-		else target.scrollTop = y
+		if (y === 0 && x === 0) target.scrollTo?.({ top: 0, left: 0, behavior: 'instant' })
+		else {
+			target.scrollTop = y
+			target.scrollLeft = x
+		}
 	}
 	else {
-		window.scrollTo({ top: y, behavior: 'instant' })
+		window.scrollTo({ top: y, left: x, behavior: 'instant' })
 	}
 }
 
 /**
- * Scrolls every mounted router back to the position saved for it on the
- * history entry you're on, and tells you whether any of them had one.
+ * Scrolls every mounted router back to the offset saved for it on the history
+ * entry you're on, and tells you whether any of them had one.
  *
  * The router does this for you on back/forward. You only need it for the
  * navigations it deliberately ignores: a back that changes nothing but the
@@ -137,10 +154,10 @@ export function restoreScrollPosition(): boolean {
 
 	let restored = false
 	for (const [id, { target }] of activeRouters) {
-		const savedScrollY = getSavedScrollPosition(history.state, id)
-		if (savedScrollY === undefined) continue
+		const offset = getSavedScrollOffset(history.state, id)
+		if (offset === undefined) continue
 
-		scrollToPosition(savedScrollY, target)
+		scrollToOffset(offset, target)
 		restored = true
 	}
 

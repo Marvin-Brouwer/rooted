@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { path, url } from '../src/href.mts'
 import { navigate } from '../src/navigation.mts'
-import { getSavedScrollPosition, registerScrollSaving, type ScrollRegistration } from '../src/scroll.mts'
+import { getSavedScrollOffset, registerScrollSaving, type ScrollRegistration } from '../src/scroll.mts'
 
 /** The `popstate` events dispatched during the current test, in order. */
 let events: PopStateEvent[] = []
@@ -11,8 +11,8 @@ let listener: AbortController
 let registration: ScrollRegistration | undefined
 
 /** A stand-in for a custom scroll container, which is all the scroll module reads off one. */
-function scrollContainer(scrollTop: number) {
-	return { scrollTop } as unknown as Element
+function scrollContainer(scrollTop: number, scrollLeft = 0) {
+	return { scrollTop, scrollLeft } as unknown as Element
 }
 
 beforeEach(() => {
@@ -132,7 +132,7 @@ describe('navigate() scroll saving', () => {
 		navigate('/categories/italian/')
 
 		// Assert
-		expect(getSavedScrollPosition(replaceState.mock.calls[0][0], registration.id)).toBe(540)
+		expect(getSavedScrollOffset(replaceState.mock.calls[0][0], registration.id)).toEqual([540, 0])
 		expect(replaceState.mock.invocationCallOrder[0]).toBeLessThan(pushState.mock.invocationCallOrder[0])
 	})
 
@@ -155,6 +155,6 @@ describe('navigate() scroll saving', () => {
 		navigate.replace('/en/')
 
 		// Assert
-		expect(getSavedScrollPosition(history.state, registration.id)).toBeUndefined()
+		expect(getSavedScrollOffset(history.state, registration.id)).toBeUndefined()
 	})
 })

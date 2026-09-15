@@ -1,19 +1,21 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import {
-	getSavedScrollPosition,
+	getSavedScrollOffset,
 	registerScrollSaving,
 	restoreScrollPosition,
-	saveScrollPositions,
-	scrollToPosition,
+	saveScrollOffsets,
+	scrollToOffset,
 	type ScrollRegistration,
 } from '../src/scroll.mts'
 
-const SCROLL_KEY = '@rooted/scrollY'
+const ROUTER_KEY = '@rooted/router'
+
+type TestContainer = Element & { scrollTo: ReturnType<typeof vi.fn> }
 
 /** A stand-in for a custom scroll container, which is all the module reads off one. */
-function scrollContainer(scrollTop = 0) {
-	return { scrollTop, scrollTo: vi.fn() } as unknown as Element & { scrollTo: ReturnType<typeof vi.fn> }
+function scrollContainer(scrollTop = 0, scrollLeft = 0) {
+	return { scrollTop, scrollLeft, scrollTo: vi.fn() } as unknown as TestContainer
 }
 
 /** The registry is module state, so every test hands back whatever it signed up. */
@@ -79,27 +81,27 @@ describe('registerScrollSaving()', () => {
 	})
 })
 
-describe('saveScrollPositions()', () => {
+describe('saveScrollOffsets()', () => {
 	test('does nothing while no router is registered', () => {
 		// Arrange
 		history.replaceState({ modal: 'confirm' }, '')
 
 		// Act
-		saveScrollPositions()
+		saveScrollOffsets()
 
 		// Assert
 		expect(history.state).toEqual({ modal: 'confirm' })
 	})
 
-	test('saves the scroll position under the router id', () => {
+	test('saves both axes of a container under the router id', () => {
 		// Arrange
-		const { id } = register(scrollContainer(420))
+		const { id } = register(scrollContainer(420, 35))
 
 		// Act
-		saveScrollPositions()
+		saveScrollOffsets()
 
 		// Assert
-		expect(getSavedScrollPosition(history.state, id)).toBe(420)
+		expect(getSavedScrollOffset(history.state, id)).toEqual([420, 35])
 	})
 
 	test('saves each registered router separately', () => {
@@ -108,11 +110,11 @@ describe('saveScrollPositions()', () => {
 		const second = register(scrollContainer(75))
 
 		// Act
-		saveScrollPositions()
+		saveScrollOffsets()
 
 		// Assert
-		expect(getSavedScrollPosition(history.state, first.id)).toBe(420)
-		expect(getSavedScrollPosition(history.state, second.id)).toBe(75)
+		expect(getSavedScrollOffset(history.state, first.id)).toEqual([420, 0])
+		expect(getSavedScrollOffset(history.state, second.id)).toEqual([75, 0])
 	})
 
 	test('keeps the history state that was already there', () => {
@@ -121,22 +123,23 @@ describe('saveScrollPositions()', () => {
 		const { id } = register(scrollContainer(120))
 
 		// Act
-		saveScrollPositions()
+		saveScrollOffsets()
 
 		// Assert
-		expect(history.state).toEqual({ modal: 'confirm', [SCROLL_KEY]: { [id]: 120 } })
+		expect(history.state).toEqual({ modal: 'confirm', [ROUTER_KEY]: { [id]: [120, 0] } })
 	})
 
-	test('reads window.scrollY for a router with no custom container', () => {
+	test('reads the window scroll for a router with no custom container', () => {
 		// Arrange
 		vi.spyOn(window, 'scrollY', 'get').mockReturnValue(66)
+		vi.spyOn(window, 'scrollX', 'get').mockReturnValue(12)
 		const { id } = register()
 
 		// Act
-		saveScrollPositions()
+		saveScrollOffsets()
 
 		// Assert
-		expect(getSavedScrollPosition(history.state, id)).toBe(66)
+		expect(getSavedScrollOffset(history.state, id)).toEqual([66, 12])
 	})
 
 	test('stops saving for a router that unregistered', () => {
@@ -146,59 +149,62 @@ describe('saveScrollPositions()', () => {
 
 		// Act
 		unregister()
-		saveScrollPositions()
+		saveScrollOffsets()
 
 		// Assert
-		expect(getSavedScrollPosition(history.state, id)).toBeUndefined()
+		expect(getSavedScrollOffset(history.state, id)).toBeUndefined()
 	})
 })
 
-describe('getSavedScrollPosition()', () => {
+describe('getSavedScrollOffset()', () => {
 	test.each([
 		// eslint-disable-next-line unicorn/no-null
 		['null', null],
 		['a string', '300'],
-		['state without saved positions', { modal: 'confirm' }],
-		['saved positions that are not an object', { [SCROLL_KEY]: 300 }],
-		['no position for this router', { [SCROLL_KEY]: { 'router#99': 300 } }],
-		['a position that is not a number', { [SCROLL_KEY]: { 'router#1': '300' } }],
+		['state without router state', { modal: 'confirm' }],
+		['router state that is not an object', { [ROUTER_KEY]: 300 }],
+		['no offset for this router', { [ROUTER_KEY]: { '#99': [300, 0] } }],
+		['an offset that is not an array', { [ROUTER_KEY]: { '#1': 300 } }],
+		['an offset of the wrong length', { [ROUTER_KEY]: { '#1': [300] } }],
+		['an offset that is not numbers', { [ROUTER_KEY]: { '#1': ['300', '0'] } }],
 	])('returns undefined for %s', (_name, state) => {
 		// Act + Assert
-		expect(getSavedScrollPosition(state, 'router#1')).toBeUndefined()
+		expect(getSavedScrollOffset(state, '#1')).toBeUndefined()
 	})
 
-	test('returns the saved position', () => {
+	test('returns the saved offset', () => {
 		// Act + Assert
-		expect(getSavedScrollPosition({ [SCROLL_KEY]: { 'router#1': 300 } }, 'router#1')).toBe(300)
+		expect(getSavedScrollOffset({ [ROUTER_KEY]: { '#1': [300, 20] } }, '#1')).toEqual([300, 20])
 	})
 
-	test('returns a saved position of zero', () => {
+	test('returns an offset at the origin', () => {
 		// Act + Assert
-		expect(getSavedScrollPosition({ [SCROLL_KEY]: { 'router#1': 0 } }, 'router#1')).toBe(0)
+		expect(getSavedScrollOffset({ [ROUTER_KEY]: { '#1': [0, 0] } }, '#1')).toEqual([0, 0])
 	})
 })
 
-describe('scrollToPosition()', () => {
-	test('sets scrollTop on a container', () => {
+describe('scrollToOffset()', () => {
+	test('sets both axes on a container', () => {
 		// Arrange
 		const container = scrollContainer()
 
 		// Act
-		scrollToPosition(250, container)
+		scrollToOffset([250, 40], container)
 
 		// Assert
 		expect(container.scrollTop).toBe(250)
+		expect(container.scrollLeft).toBe(40)
 	})
 
-	test('scrolls a container back to the top through scrollTo', () => {
+	test('scrolls a container back to the origin through scrollTo', () => {
 		// Arrange
-		const container = scrollContainer(250)
+		const container = scrollContainer(250, 40)
 
 		// Act
-		scrollToPosition(0, container)
+		scrollToOffset([0, 0], container)
 
 		// Assert
-		expect(container.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'instant' })
+		expect(container.scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'instant' })
 	})
 
 	test('scrolls the window when there is no container', () => {
@@ -206,10 +212,10 @@ describe('scrollToPosition()', () => {
 		const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
 
 		// Act
-		scrollToPosition(250)
+		scrollToOffset([250, 40])
 
 		// Assert
-		expect(scrollTo).toHaveBeenCalledWith({ top: 250, behavior: 'instant' })
+		expect(scrollTo).toHaveBeenCalledWith({ top: 250, left: 40, behavior: 'instant' })
 	})
 })
 
@@ -227,14 +233,15 @@ describe('restoreScrollPosition()', () => {
 		expect(container.scrollTop).toBe(0)
 	})
 
-	test('scrolls every router back to its own saved position', () => {
+	test('scrolls every router back to its own saved offset', () => {
 		// Arrange
-		const first = scrollContainer(480)
+		const first = scrollContainer(480, 15)
 		const second = scrollContainer(90)
 		register(first)
 		register(second)
-		saveScrollPositions()
+		saveScrollOffsets()
 		first.scrollTop = 0
+		first.scrollLeft = 0
 		second.scrollTop = 0
 
 		// Act
@@ -242,7 +249,7 @@ describe('restoreScrollPosition()', () => {
 
 		// Assert
 		expect(restored).toBe(true)
-		expect(first.scrollTop).toBe(480)
+		expect([first.scrollTop, first.scrollLeft]).toEqual([480, 15])
 		expect(second.scrollTop).toBe(90)
 	})
 
@@ -250,7 +257,7 @@ describe('restoreScrollPosition()', () => {
 		// Arrange
 		const saved = scrollContainer(480)
 		register(saved)
-		saveScrollPositions()
+		saveScrollOffsets()
 		saved.scrollTop = 0
 		const latecomer = scrollContainer(35)
 		register(latecomer)
