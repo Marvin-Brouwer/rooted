@@ -21,6 +21,7 @@ We use [Conventional Commits](https://www.conventionalcommits.org/), with a few 
 | `chore` | Build scripts, dependencies, tooling. |
 | `ci` | CI/CD configuration. |
 | `perf` | Performance improvement. |
+| `revert` | Reverting a previous commit. |
 
 ## Why no `refactor`
 
