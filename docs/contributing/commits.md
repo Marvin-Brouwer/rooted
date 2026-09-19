@@ -21,7 +21,7 @@ We use [Conventional Commits](https://www.conventionalcommits.org/), with a few 
 | `chore` | Build scripts, dependencies, tooling. |
 | `ci` | CI/CD configuration. |
 | `perf` | Performance improvement. |
-| `build` | Build system or external dependency changes. |
+| `revert` | Reverting a previous commit. |
 
 ## Why no `refactor`
 
@@ -62,11 +62,9 @@ Optional. Use it to explain why, not what. The diff shows what changed; the body
 ```
 fix(router): treat undefined resolve as suppression, not fallback
 
-Returning undefined from a dynamic resolver was previously falling
-through to the parent route, which made it impossible to use the
-"return undefined for 404" pattern on a child of a less-specific
-route. This change blocks shorter parent routes from catching the URL
-when a longer route's resolver opted out.
+Returning undefined from a dynamic resolver used to fall through to the parent route.
+That made the "return undefined for 404" pattern impossible on a child of a less-specific route.
+This change stops shorter parent routes catching the URL when a longer route's resolver opted out.
 
 Closes #137.
 ```
