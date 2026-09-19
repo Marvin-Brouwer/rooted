@@ -13,6 +13,7 @@ The split exists for two reasons:
 @rooted/util          # leaf
 @rooted/elements      # imports util
 @rooted/events        # imports util
+@rooted/observers     # leaf. no dependencies at all
 @rooted/storage       # imports util (no DOM-component deps)
 @rooted/store         # imports util
 @rooted/components    # imports util, elements, events
@@ -43,6 +44,12 @@ Why separate from `components`: a couple of consumers (the manifest plugin, some
 Event types and the page-level event abstractions. Lives separately because the event types need to be importable by `elements` (for the `on:` prop typing) without `elements` reaching back into a higher layer.
 
 `UnhandledErrorEvent` and the cross-origin/extension filter live here. Anything we add that filters or normalises browser events goes here too.
+
+## `@rooted/observers`
+
+`IntersectionObserver`, `MutationObserver` and `ResizeObserver` wrapped so they take an `AbortSignal` and disconnect themselves. `addEventListener` has a `{ signal }` option and the observer constructors don't, so this is the one listener surface where rooted's cleanup didn't reach.
+
+Its own package, with no dependencies at all, because it has nothing to do with the rest of the framework. Anything holding an `AbortSignal` can use it, and an app that observes nothing never installs it. Nothing else in rooted depends on it, and `components` deliberately does not re-export it the way it re-exports `events`.
 
 ## `@rooted/components`
 
