@@ -9,7 +9,7 @@ import { RouteMatch } from './route.match.mts'
 import { isRoute, routeMetadata } from './route.metadata.mts'
 import { AnyRoute, route } from './route.mts'
 import { renderWithViewTransition } from './router.view-transition.mts'
-import { currentEntryState, getSavedScrollOffset, registerScrollSaving, ScrollOffset, scrollToOffset } from './scroll.mts'
+import { currentEntryState, getSavedScrollOffset, registerScrollSaving, restoreScrollOffset, ScrollOffset, scrollToOffset } from './scroll.mts'
 import { applyRouteSeoMeta, type RouterSeoOptions } from './seo-meta.mts'
 
 import type { ErrorHandler, NavigateHandler } from './navigate-event.mts'
@@ -223,9 +223,10 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 					handlers?.navigate?.(new NavigateEvent('end', currentHref))
 				}
 
-				// Scroll restoration after render
+				// Scroll restoration after render. The route's content isn't in the
+				// DOM yet, so this keeps re-applying for a few frames.
 				if (savedOffset !== undefined) {
-					scrollTo(savedOffset)
+					restoreScrollOffset(savedOffset, scrollTarget)
 				}
 				else if (scrollToTop === 'on:end' || scrollToTop === 'on:start-and-end') {
 					scrollTo(TOP)

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import {
 	getSavedScrollOffset,
 	registerScrollSaving,
+	restoreScrollOffset,
 	restoreScrollPosition,
 	saveScrollOffsets,
 	scrollToOffset,
@@ -268,5 +269,57 @@ describe('restoreScrollPosition()', () => {
 		// Assert
 		expect(saved.scrollTop).toBe(480)
 		expect(latecomer.scrollTop).toBe(35)
+	})
+})
+
+describe('restoreScrollOffset()', () => {
+	/**
+	 * A container that clamps like a real one. `maxScroll` starts small, the way
+	 * a route does before its content has mounted, and `grow()` is the content
+	 * arriving.
+	 */
+	function clampingContainer(maxScroll: number) {
+		const container = {
+			scrollLeft: 0,
+			_scrollTop: 0,
+			maxScroll,
+			attempts: 0,
+			get scrollTop() { return this._scrollTop },
+			set scrollTop(value: number) {
+				this.attempts++
+				this._scrollTop = Math.min(value, this.maxScroll)
+			},
+			scrollTo() { this._scrollTop = 0 },
+			grow(to: number) { this.maxScroll = to },
+		}
+
+		return container
+	}
+
+	test('lands on the offset once the route content has arrived', async () => {
+		// Arrange
+		const container = clampingContainer(100)
+
+		// Act
+		restoreScrollOffset([0, 600], container as unknown as Element)
+		expect(container.scrollTop).toBe(100)
+		container.grow(900)
+		await new Promise(resolve => setTimeout(resolve, 100))
+
+		// Assert
+		expect(container.scrollTop).toBe(600)
+	})
+
+	test('gives up rather than re-applying forever on a page that stays short', async () => {
+		// Arrange
+		const container = clampingContainer(100)
+
+		// Act
+		restoreScrollOffset([0, 600], container as unknown as Element)
+		await new Promise(resolve => setTimeout(resolve, 300))
+
+		// Assert
+		expect(container.scrollTop).toBe(100)
+		expect(container.attempts).toBeLessThanOrEqual(20)
 	})
 })

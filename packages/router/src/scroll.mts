@@ -163,6 +163,54 @@ export function scrollToOffset([x, y]: ScrollOffset, target?: Element): void {
 	}
 }
 
+/** How many animation frames a restore keeps re-applying the offset before giving up. */
+const RESTORE_FRAME_BUDGET = 20
+
+/**
+ * Scrolls to a saved offset, re-applying it for a few frames.
+ *
+ * A route mounts into the DOM empty and fills in asynchronously, so straight
+ * after a render the document is usually still too short for the saved offset
+ * and the browser clamps the scroll to whatever currently fits. There's no
+ * "this route has finished rendering" signal to wait on, components mount
+ * async all the way down, so this re-applies the offset each frame until it
+ * sticks, then stops.
+ *
+ * The budget is there so a page that will never be that tall (a shorter route
+ * at the same URL, content that failed to load) stops being scrolled rather
+ * than being fought every frame forever. In the recipe-book example the
+ * content arrives within three frames.
+ *
+ * The cost of the approach: for those few frames the scroll keeps being
+ * asserted, so someone who scrolls in the moment right after pressing back
+ * gets overridden once.
+ *
+ * @param offset - Where to scroll to. See {@link ScrollOffset}.
+ * @param target - A custom scroll container. Omit for `window`.
+ */
+export function restoreScrollOffset(offset: ScrollOffset, target?: Element): void {
+	if (!isClient()) return
+
+	let framesLeft = RESTORE_FRAME_BUDGET
+
+	function attempt() {
+		scrollToOffset(offset, target)
+		if (reachedOffset(offset, target) || --framesLeft <= 0) return
+		requestAnimationFrame(attempt)
+	}
+
+	attempt()
+}
+
+/** Whether the scroll actually landed on `offset`, or the browser clamped it short because the page is too small. */
+function reachedOffset([x, y]: ScrollOffset, target?: Element): boolean {
+	const [currentX, currentY] = target
+		? [target.scrollLeft, target.scrollTop]
+		: [window.scrollX, window.scrollY]
+
+	return Math.round(currentX) === x && Math.round(currentY) === y
+}
+
 /**
  * Scrolls every mounted router back to the offset saved for it on the history
  * entry you're on, and tells you whether any of them had one.
@@ -193,7 +241,7 @@ export function restoreScrollPosition(): boolean {
 		const offset = getSavedScrollOffset(state, id)
 		if (offset === undefined) continue
 
-		scrollToOffset(offset, target)
+		restoreScrollOffset(offset, target)
 		restored = true
 	}
 
