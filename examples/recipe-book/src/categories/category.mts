@@ -1,4 +1,4 @@
-import { component } from '@rooted/components'
+import { choice, component } from '@rooted/components'
 import { Link, href } from '@rooted/router'
 
 import { recipeData } from '../_shared/data/data.mts'
@@ -26,7 +26,7 @@ export const Category = component<CategoryOptions>({
 					element('h1', { textContent: categoryname }),
 					element('p', {
 						textContent: category
-							? `${category.recipes.length} recipe${category.recipes.length === 1 ? '' : 's'}`
+							? `${category.recipes.length} recipe${choice(category.recipes.length === 1, '', 's')}`
 							: `Category '${categoryname}' not found`,
 					}),
 				],

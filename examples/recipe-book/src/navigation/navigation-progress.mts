@@ -1,4 +1,4 @@
-import { component } from '@rooted/components'
+import { choice, component } from '@rooted/components'
 import { type Store } from '@rooted/store'
 
 import styles from './navigation-progress.css'
@@ -50,7 +50,7 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 					},
 				},
 				max: 100,
-				value: isNavigating() ? 0 : 100,
+				value: choice(isNavigating(), 0, 100),
 			}),
 		)
 

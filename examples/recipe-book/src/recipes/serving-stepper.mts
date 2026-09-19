@@ -1,4 +1,4 @@
-import { component } from '@rooted/components'
+import { choice, component } from '@rooted/components'
 import { localStorage } from '@rooted/storage/web'
 import { type Store } from '@rooted/store'
 
@@ -98,7 +98,7 @@ export const ServingStepper = component<ServingStepperOptions>({
 })
 
 function servingLabel(n: number): string {
-	return `${n} serving${n === 1 ? '' : 's'}`
+	return `${n} serving${choice(n === 1, '', 's')}`
 }
 
 /**

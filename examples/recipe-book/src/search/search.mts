@@ -1,4 +1,4 @@
-import { component } from '@rooted/components'
+import { choice, component } from '@rooted/components'
 import { href, Link } from '@rooted/router'
 
 import { RecipeRoute } from '../recipes/_routes.mts'
@@ -39,7 +39,7 @@ export const SearchPage = component({
 
 			root.append(element('p', {
 				classes: styles.resultCount,
-				textContent: `${matches.length} recipe${matches.length === 1 ? '' : 's'} found`,
+				textContent: `${matches.length} recipe${choice(matches.length === 1, '', 's')} found`,
 			}))
 
 			if (matches.length === 0) {

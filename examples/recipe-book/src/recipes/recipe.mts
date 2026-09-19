@@ -1,4 +1,4 @@
-import { component, ComponentContext } from '@rooted/components'
+import { choice, component, ComponentContext } from '@rooted/components'
 import { href, Link } from '@rooted/router'
 import { localStorage } from '@rooted/storage/web'
 import { createStore } from '@rooted/store'
@@ -118,7 +118,7 @@ function meta(element: ComponentContext['element'], recipe: DataRecipe) {
 			}),
 			element('li', {
 				classes: 'meta-badge',
-				textContent: `${recipe.servings} serving${recipe.servings === 1 ? '' : 's'}`,
+				textContent: `${recipe.servings} serving${choice(recipe.servings === 1, '', 's')}`,
 				aria: {
 					label: `Serves ${recipe.servings}`,
 				},
