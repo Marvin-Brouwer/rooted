@@ -172,7 +172,9 @@ Both of these pick between values you already have. Every value gets evaluated, 
 // choice would call create() for every segment, text or not
 segments.map(segment => segment.type === 'text'
   ? segment.text
-  : create(Measurement, { value: segment.value }),
+  : create(Measurement, {
+    value: segment.value
+  }),
 )
 ```
 
