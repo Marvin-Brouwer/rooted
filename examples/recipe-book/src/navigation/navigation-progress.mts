@@ -50,7 +50,10 @@ export const NavigationProgress = component<NavigationProgressOptions>({
 					},
 				},
 				max: 100,
-				value: choice(isNavigating(), 0, 100),
+				value: choice(isNavigating(),
+					0,
+					100
+				),
 			}),
 		)
 

@@ -68,12 +68,21 @@ export const ScreenLockButton = component({
 		)
 
 		function updateButton() {
-			activeIcon.style.display = choice(locked, '', 'none')
-			inactiveIcon.style.display = choice(locked, 'none', '')
-			button.ariaPressed = choice(locked, 'true', 'false')
+			activeIcon.style.display = choice(locked,
+				'',
+				'none'
+			)
+			inactiveIcon.style.display = choice(locked,
+				'none',
+				''
+			)
+			button.ariaPressed = choice(locked,
+				'true',
+				'false'
+			)
 			button.ariaLabel = choice(locked,
 				'Sleep lock on: screen will stay on',
-				'Sleep lock off: screen may turn off automatically',
+				'Sleep lock off: screen may turn off automatically'
 			)
 		}
 

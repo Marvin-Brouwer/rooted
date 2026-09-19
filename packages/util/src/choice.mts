@@ -1,14 +1,14 @@
 /**
  * Returns `matched` when `condition` is `true`, otherwise `notMatched`.
  *
- * The two sided version of `optional()`, for when both branches have a value.
- * The condition comes first, same as `optional()` and `cssClass()`, and only
- * `true` counts as a match.
+ * The two sided version of `optional()`, for picking between two values you
+ * already have. The condition comes first, same as `optional()` and
+ * `cssClass()`, and only `true` counts as a match.
  *
- * Both values are evaluated before `choice` runs, a ternary only evaluates the
- * branch it takes. So this isn't a drop-in ternary replacement: keep the
- * ternary when a branch reads through something that might not be there, or
- * does work you'd rather skip.
+ * Both values get evaluated, because that's what passing arguments to a
+ * function does, and no amount of typing changes it. A branch that has to
+ * compute something, or that reads through something which might not be
+ * there, is a ternary's job and stays one.
  *
  * @param condition - When `true` the matched value is returned, any other
  *   value returns `notMatched`.
@@ -18,9 +18,15 @@
  * @example
  * ```ts
  * element('button', {
- *   tabIndex: choice(selected, 0, -1),
+ *   tabIndex: choice(selected,
+ *     0,
+ *     -1
+ *   ),
  *   aria: {
- *     selected: choice(selected, 'true', 'false'),
+ *     selected: choice(selected,
+ *       'true',
+ *       'false'
+ *     ),
  *   },
  * })
  * ```
@@ -31,7 +37,10 @@
  * Passing a single type argument still works, `notMatched` falls back to the
  * type of `matched`:
  * ```ts
- * const label = choice<string>(locked, 'Locked', 'Unlocked')
+ * const label = choice<string>(locked,
+ *   'Locked',
+ *   'Unlocked'
+ * )
  * ```
  */
 export function choice<TMatched, TNotMatched = TMatched>(

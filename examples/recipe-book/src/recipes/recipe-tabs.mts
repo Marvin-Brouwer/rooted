@@ -66,8 +66,14 @@ export const RecipeTabs = component<RecipeTabsOptions>({
 			const newTab = options.tabs[nextIndex]
 			for (const [index, button] of buttons.entries()) {
 				const selected = index === nextIndex
-				button.ariaSelected = choice(selected, 'true', 'false')
-				button.tabIndex = choice(selected, 0, -1)
+				button.ariaSelected = choice(selected,
+					'true',
+					'false'
+				)
+				button.tabIndex = choice(selected,
+					0,
+					-1
+				)
 				panels[index].hidden = !selected
 			}
 			navigate(newTab.href)
@@ -110,9 +116,15 @@ export const RecipeTabs = component<RecipeTabsOptions>({
 				classes: styles.tab,
 				textContent: tab.label,
 				role: 'tab',
-				tabIndex: choice(selected, 0, -1),
+				tabIndex: choice(selected,
+					0,
+					-1
+				),
 				aria: {
-					selected: choice(selected, 'true', 'false'),
+					selected: choice(selected,
+						'true',
+						'false'
+					),
 					controls: panelId,
 				},
 				on: {

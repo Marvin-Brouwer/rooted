@@ -114,15 +114,21 @@ Only `undefined` and `null` are skipped. `false` is not a valid child, so `requi
 
 ### Picking a value
 
-`optional` covers "include it or leave it out". When both branches have a value there's `choice(condition, matched, notMatched)`:
+`optional` covers "include it or leave it out". `choice(condition, matched, notMatched)` picks between two values you already have:
 
 ```ts
 import { choice } from '@rooted/components'
 
 element('button', {
-  tabIndex: choice(selected, 0, -1),
+  tabIndex: choice(selected,
+    0,
+    -1
+  ),
   aria: {
-    selected: choice(selected, 'true', 'false'),
+    selected: choice(selected,
+      'true',
+      'false'
+    ),
   },
 })
 ```
@@ -148,7 +154,11 @@ element('p', {
 The array form reads an index, and gives `undefined` when the index is out of range:
 
 ```ts
-match(place, ['first', 'second', 'third'])
+match(place, [
+  'first',
+  'second',
+  'third'
+])
 ```
 
 Two things to watch with `match`:
@@ -156,7 +166,7 @@ Two things to watch with `match`:
 - The exhaustiveness only works when the key is a union of literals. A key typed as plain `string` or `number` can't be exhausted, so a partial record type-checks and hands you `undefined` where the type promises a value.
 - If you narrowed the key down to a single literal, annotate it with the full union. Otherwise the other entries in the record are read as excess properties.
 
-And one thing that applies to both: `choice` and `match` evaluate every branch, a ternary and a `switch` only evaluate the one they take. So neither is a blind ternary replacement. Keep the ternary when a branch reads through something that might not be there, or does work you'd rather skip:
+Both of these pick between values you already have. Every value gets evaluated, because that is what passing arguments to a function does, and no amount of typing changes it. So a branch that has to compute something, or that reads through something which might not be there, is a ternary's job and stays one:
 
 ```ts
 // choice would call create() for every segment, text or not

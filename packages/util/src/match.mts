@@ -25,9 +25,9 @@ export type MatchKey = string | number
  *   you narrowed the key all the way down to one literal, annotate it with the
  *   full union, otherwise the other entries in the record are read as excess
  *   properties.
- * - Every value in the record or array is evaluated before `match` runs, where
- *   a `switch` only runs the branch it takes. Keep the `switch` when the
- *   branches do real work.
+ * - Every value in the record or array gets evaluated, because that's what
+ *   building a record or an array does. When a branch has to compute
+ *   something, that's a `switch`'s job, not this.
  *
  * @param key - The key to look up, or the index to read.
  * @param options - The record to look the key up in, or the array to index.
@@ -48,7 +48,11 @@ export type MatchKey = string | number
  * @example
  * By index, for things that are already numbered:
  * ```ts
- * const ordinal = match(place, ['first', 'second', 'third'])
+ * const ordinal = match(place, [
+ *   'first',
+ *   'second',
+ *   'third'
+ * ])
  * ```
  */
 export function match<TValue>(index: number, options: ReadonlyArray<TValue>): TValue | undefined

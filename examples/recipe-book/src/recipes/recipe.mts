@@ -1,4 +1,4 @@
-import { choice, component, ComponentContext } from '@rooted/components'
+import { component, ComponentContext } from '@rooted/components'
 import { href, Link } from '@rooted/router'
 import { localStorage } from '@rooted/storage/web'
 import { createStore } from '@rooted/store'
@@ -11,6 +11,7 @@ import { IngredientsList } from './ingredients-list.mts'
 import { Measurement } from './measurements.mts'
 import { RecipeTabs } from './recipe-tabs.mts'
 import styles from './recipe.css'
+import { servingCountLabel } from './serving-label.mts'
 import { ServingStepper } from './serving-stepper.mts'
 
 export type RecipeOptions = {
@@ -118,7 +119,7 @@ function meta(element: ComponentContext['element'], recipe: DataRecipe) {
 			}),
 			element('li', {
 				classes: 'meta-badge',
-				textContent: `${recipe.servings} serving${choice(recipe.servings === 1, '', 's')}`,
+				textContent: servingCountLabel(recipe.servings),
 				aria: {
 					label: `Serves ${recipe.servings}`,
 				},
