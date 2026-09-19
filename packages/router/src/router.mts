@@ -9,7 +9,7 @@ import { RouteMatch } from './route.match.mts'
 import { isRoute, routeMetadata } from './route.metadata.mts'
 import { AnyRoute, route } from './route.mts'
 import { renderWithViewTransition } from './router.view-transition.mts'
-import { getSavedScrollOffset, registerScrollSaving, ScrollOffset, scrollToOffset } from './scroll.mts'
+import { currentEntryState, getSavedScrollOffset, registerScrollSaving, ScrollOffset, scrollToOffset } from './scroll.mts'
 import { applyRouteSeoMeta, type RouterSeoOptions } from './seo-meta.mts'
 
 import type { ErrorHandler, NavigateHandler } from './navigate-event.mts'
@@ -77,13 +77,16 @@ export type RouterOptions = {
 		scrollToTop?: 'on:start' | 'on:end' | 'on:start-and-end' | 'skip'
 		/**
 		 * When `true` (default), the scroll position is written onto the history
-		 * entry a push navigation leaves behind, and restored when you come back
-		 * to it.
+		 * entry a navigation leaves behind, and restored when you come back to it.
 		 *
-		 * Only pushes save, so an entry you left with the back or forward button
-		 * carries no position: go back and then forward again and that page starts
-		 * at the top. Setting this also takes over from the browser
-		 * (`history.scrollRestoration = 'manual'`) for as long as the router is
+		 * How complete that is depends on the browser. With the Navigation API it
+		 * covers back and forward both, because a traversal can save on its way
+		 * out. Without it only pushes save, so an entry you left with the back or
+		 * forward button keeps whatever the last push wrote, and the newest entry
+		 * in the stack has nothing and starts at the top.
+		 *
+		 * Setting this also takes over from the browser
+		 * (`history.scrollRestoration = 'manual'`) for as long as a router is
 		 * mounted.
 		 */
 		saveScrollBeforeNavigate?: boolean
@@ -193,7 +196,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 				// Read the entry we've landed on rather than the popstate event's
 				// state: same value on a navigation, but it also works on mount,
 				// which is what restores scroll after a reload.
-				const savedOffset = scrollId === undefined ? undefined : getSavedScrollOffset(history.state, scrollId)
+				const savedOffset = scrollId === undefined ? undefined : getSavedScrollOffset(currentEntryState(), scrollId)
 
 				// Scroll to top on:start
 				if (savedOffset === undefined && (scrollToTop === 'on:start' || scrollToTop === 'on:start-and-end')) {

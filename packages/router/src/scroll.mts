@@ -1,5 +1,7 @@
 import { isClient } from '@rooted/util'
 
+import { savedNavigationState, saveToNavigationEntry, startTraverseSaving } from './scroll.navigation.mts'
+
 /** Namespace for the router's own state on a history entry, keyed by router id inside it. */
 const ROUTER_KEY = '@rooted/router'
 
@@ -10,6 +12,9 @@ const ROUTER_KEY = '@rooted/router'
  * round they go.
  */
 export type ScrollOffset = [x: number, y: number]
+
+/** Every registered router's offset, by id. This is what a history entry carries under `@rooted/router`. */
+export type RouterScrollState = Record<string, ScrollOffset>
 
 /**
  * The routers currently asking for their scroll offset to be saved, by id.
@@ -27,6 +32,9 @@ let nextRouterIdentity = 0
 
 /** What the browser had `history.scrollRestoration` set to before the first router took over. */
 let browserScrollRestoration: ScrollRestoration | undefined
+
+/** Stops saving on back/forward. Set while any router is registered, on browsers that have the Navigation API. */
+let stopTraverseSaving: (() => void) | undefined
 
 /** A router's place in the scroll registry. Hand {@link ScrollRegistration.unregister} to the mount signal. */
 export type ScrollRegistration = {
@@ -52,6 +60,7 @@ export function registerScrollSaving(target?: Element): ScrollRegistration {
 	if (isClient() && activeRouters.size === 1) {
 		browserScrollRestoration = history.scrollRestoration
 		history.scrollRestoration = 'manual'
+		stopTraverseSaving = startTraverseSaving(currentOffsets)
 	}
 
 	return {
@@ -61,6 +70,8 @@ export function registerScrollSaving(target?: Element): ScrollRegistration {
 			if (isClient() && activeRouters.size === 0 && browserScrollRestoration !== undefined) {
 				history.scrollRestoration = browserScrollRestoration
 				browserScrollRestoration = undefined
+				stopTraverseSaving?.()
+				stopTraverseSaving = undefined
 			}
 		},
 	}
@@ -78,14 +89,37 @@ export function registerScrollSaving(target?: Element): ScrollRegistration {
 export function saveScrollOffsets(): void {
 	if (!isClient() || activeRouters.size === 0) return
 
-	const offsets: Record<string, ScrollOffset> = {}
+	const offsets = currentOffsets()
+	history.replaceState({ ...history.state, [ROUTER_KEY]: offsets }, '')
+	// Keep both stores in step, so the Navigation API one is never the staler
+	// of the two and {@link currentEntryState} can just prefer it.
+	saveToNavigationEntry(offsets)
+}
+
+/** Where every registered router is scrolled to, right now. */
+function currentOffsets(): RouterScrollState {
+	const offsets: RouterScrollState = {}
 	for (const [id, { target }] of activeRouters) {
 		offsets[id] = target
 			? [target.scrollLeft, target.scrollTop]
 			: [window.scrollX, window.scrollY]
 	}
 
-	history.replaceState({ ...history.state, [ROUTER_KEY]: offsets }, '')
+	return offsets
+}
+
+/**
+ * The state to read saved offsets from.
+ *
+ * The Navigation API's entry state when the browser has one, because that's the
+ * only store a back or forward can write to, and it's kept at least as fresh as
+ * `history.state`. Falls back to `history.state`, which is all there is on a
+ * browser without the Navigation API, and all an entry carries before the
+ * router has saved to it.
+ */
+export function currentEntryState(): unknown {
+	if (!isClient()) return undefined
+	return savedNavigationState() ?? history.state
 }
 
 /**
@@ -152,9 +186,11 @@ export function scrollToOffset([x, y]: ScrollOffset, target?: Element): void {
 export function restoreScrollPosition(): boolean {
 	if (!isClient()) return false
 
+	const state = currentEntryState()
+
 	let restored = false
 	for (const [id, { target }] of activeRouters) {
-		const offset = getSavedScrollOffset(history.state, id)
+		const offset = getSavedScrollOffset(state, id)
 		if (offset === undefined) continue
 
 		scrollToOffset(offset, target)

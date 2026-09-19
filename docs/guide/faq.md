@@ -103,7 +103,7 @@ If your app uses a custom scroll container instead of `window`, set `scrollBehav
 
 Two limits worth knowing about.
 
-Only pushes save, so an entry you left with the back or forward button carries no position. Go back and then forward again and that page starts at the top. It's a real gap, not a design choice; [#332](https://github.com/Marvin-Brouwer/rooted/issues/332) has the reasoning.
+How complete it is depends on the browser. Where the Navigation API exists, a back or forward saves its scroll position on the way out, so both directions restore. Where it doesn't, only pushes save: an entry you left with the back or forward button keeps whatever the last push wrote, and the newest entry in the stack has nothing and starts at the top. Nothing to configure, the router uses the Navigation API when it's there.
 
 A back that changes nothing but the query string or the hash isn't a route change, so the router doesn't touch the scroll position at all. If your page wants it back, ask for it:
 

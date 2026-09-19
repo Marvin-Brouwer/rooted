@@ -175,7 +175,7 @@ create(Router, {
 |--------|--------------|
 | `viewTransition` | Wrap renders in `document.startViewTransition` when available. |
 | `scrollBehavior.scrollToTop` | When to scroll to top: `on:start`, `on:end`, `on:start-and-end` (default), or `skip`. |
-| `scrollBehavior.saveScrollBeforeNavigate` | Save the scroll position onto the entry a push navigation leaves, so back restores it. Default `true`. |
+| `scrollBehavior.saveScrollBeforeNavigate` | Save the scroll position onto the entry a navigation leaves, so back restores it. Default `true`. |
 | `scrollBehavior.target` | A custom scroll container. Defaults to `window`. |
 | `on.navigate` | Fires twice per navigation, with `event.navigationType === 'start'` and `'end'`. |
 | `on.error` | Fires when a route's `resolve` throws. |
