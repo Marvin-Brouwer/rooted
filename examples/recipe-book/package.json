@@ -15,6 +15,7 @@
 	},
 	"dependencies": {
 		"@rooted/components": "workspace:^",
+		"@rooted/pwa": "workspace:^",
 		"@rooted/router": "workspace:^",
 		"@rooted/storage": "workspace:^",
 		"@rooted/store": "workspace:^"

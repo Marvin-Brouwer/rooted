@@ -69,6 +69,9 @@ importers:
       '@rooted/components':
         specifier: workspace:^
         version: link:../../packages/components
+      '@rooted/pwa':
+        specifier: workspace:^
+        version: link:../../packages/pwa
       '@rooted/router':
         specifier: workspace:^
         version: link:../../packages/router
@@ -580,6 +583,9 @@ importers:
       '@rooted/adapter':
         specifier: workspace:^
         version: link:../adapter
+      '@rooted/pwa':
+        specifier: workspace:^
+        version: link:../pwa
       '@rooted/seo':
         specifier: workspace:^
         version: link:../seo
@@ -725,6 +731,18 @@ importers:
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0)
+
+  packages/pwa:
+    devDependencies:
+      '@rooted/components':
+        specifier: workspace:^
+        version: link:../components
+      '@rooted/development':
+        specifier: workspace:*
+        version: link:../../tooling/development
+      tsx:
+        specifier: ^4.23.13
+        version: 4.23.13
 
   packages/router:
     dependencies:

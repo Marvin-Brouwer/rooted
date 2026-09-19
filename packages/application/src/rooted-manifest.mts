@@ -11,7 +11,9 @@ type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtim
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
 import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
 import { buildWebManifest, pwaPreset } from '../plugins/pwa-preset.mts'
+import { pwaRegisterPlugin } from '../plugins/pwa-register.mts'
 
+import type { UpdateStrategy } from '@rooted/pwa'
 import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
 
 function codeSplittingGroups(applicationGroups: CodeSplittingGroups): CodeSplittingGroups {
@@ -70,6 +72,20 @@ export type RootedApplicationManifest = {
 	icon?: string
 	seo?: SeoOptions
 	runtimeCaching?: RuntimeCaching[]
+	/**
+	 * When a new version is allowed to take over. Defaults to `'automatic'`.
+	 *
+	 * - `'automatic'` takes a version that was already waiting when the page
+	 *   opened, and reloads onto it. That costs one quick extra load.
+	 * - `'explicit'` leaves the new version waiting until the app calls
+	 *   `applyUpdate()` from `@rooted/pwa`, or someone presses an
+	 *   `ApplyUpdateButton`.
+	 *
+	 * Neither one updates a page that is already running. The router resolves
+	 * route chunks with `await import()` against the precache the page started
+	 * on, so swapping the bundle mid-session breaks navigation.
+	 */
+	updates?: UpdateStrategy
 }
 
 function resolveBase(url: string | undefined): string | undefined {
@@ -189,6 +205,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 					},
 				),
 				pwaPreset({ manifest, webManifest, skipPwaGenerator, minify, runtimeCaching: manifest.runtimeCaching }),
+				pwaRegisterPlugin({ skip: skipPwaGenerator, updates: manifest.updates ?? 'automatic' }),
 				pwaAssetsPlugin({ webManifest, skip: skipPwaAssets, deploymentUrl: manifest.webManifest.url }),
 				seoPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo),
 				manifest.seo?.robots !== false && robotsPlugin(manifest.webManifest.url, manifest.seo?.robots),

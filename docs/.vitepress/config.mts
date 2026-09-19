@@ -29,6 +29,7 @@ export default defineConfig({
 					{ text: 'State', link: '/guide/state' },
 					{ text: 'Storage', link: '/guide/storage' },
 					{ text: 'SEO', link: '/guide/seo' },
+					{ text: 'PWA', link: '/guide/pwa' },
 					{ text: 'Adapters', link: '/guide/adapters' },
 					{ text: 'FAQ', link: '/guide/faq' },
 				],

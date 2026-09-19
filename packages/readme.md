@@ -13,6 +13,7 @@ The published `@rooted/*` packages live here, one folder each.
 | [`@rooted/store`](./store) | A small synchronous shared-state container. |
 | [`@rooted/storage`](./storage) | Typed wrappers around `localStorage`, `sessionStorage`, and cookies. |
 | [`@rooted/application`](./application) | Build-time configuration: the Vite config wrapper and the PWA preset. |
+| [`@rooted/pwa`](./pwa) | Service worker registration and the update components. |
 | [`@rooted/seo`](./seo) | Build-time SEO: meta tags, sitemaps, `robots.txt`, and `llms.txt`. |
 | [`@rooted/adapter`](./adapter) | Base package for deployment adapters. See also [`adapters/`](./adapters). |
 | [`@rooted/util`](./util) | Internal utilities. Not part of the public API. |

@@ -4,6 +4,7 @@ import { href, Link } from '@rooted/router'
 import { ContentNoticeRoute } from '../content/_routes.mts'
 
 import styles from './content-banner.css'
+import { UpdateBanner } from './update-banner.mts'
 
 export const ContentBanner = component({
 	name: 'content-banner',
@@ -45,6 +46,6 @@ export const ContentBanner = component({
 			],
 		})
 
-		append(label, banner)
+		append(label, banner, create(UpdateBanner))
 	},
 })
