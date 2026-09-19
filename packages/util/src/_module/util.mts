@@ -10,6 +10,7 @@
 export * from '../base-url.mts'
 export * from '../global-abort-signal.mts'
 export * from '../is-client.mts'
+export * from '../is-thenable.mts'
 export * from '../optional.mts'
 export * from '../seeded-id.mts'
 export * from '../tuple-result.mts'

@@ -32,6 +32,9 @@ export function isError<T>(value: TupleResult<T>): value is ErrorTuple;
 export function isSuccess<T>(value: TupleResult<T>): value is SuccessTuple<T>;
 
 // @public
+export function isThenable(value: unknown): value is PromiseLike<unknown>;
+
+// @public
 export function optional<T>(condition: boolean | null | undefined, value: T): T | undefined;
 
 // @public

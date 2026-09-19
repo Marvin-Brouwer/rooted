@@ -1,8 +1,6 @@
-import { type StateType, type Store, StoreImpl } from './store.mts'
+import { isThenable } from '@rooted/util'
 
-function isThenable(value: unknown): value is PromiseLike<unknown> {
-	return typeof (value as PromiseLike<unknown> | undefined)?.then === 'function'
-}
+import { type StateType, type Store, StoreImpl } from './store.mts'
 
 /**
  * The factory form of `createStore`, reachable as `createStore.from`.

@@ -557,6 +557,46 @@ describe('deepClone', () => {
 		expect(deepClone(null)).toBe(null)
 		expect(deepClone(undefined)).toBe(undefined)
 	})
+
+	test('shares promises by reference', async () => {
+		// Arrange
+		const pending = Promise.resolve(1)
+
+		// Act
+		const copy = deepClone({ pending })
+
+		// Assert
+		expect(copy.pending).toBe(pending)
+		await expect(copy.pending).resolves.toBe(1)
+	})
+
+	test('shares a thenable that is not a promise too', () => {
+		// Arrange
+		// A thenable that isn't a promise is the whole point of this test.
+		// eslint-disable-next-line unicorn/no-thenable
+		const thenable = { then: (resolve: (value: number) => void) => resolve(3) }
+
+		// Act
+		const copy = deepClone({ thenable })
+
+		// Assert
+		expect(copy.thenable).toBe(thenable)
+	})
+
+	test('clones an object whose `then` is not callable', () => {
+		// Arrange
+		// A `then` that isn't callable is exactly the case that should still be cloned.
+		// eslint-disable-next-line unicorn/no-thenable
+		const notThenable = { then: 'later' }
+
+		// Act
+		const copy = deepClone({ notThenable })
+
+		// Assert
+		expect(copy.notThenable).not.toBe(notThenable)
+		// eslint-disable-next-line unicorn/no-thenable
+		expect(copy.notThenable).toEqual({ then: 'later' })
+	})
 })
 
 describe('deepFreeze', () => {
@@ -608,6 +648,30 @@ describe('deepFreeze', () => {
 		expect(() => s.delete(1)).toThrow(TypeError)
 		expect(() => s.clear()).toThrow(TypeError)
 	})
+
+	test('leaves promises alone', async () => {
+		// Arrange
+		const pending = Promise.resolve(1)
+
+		// Act
+		deepFreeze({ pending })
+
+		// Assert
+		expect(Object.isFrozen(pending)).toBe(false)
+		await expect(pending).resolves.toBe(1)
+	})
+
+	test('leaves a promise nested in a Map alone', () => {
+		// Arrange
+		const pending = Promise.resolve(1)
+		const map = new Map([['pending', pending]])
+
+		// Act
+		deepFreeze({ map })
+
+		// Assert
+		expect(Object.isFrozen(pending)).toBe(false)
+	})
 })
 
 describe('hashState - functions and symbol keys', () => {
@@ -627,6 +691,23 @@ describe('hashState - functions and symbol keys', () => {
 		const a = hashState({ value: 1, [brand]: 'x' } as Record<string | symbol, unknown>)
 		const b = hashState({ value: 1, [brand]: 'y' } as Record<string | symbol, unknown>)
 		expect(a).not.toBe(b)
+	})
+
+	test('same promise reference hashes the same', () => {
+		// Arrange
+		const pending = Promise.resolve(1)
+
+		// Assert
+		expect(hashState({ a: 1, pending })).toBe(hashState({ a: 1, pending }))
+	})
+
+	test('different promise references hash differently', () => {
+		// Arrange
+		const first = Promise.resolve(1)
+		const second = Promise.resolve(1) // same value, different reference
+
+		// Assert
+		expect(hashState({ a: 1, pending: first })).not.toBe(hashState({ a: 1, pending: second }))
 	})
 })
 
@@ -978,5 +1059,43 @@ describe('createStore.from — async factory', () => {
 
 		// Assert
 		expect(store.value).toBe(3)
+	})
+})
+
+describe('promises in state', () => {
+	test('a promise on a property survives the snapshot', async () => {
+		// Arrange
+		const store = createStore({ pending: Promise.resolve(1) })
+
+		// Act
+		const snapshot = store.value
+
+		// Assert
+		await expect(snapshot.pending).resolves.toBe(1)
+	})
+
+	test('every snapshot hands back the same promise', () => {
+		// Arrange
+		const pending = Promise.resolve(1)
+		const store = createStore({ pending })
+
+		// Assert
+		expect(store.value.pending).toBe(pending)
+	})
+
+	test('swapping in a different promise fires change', () => {
+		// Arrange
+		const store = createStore({ pending: Promise.resolve(1) })
+		const controller = new AbortController()
+		const handler = vi.fn()
+		store.on('change', controller.signal, handler)
+
+		// Act
+		store.update((s) => {
+			s.pending = Promise.resolve(2)
+		})
+
+		// Assert
+		expect(handler).toHaveBeenCalledTimes(1)
 	})
 })
