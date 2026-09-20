@@ -1,4 +1,4 @@
-import { component } from '@rooted/components'
+import { choice, component } from '@rooted/components'
 
 import { announceToScreenReader } from '../_shared/a11y/announcer.mts'
 
@@ -68,10 +68,22 @@ export const ScreenLockButton = component({
 		)
 
 		function updateButton() {
-			activeIcon.style.display = locked ? '' : 'none'
-			inactiveIcon.style.display = locked ? 'none' : ''
-			button.ariaPressed = locked ? 'true' : 'false'
-			button.ariaLabel = locked ? 'Sleep lock on: screen will stay on' : 'Sleep lock off: screen may turn off automatically'
+			activeIcon.style.display = choice(locked,
+				'',
+				'none'
+			)
+			inactiveIcon.style.display = choice(locked,
+				'none',
+				''
+			)
+			button.ariaPressed = choice(locked,
+				'true',
+				'false'
+			)
+			button.ariaLabel = choice(locked,
+				'Sleep lock on: screen will stay on',
+				'Sleep lock off: screen may turn off automatically'
+			)
 		}
 
 		async function acquire() {

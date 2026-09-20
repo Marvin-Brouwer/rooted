@@ -1,6 +1,7 @@
 import { component } from '@rooted/components'
 import { href, Link } from '@rooted/router'
 
+import { recipeCountLabel } from '../_shared/data/recipe-label.mts'
 import { RecipeRoute } from '../recipes/_routes.mts'
 
 import { SearchRoute } from './_routes.mts'
@@ -39,7 +40,7 @@ export const SearchPage = component({
 
 			root.append(element('p', {
 				classes: styles.resultCount,
-				textContent: `${matches.length} recipe${matches.length === 1 ? '' : 's'} found`,
+				textContent: `${recipeCountLabel(matches)} found`,
 			}))
 
 			if (matches.length === 0) {
