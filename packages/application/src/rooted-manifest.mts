@@ -73,17 +73,17 @@ export type RootedApplicationManifest = {
 	seo?: SeoOptions
 	runtimeCaching?: RuntimeCaching[]
 	/**
-	 * When a new version is allowed to take over. Defaults to `'automatic'`.
+	 * When a new version is allowed to take over.
+	 * Defaults to `'automatic'`.
 	 *
-	 * - `'automatic'` takes a version that was already waiting when the page
-	 *   opened, and reloads onto it. That costs one quick extra load.
-	 * - `'explicit'` leaves the new version waiting until the app calls
-	 *   `applyUpdate()` from `@rooted/pwa`, or someone presses an
-	 *   `ApplyUpdateButton`.
+	 * - `'automatic'` takes a version that was already waiting when the page opened, and reloads onto it.
+	 *   That costs one quick extra load.
+	 * - `'explicit'` leaves the new version waiting until the app calls `applyUpdate()` from `@rooted/pwa`,
+	 *   or someone presses an `ApplyUpdateButton`.
 	 *
-	 * Neither one updates a page that is already running. The router resolves
-	 * route chunks with `await import()` against the precache the page started
-	 * on, so swapping the bundle mid-session breaks navigation.
+	 * Neither one updates a page that is already running.
+	 * The router resolves route chunks with `await import()` against the precache the page started on,
+	 * so swapping the bundle mid-session breaks navigation.
 	 */
 	updates?: UpdateStrategy
 }

@@ -46,6 +46,10 @@ export const ContentBanner = component({
 			],
 		})
 
-		append(label, banner, create(UpdateBanner))
+		append(
+			label,
+			banner,
+			create(UpdateBanner),
+		)
 	},
 })

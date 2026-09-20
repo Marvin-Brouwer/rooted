@@ -51,16 +51,23 @@ export const UpdateBanner = component({
   name: 'update-banner',
   styles,
   onMount({ append, create, element }) {
-    append(create(UpdateNotification, {
-      children: element('div', {
-        classes: styles.banner,
-        role: 'status',
-        children: [
-          element('span', { textContent: 'A new version is available.' }),
-          create(ApplyUpdateButton, { label: 'Reload', classes: styles.reload }),
-        ],
+    append(
+      create(UpdateNotification, {
+        children: element('div', {
+          classes: styles.banner,
+          role: 'status',
+          children: [
+            element('span', {
+              textContent: 'A new version is available.',
+            }),
+            create(ApplyUpdateButton, {
+              label: 'Reload',
+              classes: styles.reload,
+            }),
+          ],
+        }),
       }),
-    }))
+    )
   },
 })
 ```
@@ -78,11 +85,20 @@ The two functions behind the components:
 ```ts
 import { applyUpdate, onUpdateReady } from '@rooted/pwa'
 
+// Fires at most once, and straight away if a version is already waiting.
 onUpdateReady(() => {
-  // A new version is installed and waiting. Fires at most once.
+  banner.hidden = false
 })
 
 await applyUpdate() // false when there was nothing waiting
+```
+
+Inside a component, pass the mount context's `signal` first, the same way `store.on` takes one, and the listener is cleaned up on unmount:
+
+```ts
+onUpdateReady(signal, () => {
+  button.disabled = false
+})
 ```
 
 `applyUpdate` reloads, so anything the page holds in memory is gone. That's the whole reason rooted doesn't do it on its own.

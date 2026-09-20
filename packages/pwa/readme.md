@@ -18,12 +18,18 @@ import { ApplyUpdateButton, UpdateNotification } from '@rooted/pwa/components'
 export const UpdateBanner = component({
   name: 'update-banner',
   onMount({ append, create, element }) {
-    append(create(UpdateNotification, {
-      children: [
-        element('span', { textContent: 'A new version is ready.' }),
-        create(ApplyUpdateButton, { label: 'Reload' }),
-      ],
-    }))
+    append(
+      create(UpdateNotification, {
+        children: [
+          element('span', {
+            textContent: 'A new version is ready.',
+          }),
+          create(ApplyUpdateButton, {
+            label: 'Reload',
+          }),
+        ],
+      }),
+    )
   },
 })
 ```

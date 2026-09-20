@@ -8,7 +8,10 @@
 export function applyUpdate(): Promise<boolean>;
 
 // @public
-export function onUpdateReady(handler: () => void, options?: UpdateReadyOptions): () => void;
+export function onUpdateReady(handler: UpdateReadyHandler): void;
+
+// @public
+export function onUpdateReady(signal: AbortSignal, handler: UpdateReadyHandler): void;
 
 // @public
 export function registerWorker(options?: RegisterWorkerOptions): Promise<ServiceWorkerRegistration | undefined>;
@@ -22,9 +25,7 @@ export type RegisterWorkerOptions = {
 };
 
 // @public
-export type UpdateReadyOptions = {
-    signal?: AbortSignal;
-};
+export type UpdateReadyHandler = () => void;
 
 // @public
 export type UpdateStrategy =

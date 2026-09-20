@@ -1,8 +1,8 @@
 /**
  * Components for showing that a new version is waiting, and for taking it.
  *
- * Both are unstyled on purpose: an update banner belongs in your layout, not in
- * a framework's stylesheet.
+ * Both are unstyled on purpose:
+ * an update banner belongs in your layout, not in a framework's stylesheet.
  *
  *
  * - [PWA guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/pwa.md)

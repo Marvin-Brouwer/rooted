@@ -26,8 +26,8 @@ export function createRegistration(waiting: WorkerStub | null = null): Registrat
 }
 
 /**
- * Installs a fake `navigator.serviceWorker`. happy-dom has none, and the real one
- * needs a served origin, so every test here drives this instead.
+ * Installs a fake `navigator.serviceWorker`.
+ * happy-dom has none, and the real one needs a served origin, so every test here drives this instead.
  */
 export function stubServiceWorker(options: { registration?: RegistrationStub, controlled?: boolean } = {}) {
 	const { registration = createRegistration(), controlled = true } = options

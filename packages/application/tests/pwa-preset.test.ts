@@ -29,8 +29,8 @@ describe('pwaPresetOptions()', () => {
 		// Act
 		const preset = options()
 
-		// Assert -- registerSW.js only registers. rooted emits a script that also
-		// checks for updates while the app runs.
+		// Assert -- registerSW.js only registers.
+		// rooted emits a script that also checks for updates while the app runs.
 		expect(preset.injectRegister).toBe(false)
 	})
 

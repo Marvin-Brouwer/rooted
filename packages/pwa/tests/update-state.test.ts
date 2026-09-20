@@ -61,27 +61,12 @@ describe('onUpdateReady()', () => {
 		expect(handler).not.toHaveBeenCalled()
 	})
 
-	test('stops listening once the returned function is called', async () => {
-		// Arrange
-		const { registration } = stubServiceWorker()
-		const handler = vi.fn()
-		const stop = onUpdateReady(handler)
-		await settle()
-
-		// Act
-		stop()
-		install(registration, createWorker())
-
-		// Assert
-		expect(handler).not.toHaveBeenCalled()
-	})
-
 	test('stops listening when the signal aborts, so a component can hand it its own', async () => {
 		// Arrange
 		const { registration } = stubServiceWorker()
 		const handler = vi.fn()
 		const unmounting = new AbortController()
-		onUpdateReady(handler, { signal: unmounting.signal })
+		onUpdateReady(unmounting.signal, handler)
 		await settle()
 
 		// Act
@@ -90,6 +75,19 @@ describe('onUpdateReady()', () => {
 
 		// Assert
 		expect(handler).not.toHaveBeenCalled()
+	})
+
+	test('still fires for a version already waiting when a signal is passed', async () => {
+		// Arrange
+		stubServiceWorker({ registration: createRegistration(createWorker('installed')) })
+		const handler = vi.fn()
+
+		// Act
+		onUpdateReady(new AbortController().signal, handler)
+		await settle()
+
+		// Assert
+		expect(handler).toHaveBeenCalledTimes(1)
 	})
 
 	test('does nothing where there is no service worker at all', async () => {

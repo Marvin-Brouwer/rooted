@@ -9,9 +9,9 @@ import { UpdateNotification, UpdateNotificationOptions } from '../src/update-not
 import { createRegistration, createWorker, install, stubServiceWorker } from './service-worker-stub.ts'
 
 /**
- * Mounts a component without registering a custom element, the way
- * `packages/router/tests/navigation-link.test.ts` does. Only the context members
- * these two reach for are filled in.
+ * Mounts a component without registering a custom element,
+ * the way `packages/router/tests/navigation-link.test.ts` does.
+ * Only the context members these two reach for are filled in.
  */
 function mount<TOptions extends object>(
 	constructor: { onMount: (context: ComponentContext<TOptions>) => void },

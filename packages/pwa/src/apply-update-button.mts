@@ -12,14 +12,14 @@ export type ApplyUpdateButtonOptions = {
 }
 
 /**
- * A `<button>` that takes the waiting version and reloads onto it. Disabled
- * until there is something to take.
+ * A `<button>` that takes the waiting version and reloads onto it.
+ * Disabled until there is something to take.
  *
- * It ships without styles. Pass `classes` and style it like any other button in
- * your app.
+ * It ships without styles.
+ * Pass `classes` and style it like any other button in your app.
  *
- * Reloading throws away whatever the page holds in memory, which is why this is
- * a button and not something rooted does on its own.
+ * Reloading throws away whatever the page holds in memory,
+ * which is why this is a button and not something rooted does on its own.
  *
  * @example
  * ```ts
@@ -50,7 +50,9 @@ export const ApplyUpdateButton = component<ApplyUpdateButtonOptions>({
 			},
 		})
 
-		onUpdateReady(() => { button.disabled = false }, { signal })
+		onUpdateReady(signal, () => {
+			button.disabled = false
+		})
 
 		append(button)
 	},
