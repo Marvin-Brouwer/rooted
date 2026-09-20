@@ -4,6 +4,7 @@
 
 ```ts
 
+import { choice } from '@rooted/util';
 import { CssClass } from '@rooted/elements';
 import { cssClass } from '@rooted/elements';
 import { CssClassDictionary } from '@rooted/elements';
@@ -11,7 +12,11 @@ import { CssClasses } from '@rooted/elements';
 import { cssClasses } from '@rooted/elements';
 import { ElementFactory } from '@rooted/elements';
 import { EventBuilder } from '@rooted/elements/events';
+import { match } from '@rooted/util';
+import { MatchKey } from '@rooted/util';
 import { optional } from '@rooted/util';
+
+export { choice }
 
 // @public
 export type Component<TOptions extends object = never> = ComponentConstructor<TOptions> & {
@@ -70,6 +75,10 @@ export class GenericComponent extends RootedElement {
     // (undocumented)
     static tagName: string;
 }
+
+export { match }
+
+export { MatchKey }
 
 export { optional }
 

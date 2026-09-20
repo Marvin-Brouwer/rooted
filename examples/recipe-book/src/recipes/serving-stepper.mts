@@ -2,6 +2,7 @@ import { component } from '@rooted/components'
 import { localStorage } from '@rooted/storage/web'
 import { type Store } from '@rooted/store'
 
+import { servingCountLabel } from './serving-label.mts'
 import styles from './serving-stepper.css'
 
 export type ServingStepperOptions = {
@@ -39,8 +40,8 @@ export const ServingStepper = component<ServingStepperOptions>({
 			classes: [styles.btn, styles.resetBtn],
 			textContent: '↺',
 			disabled: servingsStore.value === baseServings,
-			aria: { label: `Reset to ${servingLabel(baseServings)}` },
-			title: `Reset to ${servingLabel(baseServings)}`,
+			aria: { label: `Reset to ${servingCountLabel(baseServings)}` },
+			title: `Reset to ${servingCountLabel(baseServings)}`,
 			on: {
 				click() {
 					servingsStore.update(() => baseServings)
@@ -60,7 +61,7 @@ export const ServingStepper = component<ServingStepperOptions>({
 
 		const countSpan = element('span', {
 			classes: styles.count,
-			textContent: servingLabel(servingsStore.value),
+			textContent: servingCountLabel(servingsStore.value),
 			aria: { live: 'polite', atomic: 'true' },
 		})
 
@@ -84,7 +85,7 @@ export const ServingStepper = component<ServingStepperOptions>({
 
 		servingsStore.on('change', signal, ({ detail }) => {
 			const current = detail.state
-			countSpan.textContent = servingLabel(current)
+			countSpan.textContent = servingCountLabel(current)
 			decreaseButton.disabled = current === 1
 			resetButton.disabled = current === baseServings
 			if (current === baseServings) {
@@ -97,9 +98,6 @@ export const ServingStepper = component<ServingStepperOptions>({
 	},
 })
 
-function servingLabel(n: number): string {
-	return `${n} serving${n === 1 ? '' : 's'}`
-}
 
 /**
  * Adds hold-to-repeat behavior to a button.

@@ -1,7 +1,8 @@
-import { component, type ComponentContext, cssClass } from '@rooted/components'
+import { component, type ComponentContext, cssClass, optional } from '@rooted/components'
 import { gate, href, Link } from '@rooted/router'
 
 import { type CategoryData, recipeData } from '../_shared/data/data.mts'
+import { recipeCountLabel } from '../_shared/data/recipe-label.mts'
 
 import { CategoryRoute } from './_routes.mts'
 import styles from './categories.css'
@@ -40,7 +41,7 @@ async function mapCategories(element: ComponentContext['element'], create: Compo
 				cssClass(selected, styles.selected),
 			],
 			aria: {
-				current: selected ? 'page' : undefined,
+				current: optional(selected, 'page'),
 			},
 			href: href.for(CategoryRoute, category),
 			children: [
@@ -50,7 +51,7 @@ async function mapCategories(element: ComponentContext['element'], create: Compo
 				}),
 				element('p', {
 					classes: styles.categoryCount,
-					textContent: `${category.recipes.length} recipe${category.recipes.length === 1 ? '' : 's'}`,
+					textContent: recipeCountLabel(category.recipes),
 				}),
 			],
 		})
