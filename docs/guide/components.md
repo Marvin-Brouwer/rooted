@@ -110,7 +110,73 @@ element('label', {
 })
 ```
 
-Only `undefined` and `null` are skipped. `false` is not a valid child, so `required && element(...)` won't type-check, use `optional` or a ternary.
+Only `undefined` and `null` are skipped. `false` is not a valid child, so `required && element(...)` won't type-check, use `optional`, `choice`, or a ternary.
+
+### Picking a value
+
+`optional` covers "include it or leave it out". `choice(condition, matched, notMatched)` picks between two values you already have:
+
+```ts
+import { choice } from '@rooted/components'
+
+element('button', {
+  tabIndex: choice(selected,
+    0,
+    -1
+  ),
+  aria: {
+    selected: choice(selected,
+      'true',
+      'false'
+    ),
+  },
+})
+```
+
+The condition has to be exactly `true`, same as `optional` and `cssClass`. The two values don't have to share a type: `choice(selected, 'page', undefined)` gives back `'page' | undefined`.
+
+For more than two options there's `match`, which takes either a record or an array. The record form has to cover every key the type allows, so adding a case to the union breaks the build until you handle it:
+
+```ts
+import { match } from '@rooted/components'
+
+type Status = 'draft' | 'review' | 'published'
+
+element('p', {
+  textContent: match(status, {
+    draft: 'Not shared yet',
+    review: 'Waiting on a reviewer',
+    published: 'Live',
+  }),
+})
+```
+
+The array form reads an index, and gives `undefined` when the index is out of range:
+
+```ts
+match(place, [
+  'first',
+  'second',
+  'third'
+])
+```
+
+Two things to watch with `match`:
+
+- The exhaustiveness only works when the key is a union of literals. A key typed as plain `string` or `number` can't be exhausted, so a partial record type-checks and hands you `undefined` where the type promises a value.
+- If you narrowed the key down to a single literal, annotate it with the full union. Otherwise the other entries in the record are read as excess properties.
+
+Both of these pick between values you already have. Every value gets evaluated, because that is what passing arguments to a function does, and no amount of typing changes it. So a branch that has to compute something, or that reads through something which might not be there, is a ternary's job and stays one:
+
+```ts
+// choice would call create() for every segment, text or not
+segments.map(segment => segment.type === 'text'
+  ? segment.text
+  : create(Measurement, {
+    value: segment.value
+  }),
+)
+```
 
 ## Class names
 

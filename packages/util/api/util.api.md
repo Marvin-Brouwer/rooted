@@ -10,6 +10,9 @@ export type ArrayElement<T> = T extends readonly (infer U)[] ? U : T;
 // @public
 export function baseUrl(): string;
 
+// @public
+export function choice<TMatched, TNotMatched = TMatched>(condition: boolean | null | undefined, matched: TMatched, notMatched: TNotMatched): TMatched | TNotMatched;
+
 // @internal
 export function createGlobalAbortSignal(): AbortSignal;
 
@@ -33,6 +36,15 @@ export function isSuccess<T>(value: TupleResult<T>): value is SuccessTuple<T>;
 
 // @public
 export function isThenable(value: unknown): value is PromiseLike<unknown>;
+
+// @public
+export function match<TValue>(index: number, options: ReadonlyArray<TValue>): TValue | undefined;
+
+// @public (undocumented)
+export function match<TKey extends MatchKey, TValue>(key: TKey, options: Readonly<Record<TKey, TValue>>): TValue;
+
+// @public
+export type MatchKey = string | number;
 
 // @public
 export function optional<T>(condition: boolean | null | undefined, value: T): T | undefined;
