@@ -1,8 +1,8 @@
 /**
  * What an observer watches: one target, or any iterable of them.
  *
- * An `Element` isn't iterable and a `NodeList` is, so the result of
- * `querySelectorAll` can be passed straight through without spreading it.
+ * An `Element` isn't iterable and a `NodeList` is,
+ * so the result of `querySelectorAll` can be passed straight through without spreading it.
  *
  * @typeParam TTarget - `Element` for intersection and resize, `Node` for mutations.
  *

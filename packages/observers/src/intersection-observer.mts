@@ -3,9 +3,9 @@ import { type ObserverHandler, toObserverCallback } from './observer-handler.mts
 import { type ObserverTargets } from './observer-targets.mts'
 
 /**
- * Everything {@link intersectionObserver} takes. The `root`, `rootMargin` and
- * `threshold` keys are the browser's own `IntersectionObserverInit`, passed
- * straight through to the constructor.
+ * Everything {@link intersectionObserver} takes.
+ * The `root`, `rootMargin` and `threshold` keys are the browser's own `IntersectionObserverInit`,
+ * passed straight through to the constructor.
  */
 export type IntersectionObserverProperties = IntersectionObserverInit & {
 	/** One element, or any iterable of them. Each one gets observed. */
@@ -21,10 +21,10 @@ export type IntersectionObserverProperties = IntersectionObserverInit & {
 /**
  * An `IntersectionObserver` that disconnects when `signal` aborts.
  *
- * Same observer, same entries, same options. The difference is that you don't
- * write the teardown: no `signal.addEventListener('abort', ...)`, and no
- * separate `observe()` call per target. The observer is returned, so
- * `disconnect()` and `unobserve()` still work the way you'd expect.
+ * Same observer, same entries, same options.
+ * The difference is that you don't write the teardown:
+ * no `signal.addEventListener('abort', ...)`, and no separate `observe()` call per target.
+ * The observer is returned, so `disconnect()` and `unobserve()` still work the way you'd expect.
  *
  * An already-aborted signal observes nothing.
  *

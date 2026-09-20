@@ -1,7 +1,6 @@
 /**
- * `IntersectionObserver`, `MutationObserver` and `ResizeObserver` wrapped so
- * they take an `AbortSignal` and disconnect themselves, the way `on` and
- * `Store.on` already do.
+ * `IntersectionObserver`, `MutationObserver` and `ResizeObserver` wrapped so they take an `AbortSignal` and disconnect themselves,
+ * the way `on` and `Store.on` already do.
  *
  *
  * - [Observers](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/observers.md)

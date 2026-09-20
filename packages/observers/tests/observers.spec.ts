@@ -1,10 +1,10 @@
 /**
  * Spec: observers tied to a component's lifetime.
  *
- * The thing these wrappers exist for is that nobody writes the teardown. A
- * component hands its `signal` to whatever it observes; when it unmounts, the
- * signal aborts and every observer disconnects, whether or not the handler ever
- * ran and whether or not it disconnected itself first.
+ * The thing these wrappers exist for is that nobody writes the teardown.
+ * A component hands its `signal` to whatever it observes;
+ * when it unmounts, the signal aborts and every observer disconnects,
+ * whether or not the handler ever ran and whether or not it disconnected itself first.
  */
 import { afterEach, describe, expect, test, vi } from 'vitest'
 

@@ -3,9 +3,9 @@ import { type ObserverHandler, toObserverCallback } from './observer-handler.mts
 import { type ObserverTargets } from './observer-targets.mts'
 
 /**
- * Everything {@link mutationObserver} takes. The `childList`, `subtree`,
- * `attributes`, `attributeFilter` and friends are the browser's own
- * `MutationObserverInit`, passed straight through to `observe()`.
+ * Everything {@link mutationObserver} takes.
+ * The `childList`, `subtree`, `attributes`, `attributeFilter` and friends are the browser's own `MutationObserverInit`,
+ * passed straight through to `observe()`.
  */
 export type MutationObserverProperties = MutationObserverInit & {
 	/** One node, or any iterable of them. Each one gets observed with the same options. */
@@ -21,14 +21,14 @@ export type MutationObserverProperties = MutationObserverInit & {
 /**
  * A `MutationObserver` that disconnects when `signal` aborts.
  *
- * Note the batch is `entries`, not `records`, so this reads the same as the
- * other two wrappers. They're still `MutationRecord` objects.
+ * Note the batch is `entries`, not `records`, so this reads the same as the other two wrappers.
+ * They're still `MutationRecord` objects.
  *
- * `MutationObserver` takes its options on `observe()` rather than on the
- * constructor, so every target here is observed with the same options. If you
- * need different options per node, call this once per set. At least one of
- * `attributes`, `characterData` or `childList` has to be set, or the browser
- * throws, the same as it would if you called `observe()` yourself.
+ * `MutationObserver` takes its options on `observe()` rather than on the constructor,
+ * so every target here is observed with the same options.
+ * If you need different options per node, call this once per set.
+ * At least one of `attributes`, `characterData` or `childList` has to be set, or the browser throws,
+ * the same as it would if you called `observe()` yourself.
  *
  * An already-aborted signal observes nothing.
  *
