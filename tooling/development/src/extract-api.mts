@@ -6,15 +6,16 @@ import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
 
 /**
  * Runs API Extractor against every public-entry `.d.mts` file in `<packageRoot>/dist`.
- * Reads the package's `api-extractor.json` for the base config. Returns
- * a non-zero exit code when any module fails extraction.
+ * Reads the package's `api-extractor.json` for the base config.
+ * Returns a non-zero exit code when any module fails extraction.
  */
 export async function extractApi(packageRoot: string) {
 	const configFilePath = path.join(packageRoot, 'api-extractor.json')
 	const packageJsonPath = path.join(packageRoot, 'package.json')
 
-	// Chunk files produced by rolldown have a hash suffix (e.g. routes-Gxo28CuX.d.mts or generic-component-Da20_kqi.d.mts)
-	const chunkPattern = /-\w{8}\.d\.mts$/
+	// Chunk files produced by rolldown have a hash suffix (e.g. routes-Gxo28CuX.d.mts or generic-component-Da20_kqi.d.mts).
+	// The hash is base64url, so it can contain `-` and `_` as well as letters and digits.
+	const chunkPattern = /-[\w-]{8}\.d\.mts$/
 	const moduleFiles = await readdir(path.join(packageRoot, 'dist'))
 	const modules = moduleFiles
 		.filter(f => f.endsWith('.d.mts') && !chunkPattern.test(f))
