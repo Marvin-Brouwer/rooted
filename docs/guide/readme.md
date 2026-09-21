@@ -16,6 +16,7 @@ If you have not opened the project yet, the [main README](../../README.md) is th
 - [State](./state.md). Sharing state between components with `@rooted/store`.
 - [Storage](./storage.md). Reading and writing `localStorage`, `sessionStorage`, and cookies.
 - [SEO](./seo.md). Per-route metadata, sitemaps, and llms.txt.
+- [PWA](./pwa.md). The service worker, caching, and how a new version reaches people.
 - [Adapters](./adapters.md). Deployment adapters for static hosts, Node servers, and PaaS providers.
 - [FAQ](./faq.md). Things people get stuck on.
 

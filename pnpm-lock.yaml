@@ -69,6 +69,9 @@ importers:
       '@rooted/components':
         specifier: workspace:^
         version: link:../../packages/components
+      '@rooted/pwa':
+        specifier: workspace:^
+        version: link:../../packages/pwa
       '@rooted/router':
         specifier: workspace:^
         version: link:../../packages/router
@@ -580,6 +583,9 @@ importers:
       '@rooted/adapter':
         specifier: workspace:^
         version: link:../adapter
+      '@rooted/pwa':
+        specifier: workspace:^
+        version: link:../pwa
       '@rooted/seo':
         specifier: workspace:^
         version: link:../seo
@@ -728,6 +734,18 @@ importers:
 
   packages/observers:
     devDependencies:
+      '@rooted/development':
+        specifier: workspace:*
+        version: link:../../tooling/development
+      tsx:
+        specifier: ^4.23.13
+        version: 4.23.13
+
+  packages/pwa:
+    devDependencies:
+      '@rooted/components':
+        specifier: workspace:^
+        version: link:../components
       '@rooted/development':
         specifier: workspace:*
         version: link:../../tooling/development

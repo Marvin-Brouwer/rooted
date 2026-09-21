@@ -36,4 +36,6 @@ export default rootedManifest({
 })
 ```
 
+A production build also emits a service worker. By default a new version is taken on the next page load, never under a page that's already running. `updates: 'explicit'` leaves that entirely to your app instead. The [PWA guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/pwa.md) covers both, along with the components in [`@rooted/pwa`](https://www.npmjs.com/package/@rooted/pwa) for showing there's an update.
+
 More in the [SEO guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/seo.md).
