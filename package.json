@@ -28,15 +28,15 @@
 		"@types/unist": "^3.0.3",
 		"eslint-plugin-perfectionist": "^5.11.0",
 		"eslint-plugin-unicorn": "^74.0.0",
-		"happy-dom": "^20.14.3",
+		"happy-dom": "^20.14.5",
 		"husky": "^9.1.7",
 		"multi-semantic-release": "^3.1.0",
-		"oxlint": "^1.82.0",
+		"oxlint": "^1.83.0",
 		"tsdown": "^0.23.0",
 		"typescript": "^6.0.3",
-		"vite-plus": "^0.3.1",
+		"vite-plus": "^0.3.3",
 		"vitepress": "^1.6.4",
-		"vitest": "^5.0.0"
+		"vitest": "^5.0.1"
 	},
 	"engines": {
 		"node": ">=22.0.0",

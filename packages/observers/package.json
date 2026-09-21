@@ -1,9 +1,12 @@
 {
-	"name": "@rooted-adapters/codeberg-pages",
+	"name": "@rooted/observers",
 	"version": "1.0.0-alpha.0",
-	"description": "Adapter for Codeberg Pages",
+	"description": "DOM observers that clean up with an AbortSignal",
 	"keywords": [
 		"web-components",
+		"intersection-observer",
+		"mutation-observer",
+		"resize-observer",
 		"typescript",
 		"rooted"
 	],
@@ -11,7 +14,7 @@
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/Marvin-Brouwer/rooted.git",
-		"directory": "packages/adapters/codeberg-pages"
+		"directory": "packages/observers"
 	},
 	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
 	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
@@ -31,29 +34,20 @@
 	},
 	"exports": {
 		".": {
-			"source": "./src/_module/codeberg-pages.mts",
-			"import": "./dist/codeberg-pages.mjs",
-			"types": "./dist/codeberg-pages.d.mts"
+			"import": "./dist/observers.mjs",
+			"types": "./dist/observers.d.mjs"
 		}
-	},
-	"peerDependencies": {
-		"@rooted/adapter": "workspace:^",
-		"vite": ">= 8.0.1"
-	},
-	"devDependencies": {
-		"@rooted/adapter": "workspace:^",
-		"@rooted/development": "workspace:*",
-		"@rooted/tsdown": "workspace:^",
-		"@types/node": "^26.6.1",
-		"tsx": "^4.23.13",
-		"typescript": "^6.0.3",
-		"vite": "^8.3.0"
 	},
 	"scripts": {
 		"build": "pnpm build:ci",
-		"build:dev": "pnpm build:ci",
+		"build:dev": "pnpm build:ci && rooted-development extract-api",
 		"build:ci": "tsdown",
 		"watch": "tsdown --watch --no-clean",
-		"clean": "rm -rf dist"
+		"clean": "rm -rf dist",
+		"extract-api": "rooted-development extract-api"
+	},
+	"devDependencies": {
+		"@rooted/development": "workspace:*",
+		"tsx": "^4.23.13"
 	}
 }

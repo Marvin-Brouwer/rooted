@@ -10,6 +10,7 @@ The published `@rooted/*` packages live here, one folder each.
 | [`@rooted/markdown`](./markdown) | Build-time markdown rendering: a Vite plugin for `.md` files and a component to render the result. |
 | [`@rooted/elements`](./elements) | Typed HTML and SVG element factory. |
 | [`@rooted/events`](./events) | Typed event helpers and global error filtering. |
+| [`@rooted/observers`](./observers) | DOM observers that clean up with an `AbortSignal`. |
 | [`@rooted/store`](./store) | A small synchronous shared-state container. |
 | [`@rooted/storage`](./storage) | Typed wrappers around `localStorage`, `sessionStorage`, and cookies. |
 | [`@rooted/application`](./application) | Build-time configuration: the Vite config wrapper and the PWA preset. |
