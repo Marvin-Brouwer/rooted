@@ -40,12 +40,58 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Runs before the build so a bad input costs seconds rather than a full build.
+      # pnpm is the one that knows what a workspace package is,
+      # so the globs in pnpm-workspace.yaml are not repeated here.
+      - name: Resolve package directory
+        id: package
+        env:
+          PACKAGE_INPUT: ${{ github.event.inputs.package_path }}
+        run: |
+          pnpm list -r --depth -1 --json > "$RUNNER_TEMP/workspace.json"
+          node - <<'NODE' >> "$GITHUB_OUTPUT"
+          const { readFileSync } = require('node:fs')
+          const { relative } = require('node:path')
+
+          const input = (process.env['PACKAGE_INPUT'] ?? '').trim().replace(/\/+$/, '')
+          const root = process.env['GITHUB_WORKSPACE']
+          const workspace = JSON.parse(readFileSync(`${process.env['RUNNER_TEMP']}/workspace.json`, 'utf8'))
+
+          function fail(message, hint) {
+            console.error(`::error::${message}`)
+            if (hint) console.error(hint)
+            process.exit(1)
+          }
+
+          if (!input) fail('No package given.')
+
+          const byPath = workspace.find((entry) => relative(root, entry.path) === input)
+          const byName = workspace.find((entry) => entry.name === input)
+          const found = byPath ?? byName
+
+          if (!found) {
+            const publishable = workspace
+              .filter((entry) => !entry.private)
+              .map((entry) => `  ${relative(root, entry.path)}  (${entry.name})`)
+              .sort()
+            fail(
+              `"${input}" is not a workspace package in this checkout.`,
+              `Pass the workspace-relative path, not the package name.\nPublishable packages:\n${publishable.join('\n')}`,
+            )
+          }
+          if (found.private) fail(`${found.name} is private, so it is never published.`)
+
+          const directory = relative(root, found.path)
+          if (!byPath) console.error(`::notice::Read "${input}" as ${directory}.`)
+          console.log(`directory=${directory}`)
+          NODE
+
       - name: Build
         run: pnpm build:ci
 
       - name: Publish
         run: pnpm publish --no-git-checks --tag alpha
-        working-directory: ${{ github.event.inputs.package_path }}
+        working-directory: ${{ steps.package.outputs.directory }}
         env:
           NODE_AUTH_TOKEN: ${{ github.event.inputs.npm_token }}
           NPM_CONFIG_PROVENANCE: true
