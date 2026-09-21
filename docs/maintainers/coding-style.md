@@ -85,6 +85,9 @@ ESLint catches the rules that are worth catching at edit time: unused locals and
 
 What ESLint isn't for: opinions about how a function should be structured, or whether a name is good. The reviewer does that.
 
+One custom rule is worth knowing about before it fails your build. `local/comment-line-wrap` applies the line-wrapping rule from `CLAUDE.md` to block comments: a line of prose that stops mid-sentence, with the rest of the same paragraph on the line below, is a hard wrap and gets flagged.
+Put the paragraph on one line, or break after a `.`, `,`, `;`, `:`, `!` or `?`. Tags, list items, tables, fenced blocks and anything under `@example` are left alone, and so is a line ending in a `\` hard break. There is no autofix, because the right join is sometimes a rewrite.
+
 ## One job per file
 
 A module does one thing. When it starts doing two, split it, and let the file names say what each half is for.
