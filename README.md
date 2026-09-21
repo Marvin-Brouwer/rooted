@@ -166,9 +166,11 @@ See the [`recipe-book` example](./examples/recipe-book) for a full vertical-slic
 | [`@rooted/markdown`](./packages/markdown) | Build-time markdown rendering: a Vite plugin for `.md` files and a component to render the result. |
 | [`@rooted/elements`](./packages/elements) | Low-level DOM helpers used by components. Useful when you build elements without a component shell. |
 | [`@rooted/events`](./packages/events) | Typed event helpers and global error utilities. |
+| [`@rooted/observers`](./packages/observers) | `IntersectionObserver`, `MutationObserver` and `ResizeObserver` that disconnect themselves when a signal aborts. |
 | [`@rooted/store`](./packages/store) | A small synchronous store with `update` and `change` events. Not reactive. |
 | [`@rooted/storage`](./packages/storage) | Typed wrappers around `localStorage`, `sessionStorage`, and cookies. |
 | [`@rooted/application`](./packages/application) | Build-time configuration: the Vite config wrapper, the PWA preset, and the import cycle detector. |
+| [`@rooted/pwa`](./packages/pwa) | Service worker registration, plus components for showing that a new version is waiting. |
 | [`@rooted/seo`](./packages/seo) | Build-time SEO: meta tags, Open Graph, sitemaps, `robots.txt`, and `llms.txt`. |
 | [`@rooted/adapter`](./packages/adapter) | Base package for deployment adapters. Prerendering and the shared build work. |
 | [`@rooted/util`](./packages/util) | Shared utilities (seeded IDs, client-side checks, dev helpers). |

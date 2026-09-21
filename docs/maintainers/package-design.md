@@ -13,18 +13,20 @@ The split exists for two reasons:
 @rooted/util          # leaf
 @rooted/elements      # imports util
 @rooted/events        # imports util
+@rooted/observers     # leaf. no dependencies at all
 @rooted/storage       # imports util (no DOM-component deps)
 @rooted/store         # imports util
 @rooted/components    # imports util, elements, events
 @rooted/router        # imports util, components
 @rooted/localization  # imports util, router, components
 @rooted/markdown      # imports components
+@rooted/pwa           # imports components (components entry only)
 @rooted/application   # build-time. imports application primitives.
 @rooted/seo           # build-time. imports router (optional peer, types only).
 @rooted/adapter       # build-time. imports seo (types only).
 ```
 
-The arrow always points down. `elements` cannot import `components`. `store` does not import `components` (it's usable outside rooted apps). `application` is build-time only and does not ship runtime code that depends on the others.
+The arrow always points down. `elements` cannot import `components`. `store` does not import `components` (it's usable outside rooted apps). `application` is build-time only and does not ship runtime code that depends on the others. It does depend on `pwa`, but only to copy that package's built file into the build output.
 
 ## `@rooted/util`
 
@@ -43,6 +45,12 @@ Why separate from `components`: a couple of consumers (the manifest plugin, some
 Event types and the page-level event abstractions. Lives separately because the event types need to be importable by `elements` (for the `on:` prop typing) without `elements` reaching back into a higher layer.
 
 `UnhandledErrorEvent` and the cross-origin/extension filter live here. Anything we add that filters or normalises browser events goes here too.
+
+## `@rooted/observers`
+
+`IntersectionObserver`, `MutationObserver` and `ResizeObserver` wrapped so they take an `AbortSignal` and disconnect themselves. `addEventListener` has a `{ signal }` option and the observer constructors don't, so this is the one listener surface where rooted's cleanup didn't reach.
+
+Its own package, with no dependencies at all, because it has nothing to do with the rest of the framework. Anything holding an `AbortSignal` can use it, and an app that observes nothing never installs it. Nothing else in rooted depends on it, and `components` deliberately does not re-export it the way it re-exports `events`.
 
 ## `@rooted/components`
 
@@ -95,6 +103,16 @@ Plugin-only, no `src/`. The split is documented in [adr/2026-08-25.seo-split.md]
 Build-time tooling. The `rootedManifest` helper that wraps a Vite config, the PWA preset, and the import cycle detector. It wires up the plugins from `@rooted/seo` so apps don't have to.
 
 This package has no runtime exports. If you're writing app code, you don't import from it.
+
+It takes `@rooted/pwa` as a real dependency anyway. `pwaRegisterPlugin` reads that package's built `dist/pwa.mjs` and emits it as the service worker registration script, so it's a file the build copies, not code this package imports into anything.
+
+## `@rooted/pwa`
+
+Service worker registration, plus `UpdateNotification` and `ApplyUpdateButton` for putting a new version in front of the user.
+
+Two entry points, for two different consumers. `@rooted/pwa` is the core: no dependencies, and deliberately kept to a single built file, because `@rooted/application` emits that file verbatim as the app's registration script. `@rooted/pwa/components` takes `@rooted/components` as a peer and is bundled into the app the normal way.
+
+Nothing is shared between the two at runtime: the emitted script and the copy bundled into the app are separate module instances. That's why neither holds update state in a module variable. Both ask `navigator.serviceWorker` every time, and the browser is what they agree through.
 
 ## `@rooted/adapter` and `@rooted-adapters/*`
 

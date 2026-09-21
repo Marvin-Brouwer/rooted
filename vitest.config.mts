@@ -23,6 +23,10 @@ export default defineConfig({
 				replacement: fileURLToPath(new URL('packages/storage/src/_module/web.mts', import.meta.url)),
 			},
 			{
+				find: '@rooted/observers',
+				replacement: fileURLToPath(new URL('packages/observers/src/_module/observers.mts', import.meta.url)),
+			},
+			{
 				find: '@rooted/events',
 				replacement: fileURLToPath(new URL('packages/events/src/_module/events.mts', import.meta.url)),
 			},
@@ -41,6 +45,14 @@ export default defineConfig({
 			{
 				find: '@rooted/components',
 				replacement: fileURLToPath(new URL('packages/components/src/_module/components.mts', import.meta.url)),
+			},
+			{
+				find: '@rooted/pwa/components',
+				replacement: fileURLToPath(new URL('packages/pwa/src/_module/components.mts', import.meta.url)),
+			},
+			{
+				find: '@rooted/pwa',
+				replacement: fileURLToPath(new URL('packages/pwa/src/_module/pwa.mts', import.meta.url)),
 			},
 			{
 				find: '@rooted/seo',

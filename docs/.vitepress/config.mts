@@ -29,6 +29,7 @@ export default defineConfig({
 					{ text: 'State', link: '/guide/state' },
 					{ text: 'Storage', link: '/guide/storage' },
 					{ text: 'SEO', link: '/guide/seo' },
+					{ text: 'PWA', link: '/guide/pwa' },
 					{ text: 'Adapters', link: '/guide/adapters' },
 					{ text: 'FAQ', link: '/guide/faq' },
 				],
@@ -38,6 +39,7 @@ export default defineConfig({
 				items: [
 					{ text: 'Elements', link: '/advanced/elements' },
 					{ text: 'Events', link: '/advanced/events' },
+					{ text: 'Observers', link: '/advanced/observers' },
 					{ text: 'Internals', link: '/advanced/internals' },
 					{ text: 'Server middleware', link: '/advanced/server-middleware' },
 				],
