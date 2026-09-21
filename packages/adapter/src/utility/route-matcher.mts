@@ -9,12 +9,11 @@ export function looksLikeFile(pathname: string): boolean {
 }
 
 /**
- * Tells app routes apart from everything else, with the same semantics as the
- * router in the generated `server.mjs`: a `:param` matches exactly one non-empty
- * segment, and the rest of the path is compared as written.
+ * Tells app routes apart from everything else, with the same semantics as the router in the generated `server.mjs`:
+ * a `:param` matches exactly one non-empty segment, and the rest of the path is compared as written.
  *
- * Keep it that way. The point of this matcher is that `vite dev` and the built
- * server agree on what counts as a route, so a broken link fails in both.
+ * Keep it that way. The point of this matcher is that `vite dev` and the built server agree on what counts as a route,
+ * so a broken link fails in both.
  *
  * @example
  * ```ts

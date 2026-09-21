@@ -1,9 +1,8 @@
 /**
  * Spec: event forwarding pattern with EventHandler<'button', 'click'>
  *
- * Illustrates how a component accepts typed event callbacks from its
- * parent via `EventHandler<tag, event>` in the options type, then wires
- * them to inner elements using the `on: {}` prop.
+ * Illustrates how a component accepts typed event callbacks from its parent via `EventHandler<tag, event>` in the options type,
+ * then wires them to inner elements using the `on: {}` prop.
  */
 import { describe, expect, test, vi } from 'vitest'
 

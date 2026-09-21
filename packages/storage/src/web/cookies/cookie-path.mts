@@ -10,9 +10,8 @@ const traversalPattern = /(^|\/)\.\.(\/|$)/
  * The app root as a cookie `Path`: {@link baseUrl} without its trailing slash.
  * `/my-repo/` becomes `/my-repo`, and `/` stays `/`.
  *
- * A base that isn't a path on this origin falls back to `/`. Vite allows a
- * relative base (`./`) and a full CDN URL, and neither says anything about
- * where the app is served from, so there's nothing better to guess.
+ * A base that isn't a path on this origin falls back to `/`. Vite allows a relative base (`./`) and a full CDN URL,
+ * and neither says anything about where the app is served from, so there's nothing better to guess.
  */
 export function appBasePath(): string {
 	const base = baseUrl()
@@ -22,17 +21,14 @@ export function appBasePath(): string {
 }
 
 /**
- * Resolves the `path` a caller passed to `cookieStorage` into an absolute
- * cookie `Path` inside the app, the way `@rooted/router` resolves an href.
+ * Resolves the `path` a caller passed to `cookieStorage` into an absolute cookie `Path` inside the app,
+ * the way `@rooted/router` resolves an href.
  *
- * `'/settings'`, `'settings'` and `'./settings'` all come out as
- * `<app base>/settings`, and a path that already carries the base doesn't get
- * a second copy of it. Nothing at all means the app root.
+ * `'/settings'`, `'settings'` and `'./settings'` all come out as `<app base>/settings`,
+ * and a path that already carries the base doesn't get a second copy of it. Nothing at all means the app root.
  *
- * A path that points outside the app (`https://...`, `//host`, or anything
- * with a `..` segment) can't be scoped to this app. It throws in development
- * so you see it, and falls back to the app root in production so one bad path
- * doesn't take the page down.
+ * A path that points outside the app (`https://...`, `//host`, or anything with a `..` segment) can't be scoped to this app.
+ * It throws in development so you see it, and falls back to the app root in production so one bad path doesn't take the page down.
  *
  * @example
  * ```ts

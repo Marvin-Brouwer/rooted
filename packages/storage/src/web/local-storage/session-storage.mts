@@ -1,9 +1,8 @@
 import { jsonStringify, safeJsonParse } from '../../serializer.mts'
 
 /**
- * Typed wrapper around the browser's `sessionStorage`. Same shape and same
- * guarantees as {@link import('./local-storage.mts').LocalStorage}; the only
- * difference is the underlying browser storage. Cleared when the tab closes.
+ * Typed wrapper around the browser's `sessionStorage`. Same shape and same guarantees as {@link import('./local-storage.mts').LocalStorage};
+ * the only difference is the underlying browser storage. Cleared when the tab closes.
  *
  * @example
  * ```ts
@@ -19,19 +18,16 @@ export type SessionStorage = Pick<globalThis.Storage, 'length' | 'clear' | 'setI
 	/** Read the raw string value. Returns `undefined` when the key isn't set. */
 	getItem(key: string): string | undefined
 	/**
-	 * Return the key at `index` in insertion order. Returns `undefined` when
-	 * `index` is out of range (instead of the native `null`).
+	 * Return the key at `index` in insertion order. Returns `undefined` when `index` is out of range (instead of the native `null`).
 	 */
 	key(index: number): string | undefined
 	/**
-	 * Read and JSON-parse a stored value. Strings come back as-is; everything
-	 * else is parsed through a prototype-pollution-safe reviver. Returns
-	 * `undefined` when the key is missing.
+	 * Read and JSON-parse a stored value. Strings come back as-is; everything else is parsed through a prototype-pollution-safe reviver.
+	 * Returns `undefined` when the key is missing.
 	 */
 	get<T = unknown>(key: string): T | undefined
 	/**
-	 * Write a value. Strings pass through unchanged so values written by
-	 * `setItem` round-trip; everything else is JSON-encoded.
+	 * Write a value. Strings pass through unchanged so values written by `setItem` round-trip; everything else is JSON-encoded.
 	 */
 	set<T>(key: string, value: T): void
 	/** All keys currently stored. Empty array under SSR. */
@@ -108,8 +104,7 @@ function keys(): string[] {
 }
 
 /**
- * The {@link SessionStorage} singleton. Frozen so individual methods can't
- * be monkey-patched.
+ * The {@link SessionStorage} singleton. Frozen so individual methods can't be monkey-patched.
  */
 export const sessionStorage: SessionStorage = Object.freeze({
 	clear,

@@ -19,9 +19,8 @@ export type LocalizationOptions<TDefault extends string, TDictionaries extends R
 	 */
 	default: TDefault
 	/**
-	 * Dictionary loaders keyed by locale. Write them as dynamic imports so
-	 * each locale is bundled as its own chunk and only downloaded when a
-	 * visitor actually uses that language:
+	 * Dictionary loaders keyed by locale.
+	 * Write them as dynamic imports so each locale is bundled as its own chunk and only downloaded when a visitor actually uses that language:
 	 *
 	 * ```ts
 	 * dictionaries: {
@@ -35,11 +34,9 @@ export type LocalizationOptions<TDefault extends string, TDictionaries extends R
 /**
  * URL-derived locale helpers for route resolvers.
  *
- * All three read the first path segment of the current URL. Handy for
- * routes that take the locale as a plain `String` token, or for showing
- * what an invalid URL actually contained. Routes using
- * {@link Localization.parameter} don't need `valid`: the token itself only
- * matches configured locales.
+ * All three read the first path segment of the current URL. Handy for routes that take the locale as a plain `String` token,
+ * or for showing what an invalid URL actually contained. Routes using {@link Localization.parameter} don't need `valid`:
+ * the token itself only matches configured locales.
  */
 export type LocalizationRoute = {
 	/** The raw first path segment, regardless of validity. `undefined` at the root. */
@@ -51,19 +48,17 @@ export type LocalizationRoute = {
 }
 
 /**
- * What {@link Localization.load} resolves to: the locale it loaded, and whether
- * the latest navigation changed the locale.
+ * What {@link Localization.load} resolves to: the locale it loaded, and whether the latest navigation changed the locale.
  *
- * `changed` belongs to the navigation rather than the call, so two callers
- * awaiting `load()` during the same navigation both see `true`.
+ * `changed` belongs to the navigation rather than the call,
+ * so two callers awaiting `load()` during the same navigation both see `true`.
  */
 export type LocaleLoadResult<TLocale extends string> = [locale: TLocale, changed: boolean]
 
 /**
  * Per-locale loaders for {@link Localization.branch}, one per configured locale.
  *
- * A mapped type over the locale union, so leaving a locale out is a compile
- * error and an unknown key is rejected.
+ * A mapped type over the locale union, so leaving a locale out is a compile error and an unknown key is rejected.
  */
 export type LocaleBranches<TLocale extends string, T> = { [K in TLocale]: () => Promise<T> }
 
@@ -72,8 +67,8 @@ export type LocaleBranches<TLocale extends string, T> = { [K in TLocale]: () => 
  */
 export type Localization<TLocale extends string> = {
 	/**
-	 * Constant-values route token for the locale URL segment. Only matches
-	 * configured locales, so URLs with an unknown locale simply don't match.
+	 * Constant-values route token for the locale URL segment. Only matches configured locales,
+	 * so URLs with an unknown locale simply don't match.
 	 *
 	 * ```ts
 	 * export const AboutRoute = route`/${localization.parameter}/about/`({
@@ -83,15 +78,12 @@ export type Localization<TLocale extends string> = {
 	 * })
 	 * ```
 	 *
-	 * The locale is the only segment that changes per language, so the example
-	 * above serves `/en-GB/about/` and `/nl-NL/about/` from one pattern and both
-	 * keep the same slug. That's the right shape for most multilingual apps, and
-	 * it's what makes the automatic hreflang alternates possible.
+	 * The locale is the only segment that changes per language, so the example above serves `/en-GB/about/` and `/nl-NL/about/` from one pattern and both keep the same slug.
+	 * That's the right shape for most multilingual apps, and it's what makes the automatic hreflang alternates possible.
 	 *
-	 * If you're competing for organic search separately per market, international
-	 * SEO usually wants the slug translated too (`/nl-NL/over-ons/`). That means
-	 * defining the routes per locale instead of using this token. See the
-	 * localization guide, "Translated URLs and international SEO".
+	 * If you're competing for organic search separately per market, international SEO usually wants the slug translated too (`/nl-NL/over-ons/`).
+	 * That means defining the routes per locale instead of using this token. See the localization guide,
+	 * "Translated URLs and international SEO".
 	 */
 	parameter: LocaleParameter<TLocale>
 	/** All configured locales: the default plus the dictionary locales. */
@@ -99,34 +91,29 @@ export type Localization<TLocale extends string> = {
 	/** The configured dictionary loaders, keyed by locale. */
 	dictionaries: ReadonlyMap<TLocale, DictionaryLoader>
 	/**
-	 * Type carrier for the configured locale union. Reference it as
-	 * `typeof localization.Locale` wherever code takes a locale:
+	 * Type carrier for the configured locale union. Reference it as `typeof localization.Locale` wherever code takes a locale:
 	 *
 	 * ```ts
 	 * type GreetingOptions = { locale: typeof localization.Locale }
 	 * ```
 	 *
-	 * At runtime this is just the default locale; its only job is carrying
-	 * the type.
+	 * At runtime this is just the default locale; its only job is carrying the type.
 	 */
 	readonly Locale: TLocale
 	/**
 	 * The locale parsed from the first path segment of the current URL.
 	 * Falls back to the default locale, so it's always usable in components.
-	 * Check {@link LocalizationRoute.valid} when you need to know whether the
-	 * URL actually carried a locale.
+	 * Check {@link LocalizationRoute.valid} when you need to know whether the URL actually carried a locale.
 	 */
 	readonly currentLocale: TLocale
 	/** URL-derived locale validity helpers. */
 	route: LocalizationRoute
 	/**
-	 * Loads the dictionary chunk for a locale (the current URL's locale when
-	 * omitted). Resolves immediately for the default locale, an already loaded
-	 * dictionary, or a locale without a loader. Concurrent calls share one
-	 * in-flight load.
+	 * Loads the dictionary chunk for a locale (the current URL's locale when omitted). Resolves immediately for the default locale,
+	 * an already loaded dictionary, or a locale without a loader. Concurrent calls share one in-flight load.
 	 *
-	 * Navigation already starts the download in the background; awaiting this
-	 * in a route resolver guarantees the first paint is translated:
+	 * Navigation already starts the download in the background;
+	 * awaiting this in a route resolver guarantees the first paint is translated:
 	 *
 	 * ```ts
 	 * async resolve({ create }) {
@@ -136,9 +123,8 @@ export type Localization<TLocale extends string> = {
 	 * }
 	 * ```
 	 *
-	 * It also reports whether the latest navigation changed the locale, which
-	 * is what you need to react to a locale switch without re-doing work on
-	 * every navigation:
+	 * It also reports whether the latest navigation changed the locale,
+	 * which is what you need to react to a locale switch without re-doing work on every navigation:
 	 *
 	 * ```ts
 	 * on('window', 'popstate', async () => {
@@ -148,23 +134,20 @@ export type Localization<TLocale extends string> = {
 	 * })
 	 * ```
 	 *
-	 * `changed` describes the navigation, not the call, so every caller during
-	 * one navigation sees the same value. It's `false` on the first page load,
-	 * since there's no previous navigation to differ from. For swapping DOM
-	 * rather than running side effects, reach for {@link Localization.localized}
-	 * instead.
+	 * `changed` describes the navigation, not the call, so every caller during one navigation sees the same value.
+	 * It's `false` on the first page load,
+	 * since there's no previous navigation to differ from. For swapping DOM rather than running side effects,
+	 * reach for {@link Localization.localized} instead.
 	 *
-	 * A failed chunk load logs a warning and resolves anyway; `text` then
-	 * falls back to the default-language text instead of breaking the page.
+	 * A failed chunk load logs a warning and resolves anyway;
+	 * `text` then falls back to the default-language text instead of breaking the page.
 	 */
 	load(locale?: TLocale): Promise<LocaleLoadResult<TLocale>>
 	/**
 	 * Tagged template that translates through the current locale's dictionary.
 	 *
-	 * The template text itself is the default-locale text and doubles as the
-	 * dictionary key. Missing translations fall back to the default text; in
-	 * development they're prefixed with `[i18n missing {locale}]` so they're
-	 * easy to spot.
+	 * The template text itself is the default-locale text and doubles as the dictionary key. Missing translations fall back to the default text;
+	 * in development they're prefixed with `[i18n missing {locale}]` so they're easy to spot.
 	 *
 	 * ```ts
 	 * localization.text`hello ${lastName}, ${firstName}`
@@ -174,14 +157,12 @@ export type Localization<TLocale extends string> = {
 	/**
 	 * Picks one of several per-locale loaders and runs only the matching one.
 	 *
-	 * For content that's too big or too structural for the dictionary: a whole
-	 * page of prose, an image, a data file, or markup that genuinely differs per
-	 * language. It's not a replacement for {@link Localization.text}, which stays
-	 * the right tool for labels.
+	 * For content that's too big or too structural for the dictionary: a whole page of prose, an image, a data file,
+	 * or markup that genuinely differs per language. It's not a replacement for {@link Localization.text},
+	 * which stays the right tool for labels.
 	 *
-	 * You need one entry per configured locale; leaving one out is a compile
-	 * error. Only the current locale's loader is ever called, so writing them as
-	 * dynamic imports keeps each locale in its own chunk:
+	 * You need one entry per configured locale; leaving one out is a compile error. Only the current locale's loader is ever called,
+	 * so writing them as dynamic imports keeps each locale in its own chunk:
 	 *
 	 * ```ts
 	 * const content = await localization.branch({
@@ -193,23 +174,19 @@ export type Localization<TLocale extends string> = {
 	 * }))
 	 * ```
 	 *
-	 * The value is whatever the loader resolves to, untouched. A dynamic import
-	 * resolves to the module, so reach for `.default` yourself when that's what
-	 * you want: `(await import('./about.en-GB.md?raw')).default`.
+	 * The value is whatever the loader resolves to, untouched. A dynamic import resolves to the module,
+	 * so reach for `.default` yourself when that's what you want: `(await import('./about.en-GB.md?raw')).default`.
 	 *
-	 * If the current locale has no entry at runtime (a version skew between the
-	 * configured locales and this call site) it warns and falls back to the
-	 * default locale, the same way `text` falls back to the default text.
+	 * If the current locale has no entry at runtime (a version skew between the configured locales and this call site) it warns and falls back to the default locale,
+	 * the same way `text` falls back to the default text.
 	 */
 	branch<T>(loaders: LocaleBranches<TLocale, T>): Promise<T>
 	/**
 	 * Wraps content that has to be rebuilt when the locale changes.
 	 *
-	 * Route components are already rebuilt by navigation, so they don't need
-	 * this. It's for the parts that outlive a route: an app shell, a menu, a
-	 * dialog mounted once at startup. The dictionary for the new locale is
-	 * loaded before `render` runs, so `text` returns translations rather than
-	 * falling back.
+	 * Route components are already rebuilt by navigation, so they don't need this. It's for the parts that outlive a route:
+	 * an app shell, a menu, a dialog mounted once at startup. The dictionary for the new locale is loaded before `render` runs,
+	 * so `text` returns translations rather than falling back.
 	 *
 	 * ```ts
 	 * append(
@@ -219,18 +196,16 @@ export type Localization<TLocale extends string> = {
 	 * )
 	 * ```
 	 *
-	 * `render` runs on mount and again on every locale change, but not on
-	 * navigations that keep the same locale. The listener is tied to the
-	 * component, so unmounting cleans it up.
+	 * `render` runs on mount and again on every locale change, but not on navigations that keep the same locale.
+	 * The listener is tied to the component, so unmounting cleans it up.
 	 */
 	localized(render: LocalizedRender<TLocale>): GenericComponent
 	/**
-	 * Keeps the live document's locale state current across navigations: the
-	 * `lang` attribute on `<html>`, the `<link rel="alternate" hreflang>`
-	 * links, and the `og:locale` meta tags. Returns a dispose function.
+	 * Keeps the live document's locale state current across navigations: the `lang` attribute on `<html>`,
+	 * the `<link rel="alternate" hreflang>` links, and the `og:locale` meta tags. Returns a dispose function.
 	 *
-	 * This only affects the live document. Prerendered HTML gets the same
-	 * treatment from the build plugin (`@rooted/localization/vite`); use both.
+	 * This only affects the live document.
+	 * Prerendered HTML gets the same treatment from the build plugin (`@rooted/localization/vite`); use both.
 	 */
 	observeDocument(options?: ObserveDocumentOptions): () => void
 }
@@ -246,8 +221,8 @@ export type Localization<TLocale extends string> = {
 export type SupportedLocales<T> = T extends Localization<infer L> ? L : never
 
 /**
- * Configures localization for an app. The default locale's text lives inline
- * at the `text` call sites; every other locale gets an overlay dictionary,
+ * Configures localization for an app. The default locale's text lives inline at the `text` call sites;
+ * every other locale gets an overlay dictionary,
  * loaded lazily as its own bundle chunk.
  *
  * The locale is expected as the first URL path segment (`/nl-NL/about/`).

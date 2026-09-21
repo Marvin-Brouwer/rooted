@@ -8,8 +8,7 @@ const ROUTER_KEY = '@rooted/router'
 /**
  * Where something is scrolled to, both axes, in the usual x then y order.
  *
- * Both are labelled, so you don't have to come back here to check which way
- * round they go.
+ * Both are labelled, so you don't have to come back here to check which way round they go.
  */
 export type ScrollOffset = [x: number, y: number]
 
@@ -19,13 +18,12 @@ export type RouterScrollState = Record<string, ScrollOffset>
 /**
  * The routers currently asking for their scroll offset to be saved, by id.
  *
- * A router instance can't go into `history.state`, and neither can the element
- * it scrolls, but an instance has identity. So each one gets a stable id on
- * mount and the id is what ends up on the history entry, the same trick the
- * store's hashing uses for function references.
+ * A router instance can't go into `history.state`, and neither can the element it scrolls, but an instance has identity.
+ * So each one gets a stable id on mount and the id is what ends up on the history entry,
+ * the same trick the store's hashing uses for function references.
  *
- * A router that isn't in here saves nothing and restores nothing, which is how
- * `scrollBehavior.saveScrollBeforeNavigate: false` switches the whole thing off.
+ * A router that isn't in here saves nothing and restores nothing,
+ * which is how `scrollBehavior.saveScrollBeforeNavigate: false` switches the whole thing off.
  */
 const activeRouters = new Map<string, { target?: Element }>()
 let nextRouterIdentity = 0
@@ -47,9 +45,9 @@ export type ScrollRegistration = {
 /**
  * Signs a router up for scroll saving and says which element scrolls for it.
  *
- * While at least one router is registered, `history.scrollRestoration` is
- * `'manual'`: we restore scroll ourselves and don't want the browser doing it
- * too. The browser's own value goes back when the last one unregisters.
+ * While at least one router is registered, `history.scrollRestoration` is `'manual'`:
+ * we restore scroll ourselves and don't want the browser doing it too.
+ * The browser's own value goes back when the last one unregisters.
  *
  * @param target - A custom scroll container. Omit for `window`.
  */
@@ -78,8 +76,8 @@ export function registerScrollSaving(target?: Element): ScrollRegistration {
 }
 
 /**
- * Saves where every registered router is scrolled to, onto the current history
- * entry, so it can be restored when the user comes back to it.
+ * Saves where every registered router is scrolled to, onto the current history entry,
+ * so it can be restored when the user comes back to it.
  *
  * Does nothing when no router is registered.
  *
@@ -111,11 +109,9 @@ function currentOffsets(): RouterScrollState {
 /**
  * The state to read saved offsets from.
  *
- * The Navigation API's entry state when the browser has one, because that's the
- * only store a back or forward can write to, and it's kept at least as fresh as
- * `history.state`. Falls back to `history.state`, which is all there is on a
- * browser without the Navigation API, and all an entry carries before the
- * router has saved to it.
+ * The Navigation API's entry state when the browser has one, because that's the only store a back or forward can write to,
+ * and it's kept at least as fresh as `history.state`. Falls back to `history.state`, which is all there is on a browser without the Navigation API,
+ * and all an entry carries before the router has saved to it.
  */
 export function currentEntryState(): unknown {
 	if (!isClient()) return undefined
@@ -125,9 +121,8 @@ export function currentEntryState(): unknown {
 /**
  * Reads the offset saved for one router from a `history.state` object.
  *
- * Returns `undefined` when nothing was saved for it: the initial page load, a
- * push navigation the router wasn't registered for, or an entry written before
- * the router mounted.
+ * Returns `undefined` when nothing was saved for it: the initial page load, a push navigation the router wasn't registered for,
+ * or an entry written before the router mounted.
  */
 export function getSavedScrollOffset(state: unknown, routerId: string): ScrollOffset | undefined {
 	if (state === null || typeof state !== 'object') return undefined
@@ -169,21 +164,17 @@ const RESTORE_FRAME_BUDGET = 20
 /**
  * Scrolls to a saved offset, re-applying it for a few frames.
  *
- * A route mounts into the DOM empty and fills in asynchronously, so straight
- * after a render the document is usually still too short for the saved offset
- * and the browser clamps the scroll to whatever currently fits. There's no
- * "this route has finished rendering" signal to wait on, components mount
- * async all the way down, so this re-applies the offset each frame until it
- * sticks, then stops.
+ * A route mounts into the DOM empty and fills in asynchronously,
+ * so straight after a render the document is usually still too short for the saved offset and the browser clamps the scroll to whatever currently fits.
+ * There's no "this route has finished rendering" signal to wait on, components mount async all the way down,
+ * so this re-applies the offset each frame until it sticks, then stops.
  *
- * The budget is there so a page that will never be that tall (a shorter route
- * at the same URL, content that failed to load) stops being scrolled rather
- * than being fought every frame forever. In the recipe-book example the
- * content arrives within three frames.
+ * The budget is there so a page that will never be that tall (a shorter route at the same URL,
+ * content that failed to load) stops being scrolled rather than being fought every frame forever.
+ * In the recipe-book example the content arrives within three frames.
  *
- * The cost of the approach: for those few frames the scroll keeps being
- * asserted, so someone who scrolls in the moment right after pressing back
- * gets overridden once.
+ * The cost of the approach: for those few frames the scroll keeps being asserted,
+ * so someone who scrolls in the moment right after pressing back gets overridden once.
  *
  * @param offset - Where to scroll to. See {@link ScrollOffset}.
  * @param target - A custom scroll container. Omit for `window`.
@@ -212,13 +203,12 @@ function reachedOffset([x, y]: ScrollOffset, target?: Element): boolean {
 }
 
 /**
- * Scrolls every mounted router back to the offset saved for it on the history
- * entry you're on, and tells you whether any of them had one.
+ * Scrolls every mounted router back to the offset saved for it on the history entry you're on,
+ * and tells you whether any of them had one.
  *
- * The router does this for you on back/forward. You only need it for the
- * navigations it deliberately ignores: a back that changes nothing but the
- * query string or the hash isn't a route change, so the router leaves the
- * scroll position alone.
+ * The router does this for you on back/forward. You only need it for the navigations it deliberately ignores:
+ * a back that changes nothing but the query string or the hash isn't a route change,
+ * so the router leaves the scroll position alone.
  *
  * ```ts
  * import { href, restoreScrollPosition } from '@rooted/router'
@@ -228,8 +218,7 @@ function reachedOffset([x, y]: ScrollOffset, target?: Element): boolean {
  * })
  * ```
  *
- * Returns `false` when nothing was saved, which includes every router having
- * `scrollBehavior.saveScrollBeforeNavigate: false`.
+ * Returns `false` when nothing was saved, which includes every router having `scrollBehavior.saveScrollBeforeNavigate: false`.
  */
 export function restoreScrollPosition(): boolean {
 	if (!isClient()) return false

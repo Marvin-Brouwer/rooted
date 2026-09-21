@@ -12,11 +12,10 @@ const SOURCE_EXTENSIONS = /\.(mts|ts|mjs|js)$/
 const BUILT_EXTENSIONS = /\.mjs$/
 
 /**
- * Loads the middleware sources through Vite, so TypeScript works with no
- * bundling step.
+ * Loads the middleware sources through Vite, so TypeScript works with no bundling step.
  *
- * `reload` clears the runner's cache first. Without it the runner hands back the
- * module it already has and a rebuild after an edit does nothing.
+ * `reload` clears the runner's cache first.
+ * Without it the runner hands back the module it already has and a rebuild after an edit does nothing.
  */
 export async function loadSources<TApplication>(
 	server: ViteDevServer,
@@ -48,8 +47,7 @@ export async function loadSources<TApplication>(
 
 /**
  * Loads the built `dist/middleware/*.mjs` files, which is all preview can do:
- * there is no module runner there. It shows you the last build, not your
- * working tree.
+ * there is no module runner there. It shows you the last build, not your working tree.
  */
 export async function loadBuilt<TApplication>(
 	directory: string,
@@ -84,8 +82,8 @@ async function listMiddlewareFiles(
 }
 
 /**
- * Wraps a loaded file's default export so a throw is logged rather than taking
- * the server with it. Returns undefined for a file that exports nothing usable.
+ * Wraps a loaded file's default export so a throw is logged rather than taking the server with it.
+ * Returns undefined for a file that exports nothing usable.
  */
 function toRegisterFunction<TApplication>(
 	loaded: Record<string, unknown>,

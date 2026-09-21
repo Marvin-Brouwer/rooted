@@ -20,12 +20,11 @@ export type InternalDefinition<TApplication> = {
 }
 
 /**
- * Assembles the plugins an adapter is made of, so every adapter gets the same
- * dev and preview behaviour without wiring it up itself.
+ * Assembles the plugins an adapter is made of,
+ * so every adapter gets the same dev and preview behaviour without wiring it up itself.
  *
- * The order matters and mirrors the generated server: the user's middleware
- * runs first, then the not-found handler, so an `/api` route the middleware
- * owns is never answered by the SPA fallback.
+ * The order matters and mirrors the generated server: the user's middleware runs first, then the not-found handler,
+ * so an `/api` route the middleware owns is never answered by the SPA fallback.
  */
 export function createAdapter<TApplication>(definition: InternalDefinition<TApplication>): Plugin[] {
 	const plugins: Plugin[] = [buildPlugin(definition)]

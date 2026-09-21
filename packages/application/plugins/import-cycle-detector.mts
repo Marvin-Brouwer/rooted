@@ -17,12 +17,11 @@ export type ImportCycleOptions = {
 /**
  * Detects potential top-level `await` deadlocks caused by bundler code-splitting.
  *
- * A deadlock occurs when chunk A has a top-level `await import('./B')` and chunk B
- * statically imports chunk A (directly or transitively). Both wait on each
- * other indefinitely and the module never evaluates.
+ * A deadlock occurs when chunk A has a top-level `await import('./B')` and chunk B statically imports chunk A (directly or transitively).
+ * Both wait on each other indefinitely and the module never evaluates.
  *
- * This is a bundler artifact: the source may not have a cycle at all, but after
- * code-splitting, a dynamic import shim chunk can re-import from its parent chunk.
+ * This is a bundler artifact: the source may not have a cycle at all, but after code-splitting,
+ * a dynamic import shim chunk can re-import from its parent chunk.
  *
  * Runs only during builds (`generateBundle` is never called in dev mode).
  * Uses only the in-memory bundle. No filesystem reads.
@@ -78,8 +77,7 @@ export function importCycleDetector(options?: ImportCycleOptions): Plugin {
 }
 
 /**
- * Returns `true` only if `code` contains an `await` expression at module
- * scope, outside all function, object, and class bodies.
+ * Returns `true` only if `code` contains an `await` expression at module scope, outside all function, object, and class bodies.
  * Skips string literals and comments to avoid false matches.
  */
 function hasTopLevelAwait(code: string): boolean {

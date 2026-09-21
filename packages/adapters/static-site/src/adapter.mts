@@ -22,12 +22,11 @@ export type StaticSiteAdapterOptions = {
 /**
  * Base adapter for S3-compatible and object-storage static hosts.
  *
- * Writes pre-rendered HTML files and a fallback SPA shell for any path not
- * matching a real file. Works for AWS S3, GCP Cloud Storage, Azure Blob,
+ * Writes pre-rendered HTML files and a fallback SPA shell for any path not matching a real file. Works for AWS S3,
+ * GCP Cloud Storage, Azure Blob,
  * Cloudflare R2, DigitalOcean Spaces, STACKIT, OVH, and any other S3-compatible host.
  *
- * Platform-specific adapters (like `@rooted-adapters/scaleway-object-storage`) extend
- * this with pre-configured options.
+ * Platform-specific adapters (like `@rooted-adapters/scaleway-object-storage`) extend this with pre-configured options.
  *
  * @example `vite.config.ts`
  * ```ts

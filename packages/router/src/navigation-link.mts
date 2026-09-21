@@ -27,14 +27,11 @@ export type LinkOptions = {
 /**
  * A built-in component that renders a client-side navigation link.
  *
- * `Link` renders a plain `<a>` element and intercepts clicks to perform
- * SPA navigation via {@link navigate} instead of a full-page reload.
- * The click listener is removed automatically when the component unmounts
- * (bound to the component's lifetime signal).
+ * `Link` renders a plain `<a>` element and intercepts clicks to perform SPA navigation via {@link navigate} instead of a full-page reload.
+ * The click listener is removed automatically when the component unmounts (bound to the component's lifetime signal).
  *
- * Because the wrapper element uses `display: contents`, `Link` is layout
- * transparent. The inner `<a>` participates directly in the parent's flex or
- * grid context as if the wrapper weren't there.
+ * Because the wrapper element uses `display: contents`, `Link` is layout transparent.
+ * The inner `<a>` participates directly in the parent's flex or grid context as if the wrapper weren't there.
  *
  * Import from `@rooted/router`:
  * ```ts

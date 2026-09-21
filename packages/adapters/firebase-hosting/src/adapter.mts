@@ -23,16 +23,12 @@ export type FirebaseHostingAdapterOptions = {
  * Writes `firebase.json` to the Vite project root (not the output directory).
  * Always written -- the build controls the deployment config.
  *
- * One rewrite rule is generated per parameterized route, so `/recipe/42/` serves
- * the SPA shell and the browser-side router renders it. Firebase uses glob
- * syntax where `*` matches a single path segment, so the rooted `:param` maps
- * to one `*` each.
+ * One rewrite rule is generated per parameterized route, so `/recipe/42/` serves the SPA shell and the browser-side router renders it.
+ * Firebase uses glob syntax where `*` matches a single path segment, so the rooted `:param` maps to one `*` each.
  *
- * There is no catch-all rewrite. Firebase resolves a request in a fixed order --
- * redirects, exact-match static content, configured rewrites, then the custom
- * 404 page -- so with the catch-all gone an unmatched path falls through to
- * `404.html` with a real `404`. A `{ "source": "**" }` rule would sit in front
- * of that and answer `200` for every typo, which is what it used to do.
+ * There is no catch-all rewrite. Firebase resolves a request in a fixed order -- redirects, exact-match static content,
+ * configured rewrites, then the custom 404 page -- so with the catch-all gone an unmatched path falls through to `404.html` with a real `404`.
+ * A `{ "source": "**" }` rule would sit in front of that and answer `200` for every typo, which is what it used to do.
  *
  * `"trailingSlash": true` is always included since the rooted router enforces trailing slashes.
  *

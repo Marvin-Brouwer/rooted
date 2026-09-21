@@ -34,29 +34,24 @@ function createComponentStore() {
 
 /**
  * @internal
- * Weak map keyed by `GenericComponent` host elements. Holds the component
- * constructor and options. Stored off-element so user-supplied options aren't
- * reachable through DevTools in production. In dev mode the same data is also
- * mirrored on the element for debugging.
+ * Weak map keyed by `GenericComponent` host elements. Holds the component constructor and options.
+ * Stored off-element so user-supplied options aren't reachable through DevTools in production.
+ * In dev mode the same data is also mirrored on the element for debugging.
  */
 export const componentStore = createComponentStore()
 
 /**
- * The custom element that wraps every {@link Component}. Tag name is `<r-->`
- * in production and `<rooted-component>` in development.
+ * The custom element that wraps every {@link Component}.
+ * Tag name is `<r-->` in production and `<rooted-component>` in development.
  *
- * When you call `create(MyComponent)`, rooted creates an instance of this
- * class, stashes the component and its options in a private `WeakMap`, and on
- * `connectedCallback` runs the component's `onMount` with a typed
- * {@link ComponentContext}.
+ * When you call `create(MyComponent)`, rooted creates an instance of this class, stashes the component and its options in a private `WeakMap`,
+ * and on `connectedCallback` runs the component's `onMount` with a typed {@link ComponentContext}.
  *
- * You'll see this type in signatures (`create(MyComponent)` returns
- * `GenericComponent`), but don't instantiate or subclass it directly. Use
- * {@link component} and {@link create}.
+ * You'll see this type in signatures (`create(MyComponent)` returns `GenericComponent`), but don't instantiate or subclass it directly.
+ * Use {@link component} and {@link create}.
  *
- * In dev mode the element also exposes `component`, `options`, and `definedAt`
- * as direct properties so they show up in DevTools. These are absent in
- * production.
+ * In dev mode the element also exposes `component`, `options`, and `definedAt` as direct properties so they show up in DevTools.
+ * These are absent in production.
  *
  * @see {@link component}
  * @see {@link create}

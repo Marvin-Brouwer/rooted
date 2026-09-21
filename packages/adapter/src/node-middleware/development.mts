@@ -11,9 +11,8 @@ import type { ResolvedConfig, ViteDevServer } from 'vite'
 /**
  * The `vite dev` half of {@link nodeMiddlewareServer}.
  *
- * Loads the middleware sources through Vite's SSR module runner, so TypeScript
- * works with no bundling step, and rebuilds the framework instance whenever a
- * file in the folder changes.
+ * Loads the middleware sources through Vite's SSR module runner, so TypeScript works with no bundling step,
+ * and rebuilds the framework instance whenever a file in the folder changes.
  */
 export function developmentMiddleware<TApplication>(
 	options: NodeMiddlewareServerOptions<TApplication>,

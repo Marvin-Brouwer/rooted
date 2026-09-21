@@ -13,11 +13,10 @@ import type { SeoApi } from '@rooted/seo'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 /**
- * The build-time half of every adapter: writes the fallback shell, the static
- * route directories, `routes.json`, and runs the SSG pre-render pass.
+ * The build-time half of every adapter: writes the fallback shell, the static route directories, `routes.json`,
+ * and runs the SSG pre-render pass.
  *
- * Everything host-specific happens in the definition's `setup`, which runs once
- * all of that is on disk.
+ * Everything host-specific happens in the definition's `setup`, which runs once all of that is on disk.
  */
 export function buildPlugin<TApplication>(definition: InternalDefinition<TApplication>): Plugin {
 	let config: ResolvedConfig

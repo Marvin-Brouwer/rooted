@@ -274,9 +274,8 @@ describe('restoreScrollPosition()', () => {
 
 describe('restoreScrollOffset()', () => {
 	/**
-	 * A container that clamps like a real one. `maxScroll` starts small, the way
-	 * a route does before its content has mounted, and `grow()` is the content
-	 * arriving.
+	 * A container that clamps like a real one. `maxScroll` starts small, the way a route does before its content has mounted,
+	 * and `grow()` is the content arriving.
 	 */
 	function clampingContainer(maxScroll: number) {
 		const container = {

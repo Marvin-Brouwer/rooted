@@ -8,9 +8,8 @@ import type { Connect } from 'vite'
 const pendingNext = new WeakMap<IncomingMessage, Connect.NextFunction>()
 
 /**
- * Builds the Fastify instance that runs the `middlewarePath` files during
- * `vite dev` and `vite preview`. Anything Fastify has no route for falls back
- * to Vite.
+ * Builds the Fastify instance that runs the `middlewarePath` files during `vite dev` and `vite preview`.
+ * Anything Fastify has no route for falls back to Vite.
  */
 export async function createFastifyServer(
 	middleware: ReadonlyArray<(app: FastifyInstance) => Promise<void>>,

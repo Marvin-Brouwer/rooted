@@ -9,8 +9,7 @@ import inactiveSvg from './screen-lock-button.icon-inactive.svg?no-inline'
 /**
  * A toggle button that keeps the screen awake using the Wake Lock API.
  *
- * The lock is always released when the component unmounts (i.e. when
- * navigating away from the recipe).
+ * The lock is always released when the component unmounts (i.e. when navigating away from the recipe).
  *
  * @example
  * ```ts

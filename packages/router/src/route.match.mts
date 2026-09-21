@@ -8,9 +8,8 @@ import type { AnyRoute, PathParameterDictionary, RouteParameterDictionary } from
 /**
  * Result of {@link Route.match}.
  *
- * On success, `tokens` holds the parsed and typed path parameter values and
- * `length` is the number of characters consumed from the path (used by the
- * router to select the best match). On failure, only `success: false` is present.
+ * On success, `tokens` holds the parsed and typed path parameter values and `length` is the number of characters consumed from the path (used by the router to select the best match).
+ * On failure, only `success: false` is present.
  */
 
 export type RouteMatch<T extends AnyRoute> = {
@@ -33,9 +32,8 @@ export type MatchRouteOptions = {
 	target?: string | Path | Url | URL | Location
 	offset?: number
 	/**
-	 * When `true` (the default), the match fails if any path characters remain
-	 * unconsumed after all route parts have matched. Set to `false` to allow
-	 * prefix-only matching (used internally when matching parent routes).
+	 * When `true` (the default), the match fails if any path characters remain unconsumed after all route parts have matched.
+	 * Set to `false` to allow prefix-only matching (used internally when matching parent routes).
 	 *
 	 * @default true
 	 */

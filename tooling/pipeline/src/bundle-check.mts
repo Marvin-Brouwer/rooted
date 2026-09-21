@@ -1,14 +1,13 @@
 /**
- * Checks the bundles in every package's `dist` folder for imports that cannot work
- * once the package is installed:
+ * Checks the bundles in every package's `dist` folder for imports that cannot work once the package is installed:
  *
  * - a JavaScript chunk importing from a declaration file. Bundlers put runtime
  *   helpers in a shared chunk, and a declaration chunk sometimes gets picked as that
  *   chunk, which leaves an import of a binding that only exists as a type.
  * - a relative import of a file that was never emitted.
  *
- * Only statement-position imports are read, so `import('...')` inside a doc comment
- * is left alone. Run it after `build:ci`; it exits non-zero and lists what it found.
+ * Only statement-position imports are read, so `import('...')` inside a doc comment is left alone. Run it after `build:ci`;
+ * it exits non-zero and lists what it found.
  */
 
 import { existsSync } from 'node:fs'

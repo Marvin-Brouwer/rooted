@@ -28,11 +28,10 @@ export type ExtractParent<T extends readonly RouteParameter[]>
 export type PathParameterDictionary<T extends readonly RouteParameter[]> = ConvertPathParameters<FilterOutParent<T>>
 
 /**
- * Extracts the complete typed parameter dictionary for a route, including parameters
- * inherited from any parent route (resolved recursively up to 10 levels deep).
+ * Extracts the complete typed parameter dictionary for a route,
+ * including parameters inherited from any parent route (resolved recursively up to 10 levels deep).
  *
- * Use this as the type of the `parameters` argument when constructing links with
- * {@link href.for}.
+ * Use this as the type of the `parameters` argument when constructing links with {@link href.for}.
  *
  * @example
  * ```ts
@@ -56,9 +55,8 @@ export type RouteParameterDictionary<TRoute extends AnyRoute, D extends number =
 /**
  * A function that resolves the element to render for a matched route.
  *
- * Receives a context object with `create` (the component factory) and `tokens`
- * (the typed path parameters). Use `create` to instantiate your component with
- * whatever props you need:
+ * Receives a context object with `create` (the component factory) and `tokens` (the typed path parameters).
+ * Use `create` to instantiate your component with whatever props you need:
  * ```ts
  * resolve: ({ create, tokens }) => create(MyComponent, {
  *   id: tokens.id
@@ -66,11 +64,9 @@ export type RouteParameterDictionary<TRoute extends AnyRoute, D extends number =
  * ```
  *
  * Returning `undefined` signals a 404. The route is treated as a non-match,
- * and shorter parent routes are blocked from matching as a fallback
- * (suppression).
+ * and shorter parent routes are blocked from matching as a fallback (suppression).
  *
- * An `async` resolver enables bundle-splitting: the imported module is loaded
- * lazily on first navigation to the route.
+ * An `async` resolver enables bundle-splitting: the imported module is loaded lazily on first navigation to the route.
  *
  * @see {@link route}
  */
@@ -79,16 +75,13 @@ export type RouteResolver<T extends readonly RouteParameter[]>
 		Element | undefined | Promise<Element | undefined>
 
 /**
- * Lazily resolves a route's SEO metadata, as an alternative to a plain
- * {@link RouteSeoMetadata} object.
+ * Lazily resolves a route's SEO metadata, as an alternative to a plain {@link RouteSeoMetadata} object.
  *
- * Evaluated once per navigation at runtime and once per generated page at
- * build time. At build the function runs as if the browser were at the page
- * being generated (`location` points at it), so URL-dependent values like
- * localized text come out right per page. Keep it pure and cheap.
+ * Evaluated once per navigation at runtime and once per generated page at build time.
+ * At build the function runs as if the browser were at the page being generated (`location` points at it),
+ * so URL-dependent values like localized text come out right per page. Keep it pure and cheap.
  *
- * Receives the same typed `tokens` a resolver gets; ignore the argument when
- * you don't need it:
+ * Receives the same typed `tokens` a resolver gets; ignore the argument when you don't need it:
  * ```ts
  * seo: () => ({ title: localization.text`Browse categories` })
  * seo: ({ tokens }) => ({ title: `Docs v${tokens.version}` })
@@ -98,8 +91,8 @@ export type RouteSeoResolver<T extends readonly RouteParameter[]>
 	= (context: { tokens: PathParameterDictionary<T> }) => RouteSeoMetadata | Promise<RouteSeoMetadata>
 
 /**
- * Curried builder returned by {@link route}. Call it with `{ resolve }` (and
- * optionally `seo`) to produce a fully typed {@link Route}.
+ * Curried builder returned by {@link route}.
+ * Call it with `{ resolve }` (and optionally `seo`) to produce a fully typed {@link Route}.
  */
 export type RouteBuilder<T extends RouteParameter[]> = (definition: { resolve: RouteResolver<T>, seo?: RouteSeoMetadata | RouteSeoResolver<T> }) =>
 	// This is typed with an anonymous object on purpose.
@@ -144,10 +137,9 @@ export type EmptyRoute = Route<RouteParameters<never>> & MatchableRoute
 /**
  * Minimal interface for any route that can be matched against the current URL.
  *
- * Use this when you only need to call `match()` and don't need the full typed
- * {@link Route} generic. Casting through this interface avoids the complex
- * conditional types on {@link AnyRoute} that TypeScript cannot evaluate at
- * compile time due to the circular import between route.mts and route.match.mts.
+ * Use this when you only need to call `match()` and don't need the full typed {@link Route} generic.
+ * Casting through this interface avoids the complex conditional types on {@link AnyRoute} that TypeScript cannot evaluate at compile time,
+ * due to the circular import between route.mts and route.match.mts.
  *
  * @example
  * ```ts
@@ -166,18 +158,16 @@ export type Route<T extends RouteParameters<Parameter[]>> = {
 	/**
 	 * Resolves the element to render when this route is the best match.
 	 *
-	 * Returning `undefined` signals a non-match and prevents shorter parent routes
-	 * from rendering as a fallback (suppression). The {@link router} calls this after
-	 * a successful URL pattern match.
+	 * Returning `undefined` signals a non-match and prevents shorter parent routes from rendering as a fallback (suppression).
+	 * The {@link router} calls this after a successful URL pattern match.
 	 */
 	readonly resolve: RouteResolver<T['parameters']>
 	/**
 	 * Tests whether this route's pattern matches a URL path.
 	 *
-	 * By default matches against the current `location`. Pass `options.target` to
-	 * match against an explicit path string, {@link Path}, {@link Url}, `URL`, or
-	 * `Location`. Set `options.checkInclusive` to `false` to allow prefix-only
-	 * matching (the router uses this internally when evaluating parent routes).
+	 * By default matches against the current `location`. Pass `options.target` to match against an explicit path string,
+	 * {@link Path}, {@link Url}, `URL`, or `Location`.
+	 * Set `options.checkInclusive` to `false` to allow prefix-only matching (the router uses this internally when evaluating parent routes).
 	 *
 	 * @returns A {@link RouteMatch}. Check `match.success` before reading `match.tokens`.
 	 *
@@ -306,17 +296,16 @@ function zipTemplateParts<T extends RouteParameter>(strings: TemplateStringsArra
 /**
  * Defines a route. A route is a URL pattern bound to a component resolver.
  *
- * `route` is a tagged-template function. Write the URL pattern as a template
- * string and interpolate {@link token}s for typed parameters, a parent {@link Route}
- * as the first interpolation to compose URLs, and {@link wildcard} as the last
- * interpolation for catch-all segments. The pattern must start and end with `/`.
+ * `route` is a tagged-template function. Write the URL pattern as a template string and interpolate {@link token}s for typed parameters,
+ * a parent {@link Route} as the first interpolation to compose URLs, and {@link wildcard} as the last interpolation for catch-all segments.
+ * The pattern must start and end with `/`.
  *
  * Call the returned {@link RouteBuilder} with `{ resolve }` to complete the definition.
- * The `resolve` function receives `{ create, tokens }` and returns the `Element` to
- * render. Returning `undefined` signals a non-match and suppresses parent fallbacks.
+ * The `resolve` function receives `{ create, tokens }` and returns the `Element` to render.
+ * Returning `undefined` signals a non-match and suppresses parent fallbacks.
  *
- * Invalid patterns (missing leading/trailing slash, wildcard not at the end, etc.) are
- * logged as warnings in development and produce a route that never matches.
+ * Invalid patterns (missing leading/trailing slash, wildcard not at the end,
+ * etc.) are logged as warnings in development and produce a route that never matches.
  *
  * @returns A {@link RouteBuilder}. Call it with `{ resolve }` to produce a {@link Route}.
  *

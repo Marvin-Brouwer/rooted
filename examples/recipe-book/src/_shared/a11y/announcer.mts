@@ -24,8 +24,8 @@ export function announceToScreenReader(message: string) {
 }
 
 /**
- * Mounts a persistent visually-hidden ARIA live region used by
- * {@link announceToScreenReader}. Add this once at the application level.
+ * Mounts a persistent visually-hidden ARIA live region used by {@link announceToScreenReader}.
+ * Add this once at the application level.
  */
 export const Announcer = component({
 	name: 'screen-reader:announcer',

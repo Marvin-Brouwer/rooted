@@ -13,8 +13,8 @@ const ROUTER_KEY = '@rooted/router'
 type NavigateListener = (event: { navigationType: string }) => void
 
 /**
- * Stands in for the Navigation API, which happy-dom doesn't have. Only the
- * three things `scroll.navigation.mts` touches: the current entry's state,
+ * Stands in for the Navigation API, which happy-dom doesn't have. Only the three things `scroll.navigation.mts` touches:
+ * the current entry's state,
  * updating it, and the `navigate` event.
  */
 function fakeNavigation() {

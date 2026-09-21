@@ -35,9 +35,8 @@ export type PwaAssetsOptions = {
 }
 
 /**
- * Generates PWA icon assets from the project's `public/icon.svg` using the
- * `@vite-pwa/assets-generator` API when no explicit icon is configured, and
- * lists them in the web manifest.
+ * Generates PWA icon assets from the project's `public/icon.svg` using the `@vite-pwa/assets-generator` API when no explicit icon is configured,
+ * and lists them in the web manifest.
  *
  * Uses the `minimal-2023` preset (without `favicon.ico`; SVG is used instead),
  * which produces:
@@ -45,12 +44,11 @@ export type PwaAssetsOptions = {
  * - `maskable-icon-512x512.png` (maskable)
  * - `apple-touch-icon-180x180.png` (Apple)
  *
- * Assets are written to `public/` and are skipped when they already exist on
- * disk (`overrideAssets: false`). When there's no icon to generate from, the
- * manifest falls back to `icon.svg` and the build says so.
+ * Assets are written to `public/` and are skipped when they already exist on disk (`overrideAssets: false`).
+ * When there's no icon to generate from, the manifest falls back to `icon.svg` and the build says so.
  *
- * When a deployment URL is configured and the SEO plugin is present, registers
- * the generated icons as a `sitemap-icons.xml` entry via `SeoApi.addSitemap`.
+ * When a deployment URL is configured and the SEO plugin is present,
+ * registers the generated icons as a `sitemap-icons.xml` entry via `SeoApi.addSitemap`.
  *
  * @internal Automatically included by {@link rootedManifest}. Only runs during
  * production builds when no `icon` is set in the manifest options.

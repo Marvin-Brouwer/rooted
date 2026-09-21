@@ -1,10 +1,8 @@
 /**
- * The app base Vite was configured with (`import.meta.env.BASE_URL`), always
- * ending in `/`. That is `/` for a root deployment and `/my-repo/` for one
- * served from a sub-path.
+ * The app base Vite was configured with (`import.meta.env.BASE_URL`), always ending in `/`.
+ * That is `/` for a root deployment and `/my-repo/` for one served from a sub-path.
  *
- * Falls back to `/` when nothing defines `import.meta.env`, which is what you
- * get under plain Node.
+ * Falls back to `/` when nothing defines `import.meta.env`, which is what you get under plain Node.
  *
  * @example
  * ```ts

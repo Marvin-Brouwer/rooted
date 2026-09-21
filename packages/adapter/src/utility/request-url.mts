@@ -32,12 +32,11 @@ export function stripBase(pathname: string, base: string): string | undefined {
 }
 
 /**
- * The part of a request an adapter can have an opinion about, or undefined when
- * it has none: a write, something outside the base, or one of Vite's own URLs.
+ * The part of a request an adapter can have an opinion about, or undefined when it has none: a write, something outside the base,
+ * or one of Vite's own URLs.
  *
- * It reads `originalUrl` in preference to `url` because Vite's SPA fallback
- * rewrites `url` to `/index.html` partway through the chain, and the address the
- * caller asked for is the one worth judging.
+ * It reads `originalUrl` in preference to `url` because Vite's SPA fallback rewrites `url` to `/index.html` partway through the chain,
+ * and the address the caller asked for is the one worth judging.
  */
 export function requestTarget(
 	request: { url?: string, originalUrl?: string, method?: string, headers: Record<string, unknown> },

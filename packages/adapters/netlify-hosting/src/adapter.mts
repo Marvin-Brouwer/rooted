@@ -20,19 +20,16 @@ export type NetlifyHostingAdapterOptions = {
 /**
  * Adapter for Netlify static hosting.
  *
- * Writes a `_redirects` file to the output directory with one `200` rule per
- * dynamic route, so `/recipe/42/` serves the SPA shell and the browser-side
- * router renders it.
+ * Writes a `_redirects` file to the output directory with one `200` rule per dynamic route,
+ * so `/recipe/42/` serves the SPA shell and the browser-side router renders it.
  *
- * There is no catch-all rule. Netlify serves a top-level `404.html`
- * automatically for "any failed paths that do not resolve to a static file",
- * and a `/*  /404.html  200` line would override that with a `200` on every
- * typo and every scanner probe.
+ * There is no catch-all rule.
+ * Netlify serves a top-level `404.html` automatically for "any failed paths that do not resolve to a static file",
+ * and a `/*  /404.html  200` line would override that with a `200` on every typo and every scanner probe.
  *
- * Netlify matches `:param` against a single path segment, and the rules are
- * written without a trailing slash, so both `/recipe/42` and `/recipe/42/`
- * serve the page. `vite dev` still redirects the first to the second; Netlify
- * doesn't, so dev is the stricter of the two.
+ * Netlify matches `:param` against a single path segment, and the rules are written without a trailing slash,
+ * so both `/recipe/42` and `/recipe/42/` serve the page. `vite dev` still redirects the first to the second; Netlify doesn't,
+ * so dev is the stricter of the two.
  *
  * @example `vite.config.ts`
  * ```ts

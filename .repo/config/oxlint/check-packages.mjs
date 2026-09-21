@@ -42,9 +42,9 @@ function* exportTargets(exports, subpath = '.', condition = undefined) {
 }
 
 /**
- * `files` entries are npm-pack patterns. Everything in this repo is a plain path, so this only
- * understands those, plus a trailing `/*` or `/**` on a directory. Anything fancier is treated as
- * covering nothing, which shows up as a failure rather than a silent pass.
+ * `files` entries are npm-pack patterns. Everything in this repo is a plain path, so this only understands those,
+ * plus a trailing `/*` or `/**` on a directory. Anything fancier is treated as covering nothing,
+ * which shows up as a failure rather than a silent pass.
  */
 function isCovered(target, files) {
 	// No `files` at all means npm publishes the whole directory.

@@ -274,11 +274,10 @@ async function findDtsFiles(outDirectory: string): Promise<string[]> {
 // ── Public API ──────────────────────────────────────────────────────────────
 
 /**
- * tsdown plugin that resolves `{@inheritdoc Type['member']}` tags in generated
- * declaration files by inlining the referenced JSDoc.
+ * tsdown plugin that resolves `{@inheritdoc Type['member']}` tags in generated declaration files by inlining the referenced JSDoc.
  *
- * Looks up `Type` by building a TypeScript program from the package's own
- * tsconfig, so any type visible in the project (including project-local types,
+ * Looks up `Type` by building a TypeScript program from the package's own tsconfig,
+ * so any type visible in the project (including project-local types,
  * dependencies, and whatever libs the tsconfig includes) can be referenced.
  *
  * @example `tsdown.config.mts`

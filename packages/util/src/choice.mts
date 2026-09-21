@@ -1,14 +1,12 @@
 /**
  * Returns `matched` when `condition` is `true`, otherwise `notMatched`.
  *
- * The two sided version of `optional()`, for picking between two values you
- * already have. The condition comes first, same as `optional()` and
- * `cssClass()`, and only `true` counts as a match.
+ * The two sided version of `optional()`, for picking between two values you already have. The condition comes first,
+ * same as `optional()` and `cssClass()`, and only `true` counts as a match.
  *
- * Both values get evaluated, because that's what passing arguments to a
- * function does, and no amount of typing changes it. A branch that has to
- * compute something, or that reads through something which might not be
- * there, is a ternary's job and stays one.
+ * Both values get evaluated, because that's what passing arguments to a function does, and no amount of typing changes it.
+ * A branch that has to compute something, or that reads through something which might not be there,
+ * is a ternary's job and stays one.
  *
  * @param condition - When `true` the matched value is returned, any other
  *   value returns `notMatched`.

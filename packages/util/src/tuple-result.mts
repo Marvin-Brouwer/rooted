@@ -6,8 +6,7 @@ export type ErrorTuple = [success: false, value: never, error: Error]
  * A discriminated tuple that is either a {@link SuccessTuple} or an {@link ErrorTuple}.
  *
  * Use {@link tupleResult.isSuccess} / {@link tupleResult.isError} to narrow the type,
- * or {@link tupleResult.value} to extract the payload, or {@link tupleResult.unTuple}
- * to unwrap and throw on failure.
+ * or {@link tupleResult.value} to extract the payload, or {@link tupleResult.unTuple} to unwrap and throw on failure.
  */
 export type TupleResult<T> = SuccessTuple<T> | ErrorTuple
 

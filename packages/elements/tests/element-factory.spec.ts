@@ -1,8 +1,7 @@
 /**
  * Spec: createElementFactory — element creation
  *
- * Illustrates how createElement() builds DOM elements using the
- * tag, DOM properties, classes, aria, and children options.
+ * Illustrates how createElement() builds DOM elements using the tag, DOM properties, classes, aria, and children options.
  */
 import { describe, expect, test } from 'vitest'
 

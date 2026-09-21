@@ -9,8 +9,8 @@ import type { ResolvedConfig, ViteDevServer } from 'vite'
 /**
  * The `vite dev` half of {@link routedNotFound}.
  *
- * Two middlewares, because neither position can do the whole job. The returned
- * function is the post hook Vite installs after its own chain.
+ * Two middlewares, because neither position can do the whole job.
+ * The returned function is the post hook Vite installs after its own chain.
  */
 export function developmentNotFound(config: ResolvedConfig, matchers: () => RouteMatchers) {
 	return (server: ViteDevServer): (() => void) => {

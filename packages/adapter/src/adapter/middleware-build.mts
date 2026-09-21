@@ -8,11 +8,11 @@ const MIDDLEWARE_EXTENSIONS = /\.(mts|ts|mjs|js)$/
 
 /**
  * Transpiles the adapter's `middlewarePath` folder into `<outDir>/middleware`,
- * one `.mjs` per source file, keeping the names so the generated server's
- * lexicographic load order still means what the author wrote.
+ * one `.mjs` per source file,
+ * keeping the names so the generated server's lexicographic load order still means what the author wrote.
  *
- * Only bare imports are left external, so a middleware file's relative imports
- * are bundled in and it runs from the output directory with nothing else there.
+ * Only bare imports are left external,
+ * so a middleware file's relative imports are bundled in and it runs from the output directory with nothing else there.
  */
 export async function buildMiddlewareFiles(options: {
 	/** Adapter plugin name, for the error message. */

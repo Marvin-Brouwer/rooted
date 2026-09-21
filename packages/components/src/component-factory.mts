@@ -41,10 +41,8 @@ function createElement<TElement extends HTMLElement>(element: string, properties
 }
 
 /**
- * Builds a node without mounting it. Pass a {@link Component} (made with the
- * `component()` factory) or a {@link RootedElement} subclass. To build a
- * standard HTML or SVG element, use the `element(...)` factory from the mount
- * context instead.
+ * Builds a node without mounting it. Pass a {@link Component} (made with the `component()` factory) or a {@link RootedElement} subclass.
+ * To build a standard HTML or SVG element, use the `element(...)` factory from the mount context instead.
  *
  * Use `create(...)` when you want a reference to the node before appending it.
  * Use `append(...)` from the mount context to create and append in one step.

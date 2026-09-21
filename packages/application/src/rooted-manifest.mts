@@ -64,10 +64,8 @@ export type RootedApplicationManifest = {
 	}
 	/**
 	 * Path (relative to Vite root) to the source SVG used to generate PWA icons.
-	 * Example: `'public/icon.svg'`
-	 * When omitted, `public/icon.svg` under the Vite root is used automatically if
-	 * the file exists. If neither is available, icons fall back to
-	 * `[{ src: 'icon.svg', sizes: 'any' }]` and the build warns about it.
+	 * Example: `'public/icon.svg'` When omitted, `public/icon.svg` under the Vite root is used automatically if the file exists.
+	 * If neither is available, icons fall back to `[{ src: 'icon.svg', sizes: 'any' }]` and the build warns about it.
 	 */
 	icon?: string
 	seo?: SeoOptions
@@ -98,16 +96,13 @@ function resolveBase(url: string | undefined): string | undefined {
 }
 
 /**
- * Builds the Vite config for a rooted app. Returns the value to use as the
- * default export of `vite.config.mts`.
+ * Builds the Vite config for a rooted app. Returns the value to use as the default export of `vite.config.mts`.
  *
  * Wires up the rooted plumbing (CSS loader, SEO plugins, sitemap, llms.txt,
- * robots.txt, PWA preset, import-cycle detector) plus your own `plugins` and
- * `resolve` overrides.
+ * robots.txt, PWA preset, import-cycle detector) plus your own `plugins` and `resolve` overrides.
  *
  * Route SEO is not included, because this package knows nothing about routing.
- * If you use the router, add `routeSeoPlugin()` from `@rooted/seo/router` to
- * `plugins`, next to `generateRouteManifest()`.
+ * If you use the router, add `routeSeoPlugin()` from `@rooted/seo/router` to `plugins`, next to `generateRouteManifest()`.
  *
  * @example
  * ```ts

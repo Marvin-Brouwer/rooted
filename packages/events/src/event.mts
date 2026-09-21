@@ -20,14 +20,12 @@ type ElementSpecificEvents = 'change' | 'input' | 'invalid' | 'select'
 type FormControlTags = 'input' | 'select' | 'textarea' | 'form'
 
 /**
- * Maps an element tag name to the event map that is semantically applicable
- * to that element. Elements with their own DOM event map interface use it;
- * all other HTML elements use {@link HTMLElementEventMap} minus events that
- * are exclusive to form-control element types.
+ * Maps an element tag name to the event map that is semantically applicable to that element.
+ * Elements with their own DOM event map interface use it;
+ * all other HTML elements use {@link HTMLElementEventMap} minus events that are exclusive to form-control element types.
  *
- * TypeScript 5.9's DOM lib provides {@link HTMLMediaElementEventMap} and
- * {@link HTMLVideoElementEventMap}; form-control events are restricted by
- * tag-name literal rather than by a dedicated event-map interface.
+ * TypeScript 5.9's DOM lib provides {@link HTMLMediaElementEventMap} and {@link HTMLVideoElementEventMap};
+ * form-control events are restricted by tag-name literal rather than by a dedicated event-map interface.
  */
 export type TagSpecificEventMap<K extends ElementKeys>
 	= K extends keyof HTMLElementTagNameMap
@@ -42,9 +40,8 @@ export type TagSpecificEventMap<K extends ElementKeys>
 /**
  * An augmented DOM event with a narrowed `currentTarget` type.
  *
- * DOM's built-in `currentTarget` is typed as `EventTarget | null`; this type
- * tightens it to the actual element so you can access element-specific
- * properties without casting.
+ * DOM's built-in `currentTarget` is typed as `EventTarget | null`;
+ * this type tightens it to the actual element so you can access element-specific properties without casting.
  *
  * @typeParam TEvent - The underlying DOM event type (e.g. `MouseEvent`).
  * @typeParam TTarget - The element type the listener is attached to.
@@ -66,13 +63,11 @@ type ResolvedElement<T extends Element | ElementKeys>
 /**
  * A typed event handler for a DOM element event.
  *
- * Accepts either an element class or a tag name string as the first type
- * parameter:
+ * Accepts either an element class or a tag name string as the first type parameter:
  * - `EventHandler<'button', 'click'>`: tag name form (recommended for options types).
  * - `EventHandler<HTMLButtonElement, 'click'>`: element class form.
  *
- * Both forms produce the same handler type. The handler may optionally accept
- * the typed event object, or take no arguments at all.
+ * Both forms produce the same handler type. The handler may optionally accept the typed event object, or take no arguments at all.
  *
  * @typeParam TElementOrTag - The element type or tag name string.
  * @typeParam EventKey - The event name key.
@@ -96,11 +91,10 @@ export type EventHandler<
 	| (() => void | Promise<void>)
 
 /**
- * A map of optional event handlers for all events applicable to a given HTML
- * element. Used as the type of the `on` prop in element factory calls.
+ * A map of optional event handlers for all events applicable to a given HTML element.
+ * Used as the type of the `on` prop in element factory calls.
  *
- * Handler values are contextually typed from the surrounding element's event
- * map; no explicit annotation needed.
+ * Handler values are contextually typed from the surrounding element's event map; no explicit annotation needed.
  *
  * @example
  * ```ts

@@ -1,8 +1,8 @@
 /**
  * Low-level helpers for composing and parsing the `document.cookie` string.
  *
- * These functions never touch `document.cookie` themselves. That lives in
- * {@link ./cookie-storage.mts}, which keeps this file trivially testable.
+ * These functions never touch `document.cookie` themselves. That lives in {@link ./cookie-storage.mts},
+ * which keeps this file trivially testable.
  */
 
 const SAME_SITE_LABEL: Record<globalThis.CookieSameSite, string> = {
@@ -14,9 +14,8 @@ const SAME_SITE_LABEL: Record<globalThis.CookieSameSite, string> = {
 /**
  * Build the string to assign to `document.cookie` for a single cookie.
  *
- * Takes {@link globalThis.CookieInit} directly. `value` is expected to
- * already be a string. Callers in `cookie-storage.mts` handle JSON
- * encoding before reaching this layer.
+ * Takes {@link globalThis.CookieInit} directly. `value` is expected to already be a string.
+ * Callers in `cookie-storage.mts` handle JSON encoding before reaching this layer.
  *
  * A few things happen on the way out:
  * - Name and value are URL-encoded.
@@ -52,8 +51,8 @@ export function buildCookieString(init: globalThis.CookieInit): string {
 
 /**
  * Parse the whole `document.cookie` string into a `Map<name, value>`.
- * Both sides are URL-decoded. Malformed entries are skipped rather than
- * raised as errors. See the `catch` inside for the reasoning.
+ * Both sides are URL-decoded. Malformed entries are skipped rather than raised as errors.
+ * See the `catch` inside for the reasoning.
  *
  * @example
  * ```ts
@@ -80,11 +79,9 @@ export function parseCookieHeader(header: string): Map<string, string> {
 }
 
 /**
- * `decodeURIComponent` throws on invalid percent-escapes
- * like `%ZZ` or a truncated `%C3`. \
+ * `decodeURIComponent` throws on invalid percent-escapes like `%ZZ` or a truncated `%C3`. \
  * Our own writes go through `encodeURIComponent` so they're always valid,
- * but document.cookie also surfaces cookies set
- * by the server, extensions, and other scripts that may not encode correctly.
+ * but document.cookie also surfaces cookies set by the server, extensions, and other scripts that may not encode correctly.
  *
  * Skip the broken entry instead of letting one bad cookie crash the whole parse.
  */

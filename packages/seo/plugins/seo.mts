@@ -21,9 +21,8 @@ const DEFAULT_HOME_ROUTE_FILES = [
 
 export type SeoOptions = {
 	/**
-	 * Glob patterns (relative to the Vite project root) used to discover
-	 * home/navigation files. The newest `git log` date among all matched files
-	 * is used as the `lastmod` for the root sitemap entry.
+	 * Glob patterns (relative to the Vite project root) used to discover home/navigation files.
+	 * The newest `git log` date among all matched files is used as the `lastmod` for the root sitemap entry.
 	 * Supports negation patterns (prefix with `!`).
 	 * @default ['./src/navigation/application.mts', './src/navigation/*.mts', '!./src/navigation/not-found.mts']
 	 */
@@ -39,35 +38,30 @@ export type SeoOptions = {
 	 */
 	titleSuffix?: string
 	/**
-	 * Options for the generated `robots.txt`. Set to `false` to disable
-	 * robots.txt generation entirely.
+	 * Options for the generated `robots.txt`. Set to `false` to disable robots.txt generation entirely.
 	 * @default undefined - generates a default robots.txt
 	 */
 	robots?: RobotsOptions | false
 	/**
-	 * Options for the generated `llms.txt`. Set to `false` to disable
-	 * `llms.txt` generation entirely.
+	 * Options for the generated `llms.txt`. Set to `false` to disable `llms.txt` generation entirely.
 	 * @default undefined - generates a default llms.txt from named static routes
 	 */
 	llmsTxt?: LlmsTxtOptions | false
 }
 
 /**
- * SEO plugin. Generates `sitemap.xml` (and a `sitemap-index.xml` when additional
- * sitemaps are registered) from all static routes discovered by
- * {@link generateRouteManifest}, plus a root entry whose `lastmod` is the
- * newest git commit date across the configured home route files.
+ * SEO plugin. Generates `sitemap.xml` (and a `sitemap-index.xml` when additional sitemaps are registered) from all static routes discovered by {@link generateRouteManifest},
+ * plus a root entry whose `lastmod` is the newest git commit date across the configured home route files.
  *
- * HTML meta tag injection is the adapter's responsibility. The plugin exposes
- * {@link SeoApi} (`plugin.api`) so adapters and other plugins can:
+ * HTML meta tag injection is the adapter's responsibility.
+ * The plugin exposes {@link SeoApi} (`plugin.api`) so adapters and other plugins can:
  * - inject meta tags via `injectRouteHtml` / `injectRootHtml`
  * - register additional sitemaps via `addSitemap`
  *
  * Runs only during production builds. If no static routes are found at all,
  * nothing is written.
  *
- * Uses `git log` to determine per-file `lastmod`, falling back to `stat` mtime
- * when the file is not tracked.
+ * Uses `git log` to determine per-file `lastmod`, falling back to `stat` mtime when the file is not tracked.
  *
  * @internal Automatically included by {@link rootedManifest}. Configure via
  * `seo` in the manifest options.

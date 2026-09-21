@@ -106,8 +106,8 @@ export const ServingStepper = component<ServingStepperOptions>({
  *   repeats every 80 ms after a 500 ms hold delay.
  * - Keyboard (Enter / Space): fires action once on click (detail === 0).
  *
- * Pointer capture keeps the repeat running even if the pointer drifts off
- * the button. All listeners are removed when signal aborts.
+ * Pointer capture keeps the repeat running even if the pointer drifts off the button.
+ * All listeners are removed when signal aborts.
  */
 function addHoldRepeat(button: HTMLButtonElement, action: () => void, signal: AbortSignal): void {
 	let holdTimeout: ReturnType<typeof setTimeout> | undefined

@@ -1,7 +1,6 @@
 /**
- * Constructor shape that {@link RootedElement.register} accepts. Any class
- * that extends {@link RootedElement} satisfies this as long as it declares a
- * `static tagName`.
+ * Constructor shape that {@link RootedElement.register} accepts.
+ * Any class that extends {@link RootedElement} satisfies this as long as it declares a `static tagName`.
  */
 export type RootedElementConstructor = CustomElementConstructor & {
 	tagName: string
@@ -10,8 +9,8 @@ export type RootedElementConstructor = CustomElementConstructor & {
 const validTagName = /^[a-z][a-z0-9\\-]*$/
 
 /**
- * Abstract base for low-level custom elements. Reach for this when you want a
- * specific tag name, attribute observation, or shadow DOM. For most components,
+ * Abstract base for low-level custom elements. Reach for this when you want a specific tag name, attribute observation,
+ * or shadow DOM. For most components,
  * use {@link Component} instead.
  *
  * `RootedElement` wraps the standard custom-element lifecycle to:
@@ -44,9 +43,8 @@ export abstract class RootedElement extends HTMLElement {
 	static rootedElement = true
 
 	/**
-	 * Throws when `name` isn't a legal custom-element tag name. A legal name
-	 * matches `[a-z][a-z0-9\-]*` and contains at least one hyphen (a
-	 * requirement of the custom-elements spec).
+	 * Throws when `name` isn't a legal custom-element tag name.
+	 * A legal name matches `[a-z][a-z0-9\-]*` and contains at least one hyphen (a requirement of the custom-elements spec).
 	 *
 	 * @throws {Error} When the name is invalid.
 	 */
@@ -77,20 +75,16 @@ export abstract class RootedElement extends HTMLElement {
 	}
 
 	/**
-	 * Called once after the element is connected to the document. Build child
-	 * nodes, attach listeners, start timers here.
+	 * Called once after the element is connected to the document. Build child nodes, attach listeners, start timers here.
 	 *
-	 * Deferred via `queueMicrotask` and only fires when the element is truly
-	 * connected, not when it's being re-parented.
+	 * Deferred via `queueMicrotask` and only fires when the element is truly connected, not when it's being re-parented.
 	 */
 	protected abstract onMount(): void
 
 	/**
-	 * Called once after the element is disconnected. Override to clean up
-	 * anything started in {@link onMount}. Defaults to a no-op.
+	 * Called once after the element is disconnected. Override to clean up anything started in {@link onMount}. Defaults to a no-op.
 	 *
-	 * Deferred via `queueMicrotask` and only fires when the element is truly
-	 * disconnected, not when it's being re-parented.
+	 * Deferred via `queueMicrotask` and only fires when the element is truly disconnected, not when it's being re-parented.
 	 */
 	protected onUnmount(): void {
 		// Do nothing by default

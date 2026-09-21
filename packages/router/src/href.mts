@@ -21,8 +21,7 @@ class HrefBase {
 /**
  * A path-only URL (pathname, query string, and hash). No host or protocol.
  *
- * Use {@link href.path} to construct one from a string, or {@link href.current} to get
- * the current browser path.
+ * Use {@link href.path} to construct one from a string, or {@link href.current} to get the current browser path.
  */
 export class Path extends HrefBase {
 	private static baseUrl = 'https://rooted-is.awesome'
@@ -98,8 +97,7 @@ const multiSlashPattern = /\/{2,}/g
 
 /**
  * Joins one or more {@link Path} segments onto a {@link Url} or {@link Path} base,
- * normalising duplicate slashes. Query strings and hashes from each segment are
- * merged in order.
+ * normalising duplicate slashes. Query strings and hashes from each segment are merged in order.
  * @__PURE__
  */
 export function join(url: Url, ...paths: Path[]): Url

@@ -1,7 +1,6 @@
 /**
- * App-side router setup. The `router(...)` factory plus everything you need
- * to declare routes (`route`, `token`, `wildcard`) and react to navigation
- * events.
+ * App-side router setup. The `router(...)` factory plus everything you need to declare routes (`route`, `token`,
+ * `wildcard`) and react to navigation events.
  *
  *
  * - [Routing guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/routing.md)

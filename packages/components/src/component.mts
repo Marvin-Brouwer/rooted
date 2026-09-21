@@ -68,15 +68,14 @@ type BaseComponentContext = & {
 	}
 
 	/**
-	 * Aborts when the component unmounts, or when the page unloads. Pass it to
-	 * `addEventListener` (and similar) so listeners clean up automatically.
+	 * Aborts when the component unmounts, or when the page unloads.
+	 * Pass it to `addEventListener` (and similar) so listeners clean up automatically.
 	 */
 	signal: AbortSignal
 
 	/**
-	 * Bind page-level event listeners (`window`, `document`, or rooted's `'global'` channel)
-	 * tied to the component's lifetime. Listeners added through `on` are removed
-	 * automatically when the component unmounts or the page unloads.
+	 * Bind page-level event listeners (`window`, `document`, or rooted's `'global'` channel) tied to the component's lifetime.
+	 * Listeners added through `on` are removed automatically when the component unmounts or the page unloads.
 	 *
 	 * @see {@link EventBuilder} for the full list of call signatures.
 	 *
@@ -103,8 +102,8 @@ export function isComponent(value: unknown): value is Component<any> {
 }
 
 /**
- * A {@link ComponentConstructor} that the runtime can identify and wrap in a
- * `<r-->` custom element. Build these with the {@link component} factory.
+ * A {@link ComponentConstructor} that the runtime can identify and wrap in a `<r-->` custom element.
+ * Build these with the {@link component} factory.
  *
  * @typeParam TOptions - The options type the component expects when mounted.
  *   Use `never` (default) for components that take no options.
@@ -114,25 +113,21 @@ export type Component<TOptions extends object = never> = ComponentConstructor<TO
 }
 
 /**
- * The shape of a component. Pass one of these to {@link component} to get a
- * mountable {@link Component}.
+ * The shape of a component. Pass one of these to {@link component} to get a mountable {@link Component}.
  *
- * `onMount` is typed with `this` set to the {@link ComponentContext}, so you
- * can either destructure the context argument or use `this`, whichever reads
- * better for the component.
+ * `onMount` is typed with `this` set to the {@link ComponentContext}, so you can either destructure the context argument or use `this`,
+ * whichever reads better for the component.
  */
 export type ComponentConstructor<TOptions extends object = never> = {
 	/**
 	 * The component's tag suffix.
 	 *
-	 * Must be HTML-valid (`[a-z][a-z0-9\-]*`) and unique across the
-	 * application. Duplicate names cause duplicate style injection and a
-	 * dev-mode warning.
+	 * Must be HTML-valid (`[a-z][a-z0-9\-]*`) and unique across the application.
+	 * Duplicate names cause duplicate style injection and a dev-mode warning.
 	 */
 	name: string
 	/**
-	 * CSS for this component. Import a `.css` file through the rooted CSS
-	 * loader Vite plugin and pass the result here.
+	 * CSS for this component. Import a `.css` file through the rooted CSS loader Vite plugin and pass the result here.
 	 */
 	styles?: import('./component/css-artifacts.mts').CssModule
 	/**
@@ -144,8 +139,7 @@ export type ComponentConstructor<TOptions extends object = never> = {
 }
 
 /**
- * Defines a new component. Returns a {@link Component} value you can pass to
- * {@link create} or `append` to mount it.
+ * Defines a new component. Returns a {@link Component} value you can pass to {@link create} or `append` to mount it.
  *
  * @example
  * ```ts

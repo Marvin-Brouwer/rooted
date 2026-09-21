@@ -2,8 +2,8 @@ import { Path, Url } from './href.mts'
 import { saveScrollOffsets } from './scroll.mts'
 
 /**
- * The two ways to name a navigation target: a URL to go to, or history state on
- * its own. Shared by {@link navigate} and `navigate.replace`.
+ * The two ways to name a navigation target: a URL to go to, or history state on its own.
+ * Shared by {@link navigate} and `navigate.replace`.
  */
 export type NavigateCall = {
 	/**
@@ -16,8 +16,7 @@ export type NavigateCall = {
 	/** @deprecated Use `href.url()` or `href.path()` to construct the target. */
 	(href: URL): void
 	/**
-	 * Write arbitrary history state without changing the URL. Useful for modal
-	 * or drawer state that doesn't need its own path:
+	 * Write arbitrary history state without changing the URL. Useful for modal or drawer state that doesn't need its own path:
 	 * ```ts
 	 * navigate({
 	 *   modal: 'confirm',
@@ -31,11 +30,10 @@ export type NavigateCall = {
 /** The shape of {@link navigate}: callable on its own, plus a `replace` sibling. */
 export type Navigate = NavigateCall & {
 	/**
-	 * Overwrites the current history entry instead of adding one, then
-	 * re-evaluates the URL the same way {@link navigate} does.
+	 * Overwrites the current history entry instead of adding one, then re-evaluates the URL the same way {@link navigate} does.
 	 *
-	 * This is what a redirect wants. If a redirect pushes, Back lands on the
-	 * page that redirects and the user gets bounced straight forward again:
+	 * This is what a redirect wants. If a redirect pushes,
+	 * Back lands on the page that redirects and the user gets bounced straight forward again:
 	 * ```ts
 	 * navigate.replace(href.for(HomeRoute, {
 	 *   locale: remembered
@@ -46,22 +44,19 @@ export type Navigate = NavigateCall & {
 }
 
 /**
- * Performs client-side navigation by writing to the browser history and
- * dispatching a `popstate` event so the router re-evaluates the current URL.
+ * Performs client-side navigation by writing to the browser history and dispatching a `popstate` event so the router re-evaluates the current URL.
  * No full-page reload occurs.
  *
- * Calling `navigate` pushes a new history entry. Call {@link Navigate.replace}
- * to overwrite the current one instead:
+ * Calling `navigate` pushes a new history entry. Call {@link Navigate.replace} to overwrite the current one instead:
  *
  * ```ts
  * navigate('/categories/italian/')
  * navigate.replace('/en/')
  * ```
  *
- * A push saves the current scroll position onto the entry it's leaving, so
- * back restores it. `replace` doesn't, because it overwrites that entry.
- * Switch it off with `scrollBehavior.saveScrollBeforeNavigate: false` on the
- * router.
+ * A push saves the current scroll position onto the entry it's leaving, so back restores it. `replace` doesn't,
+ * because it overwrites that entry.
+ * Switch it off with `scrollBehavior.saveScrollBeforeNavigate: false` on the router.
  *
  * @see {@link Link} for a component that calls `navigate` on click
  */

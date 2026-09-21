@@ -54,13 +54,11 @@ export interface ElementCreatorFunction {
 export type ElementFactory = ElementCreatorFunction
 export function createElementFactory(constructElement: ElementCreator, signal: AbortSignal): ElementCreatorFunction {
 	/**
-	 * Creates an HTML or SVG element. The element is NOT appended to the
-	 * document; pass it to `append`, `prepend`, or set it as `children` of
-	 * another element.
+	 * Creates an HTML or SVG element. The element is NOT appended to the document; pass it to `append`, `prepend`,
+	 * or set it as `children` of another element.
 	 *
-	 * HTML tags use the regular `HTMLElementTagNameMap` keys. SVG tags use
-	 * `'svg'` for the root and `'svg:<name>'` for everything else (the prefix
-	 * keeps them from colliding with same-named HTML tags).
+	 * HTML tags use the regular `HTMLElementTagNameMap` keys.
+	 * SVG tags use `'svg'` for the root and `'svg:<name>'` for everything else (the prefix keeps them from colliding with same-named HTML tags).
 	 *
 	 * Properties:
 	 * - `classes`: a class string or a {@link CssClasses} array. Falsy

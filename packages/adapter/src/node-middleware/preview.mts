@@ -9,10 +9,8 @@ import type { PreviewServer, ResolvedConfig } from 'vite'
 /**
  * The `vite preview` half of {@link nodeMiddlewareServer}.
  *
- * There is no module runner here, so it imports the built
- * `dist/middleware/*.mjs` files instead: the same files, in the same order, as
- * the generated `server.mjs`. That means preview shows you the last build, not
- * your working tree.
+ * There is no module runner here, so it imports the built `dist/middleware/*.mjs` files instead: the same files,
+ * in the same order, as the generated `server.mjs`. That means preview shows you the last build, not your working tree.
  */
 export function previewMiddleware<TApplication>(
 	options: NodeMiddlewareServerOptions<TApplication>,

@@ -130,8 +130,7 @@ export function parseSegments(text: string): Segment[] {
 }
 
 /**
- * Replaces all `[[amount unit?]]` tokens in an ingredient string using a
- * multiplier derived from the target vs base serving count.
+ * Replaces all `[[amount unit?]]` tokens in an ingredient string using a multiplier derived from the target vs base serving count.
  *
  * Lines with no tokens are returned unchanged.
  *

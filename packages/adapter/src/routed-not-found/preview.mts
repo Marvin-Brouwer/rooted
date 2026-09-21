@@ -23,16 +23,13 @@ type RouteTable = {
 /**
  * The preview half of {@link routedNotFound}.
  *
- * Preview has no module runner and no `transformIndexHtml`, so it answers from
- * the same two files the generated server answers from: `routes.json` and the
- * fallback shell beside it. That makes it a closer copy of production than dev
- * can be, not a worse one.
+ * Preview has no module runner and no `transformIndexHtml`, so it answers from the same two files the generated server answers from:
+ * `routes.json` and the fallback shell beside it. That makes it a closer copy of production than dev can be, not a worse one.
  *
- * One middleware, registered from the post hook. Vite installs its static and
- * html-fallback middlewares before that hook and only sends the html after it,
- * so by the time this runs the real files are already served and nothing has
- * answered yet. Registering before the hook instead would 404 real assets
- * before Vite got a chance to serve them.
+ * One middleware, registered from the post hook.
+ * Vite installs its static and html-fallback middlewares before that hook and only sends the html after it,
+ * so by the time this runs the real files are already served and nothing has answered yet.
+ * Registering before the hook instead would 404 real assets before Vite got a chance to serve them.
  */
 export function previewNotFound(name: string, config: ResolvedConfig) {
 	return (server: PreviewServer): (() => void) => () => {

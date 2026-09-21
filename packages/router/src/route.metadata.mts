@@ -7,9 +7,8 @@ export const routeMetadata: unique symbol = Symbol.for('@rooted/route-metadata')
 /**
  * Optional SEO metadata attached to a route via the `seo` field in {@link route}.
  *
- * Used at build time to inject per-page meta tags into static route copies of
- * `index.html`, and at runtime to update `document.title` and Open Graph tags
- * on navigation.
+ * Used at build time to inject per-page meta tags into static route copies of `index.html`,
+ * and at runtime to update `document.title` and Open Graph tags on navigation.
  *
  * @example
  * ```ts
@@ -52,9 +51,8 @@ export type AnyRouteSeoResolver = (context: { tokens: any }) => RouteSeoMetadata
 /**
  * Internal metadata bag stored on every {@link Route} under the {@link routeMetadata} symbol key.
  *
- * Do not access directly from application code. Use {@link isRoute} to test
- * whether a value is a route, and access `route[routeMetaData]` only within
- * router internals.
+ * Do not access directly from application code. Use {@link isRoute} to test whether a value is a route,
+ * and access `route[routeMetaData]` only within router internals.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RouteMetadata<T extends { parameters: any, parent?: any }> = {
@@ -75,12 +73,10 @@ export type RouteMetadata<T extends { parameters: any, parent?: any }> = {
 	/**
 	 * All concrete paths this route can produce at build time.
 	 *
-	 * `[staticRoute]` for fully static routes. Routes whose only dynamic parts
-	 * are constant-values tokens (including through parent routes) unroll to
-	 * the cartesian product of the listed values, e.g.
-	 * `route\`/${token('locale', ['en-GB', 'nl-NL'])}/about/\`` produces
-	 * `['/en-GB/about/', '/nl-NL/about/']`. `false` when the route has a typed
-	 * token, a wildcard, or a dynamic parent. Build tooling (sitemap,
+	 * `[staticRoute]` for fully static routes.
+	 * Routes whose only dynamic parts are constant-values tokens (including through parent routes) unroll to the cartesian product of the listed values, e.g.
+	 * `route\`/${token('locale', ['en-GB', 'nl-NL'])}/about/\`` produces `['/en-GB/about/', '/nl-NL/about/']`.
+	 * `false` when the route has a typed token, a wildcard, or a dynamic parent. Build tooling (sitemap,
 	 * prerendering) uses this to enumerate pages.
 	 */
 	readonly staticPaths: false | readonly string[]

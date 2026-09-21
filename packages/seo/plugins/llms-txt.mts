@@ -11,15 +11,12 @@ import type { ManifestOptions } from 'vite-plugin-pwa'
  * Generates an `llms.txt` file in the build output directory.
  *
  * The file follows the [llmstxt.org](https://llmstxt.org) convention:
- * a Markdown document listing all static routes with their titles and
- * descriptions so AI language models can quickly understand the site structure.
+ * a Markdown document listing all static routes with their titles and descriptions so AI language models can quickly understand the site structure.
  *
  * Routes without a `seo.title` are skipped (a warning is logged).
- * The home route (`/`) is listed first; remaining routes are sorted
- * alphabetically by title.
+ * The home route (`/`) is listed first; remaining routes are sorted alphabetically by title.
  *
- * Only runs during production builds. If no named routes are found, nothing
- * is written.
+ * Only runs during production builds. If no named routes are found, nothing is written.
  *
  * @internal Automatically included by {@link rootedManifest}. Configure via
  * `seo.llmsTxt` in the manifest options.

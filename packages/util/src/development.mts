@@ -8,8 +8,8 @@ export function isDevelopment() {
 
 /**
  * @internal
- * Strips a stack frame down to a usable file:line:col by removing the
- * `at `prefix, the page origin, and any query string Vite tacks on.
+ * Strips a stack frame down to a usable file:line:col by removing the `at `prefix, the page origin,
+ * and any query string Vite tacks on.
  */
 export function formatStackFrame(frame: string | undefined): string | undefined {
 	if (!frame) return void 0
@@ -28,16 +28,13 @@ export function formatStackFrame(frame: string | undefined): string | undefined 
 
 /**
  * @internal
- * Captures the call site of `component()` from the stack trace, used in
- * dev-mode warnings.
+ * Captures the call site of `component()` from the stack trace, used in dev-mode warnings.
  *
- * Locates the `appendSourceLocation` frame, then steps two frames forward to
- * skip past `component()` and land on the actual call site. Robust to
- * different stack prefixes (the `Error` line is absent in some runtimes).
+ * Locates the `appendSourceLocation` frame, then steps two frames forward to skip past `component()` and land on the actual call site.
+ * Robust to different stack prefixes (the `Error` line is absent in some runtimes).
  *
- * Returns the wrong frame if `component()` is called through an extra
- * wrapper (a `defineComponent` helper or a build plugin), since the call site
- * shifts one frame deeper per wrapper.
+ * Returns the wrong frame if `component()` is called through an extra wrapper (a `defineComponent` helper or a build plugin),
+ * since the call site shifts one frame deeper per wrapper.
  */
 export function appendSourceLocation() {
 	// Stack: Error -> appendSourceLocation -> component() -> call site

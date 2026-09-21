@@ -25,14 +25,11 @@ type AriaIdReferenceProperties = {
 }
 
 /**
- * Shape of the `aria` prop on `element(...)`. Accepts every ARIA attribute
- * defined on `ARIAMixin`, with the `aria` prefix stripped (so `aria-label`
- * becomes `label`, `aria-describedby` becomes `describedBy`).
+ * Shape of the `aria` prop on `element(...)`. Accepts every ARIA attribute defined on `ARIAMixin`,
+ * with the `aria` prefix stripped (so `aria-label` becomes `label`, `aria-describedby` becomes `describedBy`).
  *
- * For ID-reference attributes (`aria-labelledby`, `aria-controls`, etc.) the
- * value can be a string ID or an `Element` reference. Element references are
- * set via the IDL reflection property when supported, falling back to the
- * attribute value otherwise.
+ * For ID-reference attributes (`aria-labelledby`, `aria-controls`, etc.) the value can be a string ID or an `Element` reference.
+ * Element references are set via the IDL reflection property when supported, falling back to the attribute value otherwise.
  *
  * @example
  * ```ts

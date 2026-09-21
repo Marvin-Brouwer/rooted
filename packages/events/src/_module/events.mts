@@ -1,7 +1,5 @@
 /**
- * Typed event helpers and the unified `'unhandled-error'` channel that filters
- * cross-origin and extension noise out of `window.error` and
- * `unhandledrejection`.
+ * Typed event helpers and the unified `'unhandled-error'` channel that filters cross-origin and extension noise out of `window.error` and `unhandledrejection`.
  *
  *
  * - [Events](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/advanced/events.md)

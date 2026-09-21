@@ -27,9 +27,8 @@ const minifyOptions: MinifyOptions = {
 
 /**
  * A single group of ingredients.
- * When `heading` is set, the items came from an `### h3` sub-section inside
- * the recipe's `## Ingredients` block. A plain recipe with a flat ingredient
- * list will have one group with `heading` left undefined.
+ * When `heading` is set, the items came from an `### h3` sub-section inside the recipe's `## Ingredients` block.
+ * A plain recipe with a flat ingredient list will have one group with `heading` left undefined.
  */
 type IngredientGroup = {
 	heading?: string
@@ -38,9 +37,8 @@ type IngredientGroup = {
 
 /**
  * Transforms `.md` files into plain JS modules at build time (Node.js context).
- * Frontmatter becomes enumerable properties, the ingredients section is pulled
- * out as structured data for the recipe page, and the rest of the body is
- * rendered to HTML under `instructionsHtml`.
+ * Frontmatter becomes enumerable properties, the ingredients section is pulled out as structured data for the recipe page,
+ * and the rest of the body is rendered to HTML under `instructionsHtml`.
  * No Node-specific APIs (Buffer, fs, …) reach the browser bundle.
  */
 export function markdownPlugin(): Plugin {
@@ -71,10 +69,8 @@ export function markdownPlugin(): Plugin {
 }
 
 /**
- * Walks the top-level tokens, finds the `## Ingredients` section, and turns
- * its list items into {@link IngredientGroup} values. Anything else (typically
- * `## Instructions`) is returned as `remaining` so the caller can render it
- * back to HTML.
+ * Walks the top-level tokens, finds the `## Ingredients` section, and turns its list items into {@link IngredientGroup} values.
+ * Anything else (typically `## Instructions`) is returned as `remaining` so the caller can render it back to HTML.
  *
  * `### h3` sub-sections inside the ingredients block become separate groups;
  * a flat list produces a single group with no `heading`.

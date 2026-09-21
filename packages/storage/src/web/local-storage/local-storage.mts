@@ -1,14 +1,13 @@
 import { jsonStringify, safeJsonParse } from '../../serializer.mts'
 
 /**
- * Typed wrapper around the browser's `localStorage`. Adds typed `get<T>` /
- * `set<T>` (JSON-encoded), a `keys()` helper, and `undefined` (instead of
- * `null`) for missing values. SSR-safe: when `localStorage` isn't there,
+ * Typed wrapper around the browser's `localStorage`. Adds typed `get<T>` / `set<T>` (JSON-encoded), a `keys()` helper,
+ * and `undefined` (instead of `null`) for missing values. SSR-safe: when `localStorage` isn't there,
  * reads return `undefined` and writes are no-ops.
  *
  * Typed reads run through a JSON reviver that drops `__proto__`,
- * `constructor`, and `prototype` keys at any depth, so a hostile value
- * written by DevTools or another tab can't walk onto `Object.prototype`.
+ * `constructor`, and `prototype` keys at any depth,
+ * so a hostile value written by DevTools or another tab can't walk onto `Object.prototype`.
  *
  * @example
  * ```ts
@@ -27,19 +26,16 @@ export type LocalStorage = Pick<globalThis.Storage, 'length' | 'clear' | 'setIte
 	/** Read the raw string value. Returns `undefined` when the key isn't set. */
 	getItem(key: string): string | undefined
 	/**
-	 * Return the key at `index` in insertion order. Returns `undefined` when
-	 * `index` is out of range (instead of the native `null`).
+	 * Return the key at `index` in insertion order. Returns `undefined` when `index` is out of range (instead of the native `null`).
 	 */
 	key(index: number): string | undefined
 	/**
-	 * Read and JSON-parse a stored value. Strings come back as-is; everything
-	 * else is parsed through a prototype-pollution-safe reviver. Returns
-	 * `undefined` when the key is missing.
+	 * Read and JSON-parse a stored value. Strings come back as-is; everything else is parsed through a prototype-pollution-safe reviver.
+	 * Returns `undefined` when the key is missing.
 	 */
 	get<T = unknown>(key: string): T | undefined
 	/**
-	 * Write a value. Strings pass through unchanged so values written by
-	 * `setItem` round-trip; everything else is JSON-encoded.
+	 * Write a value. Strings pass through unchanged so values written by `setItem` round-trip; everything else is JSON-encoded.
 	 */
 	set<T>(key: string, value: T): void
 	/** All keys currently stored. Empty array under SSR. */
@@ -116,8 +112,7 @@ function keys(): string[] {
 }
 
 /**
- * The {@link LocalStorage} singleton. Frozen so individual methods can't be
- * monkey-patched.
+ * The {@link LocalStorage} singleton. Frozen so individual methods can't be monkey-patched.
  */
 export const localStorage: LocalStorage = Object.freeze({
 	clear,

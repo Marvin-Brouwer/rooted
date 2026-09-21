@@ -30,8 +30,8 @@ export function redirectToCanonical(
 }
 
 /**
- * Answers with the app shell at the given status, transformed the way Vite
- * would have transformed it, so the browser-side router can render the page.
+ * Answers with the app shell at the given status, transformed the way Vite would have transformed it,
+ * so the browser-side router can render the page.
  */
 export async function respondWithShell(
 	server: ViteDevServer,

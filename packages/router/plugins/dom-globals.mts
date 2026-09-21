@@ -39,28 +39,24 @@ let queue: Promise<unknown> = Promise.resolve()
 type SavedDescriptors = Map<string, PropertyDescriptor | undefined>
 
 /**
- * Runs `evaluate` with a temporary DOM installed on `globalThis`, then restores
- * the environment exactly as it was.
+ * Runs `evaluate` with a temporary DOM installed on `globalThis`, then restores the environment exactly as it was.
  *
- * Route files are ordinary application modules: importing one can pull in
- * components, and the framework evaluates DOM at module scope (custom element
- * registration, adopted stylesheets, classes extending `HTMLElement` or
- * `ErrorEvent`). Plain Node has none of that, so evaluating a route file there
- * throws before any route metadata can be read. This hands Node a DOM for
- * exactly as long as that evaluation takes.
+ * Route files are ordinary application modules: importing one can pull in components,
+ * and the framework evaluates DOM at module scope (custom element registration, adopted stylesheets,
+ * classes extending `HTMLElement` or `ErrorEvent`). Plain Node has none of that,
+ * so evaluating a route file there throws before any route metadata can be read.
+ * This hands Node a DOM for exactly as long as that evaluation takes.
  *
- * Globals are captured and restored as property descriptors, not values, so
- * anything that existed before keeps its original shape. That matters for
- * `location` and `navigator`: replacing an accessor with a plain value breaks
- * later build code that expects to assign or delete them.
+ * Globals are captured and restored as property descriptors, not values, so anything that existed before keeps its original shape.
+ * That matters for `location` and `navigator`:
+ * replacing an accessor with a plain value breaks later build code that expects to assign or delete them.
  *
- * Calls are serialized, and the previous environment is restored even when
- * `evaluate` throws.
+ * Calls are serialized, and the previous environment is restored even when `evaluate` throws.
  *
- * Note: Rollup runs `buildStart` as a parallel hook, so another plugin's async
- * `buildStart` can interleave with the short window where these globals exist.
- * Isolating this in a worker is not an option, because the evaluated routes
- * carry live `resolve`, `match` and `seo` functions that later plugins call.
+ * Note: Rollup runs `buildStart` as a parallel hook,
+ * so another plugin's async `buildStart` can interleave with the short window where these globals exist.
+ * Isolating this in a worker is not an option, because the evaluated routes carry live `resolve`,
+ * `match` and `seo` functions that later plugins call.
  */
 export async function withDomGlobals<T>(evaluate: () => Promise<T>): Promise<T> {
 	const run = queue.then(async () => {

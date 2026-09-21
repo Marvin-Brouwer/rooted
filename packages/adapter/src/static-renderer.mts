@@ -47,9 +47,8 @@ export type StaticRenderer = {
  * Creates a happy-dom based static renderer for pre-rendering static route HTML.
  *
  * Loads the built JS bundle into a happy-dom window, boots the application,
- * and exposes `render(path)` which navigates to the given path and returns the
- * resulting `document.body.innerHTML`. Call `dispose()` once all routes are
- * rendered to drain pending IO and tear down the happy-dom instance.
+ * and exposes `render(path)` which navigates to the given path and returns the resulting `document.body.innerHTML`.
+ * Call `dispose()` once all routes are rendered to drain pending IO and tear down the happy-dom instance.
  *
  * Returns `undefined` when no module entry script can be found in `index.html`.
  */

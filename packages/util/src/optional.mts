@@ -1,9 +1,8 @@
 /**
  * Returns `value` when `condition` is `true`, otherwise `undefined`.
  *
- * Handy for building arrays that mix fixed and conditional entries without a
- * ternary. Anything that filters out `undefined` works, like the `children`
- * array of `element(...)` or a plain `.filter(Boolean)`.
+ * Handy for building arrays that mix fixed and conditional entries without a ternary. Anything that filters out `undefined` works,
+ * like the `children` array of `element(...)` or a plain `.filter(Boolean)`.
  *
  * @param condition - When `true` the value is returned, any other value
  *   produces `undefined`.
