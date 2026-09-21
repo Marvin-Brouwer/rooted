@@ -38,6 +38,7 @@ export default defineConfig({
 				items: [
 					{ text: 'Elements', link: '/advanced/elements' },
 					{ text: 'Events', link: '/advanced/events' },
+					{ text: 'Observers', link: '/advanced/observers' },
 					{ text: 'Internals', link: '/advanced/internals' },
 					{ text: 'Server middleware', link: '/advanced/server-middleware' },
 				],

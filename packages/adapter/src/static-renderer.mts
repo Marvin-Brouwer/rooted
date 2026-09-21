@@ -29,7 +29,7 @@ const WINDOW_GLOBALS = [
 	'Event', 'CustomEvent', 'PopStateEvent', 'MouseEvent', 'KeyboardEvent',
 	'InputEvent', 'FocusEvent', 'PointerEvent', 'WheelEvent', 'TouchEvent',
 	'HashChangeEvent', 'ErrorEvent', 'ProgressEvent', 'SubmitEvent', 'UIEvent',
-	'MutationObserver', 'PerformanceObserver',
+	'MutationObserver', 'PerformanceObserver', 'IntersectionObserver', 'ResizeObserver',
 	'DOMParser', 'XMLSerializer', 'Range', 'Attr', 'NodeList', 'HTMLCollection',
 	'FormData', 'Headers', 'Request', 'Response', 'Blob', 'File',
 	'CSSStyleSheet',
