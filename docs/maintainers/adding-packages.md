@@ -74,6 +74,13 @@ In GitHub: Actions, then First Publish, then Run workflow. Inputs:
 | npm automation token | the token from 2.1 |
 | Environment | leave blank |
 
+The package name works in that second field too, so `@rooted/<name>` resolves to `packages/<name>`.
+Either way the workflow checks the input against the workspace before it builds, and stops with the list of publishable packages when it doesn't match one.
+
+The branch matters. The workflow publishes whatever it checks out, so the package has to exist on the ref you dispatch from.
+For a package still sitting in a pull request that means dispatching from that branch rather than `main`, which is deliberate:
+the first publish has to happen before OIDC can be configured, and configuring it before the package lands on `main` keeps the Release workflow from meeting a package it has no trusted publisher for.
+
 The workflow publishes once under the `alpha` dist-tag, so the new package never claims `latest` before a real release.
 
 ## 3. Configure OIDC trusted publishing
