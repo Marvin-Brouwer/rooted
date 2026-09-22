@@ -7,7 +7,6 @@
  */
 
 export * from '../rooted-manifest.mts'
-export type { ImportCycleOptions } from '../../plugins/import-cycle-detector.mts'
 
 // Re-exported so plugin authors don't have to reach into `@rooted/util`.
 // Read from here it answers for the build process, not for the app: 'server' normally,
