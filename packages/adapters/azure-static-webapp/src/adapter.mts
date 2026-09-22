@@ -20,18 +20,16 @@ export type AzureStaticWebappAdapterOptions = {
 /**
  * Adapter for Azure Static Web Apps.
  *
- * Writes `staticwebapp.config.json` to the output directory with routing rules
- * built from the route manifest and/or manual `routes` option:
+ * Writes `staticwebapp.config.json` to the output directory with routing rules built from the route manifest and/or manual `routes` option:
  * - Pre-rendered routes get explicit `200` entries so Azure serves their HTML directly.
  * - Everything else returns a `404` response that serves `404.html`, matching the
  *   standard SPA behaviour: the shell loads and the client-side router takes over.
  *
- * "Everything else" includes your `:param` routes, so `/recipe/42/` renders but
- * answers `404`. That's why this adapter leaves `dynamicRoutes` at its default.
- * Azure only supports a wildcard at the end of a route and has no per-segment
- * match, so a `/recipe/*` rule would also claim `/recipe/42/extra/`, trading a
- * wrong `404` on a real page for a wrong `200` on a path that isn't one. See
- * [issue #311](https://github.com/Marvin-Brouwer/rooted/issues/311).
+ * "Everything else" includes your `:param` routes, so `/recipe/42/` renders but answers `404`.
+ * That's why this adapter leaves `dynamicRoutes` at its default.
+ * Azure only supports a wildcard at the end of a route and has no per-segment match, so a `/recipe/*` rule would also claim `/recipe/42/extra/`,
+ * trading a wrong `404` on a real page for a wrong `200` on a path that isn't one.
+ * See [issue #311](https://github.com/Marvin-Brouwer/rooted/issues/311).
  *
  * @example `vite.config.ts`
  * ```ts

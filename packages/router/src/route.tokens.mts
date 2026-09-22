@@ -21,8 +21,8 @@ const constantBrand: unique symbol = Symbol.for('@rooted/constantParameterToken'
  * The `type` of a constant-values token: the frozen list of allowed values.
  *
  * Created by calling {@link token} with an array instead of a constructor:
- * `token('locale', ['en-GB', 'nl-NL'])`. The token only matches values from
- * the list, and the matched value keeps its literal type.
+ * `token('locale', ['en-GB', 'nl-NL'])`. The token only matches values from the list,
+ * and the matched value keeps its literal type.
  */
 export type Constant<V extends string | number = string | number> = readonly V[] & { [constantBrand]: true }
 
@@ -62,8 +62,7 @@ export type TokenMatchResult<T extends ParameterTokenType = ParameterTokenType> 
  * A typed path parameter descriptor produced by {@link token} or {@link wildcard}.
  *
  * Holds the parameter `key` (used as the property name in the tokens dictionary),
- * its `type` token, and a `match` function that parses and validates a raw URL
- * segment, returning a {@link TupleResult}.
+ * its `type` token, and a `match` function that parses and validates a raw URL segment, returning a {@link TupleResult}.
  */
 export type Parameter<K extends string = string, T extends ParameterTokenType = ParameterTokenType> = {
 	key: K
@@ -78,14 +77,14 @@ export type RouteParameter = Parameter | AnyRoute
 /**
  * Declares a typed path parameter for use inside a {@link route} template string.
  *
- * The matched URL segment is automatically coerced to the specified `type`. If
- * coercion fails (e.g. `"abc"` for `Number`), the route is treated as a non-match.
+ * The matched URL segment is automatically coerced to the specified `type`. If coercion fails (e.g. `"abc"` for `Number`),
+ * the route is treated as a non-match.
  *
  * Passing an array instead of a constructor creates a constant-values token:
- * it only matches the listed values, and the matched value keeps its literal
- * type. The array must hold values of one kind (all strings or all numbers).
- * Because the possible values are known, routes whose only dynamic parts are
- * constant tokens can be unrolled to concrete paths at build time (sitemap,
+ * it only matches the listed values, and the matched value keeps its literal type.
+ * The array must hold values of one kind (all strings or all numbers).
+ * Because the possible values are known,
+ * routes whose only dynamic parts are constant tokens can be unrolled to concrete paths at build time (sitemap,
  * prerendering). See `RouteMetadata.staticPaths`.
  *
  * @param name - Property name in the `tokens` dictionary passed to `resolve`.
@@ -199,9 +198,8 @@ type WildcardParameter<K extends string> = Parameter<K, Wildcard>
 /**
  * Declares a catch-all path parameter for use inside a {@link route} template string.
  *
- * A wildcard matches the remainder of the URL path (one or more characters) and
- * exposes it as a `string`. It must be the last interpolation in the pattern and
- * must be preceded by a `/`.
+ * A wildcard matches the remainder of the URL path (one or more characters) and exposes it as a `string`.
+ * It must be the last interpolation in the pattern and must be preceded by a `/`.
  *
  * @param name - Property name in the `tokens` dictionary. Defaults to `'rest'`.
  *

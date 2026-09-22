@@ -1,15 +1,13 @@
 import { isDevelopment } from '@rooted/util/dev'
 
 /**
- * A single dictionary entry: the default-language key and its translated
- * value. Built by {@link translation}.
+ * A single dictionary entry: the default-language key and its translated value. Built by {@link translation}.
  */
 export type Translation = readonly [key: string, value: string]
 
 /**
- * The translations for one locale. Built by {@link dictionary}, which
- * locale it belongs to is decided by its key in the `dictionaries` record
- * of `configureLocalization`.
+ * The translations for one locale. Built by {@link dictionary},
+ * which locale it belongs to is decided by its key in the `dictionaries` record of `configureLocalization`.
  */
 export type Dictionary = readonly Translation[]
 
@@ -17,8 +15,7 @@ export type Dictionary = readonly Translation[]
 export type DictionaryModule = { default: Dictionary }
 
 /**
- * Lazily loads one locale's dictionary. Write it as a dynamic import so the
- * bundler splits each locale into its own chunk:
+ * Lazily loads one locale's dictionary. Write it as a dynamic import so the bundler splits each locale into its own chunk:
  * `'nl-NL': () => import('./dictionaries/nl-NL.mts')`.
  */
 export type DictionaryLoader = () => Promise<DictionaryModule>
@@ -36,13 +33,11 @@ export type CompiledEntry = {
 }
 
 /**
- * Pairs a default-language key with its translated counterpart. Parameters
- * are written as `{name}` placeholders; literal braces are escaped as `{{`
- * and `}}`.
+ * Pairs a default-language key with its translated counterpart. Parameters are written as `{name}` placeholders;
+ * literal braces are escaped as `{{` and `}}`.
  *
- * The translation may reorder the key's parameters (or leave some out). In
- * development, a translation referencing a name the key doesn't declare
- * logs a console warning when the localization is configured.
+ * The translation may reorder the key's parameters (or leave some out). In development,
+ * a translation referencing a name the key doesn't declare logs a console warning when the localization is configured.
  *
  * @example
  * ```ts
@@ -56,9 +51,8 @@ export function translation(key: string, value: string): Translation {
 }
 
 /**
- * Bundles translations into a dictionary. Meant as the default export of a
- * dictionary file, one file per locale; the locale itself is the key in the
- * `dictionaries` record of `configureLocalization`.
+ * Bundles translations into a dictionary. Meant as the default export of a dictionary file, one file per locale;
+ * the locale itself is the key in the `dictionaries` record of `configureLocalization`.
  *
  * @example
  * ```ts
@@ -76,8 +70,7 @@ export function dictionary(...translations: Translation[]): Dictionary {
 
 /**
  * @internal Parses a placeholder string into text parts and parameter names.
- * `{{` and `}}` unescape to literal braces. A `{` without a closing `}` is
- * treated as literal text.
+ * `{{` and `}}` unescape to literal braces. A `{` without a closing `}` is treated as literal text.
  */
 export function parseTemplate(text: string): ParsedTemplate {
 	const parts: string[] = []
@@ -130,8 +123,7 @@ export function lookupKey(parts: ArrayLike<string>): string {
 
 /**
  * @internal Compiles one locale's dictionary, keyed by lookup key. Runs when
- * the dictionary chunk loads. In development, warns for translations that
- * reference parameter names their key doesn't declare.
+ * the dictionary chunk loads. In development, warns for translations that reference parameter names their key doesn't declare.
  */
 export function compileDictionary(locale: string, translations: Dictionary): Map<string, CompiledEntry> {
 	const entries = new Map<string, CompiledEntry>()

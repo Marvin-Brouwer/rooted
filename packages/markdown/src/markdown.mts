@@ -5,8 +5,8 @@ import type { CssClasses } from '@rooted/components'
 /**
  * What the Vite plugin turns a `.md` file into.
  *
- * A module namespace from `import('./about.md')` matches this shape, so it can
- * be passed as {@link MarkdownOptions.source} directly.
+ * A module namespace from `import('./about.md')` matches this shape,
+ * so it can be passed as {@link MarkdownOptions.source} directly.
  */
 export type MarkdownModule = {
 	/** The parsed YAML frontmatter block. Cast it to your own shape. */
@@ -16,12 +16,10 @@ export type MarkdownModule = {
 }
 
 /**
- * Content for {@link Markdown}: anything with an `html` property (a transformed
- * `.md` module), or an HTML string.
+ * Content for {@link Markdown}: anything with an `html` property (a transformed `.md` module), or an HTML string.
  *
- * A bare string is **HTML, not markdown**. There's no markdown parser in the
- * browser bundle, on purpose. Rendering happens at build time in the Vite
- * plugin.
+ * A bare string is **HTML, not markdown**. There's no markdown parser in the browser bundle, on purpose.
+ * Rendering happens at build time in the Vite plugin.
  */
 export type MarkdownSource = { html: string } | string
 
@@ -40,8 +38,7 @@ export type MarkdownOptions = {
 /**
  * Renders pre-rendered HTML into the DOM.
  *
- * Pair it with the Vite plugin (`@rooted/markdown/vite`), which turns `.md`
- * files into modules carrying an `html` export:
+ * Pair it with the Vite plugin (`@rooted/markdown/vite`), which turns `.md` files into modules carrying an `html` export:
  *
  * ```ts
  * import * as about from './about.md'
@@ -51,8 +48,7 @@ export type MarkdownOptions = {
  * }))
  * ```
  *
- * For content that differs per locale, hand it whichever module
- * `localization.branch` picked:
+ * For content that differs per locale, hand it whichever module `localization.branch` picked:
  *
  * ```ts
  * const source = await localization.branch({
@@ -64,9 +60,8 @@ export type MarkdownOptions = {
  * }))
  * ```
  *
- * The HTML is assigned as-is and is **not sanitised**. Treat `source` the way
- * you'd treat a `<script>` tag: fine for content you control (files in your
- * repo, your own CMS), not for anything a visitor can influence.
+ * The HTML is assigned as-is and is **not sanitised**. Treat `source` the way you'd treat a `<script>` tag:
+ * fine for content you control (files in your repo, your own CMS), not for anything a visitor can influence.
  */
 export const Markdown = component<MarkdownOptions>({
 	name: '@rooted/markdown',

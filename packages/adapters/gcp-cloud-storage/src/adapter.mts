@@ -17,8 +17,8 @@ export type GcpCloudStorageAdapterOptions = {
 /**
  * Adapter for Google Cloud Storage static website hosting.
  *
- * Writes pre-rendered HTML files and a `404.html` SPA shell. GCS bucket website
- * hosting uses `404.html` as the not-found page -- no extra files needed.
+ * Writes pre-rendered HTML files and a `404.html` SPA shell.
+ * GCS bucket website hosting uses `404.html` as the not-found page -- no extra files needed.
  *
  * @example `vite.config.ts`
  * ```ts

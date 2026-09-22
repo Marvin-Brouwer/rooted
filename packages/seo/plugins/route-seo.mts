@@ -10,13 +10,11 @@ import type { Plugin } from 'vite'
 export const routeSeoPluginName = 'rooted:route-seo'
 
 /**
- * `@rooted/router` is an optional peer and every import of it here is
- * type-only, so nothing throws on its own when it isn't installed. This is the
- * only way to tell "no router" apart from "router installed but not in use".
+ * `@rooted/router` is an optional peer and every import of it here is type-only, so nothing throws on its own when it isn't installed.
+ * This is the only way to tell "no router" apart from "router installed but not in use".
  *
- * `import.meta.resolve`, not `createRequire().resolve()`: the latter applies
- * CommonJS conditions, and every `@rooted/*` package is ESM only, so it reports
- * `ERR_PACKAGE_PATH_NOT_EXPORTED` even when the router is right there.
+ * `import.meta.resolve`, not `createRequire().resolve()`: the latter applies CommonJS conditions, and every `@rooted/*` package is ESM only,
+ * so it reports `ERR_PACKAGE_PATH_NOT_EXPORTED` even when the router is right there.
  */
 function routerIsInstalled(): boolean {
 	try {
@@ -31,16 +29,13 @@ function routerIsInstalled(): boolean {
 /**
  * Feeds route metadata to the `rooted:seo` plugin.
  *
- * Walks the route manifest once and registers three things: a prepare task that
- * resolves every static route's seo, a provider that hands that metadata to
- * `injectRouteHtml`, and a provider for the route entries in `sitemap.xml`. The
- * SEO plugin itself knows nothing about routing, which is why this is a
- * separate entry point.
+ * Walks the route manifest once and registers three things: a prepare task that resolves every static route's seo,
+ * a provider that hands that metadata to `injectRouteHtml`, and a provider for the route entries in `sitemap.xml`.
+ * The SEO plugin itself knows nothing about routing, which is why this is a separate entry point.
  *
- * It does nothing in two cases. Without `@rooted/router` installed it warns
- * once, because you only get here by adding this plugin yourself, so a missing
- * peer is a mistake. With the router installed but no manifest plugin in the
- * config it stays quiet, because that's a normal setup.
+ * It does nothing in two cases. Without `@rooted/router` installed it warns once, because you only get here by adding this plugin yourself,
+ * so a missing peer is a mistake. With the router installed but no manifest plugin in the config it stays quiet,
+ * because that's a normal setup.
  *
  * @example
  * ```ts
@@ -90,8 +85,8 @@ export function routeSeoPlugin(): Plugin {
 }
 
 /**
- * Resolves the seo of every static path the manifest can produce, filling
- * `seoByPath` on the way so `injectRouteHtml` can look a page up later.
+ * Resolves the seo of every static path the manifest can produce,
+ * filling `seoByPath` on the way so `injectRouteHtml` can look a page up later.
  */
 async function walkRoutes(
 	manifestApi: RouteManifestApi,

@@ -22,11 +22,9 @@ let evaluationQueue: Promise<unknown> = Promise.resolve()
 /**
  * Resolves a route's SEO metadata for one generated page.
  *
- * Plain seo objects pass through. Lazy seo resolvers are evaluated as if the
- * browser were at `staticPath`: the matched tokens are recovered from the
- * path, and `window`/`location` are spoofed around the call so URL-dependent
- * values (like localized text) come out right per page. Results are cached
- * per route and path.
+ * Plain seo objects pass through. Lazy seo resolvers are evaluated as if the browser were at `staticPath`:
+ * the matched tokens are recovered from the path, and `window`/`location` are spoofed around the call so URL-dependent values (like localized text) come out right per page.
+ * Results are cached per route and path.
  */
 export async function resolveRouteSeo(route: ManifestRoute, staticPath: string): Promise<RouteSeoMetadata | undefined> {
 	const seo = route.getMetadata().seo

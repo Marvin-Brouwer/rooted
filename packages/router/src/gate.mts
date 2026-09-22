@@ -4,20 +4,15 @@ import { createComponent } from '@rooted/components/elements'
 import { AnyRoute, RouteParameterDictionary } from './route.mts'
 
 /**
- * Creates a self-managing gate component that mounts and unmounts its content
- * based on whether a route's URL pattern matches the current path.
+ * Creates a self-managing gate component that mounts and unmounts its content based on whether a route's URL pattern matches the current path.
  *
- * Unlike {@link import('./router.mts').router | router}, a gate activates
- * solely on its own URL match. It's unaffected by which route the router
- * considers the best match. This makes gates the composition mechanism for
- * shell components: a shell that covers multiple child URLs can use gates to
- * show the correct sub-content at each depth.
+ * Unlike {@link import('./router.mts').router | router}, a gate activates solely on its own URL match.
+ * It's unaffected by which route the router considers the best match. This makes gates the composition mechanism for shell components:
+ * a shell that covers multiple child URLs can use gates to show the correct sub-content at each depth.
  *
- * When the route matches, the `render` function is called with the typed token
- * values and the returned `Element`(s) are appended. When the route no longer
- * matches, the elements are removed. If the tokens change without leaving the
- * route (e.g. navigating from one article to another), the content is replaced
- * with freshly rendered elements.
+ * When the route matches, the `render` function is called with the typed token values and the returned `Element`(s) are appended.
+ * When the route no longer matches, the elements are removed. If the tokens change without leaving the route (e.g.
+ * navigating from one article to another), the content is replaced with freshly rendered elements.
  *
  * @param route - The {@link import('./route.mts').route | route} whose URL pattern drives this gate's visibility.
  * @param render - A {@link GateRenderFunction} called with the matched token
@@ -83,8 +78,7 @@ const Gate = component<GateOptions<AnyRoute>>({
 })
 
 /**
- * A sync or async function passed to {@link gate} that receives the matched route
- * token values and returns one or more `Element` nodes to render.
+ * A sync or async function passed to {@link gate} that receives the matched route token values and returns one or more `Element` nodes to render.
  *
  * Use an `async` function to lazy-load the content module on first match.
  */

@@ -1,8 +1,7 @@
 /**
  * A single group of ingredients on a recipe.
- * `heading` holds the sub-section label when the recipe splits its ingredients
- * into groups (like "Marinade" and "Sauce"). Flat recipes produce a single
- * group with `heading` left undefined.
+ * `heading` holds the sub-section label when the recipe splits its ingredients into groups (like "Marinade" and "Sauce").
+ * Flat recipes produce a single group with `heading` left undefined.
  */
 export type IngredientGroup = {
 	heading?: string

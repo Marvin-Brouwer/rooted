@@ -17,8 +17,8 @@ export type AwsS3AdapterOptions = {
 /**
  * Adapter for AWS S3 static website hosting.
  *
- * Writes pre-rendered HTML files and a `404.html` SPA shell. S3 bucket website
- * hosting serves `404.html` automatically for unknown paths -- no extra files needed.
+ * Writes pre-rendered HTML files and a `404.html` SPA shell.
+ * S3 bucket website hosting serves `404.html` automatically for unknown paths -- no extra files needed.
  * Bucket error-document settings and public access policies are configured outside the build.
  *
  * Also works for S3-compatible hosts with no extra configuration:

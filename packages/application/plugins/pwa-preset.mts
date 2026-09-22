@@ -17,8 +17,8 @@ const imageCacheEntry: RuntimeCaching = {
 }
 
 /**
- * The web manifest, minus the icons: those depend on the Vite root, which nobody
- * knows yet at this point, so `pwaAssetsPlugin` fills them in from its `config` hook.
+ * The web manifest, minus the icons: those depend on the Vite root, which nobody knows yet at this point,
+ * so `pwaAssetsPlugin` fills them in from its `config` hook.
  */
 export function buildWebManifest(manifest: RootedApplicationManifest): Partial<ManifestOptions> {
 	return {

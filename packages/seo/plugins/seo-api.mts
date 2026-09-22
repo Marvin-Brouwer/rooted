@@ -1,10 +1,9 @@
 /**
  * SEO metadata for one page.
  *
- * Structurally the same as `RouteSeoMetadata` from `@rooted/router/routes`, on
- * purpose. Routes declare their seo with the router's type, and it lands here
- * without a conversion. Keeping a copy is what lets this package work without
- * `@rooted/router` installed. If you change one, change the other.
+ * Structurally the same as `RouteSeoMetadata` from `@rooted/router/routes`, on purpose. Routes declare their seo with the router's type,
+ * and it lands here without a conversion. Keeping a copy is what lets this package work without `@rooted/router` installed.
+ * If you change one, change the other.
  */
 export type PageSeoMetadata = {
 	/** Page title. Overrides `<title>` and `og:title`. */
@@ -76,37 +75,32 @@ export type RouteHeadLink = {
 }
 
 /**
- * Returns extra head links for a prerendered path, or `undefined` when the
- * path has none.
+ * Returns extra head links for a prerendered path, or `undefined` when the path has none.
  *
- * Called lazily while the adapter injects per-route HTML (during
- * `closeBundle`), so all plugins have started by then. Register the provider
- * early, in `configResolved` or `buildStart`.
+ * Called lazily while the adapter injects per-route HTML (during `closeBundle`), so all plugins have started by then.
+ * Register the provider early, in `configResolved` or `buildStart`.
  */
 export type RouteHeadLinkProvider = (staticPath: string) => RouteHeadLink[] | undefined
 
 /**
- * Free-form transform applied to a prerendered page's HTML, after meta tags
- * and head links. Use it for changes the other seams can't express, like
- * setting the `lang` attribute on the `<html>` tag.
+ * Free-form transform applied to a prerendered page's HTML, after meta tags and head links. Use it for changes the other seams can't express,
+ * like setting the `lang` attribute on the `<html>` tag.
  */
 export type RouteHtmlTransform = (html: string, staticPath: string) => string
 
 /**
- * Returns the SEO metadata for a prerendered path, or `undefined` when the
- * path has none.
+ * Returns the SEO metadata for a prerendered path, or `undefined` when the path has none.
  *
- * This is how route metadata reaches the SEO plugin. `@rooted/seo` has no idea
- * what a route is, so `@rooted/seo/router` registers a provider that walks the
- * route manifest. Register it in `configResolved` or `buildStart`.
+ * This is how route metadata reaches the SEO plugin. `@rooted/seo` has no idea what a route is,
+ * so `@rooted/seo/router` registers a provider that walks the route manifest. Register it in `configResolved` or `buildStart`.
  */
 export type RouteSeoProvider = (staticPath: string) => PageSeoMetadata | undefined
 
 /**
  * A page the build knows about, identified by its static path.
  *
- * Paths rather than URLs, because only the SEO plugin knows the deployment URL
- * and base path. It turns these into absolute `loc` values.
+ * Paths rather than URLs, because only the SEO plugin knows the deployment URL and base path.
+ * It turns these into absolute `loc` values.
  */
 export type PageEntry = Omit<SitemapEntry, 'loc'> & {
 	/** Static path of the page, e.g. `/categories/`. */
@@ -118,19 +112,16 @@ export type PageEntry = Omit<SitemapEntry, 'loc'> & {
 /**
  * Returns every page the provider knows about, sitemap-eligible or not.
  *
- * Called once during `closeBundle`, after {@link SeoApi.prepare}. Pages whose
- * resolved URL is already present are skipped, so the first provider to claim
- * a URL wins.
+ * Called once during `closeBundle`, after {@link SeoApi.prepare}. Pages whose resolved URL is already present are skipped,
+ * so the first provider to claim a URL wins.
  *
- * One seam, two consumers with different needs: `sitemap.xml` skips anything
- * flagged `excludeFromSitemap`, `llms.txt` lists the lot. A page can be worth
- * telling a model about without being worth indexing.
+ * One seam, two consumers with different needs: `sitemap.xml` skips anything flagged `excludeFromSitemap`,
+ * `llms.txt` lists the lot. A page can be worth telling a model about without being worth indexing.
  */
 export type PageProvider = () => Promise<PageEntry[]>
 
 /**
- * A custom section in the generated `llms.txt`, used to override or extend
- * the auto-generated "Pages" section.
+ * A custom section in the generated `llms.txt`, used to override or extend the auto-generated "Pages" section.
  */
 export type LlmsTxtSection = {
 	/** Heading shown as `## Title` in the output. */
@@ -147,8 +138,8 @@ export type LlmsTxtSection = {
  */
 export type LlmsTxtOptions = {
 	/**
-	 * Markdown block inserted between the site description and the auto-generated
-	 * "Pages" section. Useful for adding extra context, disclaimers, or links.
+	 * Markdown block inserted between the site description and the auto-generated "Pages" section.
+	 * Useful for adding extra context, disclaimers, or links.
 	 */
 	intro?: string
 	/**
@@ -159,9 +150,8 @@ export type LlmsTxtOptions = {
 }
 
 /**
- * Async work that must finish before any route seo is evaluated at build
- * time, e.g. preloading lazily imported dictionaries. Registered tasks run
- * once, awaited by every build consumer through {@link SeoApi.prepare}.
+ * Async work that must finish before any route seo is evaluated at build time, e.g. preloading lazily imported dictionaries.
+ * Registered tasks run once, awaited by every build consumer through {@link SeoApi.prepare}.
  */
 export type SeoPrepareTask = () => Promise<void>
 
@@ -195,9 +185,8 @@ export type SeoApi = {
 	 * `<meta name="robots">` (when `noIndex` is true), and Open Graph tags.
 	 * Tags that already exist in the HTML are left unchanged.
 	 *
-	 * Metadata comes from the providers registered with
-	 * {@link SeoApi.addRouteSeoProvider}, so the caller doesn't need to know
-	 * where a page's SEO came from.
+	 * Metadata comes from the providers registered with {@link SeoApi.addRouteSeoProvider},
+	 * so the caller doesn't need to know where a page's SEO came from.
 	 *
 	 * @param html - The source HTML string to transform.
 	 * @param staticPath - The page's static path (e.g. `/categories/`), used to
@@ -207,8 +196,8 @@ export type SeoApi = {
 	/**
 	 * Injects root-level SEO into the home `index.html`.
 	 *
-	 * Adds a JSON-LD `WebSite` schema block, a `<link rel="canonical">` for the
-	 * root URL, and an `og:url` / `og:image` / `og:type` block.
+	 * Adds a JSON-LD `WebSite` schema block, a `<link rel="canonical">` for the root URL,
+	 * and an `og:url` / `og:image` / `og:type` block.
 	 *
 	 * @param html - The source HTML string to transform.
 	 */
@@ -217,14 +206,13 @@ export type SeoApi = {
 	 * Registers a provider of extra `<link>` head tags per prerendered path,
 	 * e.g. `rel="alternate" hreflang` links for localized routes.
 	 *
-	 * Providers are evaluated lazily inside {@link SeoApi.injectRouteHtml}, so
-	 * registering in `configResolved` or `buildStart` is always early enough.
+	 * Providers are evaluated lazily inside {@link SeoApi.injectRouteHtml},
+	 * so registering in `configResolved` or `buildStart` is always early enough.
 	 */
 	addRouteHeadLinks(provider: RouteHeadLinkProvider): void
 	/**
 	 * Registers a source of per-page SEO metadata for {@link SeoApi.injectRouteHtml}.
-	 * Providers are asked in registration order and the first non-`undefined`
-	 * answer wins.
+	 * Providers are asked in registration order and the first non-`undefined` answer wins.
 	 */
 	addRouteSeoProvider(provider: RouteSeoProvider): void
 	/**
@@ -234,26 +222,23 @@ export type SeoApi = {
 	/**
 	 * Every page the registered providers know about, sitemap-eligible or not.
 	 *
-	 * Asks each provider once and caches the answer, so plugins that need the
-	 * page list can call it without coordinating. Await {@link SeoApi.prepare}
-	 * first, or call this after it.
+	 * Asks each provider once and caches the answer, so plugins that need the page list can call it without coordinating.
+	 * Await {@link SeoApi.prepare} first, or call this after it.
 	 */
 	getPages(): Promise<PageEntry[]>
 	/**
 	 * The SEO metadata for a page, from the registered providers.
 	 *
-	 * The same lookup {@link SeoApi.injectRouteHtml} uses. Handy for plugins
-	 * that need a page's title or description without knowing where it came from.
+	 * The same lookup {@link SeoApi.injectRouteHtml} uses.
+	 * Handy for plugins that need a page's title or description without knowing where it came from.
 	 */
 	getPageSeo(staticPath: string): PageSeoMetadata | undefined
 	/**
-	 * Registers a transform applied to each prerendered page's HTML at the end
-	 * of {@link SeoApi.injectRouteHtml}.
+	 * Registers a transform applied to each prerendered page's HTML at the end of {@link SeoApi.injectRouteHtml}.
 	 */
 	addRouteHtmlTransform(transform: RouteHtmlTransform): void
 	/**
-	 * Registers async work that must finish before route seo is evaluated at
-	 * build time. Call from `configResolved` or `buildStart`.
+	 * Registers async work that must finish before route seo is evaluated at build time. Call from `configResolved` or `buildStart`.
 	 */
 	addPrepareTask(task: SeoPrepareTask): void
 	/**

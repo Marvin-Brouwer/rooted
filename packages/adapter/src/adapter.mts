@@ -21,14 +21,12 @@ export type ResolvedAdapterRoutes = {
 }
 
 /**
- * What a host does with a `:param` route, and so what `vite dev` and
- * `vite preview` should answer for one.
+ * What a host does with a `:param` route, and so what `vite dev` and `vite preview` should answer for one.
  *
- * `'routed'` means the adapter writes config the host matches them with, so a
- * dynamic route answers 200. `'fallback'` means the host only serves files: it
- * has no rule for `/recipe/42/`, so it serves the fallback shell with a 404.
- * The page still renders, because the browser-side router takes over, but the
- * status is a 404 and dev says so rather than pretending otherwise.
+ * `'routed'` means the adapter writes config the host matches them with, so a dynamic route answers 200.
+ * `'fallback'` means the host only serves files: it has no rule for `/recipe/42/`, so it serves the fallback shell with a 404.
+ * The page still renders, because the browser-side router takes over,
+ * but the status is a 404 and dev says so rather than pretending otherwise.
  */
 export type DynamicRouteSupport = 'routed' | 'fallback'
 
@@ -70,9 +68,8 @@ export type StaticAdapterDefinition = {
 	/**
 	 * What this host does with a `:param` route. See {@link DynamicRouteSupport}.
 	 *
-	 * Defaults to `'fallback'`, which is what a host does with no routing config
-	 * written for it. Set it to `'routed'` if your `setup` writes rules the host
-	 * matches dynamic routes with.
+	 * Defaults to `'fallback'`, which is what a host does with no routing config written for it.
+	 * Set it to `'routed'` if your `setup` writes rules the host matches dynamic routes with.
 	 */
 	dynamicRoutes?: DynamicRouteSupport
 	/**
@@ -86,8 +83,7 @@ export type StaticAdapterDefinition = {
  * Definition for a server-based host (Fastify, Express, Azure Web Apps, ...).
  * Pass to {@link routedAdapter}.
  *
- * `TApplication` is the framework instance type, and only matters if you supply
- * `createServer`.
+ * `TApplication` is the framework instance type, and only matters if you supply `createServer`.
  */
 export type RoutedAdapterDefinition<TApplication = unknown> = {
 	/** Vite plugin name, e.g. `'rooted:fastify'`. */
@@ -99,15 +95,13 @@ export type RoutedAdapterDefinition<TApplication = unknown> = {
 	 */
 	routes?: AdapterRoutes
 	/**
-	 * The adapter's own `middlewarePath` option, relative to the Vite project
-	 * root. When set, the folder is transpiled into `<outDir>/middleware` at
-	 * build time and run by `createServer` during dev and preview.
+	 * The adapter's own `middlewarePath` option, relative to the Vite project root. When set,
+	 * the folder is transpiled into `<outDir>/middleware` at build time and run by `createServer` during dev and preview.
 	 */
 	middlewarePath?: string
 	/**
-	 * Builds the framework instance that runs `middlewarePath` during
-	 * `vite dev` and `vite preview`. Leave it out and the middleware only runs
-	 * in the generated server. See {@link nodeMiddlewareServer}.
+	 * Builds the framework instance that runs `middlewarePath` during `vite dev` and `vite preview`.
+	 * Leave it out and the middleware only runs in the generated server. See {@link nodeMiddlewareServer}.
 	 */
 	createServer?: NodeMiddlewareServerOptions<TApplication>['createServer']
 	/**
@@ -122,16 +116,13 @@ export type RoutedAdapterDefinition<TApplication = unknown> = {
  * Base adapter for static file hosts.
  *
  * Writes `index.html` to each static route directory, injects SEO metadata,
- * runs the SSG pre-render pass, and writes a catch-all fallback file (default
- * `404.html`) so the JS router can handle any URL that doesn't match a real file.
+ * runs the SSG pre-render pass,
+ * and writes a catch-all fallback file (default `404.html`) so the JS router can handle any URL that doesn't match a real file.
  *
- * Automatically connects to `generateRouteManifest` and the SEO plugin via
- * Vite inter-plugin communication -- no manual wiring needed.
+ * Automatically connects to `generateRouteManifest` and the SEO plugin via Vite inter-plugin communication -- no manual wiring needed.
  *
- * Returns two plugins: the build-time one, and a not-found handler that makes
- * `vite dev` and `vite preview` answer the way the host will. Vite flattens
- * nested plugin arrays, so the result still goes straight into `plugins` as one
- * entry.
+ * Returns two plugins: the build-time one, and a not-found handler that makes `vite dev` and `vite preview` answer the way the host will.
+ * Vite flattens nested plugin arrays, so the result still goes straight into `plugins` as one entry.
  */
 export function staticAdapter(definition: StaticAdapterDefinition): Plugin[] {
 	return createAdapter({
@@ -144,18 +135,15 @@ export function staticAdapter(definition: StaticAdapterDefinition): Plugin[] {
 /**
  * Base adapter for server-based hosts.
  *
- * Does everything {@link staticAdapter} does, and also writes `routes.json` so
- * the server knows which paths have pre-rendered HTML, what the base path is,
+ * Does everything {@link staticAdapter} does,
+ * and also writes `routes.json` so the server knows which paths have pre-rendered HTML, what the base path is,
  * and which file to serve as the SPA fallback.
  *
- * Use `setup` to generate any framework-specific routing config from
- * `context.resolvedRoutes`.
+ * Use `setup` to generate any framework-specific routing config from `context.resolvedRoutes`.
  *
- * Returns several plugins: the build-time one, the not-found handler that gives
- * `vite dev` and `vite preview` the same 404s and canonical redirects as the
- * generated server, and -- when you pass `createServer` -- the one that runs
- * `middlewarePath` on Vite's own port. Vite flattens nested plugin arrays, so
- * the result still goes straight into `plugins` as one entry.
+ * Returns several plugins: the build-time one, the not-found handler that gives `vite dev` and `vite preview` the same 404s and canonical redirects as the generated server,
+ * and -- when you pass `createServer` -- the one that runs `middlewarePath` on Vite's own port. Vite flattens nested plugin arrays,
+ * so the result still goes straight into `plugins` as one entry.
  *
  * @example `routes.json` written automatically
  * ```json

@@ -31,15 +31,15 @@ const pluginName = 'vite-plugin:generate-rooted-route-manifest'
  */
 type Options = {
 	/**
-	 * Glob pattern (relative to the Vite project root) used to discover gate
-	 * files. Matched files are re-exported from the aggregator.
+	 * Glob pattern (relative to the Vite project root) used to discover gate files.
+	 * Matched files are re-exported from the aggregator.
 	 *
 	 * @example `'./src/**\/_routes.mts'`
 	 */
 	glob: string
 	/**
-	 * Path (relative to the Vite project root) where the aggregator file is
-	 * written. The file is auto-generated. Add it to `.gitignore`.
+	 * Path (relative to the Vite project root) where the aggregator file is written.
+	 * The file is auto-generated. Add it to `.gitignore`.
 	 *
 	 * @example `'./src/_routes.g.mts'`
 	 */
@@ -54,8 +54,7 @@ type Options = {
 }
 
 /**
- * Vite plugin that auto-discovers `_routes.mts` files and writes a single
- * aggregator module that re-exports all named gate exports.
+ * Vite plugin that auto-discovers `_routes.mts` files and writes a single aggregator module that re-exports all named gate exports.
  *
  * The aggregator can be spread directly into {@link router}:
  *

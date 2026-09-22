@@ -19,8 +19,7 @@ export class NavigateEvent extends CustomEvent<never> {
 /**
  * Fired by the router when a route's `resolve` function throws.
  *
- * Set `event.errorHandled = true` inside your handler to prevent the error
- * from being re-thrown after the handler returns.
+ * Set `event.errorHandled = true` inside your handler to prevent the error from being re-thrown after the handler returns.
  */
 export class NavigationErrorEvent extends CustomEvent<Error> {
 	public errorHandled = false

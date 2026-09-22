@@ -1,6 +1,6 @@
 /**
- * Markdown content for the rooted framework. The `Markdown` component renders
- * HTML that the Vite plugin (`@rooted/markdown/vite`) produced at build time,
+ * Markdown content for the rooted framework.
+ * The `Markdown` component renders HTML that the Vite plugin (`@rooted/markdown/vite`) produced at build time,
  * so no markdown parser ships to the browser.
  *
  *

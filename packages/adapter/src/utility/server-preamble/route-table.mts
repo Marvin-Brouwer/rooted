@@ -1,14 +1,13 @@
 /**
- * The route table a generated `server.mjs` matches against: `isRoute`, and the
- * `canonicalRedirect` that sends `/recipe/42` to `/recipe/42/`.
+ * The route table a generated `server.mjs` matches against: `isRoute`,
+ * and the `canonicalRedirect` that sends `/recipe/42` to `/recipe/42/`.
  *
  * This is the emitted twin of `createRouteMatcher` and `redirectToCanonical`,
- * which is why it's generated on its own rather than inline: a test evaluates
- * this snippet and runs the same cases through both, so the built server and
- * `vite dev` can't quietly start disagreeing about what a route is.
+ * which is why it's generated on its own rather than inline: a test evaluates this snippet and runs the same cases through both,
+ * so the built server and `vite dev` can't quietly start disagreeing about what a route is.
  *
- * The emitted code expects `base`, `staticRoutes` and `dynamicRoutes` to already
- * be in scope, and declares `prefix`, `isRoute` and `canonicalRedirect`.
+ * The emitted code expects `base`, `staticRoutes` and `dynamicRoutes` to already be in scope, and declares `prefix`,
+ * `isRoute` and `canonicalRedirect`.
  */
 export function buildRouteTable(): string {
 	return `\

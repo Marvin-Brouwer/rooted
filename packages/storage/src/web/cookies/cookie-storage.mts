@@ -4,8 +4,7 @@ import { buildCookieString, parseCookieHeader } from './cookie-helper.mts'
 import { resolveCookiePath } from './cookie-path.mts'
 
 /**
- * Re-export of {@link globalThis.CookieSameSite} so you have a single
- * import path for everything cookie-related.
+ * Re-export of {@link globalThis.CookieSameSite} so you have a single import path for everything cookie-related.
  */
 export type CookieSameSite = globalThis.CookieSameSite
 
@@ -13,13 +12,11 @@ export type CookieSameSite = globalThis.CookieSameSite
  * Typed counterpart of {@link globalThis.CookieInit}.
  *
  * Everything except `value` is inherited from the DOM type via `Omit`.
- * `value` is widened to a generic `T` so you can hand it any value that
- * round-trips through `JSON.stringify`. Fields added to `CookieInit` by
- * future TypeScript lib updates (`partitioned` for example) come along
- * for free.
+ * `value` is widened to a generic `T` so you can hand it any value that round-trips through `JSON.stringify`.
+ * Fields added to `CookieInit` by future TypeScript lib updates (`partitioned` for example) come along for free.
  *
- * `path` is resolved against the app base rather than the origin, so
- * `'/settings'` in an app served from `/my-repo/` becomes `/my-repo/settings`.
+ * `path` is resolved against the app base rather than the origin,
+ * so `'/settings'` in an app served from `/my-repo/` becomes `/my-repo/settings`.
  * Leave it off and the cookie gets the app root.
  *
  * @example
@@ -37,25 +34,21 @@ export type CookieInit<T = unknown> = Omit<globalThis.CookieInit, 'value'> & {
 }
 
 /**
- * Synchronous, typed wrapper around `document.cookie`. The basic shape
- * mirrors `localStorage` (`getItem`, `setItem`, `removeItem`). On top of
- * that:
+ * Synchronous, typed wrapper around `document.cookie`. The basic shape mirrors `localStorage` (`getItem`, `setItem`,
+ * `removeItem`). On top of that:
  * - typed `get<T>` / `set<T>` for JSON-encoded values,
  * - a `set({ ... })` overload that forwards cookie attributes (`domain`,
  *   `path`, `expires`, `sameSite`, ...) to the browser,
  * - `names()` and `all()` for bulk reads.
  *
- * Every write gets a `Path`. Without one the browser scopes the cookie to the
- * directory of the page that set it, so a cookie written on `/recipes/pancakes`
- * would be invisible on the rest of the site. The default is the app root
- * (Vite's `BASE_URL`), and a `path` you pass is read relative to it.
+ * Every write gets a `Path`. Without one the browser scopes the cookie to the directory of the page that set it,
+ * so a cookie written on `/recipes/pancakes` would be invisible on the rest of the site. The default is the app root (Vite's `BASE_URL`),
+ * and a `path` you pass is read relative to it.
  *
  * Typed reads run through a JSON reviver that drops `__proto__`,
- * `constructor`, and `prototype` keys at any depth, so a hostile cookie
- * value can't walk onto `Object.prototype`.
+ * `constructor`, and `prototype` keys at any depth, so a hostile cookie value can't walk onto `Object.prototype`.
  *
- * SSR-safe: when `document` isn't there, reads return `undefined` or empty
- * collections and writes are no-ops.
+ * SSR-safe: when `document` isn't there, reads return `undefined` or empty collections and writes are no-ops.
  *
  * @example
  * ```ts
@@ -80,34 +73,28 @@ export type CookieStorage = {
 	 */
 	getItem(name: string): string | undefined
 	/**
-	 * Write a raw string value with no serialization. The only attribute is
-	 * the `Path`, which is the app root.
+	 * Write a raw string value with no serialization. The only attribute is the `Path`, which is the app root.
 	 */
 	setItem(name: string, value: string): void
 	/**
-	 * Typed read. Strings come back as-is, everything else is parsed
-	 * from JSON through a prototype-pollution-safe reviver. Returns
-	 * `undefined` when the cookie is missing.
+	 * Typed read. Strings come back as-is, everything else is parsed from JSON through a prototype-pollution-safe reviver.
+	 * Returns `undefined` when the cookie is missing.
 	 */
 	get<T = unknown>(name: string): T | undefined
 	/**
-	 * Typed write. Strings pass through unchanged so server-set cookies
-	 * round-trip, everything else is JSON-encoded.
+	 * Typed write. Strings pass through unchanged so server-set cookies round-trip, everything else is JSON-encoded.
 	 */
 	set<T>(name: string, value: T): void
 	/**
-	 * Typed write with full cookie attributes. Use this form when you
-	 * need to set `domain`, `path`, `expires`, `sameSite`, or any other
-	 * attribute. `path` is resolved against the app base; leave it off to
-	 * get the app root.
+	 * Typed write with full cookie attributes. Use this form when you need to set `domain`, `path`, `expires`, `sameSite`,
+	 * or any other attribute. `path` is resolved against the app base; leave it off to get the app root.
 	 */
 	set<T>(init: CookieInit<T>): void
 	/**
 	 * Delete a cookie by writing it with an empty value and `Expires=epoch`.
-	 * The browser matches on the whole name/domain/path tuple. `path` gets
-	 * the same treatment it does on write, so a cookie you set without one
-	 * is removed without one too, but you still need to pass `domain` when
-	 * the cookie was written with it.
+	 * The browser matches on the whole name/domain/path tuple. `path` gets the same treatment it does on write,
+	 * so a cookie you set without one is removed without one too,
+	 * but you still need to pass `domain` when the cookie was written with it.
 	 */
 	removeItem(name: string, options?: Pick<CookieInit, 'domain' | 'path'>): void
 	/** Every cookie name currently visible to `document.cookie`. */
@@ -192,8 +179,7 @@ function all(): Map<string, string> {
 }
 
 /**
- * The {@link CookieStorage} singleton. Frozen so individual methods can't be
- * monkey-patched.
+ * The {@link CookieStorage} singleton. Frozen so individual methods can't be monkey-patched.
  */
 export const cookieStorage: CookieStorage = Object.freeze({
 	getItem,

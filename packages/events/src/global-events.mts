@@ -1,9 +1,8 @@
 import { TargetedEvent } from './event.mts'
 
 /**
- * Event names rooted exposes on the `'global'` channel of the mount context's
- * `on(target, key, handler)`. Currently only `'unhandled-error'`, which folds
- * `window.error` and `window.unhandledrejection` into a single typed event.
+ * Event names rooted exposes on the `'global'` channel of the mount context's `on(target, key, handler)`.
+ * Currently only `'unhandled-error'`, which folds `window.error` and `window.unhandledrejection` into a single typed event.
  */
 export type GlobalEventMap = {
 	'unhandled-error': UnhandledErrorEvent
@@ -18,9 +17,8 @@ type StackFrame = { filename: string, lineno: number, colno: number }
 
 /**
  * @internal
- * Wraps a handler so it only fires for app-origin promise rejections (filters
- * out cross-origin and extension noise). Used by the mount context's
- * `on('global', 'unhandled-error', ...)` wiring.
+ * Wraps a handler so it only fires for app-origin promise rejections (filters out cross-origin and extension noise).
+ * Used by the mount context's `on('global', 'unhandled-error', ...)` wiring.
  */
 export function mapUnhandledRejection(handler: GlobalEventHandler<'unhandled-error'>) {
 	return (rejectionEvent: PromiseRejectionEvent) => {
@@ -31,9 +29,8 @@ export function mapUnhandledRejection(handler: GlobalEventHandler<'unhandled-err
 
 /**
  * @internal
- * Wraps a handler so it only fires for app-origin synchronous errors (filters
- * out cross-origin and extension noise). Used by the mount context's
- * `on('global', 'unhandled-error', ...)` wiring.
+ * Wraps a handler so it only fires for app-origin synchronous errors (filters out cross-origin and extension noise).
+ * Used by the mount context's `on('global', 'unhandled-error', ...)` wiring.
  */
 export function mapUnhandledError(handler: GlobalEventHandler<'unhandled-error'>) {
 	return (event: ErrorEvent) => {
@@ -58,13 +55,11 @@ function parseFirstStackFrame(stack: string | undefined): StackFrame | undefined
 }
 
 /**
- * The event passed to a `'global'`, `'unhandled-error'` handler. A subclass of
- * `ErrorEvent` so it's structurally compatible with anything that already
- * accepts `ErrorEvent`.
+ * The event passed to a `'global'`, `'unhandled-error'` handler.
+ * A subclass of `ErrorEvent` so it's structurally compatible with anything that already accepts `ErrorEvent`.
  *
- * Wraps both `window.error` (sync exceptions) and `window.unhandledrejection`
- * (async rejections). Use `instanceof UnhandledErrorEvent` to access the
- * original `.innerEvent` and (for rejections) `.promise`.
+ * Wraps both `window.error` (sync exceptions) and `window.unhandledrejection` (async rejections).
+ * Use `instanceof UnhandledErrorEvent` to access the original `.innerEvent` and (for rejections) `.promise`.
  *
  * @example
  * ```ts
@@ -133,8 +128,8 @@ export class UnhandledErrorEvent extends ErrorEvent {
  * - Errors from browser extensions (`chrome-extension://`,
  *   `moz-extension://`, `safari-extension://`, `about:srcdoc`).
  *
- * Used internally by the `'global'`, `'unhandled-error'` channel. If you need
- * unfiltered events, listen on `window.error` directly.
+ * Used internally by the `'global'`, `'unhandled-error'` channel. If you need unfiltered events,
+ * listen on `window.error` directly.
  */
 export function isApplicationErrorError(event: ErrorEvent | PromiseRejectionEvent): boolean {
 	const error: unknown = event instanceof ErrorEvent ? event.error : event.reason

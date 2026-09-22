@@ -1,8 +1,7 @@
 /**
  * Spec: on: {} event handlers
  *
- * Illustrates how to attach typed event listeners via the `on` prop
- * in element factory calls, and how signal-based cleanup works.
+ * Illustrates how to attach typed event listeners via the `on` prop in element factory calls, and how signal-based cleanup works.
  */
 import { describe, expect, test, vi } from 'vitest'
 

@@ -1,8 +1,7 @@
 import type { CssClass } from './classes.mts'
 
 /**
- * Well-known symbol used as a non-enumerable property key on every
- * {@link CssModule} to store the public URLs of the pre-scoped CSS artifacts.
+ * Well-known symbol used as a non-enumerable property key on every {@link CssModule} to store the public URLs of the pre-scoped CSS artifacts.
  */
 export const cssArtifacts = Symbol.for('@rooted/css-artifacts')
 

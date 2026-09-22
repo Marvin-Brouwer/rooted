@@ -2,21 +2,17 @@
  * Builds a `_redirects` file for the hosts that read Netlify's format:
  * Netlify itself, Cloudflare Pages and GitLab Pages.
  *
- * It writes one `200` rule per dynamic route pattern and nothing else. There is
- * deliberately no catch-all: all three hosts serve a top-level `404.html` with
- * a real `404` for anything that doesn't resolve, and a `/*  /404.html  200`
- * line would override that with a soft 404 on every typo and every scanner
- * probe.
+ * It writes one `200` rule per dynamic route pattern and nothing else. There is deliberately no catch-all:
+ * all three hosts serve a top-level `404.html` with a real `404` for anything that doesn't resolve,
+ * and a `/*  /404.html  200` line would override that with a soft 404 on every typo and every scanner probe.
  *
- * `:param` becomes a placeholder, which all three match against a single
- * non-empty path segment, the same as `createRouteMatcher`. The names are
- * rewritten to letters because that's all the format allows, and they're never
- * read back: the destination is a fixed file.
+ * `:param` becomes a placeholder, which all three match against a single non-empty path segment, the same as `createRouteMatcher`.
+ * The names are rewritten to letters because that's all the format allows, and they're never read back:
+ * the destination is a fixed file.
  *
- * The rules are written without a trailing slash, so `/recipe/42` and
- * `/recipe/42/` both match. That means these hosts serve the page at both
- * addresses rather than redirecting to the canonical one, which `vite dev` and
- * the generated node servers do. Dev is stricter than the host here, not looser.
+ * The rules are written without a trailing slash, so `/recipe/42` and `/recipe/42/` both match.
+ * That means these hosts serve the page at both addresses rather than redirecting to the canonical one,
+ * which `vite dev` and the generated node servers do. Dev is stricter than the host here, not looser.
  *
  * @example
  * ```ts

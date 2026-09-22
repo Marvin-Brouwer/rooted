@@ -137,8 +137,8 @@ async function writeMiddleware(fileName: string, source: string) {
 }
 
 /**
- * Boots the plugin against a stub dev server, then puts the connect handler it
- * registered behind a real http server so requests exercise the real thing.
+ * Boots the plugin against a stub dev server,
+ * then puts the connect handler it registered behind a real http server so requests exercise the real thing.
  */
 async function listen(fallback = defaultFallback) {
 	const config = {

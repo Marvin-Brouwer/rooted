@@ -32,17 +32,15 @@ type LocalizedVariant = {
 /**
  * Wires localized routes into the rooted SEO plugin.
  *
- * For every route composed with `localization.parameter`, each prerendered
- * locale variant gets:
+ * For every route composed with `localization.parameter`, each prerendered locale variant gets:
  * - one `<link rel="alternate" hreflang>` per configured locale plus an
  *   `x-default` pointing at the default locale,
  * - a `lang` attribute on the `<html>` tag,
  * - `og:locale` and `og:locale:alternate` meta tags.
  *
- * It also preloads every locale's dictionary before the build evaluates lazy
- * seo resolvers, so `localization.text` inside `seo: () => ({ ... })` comes
- * out translated per page. Everything is read straight off the branded
- * locale token, so the plugin needs no options.
+ * It also preloads every locale's dictionary before the build evaluates lazy seo resolvers,
+ * so `localization.text` inside `seo: () => ({ ... })` comes out translated per page. Everything is read straight off the branded locale token,
+ * so the plugin needs no options.
  *
  * Add it to the Vite plugins next to `generateRouteManifest` and the adapter:
  * ```ts
@@ -51,8 +49,7 @@ type LocalizedVariant = {
  * plugins: [generateRouteManifest({ ... }), localizationSeo(), myAdapter()]
  * ```
  *
- * This only covers prerendered HTML. The live document is handled by
- * `localization.observeDocument` at runtime; use both.
+ * This only covers prerendered HTML. The live document is handled by `localization.observeDocument` at runtime; use both.
  */
 export function localizationSeo(): Plugin {
 	let manifestApi: RouteManifestApi | undefined

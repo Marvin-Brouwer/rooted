@@ -66,8 +66,8 @@ function findBlockEnd(css: string, start: number): number {
 }
 
 /**
- * Splits a CSS selector list on commas, ignoring commas inside pseudo-functions
- * like `:is()`, `:not()`, `:has()`, `:where()`, and attribute selectors `[…]`.
+ * Splits a CSS selector list on commas, ignoring commas inside pseudo-functions like `:is()`, `:not()`, `:has()`,
+ * `:where()`, and attribute selectors `[…]`.
  */
 function splitSelectors(selectorList: string): string[] {
 	const selectors: string[] = []
@@ -88,8 +88,8 @@ function splitSelectors(selectorList: string): string[] {
 }
 
 /**
- * Transforms a CSS string so that every qualified rule selector is prefixed with
- * `[r="${scopeId}"] `, producing a flat, well-supported stylesheet.
+ * Transforms a CSS string so that every qualified rule selector is prefixed with `[r="${scopeId}"] `, producing a flat,
+ * well-supported stylesheet.
  *
  * - `@keyframes` and `@font-face` blocks are passed through unchanged.
  * - `@media`, `@supports`, `@container`, `@layer` etc. are recurse-processed.
@@ -263,8 +263,7 @@ export type CssLoaderOptions = {
  *   with a non-enumerable `[cssArtifacts]` symbol property holding the
  *   public URL and scope ID of the emitted file.
  *
- * Imports with a query suffix (`?inline`, `?raw`, etc.) are passed through
- * unchanged so Vite's built-in handlers continue to work.
+ * Imports with a query suffix (`?inline`, `?raw`, etc.) are passed through unchanged so Vite's built-in handlers continue to work.
  *
  * Returns two plugins. Pass the array directly to Vite's `plugins` option;
  * Vite flattens nested plugin arrays automatically.
@@ -284,13 +283,11 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 	const emittedReferences = new Map<string, string>()
 
 	/**
-	 * Pre-plugin: runs before Vite's built-in CSS pipeline so that bare .css
-	 * imports from JS/TS files are resolved to our virtual module IDs instead of
-	 * being processed as stylesheets.
+	 * Pre-plugin: runs before Vite's built-in CSS pipeline so that bare .css imports from JS/TS files are resolved to our virtual module IDs instead of being processed as stylesheets.
 	 *
 	 * `enforce: 'pre'` is required to win the resolveId race against vite:css.
-	 * The trade-off is that Rollup output hooks are NOT called for enforce:'pre'
-	 * plugins in Vite, so the output plugin below handles those.
+	 * The trade-off is that Rollup output hooks are NOT called for enforce:'pre' plugins in Vite,
+	 * so the output plugin below handles those.
 	 */
 	const inputPlugin: Plugin = {
 		name: 'vite-plugin:rooted-css-loader',
@@ -301,8 +298,7 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 		},
 
 		/**
-		 * In dev mode, serve the virtual CSS artifacts via a Connect middleware
-		 * so they behave as ordinary CSS files that can be linked to.
+		 * In dev mode, serve the virtual CSS artifacts via a Connect middleware so they behave as ordinary CSS files that can be linked to.
 		 */
 		configureServer(server) {
 			server.middlewares.use((request, response, next) => {
@@ -318,9 +314,8 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 		},
 
 		/**
-		 * When a source CSS file changes, update the in-memory artifact and
-		 * notify the browser via a custom HMR event so it re-fetches the
-		 * stylesheet without a full page reload.
+		 * When a source CSS file changes,
+		 * update the in-memory artifact and notify the browser via a custom HMR event so it re-fetches the stylesheet without a full page reload.
 		 */
 		handleHotUpdate({ file, server }) {
 			if (!file.endsWith('.css')) return
@@ -343,9 +338,7 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 		},
 
 		/**
-		 * Resolve bare `.css` imports (no query string) to our virtual module IDs
-		 * so Vite's own CSS pipeline never sees the file and doesn't attempt to
-		 * process it as a stylesheet.
+		 * Resolve bare `.css` imports (no query string) to our virtual module IDs so Vite's own CSS pipeline never sees the file and doesn't attempt to process it as a stylesheet.
 		 */
 		resolveId(source, importer) {
 			if (source === VIRTUAL_MODULE_ID) return RESOLVED_VIRTUAL_MODULE_ID
@@ -406,11 +399,9 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 
 	/**
 	 * Output plugin: normal priority so Rollup calls its output hooks.
-	 * Replaces the placeholder tokens left by the input plugin with the
-	 * content-hashed filenames Rollup assigned to the emitted CSS assets.
+	 * Replaces the placeholder tokens left by the input plugin with the content-hashed filenames Rollup assigned to the emitted CSS assets.
 	 *
-	 * Uses renderChunk (called per JS chunk) rather than generateBundle so
-	 * it fires even under Vite 6's environment-aware build pipeline.
+	 * Uses renderChunk (called per JS chunk) rather than generateBundle so it fires even under Vite 6's environment-aware build pipeline.
 	 */
 	const outputPlugin: Plugin = {
 		name: 'vite-plugin:rooted-css-loader-output',

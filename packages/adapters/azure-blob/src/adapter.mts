@@ -17,9 +17,8 @@ export type AzureBlobAdapterOptions = {
 /**
  * Adapter for Azure Blob Storage static website hosting.
  *
- * Writes pre-rendered HTML files and a `404.html` SPA shell. Azure Blob static
- * websites serve from the `$web` container; the error document is configured in
- * the portal or CLI and resolves to `404.html`.
+ * Writes pre-rendered HTML files and a `404.html` SPA shell. Azure Blob static websites serve from the `$web` container;
+ * the error document is configured in the portal or CLI and resolves to `404.html`.
  *
  * @example `vite.config.ts`
  * ```ts

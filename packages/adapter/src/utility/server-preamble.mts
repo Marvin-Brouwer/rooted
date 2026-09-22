@@ -1,21 +1,18 @@
 import { buildRouteTable } from './server-preamble/route-table.mts'
 
 /**
- * The opening of a generated `server.mjs`, up to the point where the framework
- * instance is created: the imports, `routes.json`, the route table, and the
- * canonical-slash redirect.
+ * The opening of a generated `server.mjs`, up to the point where the framework instance is created: the imports,
+ * `routes.json`, the route table, and the canonical-slash redirect.
  *
- * It lives here because Fastify and Express only differ in how they register
- * handlers. Everything before that is the same, and if the two copies drift then
- * the two servers start disagreeing about what a route is, which is exactly the
- * bug this is meant to prevent.
+ * It lives here because Fastify and Express only differ in how they register handlers. Everything before that is the same,
+ * and if the two copies drift then the two servers start disagreeing about what a route is,
+ * which is exactly the bug this is meant to prevent.
  *
- * The emitted code has no imports beyond node builtins and whatever
- * `frameworkImports` adds, so a deployed app never needs `@rooted/*` at runtime.
+ * The emitted code has no imports beyond node builtins and whatever `frameworkImports` adds,
+ * so a deployed app never needs `@rooted/*` at runtime.
  *
- * Pair it with {@link nodeMiddlewareServer} and `routedNotFound` so `vite dev`
- * answers the same way; `createRouteMatcher` is the TypeScript twin of the
- * `isRoute` this emits, and the two are meant to stay in step.
+ * Pair it with {@link nodeMiddlewareServer} and `routedNotFound` so `vite dev` answers the same way;
+ * `createRouteMatcher` is the TypeScript twin of the `isRoute` this emits, and the two are meant to stay in step.
  *
  * @example
  * ```ts
@@ -58,8 +55,7 @@ ${buildRouteTable()}`
  * The startup loop that runs the files an adapter wrote to `dist/middleware`,
  * in lexicographic order, before any of the rooted handlers.
  *
- * Returns an empty string when there is no middleware, so it can be dropped
- * straight into a template.
+ * Returns an empty string when there is no middleware, so it can be dropped straight into a template.
  */
 export function buildMiddlewareBlock(hasMiddleware: boolean): string {
 	if (!hasMiddleware) return ''

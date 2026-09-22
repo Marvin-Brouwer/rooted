@@ -15,11 +15,10 @@ type RootSelector = {
 export type ApplicationOptions = RootSelector
 
 /**
- * Mounts a component as the application root. Replaces the root element on the
- * page with the mounted component.
+ * Mounts a component as the application root. Replaces the root element on the page with the mounted component.
  *
- * By default looks for an element with id `app`. Pass `options.selector` for a
- * different CSS selector, or `options.element` to hand in an element directly.
+ * By default looks for an element with id `app`. Pass `options.selector` for a different CSS selector,
+ * or `options.element` to hand in an element directly.
  *
  * Throws when the root element isn't found.
  *

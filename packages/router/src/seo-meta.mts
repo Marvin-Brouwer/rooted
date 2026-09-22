@@ -4,8 +4,7 @@ import type { RouteSeoMetadata } from './route.metadata.mts'
 import type { ElementFactory } from '@rooted/components/elements'
 
 /**
- * Options for runtime SEO meta tag injection, passed via `seo` in
- * {@link RouterOptions}.
+ * Options for runtime SEO meta tag injection, passed via `seo` in {@link RouterOptions}.
  *
  * @example
  * ```ts
@@ -36,13 +35,10 @@ export type RouterSeoOptions = {
 }
 
 /**
- * Updates `document.title` and the relevant `<meta>` / `<link>` tags in
- * `document.head` to reflect the SEO metadata of the matched route.
+ * Updates `document.title` and the relevant `<meta>` / `<link>` tags in `document.head` to reflect the SEO metadata of the matched route.
  *
- * Called by the router after each successful route match, with the route's
- * seo already evaluated (lazy seo resolvers run in the router, per
- * navigation). No-ops when there is no seo metadata or when running outside
- * a browser context.
+ * Called by the router after each successful route match, with the route's seo already evaluated (lazy seo resolvers run in the router,
+ * per navigation). No-ops when there is no seo metadata or when running outside a browser context.
  */
 export function applyRouteSeoMeta(
 	seo: RouteSeoMetadata | undefined,

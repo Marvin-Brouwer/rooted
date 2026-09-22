@@ -107,8 +107,8 @@ describe('the generated route table and the typescript matcher agree', () => {
 // ---------------------------------------------------------------------------
 
 /**
- * Runs the emitted snippet, so the test drives the code a deployed server
- * really runs rather than asserting on how the source was spelled.
+ * Runs the emitted snippet,
+ * so the test drives the code a deployed server really runs rather than asserting on how the source was spelled.
  */
 async function evaluateRouteTable(base: string, routes: Routes) {
 	const code = `\

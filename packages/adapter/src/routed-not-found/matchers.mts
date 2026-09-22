@@ -5,11 +5,10 @@ import type { AdapterRoutes, DynamicRouteSupport } from '../adapter.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 
 /**
- * The two predicates dev and preview both need, plus what the host answers for
- * a dynamic route.
+ * The two predicates dev and preview both need, plus what the host answers for a dynamic route.
  *
- * They have to be told apart: a static path has a real pre-rendered file the
- * host serves itself, a dynamic one only ever gets the shell.
+ * They have to be told apart: a static path has a real pre-rendered file the host serves itself,
+ * a dynamic one only ever gets the shell.
  */
 export type RouteMatchers = {
 	/** The path has a pre-rendered `index.html` of its own. */
@@ -21,9 +20,8 @@ export type RouteMatchers = {
 	/**
 	 * Whether the canonical-slash redirect applies to this path.
 	 *
-	 * A host that only serves files redirects `/categories` to `/categories/`
-	 * because there's a directory there, but has nothing to redirect
-	 * `/recipe/42` to. Mirroring that keeps dev honest.
+	 * A host that only serves files redirects `/categories` to `/categories/` because there's a directory there,
+	 * but has nothing to redirect `/recipe/42` to. Mirroring that keeps dev honest.
 	 */
 	shouldRedirect(pathname: string): boolean
 }
@@ -44,8 +42,8 @@ export function createMatchers(
 }
 
 /**
- * Keeps the matchers in step with the route manifest, which is empty until
- * buildStart and gets a fresh array whenever a route file is added or removed.
+ * Keeps the matchers in step with the route manifest,
+ * which is empty until buildStart and gets a fresh array whenever a route file is added or removed.
  */
 export function createMatcherCache(
 	getManifestApi: () => RouteManifestApi | undefined,

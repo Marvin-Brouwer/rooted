@@ -2,12 +2,10 @@
  * Derives a scope ID from a string (typically a CSS file path).
  *
  * Pure FNV-1a 64-bit hash, returned as a base-36 string (8 to 14 chars,
- * 2^64 space). Implemented with two 32-bit integers instead of BigInt for
- * performance. All intermediate products stay within
- * `Number.MAX_SAFE_INTEGER`, so the arithmetic is exact without 64-bit types.
+ * 2^64 space). Implemented with two 32-bit integers instead of BigInt for performance. All intermediate products stay within `Number.MAX_SAFE_INTEGER`,
+ * so the arithmetic is exact without 64-bit types.
  *
- * Deterministic and stable across builds and machines: the same input always
- * produces the same output.
+ * Deterministic and stable across builds and machines: the same input always produces the same output.
  *
  * Not cryptographically secure. Intended only for CSS scope selectors.
  */
@@ -17,8 +15,7 @@ const seedHi = 0xCB_F2_9C_E4 >>> 0
 const seedLo = 0x84_22_23_25 >>> 0
 
 /**
- * Hashes `name` and returns a base-36 ID. See the file header for the full
- * contract.
+ * Hashes `name` and returns a base-36 ID. See the file header for the full contract.
  *
  * @example
  * ```ts

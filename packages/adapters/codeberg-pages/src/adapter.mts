@@ -17,8 +17,7 @@ export type CodebergPagesAdapterOptions = {
 /**
  * Adapter for Codeberg Pages.
  *
- * Writes standard static HTML files following the [git-pages.org](https://git-pages.org/)
- * format, which Codeberg Pages supports.
+ * Writes standard static HTML files following the [git-pages.org](https://git-pages.org/) format, which Codeberg Pages supports.
  *
  * @example `vite.config.ts`
  * ```ts

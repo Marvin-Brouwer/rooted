@@ -12,12 +12,10 @@ export type ExpressMiddleware = (app: Express) => Promise<void> | void
 
 /**
  * Identity helper that types a middleware function for the express adapter.
- * Use it as the default export of a file under your `middlewarePath` folder so
- * editors pick up the Express instance type without extra annotations.
+ * Use it as the default export of a file under your `middlewarePath` folder so editors pick up the Express instance type without extra annotations.
  *
- * It's imported from `@rooted-adapters/express/middleware` rather than the
- * package root on purpose: the root is the Vite plugin, and your middleware
- * files get run by the server, not by Vite.
+ * It's imported from `@rooted-adapters/express/middleware` rather than the package root on purpose: the root is the Vite plugin,
+ * and your middleware files get run by the server, not by Vite.
  *
  * @example
  * ```ts

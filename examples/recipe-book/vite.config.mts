@@ -19,8 +19,8 @@ const rootedDirectory = normalizePath(path.join(path.dirname(fileURLToPath(impor
 
 /**
  * Aliases `@rooted/*` to the dist files in the monorepo.
- * Without this, PNPM can resolve the same package via both its bare specifier and its
- * real file path, causing two module instances and duplicate component warnings.
+ * Without this, PNPM can resolve the same package via both its bare specifier and its real file path,
+ * causing two module instances and duplicate component warnings.
  * Subpath regex must come before the bare-package regex.
  */
 const rootedAliases = [

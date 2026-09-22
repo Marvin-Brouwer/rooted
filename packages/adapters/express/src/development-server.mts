@@ -3,9 +3,8 @@ import type { Express } from 'express'
 import type { Connect } from 'vite'
 
 /**
- * Builds the Express instance that runs the `middlewarePath` files during
- * `vite dev` and `vite preview`. Anything Express has no route for falls back
- * to Vite.
+ * Builds the Express instance that runs the `middlewarePath` files during `vite dev` and `vite preview`.
+ * Anything Express has no route for falls back to Vite.
  */
 export async function createExpressServer(
 	middleware: ReadonlyArray<(app: Express) => Promise<void>>,

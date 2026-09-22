@@ -7,9 +7,8 @@ const execFileAsync = promisify(execFile)
 /**
  * The date a file last changed, as `YYYY-MM-DD`, for use as a sitemap `lastmod`.
  *
- * Reads the newest `git log` commit date for the file. Falls back to the file's
- * mtime when it isn't tracked or there's no git repo, and to today when there's
- * no file at all.
+ * Reads the newest `git log` commit date for the file. Falls back to the file's mtime when it isn't tracked or there's no git repo,
+ * and to today when there's no file at all.
  *
  * @param filePath - Absolute path to the file.
  * @param cwd - Directory to run `git` in, normally the Vite project root.

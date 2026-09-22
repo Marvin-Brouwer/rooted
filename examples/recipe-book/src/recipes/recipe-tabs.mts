@@ -8,8 +8,8 @@ import { ScreenLockButton } from './screen-lock-button.mts'
 
 /**
  * A tab in a {@link RecipeTabs} group.
- * `panel` is the node that should show when this tab is active. The tabs
- * component takes ownership of the node and moves it into a tabpanel wrapper.
+ * `panel` is the node that should show when this tab is active.
+ * The tabs component takes ownership of the node and moves it into a tabpanel wrapper.
  */
 export type RecipeTab = {
 	id: string
@@ -27,13 +27,11 @@ export type RecipeTabsOptions = {
 let tabGroupId = 0
 
 /**
- * Tab group for the recipe page, used to split the body into an Ingredients
- * panel and an Instructions panel.
+ * Tab group for the recipe page, used to split the body into an Ingredients panel and an Instructions panel.
  *
- * The component renders a `role="tablist"` with `role="tab"` buttons and one
- * `role="tabpanel"` per tab. Inactive panels are hidden via the `hidden`
- * attribute. Keyboard nav follows the WAI-ARIA Tabs pattern: Left/Right cycle
- * focus between tabs, Home/End jump to the ends, Space/Enter activate.
+ * The component renders a `role="tablist"` with `role="tab"` buttons and one `role="tabpanel"` per tab.
+ * Inactive panels are hidden via the `hidden` attribute. Keyboard nav follows the WAI-ARIA Tabs pattern:
+ * Left/Right cycle focus between tabs, Home/End jump to the ends, Space/Enter activate.
  *
  * @example
  * ```ts

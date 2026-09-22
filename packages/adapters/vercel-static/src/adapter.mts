@@ -20,16 +20,14 @@ export type VercelStaticAdapterOptions = {
 /**
  * Adapter for Vercel static hosting.
  *
- * Writes `vercel.json` to the Vite project root. Always written -- the build
- * controls the deployment config.
+ * Writes `vercel.json` to the Vite project root. Always written -- the build controls the deployment config.
  *
- * Vercel serves pre-rendered HTML files automatically (it finds `/categories/index.html`
- * for `/categories/`), so rewrites are only generated for parameterized routes.
+ * Vercel serves pre-rendered HTML files automatically (it finds `/categories/index.html` for `/categories/`),
+ * so rewrites are only generated for parameterized routes.
  * The destination is `404.html` -- the plain SPA shell.
  *
- * There is no catch-all rewrite. Vercel serves a `404.html` in the output
- * directory "as the 404 page when a route does not match any other static
- * file", so dropping the catch-all is what gets an unknown path a real `404`.
+ * There is no catch-all rewrite. Vercel serves a `404.html` in the output directory "as the 404 page when a route does not match any other static file",
+ * so dropping the catch-all is what gets an unknown path a real `404`.
  * A `/(.*)` rule in front of it answers `200` for everything instead.
  *
  * @example `vite.config.ts`

@@ -1,10 +1,8 @@
 /**
- * Build-time SEO for the rooted framework. Meta tags, Open Graph, canonical
- * links, sitemaps and `robots.txt`.
+ * Build-time SEO for the rooted framework. Meta tags, Open Graph, canonical links, sitemaps and `robots.txt`.
  *
- * Nothing here knows about routing. For per-page metadata from the route
- * manifest, route entries in `sitemap.xml`, and `llms.txt`, add
- * `@rooted/seo/router`.
+ * Nothing here knows about routing. For per-page metadata from the route manifest, route entries in `sitemap.xml`,
+ * and `llms.txt`, add `@rooted/seo/router`.
  *
  *
  * - [SEO guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/seo.md)

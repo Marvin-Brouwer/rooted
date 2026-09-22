@@ -1,12 +1,10 @@
 /**
  * Spec: global 'unhandled-error' — usage via createEventBuilder
  *
- * Illustrates how a component registers a single handler for all unhandled
- * errors in the application — whether they originate from synchronous code
- * (window `error`) or from unhandled promise rejections (`unhandledrejection`).
+ * Illustrates how a component registers a single handler for all unhandled errors in the application,
+ * whether they originate from synchronous code (window `error`) or from unhandled promise rejections (`unhandledrejection`).
  *
- * Both paths are normalized to `UnhandledErrorEvent` and filtered to
- * application-origin errors before the handler is called. Extension errors,
+ * Both paths are normalized to `UnhandledErrorEvent` and filtered to application-origin errors before the handler is called. Extension errors,
  * cross-origin script errors, and unverifiable rejections are silently dropped.
  */
 import { afterEach, describe, expect, test, vi } from 'vitest'

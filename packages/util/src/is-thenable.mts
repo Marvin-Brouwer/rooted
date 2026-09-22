@@ -1,11 +1,8 @@
 /**
- * Returns `true` when `value` has a callable `then`, which is what `await`
- * itself treats as a promise.
+ * Returns `true` when `value` has a callable `then`, which is what `await` itself treats as a promise.
  *
- * Duck-typing rather than `instanceof Promise` on purpose: a thenable from
- * another library, or a polyfilled promise, behaves the same everywhere it
- * matters. The cost is that plain data carrying a `then` method counts as a
- * promise here too.
+ * Duck-typing rather than `instanceof Promise` on purpose: a thenable from another library, or a polyfilled promise,
+ * behaves the same everywhere it matters. The cost is that plain data carrying a `then` method counts as a promise here too.
  *
  * @example
  * ```ts

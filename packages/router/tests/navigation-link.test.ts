@@ -6,8 +6,8 @@ import { createElementFactory } from '../../elements/src/element-factory.mts'
 import { Link, LinkOptions } from '../src/navigation-link.mts'
 
 /**
- * Mounts Link without registering a custom element. Only `options`, `append`
- * and `element` are used by onMount, so the rest of the context stays off.
+ * Mounts Link without registering a custom element. Only `options`, `append` and `element` are used by onMount,
+ * so the rest of the context stays off.
  */
 function mountLink(options: LinkOptions): HTMLAnchorElement {
 	const controller = new AbortController()

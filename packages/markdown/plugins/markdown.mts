@@ -9,8 +9,8 @@ import type { Plugin, ResolvedConfig } from 'vite'
  */
 export type MarkdownPluginOptions = {
 	/**
-	 * Minify the rendered HTML. Defaults to `true` for builds and `false` for
-	 * the dev server, so what you read in devtools matches the source.
+	 * Minify the rendered HTML. Defaults to `true` for builds and `false` for the dev server,
+	 * so what you read in devtools matches the source.
 	 */
 	minify?: boolean
 }
@@ -23,19 +23,17 @@ const minifyOptions: MinifyOptions = {
 }
 
 /**
- * Turns `.md` files into modules at build time, so no markdown parser reaches
- * the browser bundle.
+ * Turns `.md` files into modules at build time, so no markdown parser reaches the browser bundle.
  *
- * Each file becomes `frontmatter` (whatever the YAML block contained) and
- * `html` (everything after it, rendered by `marked`), exported both by name
- * and as a default:
+ * Each file becomes `frontmatter` (whatever the YAML block contained) and `html` (everything after it, rendered by `marked`),
+ * exported both by name and as a default:
  *
  * ```ts
  * import { frontmatter, html } from './about.md'
  * ```
  *
- * Because `html` is a named export, the module itself satisfies the `Markdown`
- * component's `source`, so you can hand a dynamic import straight over:
+ * Because `html` is a named export, the module itself satisfies the `Markdown` component's `source`,
+ * so you can hand a dynamic import straight over:
  *
  * ```ts
  * append(create(Markdown, {
@@ -43,11 +41,9 @@ const minifyOptions: MinifyOptions = {
  * }))
  * ```
  *
- * Imports carrying a query (`./about.md?raw`, `?url`) are left alone for Vite
- * to handle.
+ * Imports carrying a query (`./about.md?raw`, `?url`) are left alone for Vite to handle.
  *
- * Reference `@rooted/markdown/types` from your env declarations so
- * TypeScript knows what a `.md` import is.
+ * Reference `@rooted/markdown/types` from your env declarations so TypeScript knows what a `.md` import is.
  */
 export function rootedMarkdown(options: MarkdownPluginOptions = {}): Plugin {
 	// A private instance: `marked.use(...)` mutates a shared singleton, which

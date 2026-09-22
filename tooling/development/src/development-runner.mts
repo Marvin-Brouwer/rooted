@@ -6,10 +6,9 @@ import { fileURLToPath } from 'node:url'
 import treeKill from 'tree-kill'
 
 /**
- * Runs `pnpm -r build:dev` for the monorepo and returns the total tsdown build
- * time in milliseconds. Used by `pnpm dev` to estimate when the parallel
- * watchers have settled. Respects the abort signal — kills the build and rejects
- * if the signal fires.
+ * Runs `pnpm -r build:dev` for the monorepo and returns the total tsdown build time in milliseconds.
+ * Used by `pnpm dev` to estimate when the parallel watchers have settled.
+ * Respects the abort signal — kills the build and rejects if the signal fires.
  */
 export function buildDevelopment(projectPath: string, signal: AbortSignal): Promise<number> {
 	return new Promise((resolve, reject) => {
@@ -60,10 +59,8 @@ export function buildDevelopment(projectPath: string, signal: AbortSignal): Prom
 }
 
 /**
- * Starts the parallel watchers (`pnpm --parallel run watch`) and the example
- * dev server (`pnpm dev`) in the chosen example folder. Wires up the shared
- * AbortController so any signal (SIGINT, SIGTERM, uncaughtException) flows
- * through a single shutdown path.
+ * Starts the parallel watchers (`pnpm --parallel run watch`) and the example dev server (`pnpm dev`) in the chosen example folder.
+ * Wires up the shared AbortController so any signal (SIGINT, SIGTERM, uncaughtException) flows through a single shutdown path.
  */
 export async function runParallelDevelopment(projectPath: string, exampleFilter: string, elapsedBuildTime: number, abortController: AbortController) {
 	console.log()

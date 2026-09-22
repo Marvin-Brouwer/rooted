@@ -27,12 +27,11 @@ type HtmlElementPropertiesMapped<TElement extends HTMLElement>
 	}
 
 /**
- * Typed properties for the HTML element with tag `KElement`. Returned as the
- * second argument to `element(tag, props)` for HTML tags.
+ * Typed properties for the HTML element with tag `KElement`.
+ * Returned as the second argument to `element(tag, props)` for HTML tags.
  *
- * Includes the writable DOM properties of the element, plus rooted's own
- * `classes`, `style`, `aria`, `on`, and `children` shorthands. Unknown keys
- * (`data-*`, custom attributes) fall through as strings.
+ * Includes the writable DOM properties of the element, plus rooted's own `classes`, `style`, `aria`, `on`,
+ * and `children` shorthands. Unknown keys (`data-*`, custom attributes) fall through as strings.
  */
 export type HtmlElementProperties<KElement extends keyof HTMLElementTagNameMap>
 	= HtmlElementPropertiesMapped<HTMLElementTagNameMap[KElement]>

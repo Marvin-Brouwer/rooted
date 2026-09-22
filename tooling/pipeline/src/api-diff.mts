@@ -1,7 +1,6 @@
 /**
- * Runs @microsoft/api-extractor in "local build" mode for every public package
- * that has an api-extractor.json.  Exits non-zero if any package reports API
- * surface changes that haven't been accepted into the baseline.
+ * Runs @microsoft/api-extractor in "local build" mode for every public package that has an api-extractor.json.
+ *  Exits non-zero if any package reports API surface changes that haven't been accepted into the baseline.
  */
 
 import { execSync } from 'node:child_process'

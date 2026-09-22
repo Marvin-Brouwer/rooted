@@ -1,9 +1,8 @@
 import { buildMiddlewareBlock, buildServerPreamble } from '@rooted/adapter'
 
 /**
- * Builds the `server.mjs` that ships in the output directory. Everything up to
- * the Express instance is shared with the other node adapters; what follows is
- * the part only Express does.
+ * Builds the `server.mjs` that ships in the output directory. Everything up to the Express instance is shared with the other node adapters;
+ * what follows is the part only Express does.
  */
 export function buildExpressTemplate(hasMiddleware: boolean): string {
 	const preamble = buildServerPreamble({

@@ -12,12 +12,10 @@ export type FastifyMiddleware = (app: FastifyInstance) => Promise<void> | void
 
 /**
  * Identity helper that types a middleware function for the fastify adapter.
- * Use it as the default export of a file under your `middlewarePath` folder so
- * editors pick up the Fastify instance type without extra annotations.
+ * Use it as the default export of a file under your `middlewarePath` folder so editors pick up the Fastify instance type without extra annotations.
  *
- * It's imported from `@rooted-adapters/fastify/middleware` rather than the
- * package root on purpose: the root is the Vite plugin, and your middleware
- * files get run by the server, not by Vite.
+ * It's imported from `@rooted-adapters/fastify/middleware` rather than the package root on purpose: the root is the Vite plugin,
+ * and your middleware files get run by the server, not by Vite.
  *
  * @example
  * ```ts

@@ -10,9 +10,8 @@ export type MiddlewareChain = {
 }
 
 /**
- * Holds the framework instance for a server, building it on the first request
- * rather than while configuring: at hook time there is nothing to serve yet, and
- * a throw there takes the whole server down.
+ * Holds the framework instance for a server, building it on the first request rather than while configuring:
+ * at hook time there is nothing to serve yet, and a throw there takes the whole server down.
  */
 export function createMiddlewareChain<TApplication>(
 	options: NodeMiddlewareServerOptions<TApplication>,

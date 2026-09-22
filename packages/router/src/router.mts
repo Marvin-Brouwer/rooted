@@ -38,17 +38,16 @@ type RouterConfig = {
 /**
  * Constrains a value to be a {@link Route}.
  *
- * Non-route values produce `never`, causing a compile-time error when used
- * in a {@link RouterConfig}. This ensures only valid routes are registered.
+ * Non-route values produce `never`, causing a compile-time error when used in a {@link RouterConfig}.
+ * This ensures only valid routes are registered.
  */
 export type RouterCompatibleRoute<G> = G extends AnyRoute ? G : never
 
 /**
  * The validated version of a {@link RouterConfig}.
  *
- * `home` and `notFound` keys are passed through as-is. All other keys must
- * satisfy {@link RouterCompatibleRoute}; incompatible values produce `never`
- * and therefore a compile-time error.
+ * `home` and `notFound` keys are passed through as-is. All other keys must satisfy {@link RouterCompatibleRoute};
+ * incompatible values produce `never` and therefore a compile-time error.
  */
 export type ValidatedRouterConfig<T extends RouterConfig> = {
 	[K in keyof T]: K extends 'home' | 'notFound' ? T[K] : RouterCompatibleRoute<T[K]>
@@ -76,18 +75,15 @@ export type RouterOptions = {
 		 */
 		scrollToTop?: 'on:start' | 'on:end' | 'on:start-and-end' | 'skip'
 		/**
-		 * When `true` (default), the scroll position is written onto the history
-		 * entry a navigation leaves behind, and restored when you come back to it.
+		 * When `true` (default), the scroll position is written onto the history entry a navigation leaves behind,
+		 * and restored when you come back to it.
 		 *
-		 * How complete that is depends on the browser. With the Navigation API it
-		 * covers back and forward both, because a traversal can save on its way
-		 * out. Without it only pushes save, so an entry you left with the back or
-		 * forward button keeps whatever the last push wrote, and the newest entry
-		 * in the stack has nothing and starts at the top.
+		 * How complete that is depends on the browser. With the Navigation API it covers back and forward both,
+		 * because a traversal can save on its way out. Without it only pushes save,
+		 * so an entry you left with the back or forward button keeps whatever the last push wrote,
+		 * and the newest entry in the stack has nothing and starts at the top.
 		 *
-		 * Setting this also takes over from the browser
-		 * (`history.scrollRestoration = 'manual'`) for as long as a router is
-		 * mounted.
+		 * Setting this also takes over from the browser (`history.scrollRestoration = 'manual'`) for as long as a router is mounted.
 		 */
 		saveScrollBeforeNavigate?: boolean
 		/**
@@ -104,20 +100,17 @@ export type RouterOptions = {
 }
 
 /**
- * Creates a self-managing router component that renders the best-matching route
- * on every navigation.
+ * Creates a self-managing router component that renders the best-matching route on every navigation.
  *
- * On each `popstate` event (and on initial mount), all registered routes are
- * evaluated concurrently against the current path. The router selects the route
- * whose pattern consumes the most characters. When two routes match the same
- * length, the more specific (non-wildcard) one wins.
+ * On each `popstate` event (and on initial mount), all registered routes are evaluated concurrently against the current path.
+ * The router selects the route whose pattern consumes the most characters. When two routes match the same length,
+ * the more specific (non-wildcard) one wins.
  *
- * **Suppression:** if a route's `resolve` returns `undefined`, the router treats
- * the URL as intentionally unmatched by that pattern and does _not_ fall back to
- * any shorter-matching route. The `notFound` component is rendered instead.
+ * **Suppression:** if a route's `resolve` returns `undefined`,
+ * the router treats the URL as intentionally unmatched by that pattern and does _not_ fall back to any shorter-matching route.
+ * The `notFound` component is rendered instead.
  *
- * Route results are cached by pathname so `resolve` is only called once per
- * unique path visited.
+ * Route results are cached by pathname so `resolve` is only called once per unique path visited.
  *
  * @example
  * ```ts

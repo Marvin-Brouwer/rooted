@@ -19,8 +19,7 @@ export const CategoriesRoute = route`/categories/`({
 /**
  * ## Route for category pages
  *
- * This illustrates how an additional filter can be used
- * to return a not-found result for dynamic routes.
+ * This illustrates how an additional filter can be used to return a not-found result for dynamic routes.
  */
 export const CategoryRoute = route`/${CategoriesRoute}/${token('slug', String)}/`({
 	async resolve({ create, tokens }) {

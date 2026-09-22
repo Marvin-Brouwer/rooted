@@ -2,9 +2,8 @@ import { component, type GenericComponent } from '@rooted/components'
 import { createComponent } from '@rooted/components/elements'
 
 /**
- * Builds the content for one locale. Called on mount and again whenever the
- * locale changes, so it should build fresh nodes each time rather than reusing
- * ones it handed out before.
+ * Builds the content for one locale. Called on mount and again whenever the locale changes,
+ * so it should build fresh nodes each time rather than reusing ones it handed out before.
  */
 export type LocalizedRender<TLocale extends string> =
 	(locale: TLocale) => Node | GenericComponent | Promise<Node | GenericComponent>

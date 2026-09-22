@@ -1,12 +1,11 @@
 /**
- * A key {@link match} can look up. Records are keyed by string or number, and
- * the array form is keyed by index.
+ * A key {@link match} can look up. Records are keyed by string or number, and the array form is keyed by index.
  */
 export type MatchKey = string | number
 
 /**
- * Picks one of several values by key or by index, instead of chaining ternaries
- * or writing a `switch` that only assigns a variable.
+ * Picks one of several values by key or by index,
+ * instead of chaining ternaries or writing a `switch` that only assigns a variable.
  *
  * Two ways to call it:
  *
