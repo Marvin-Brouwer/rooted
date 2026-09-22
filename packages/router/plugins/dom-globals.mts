@@ -1,5 +1,7 @@
 import { Window } from 'happy-dom'
 
+import { definePrerendering } from '@rooted/util'
+
 // Globals copied from the happy-dom window onto globalThis. Node built-ins
 // (setTimeout, process, Buffer, URL, …) are intentionally left alone.
 const WINDOW_GLOBALS = [
@@ -65,9 +67,12 @@ export async function withDomGlobals<T>(evaluate: () => Promise<T>): Promise<T> 
 
 		try {
 			installGlobals(window as unknown as Record<string, unknown>)
+			// Route files are evaluated against a fake DOM, same as the pre-render, so they get the same answer
+			definePrerendering(true)
 			return await evaluate()
 		}
 		finally {
+			definePrerendering(false)
 			restoreGlobals(saved)
 			// Release happy-dom's timers and observers so the build can exit
 			await window.happyDOM?.close?.()

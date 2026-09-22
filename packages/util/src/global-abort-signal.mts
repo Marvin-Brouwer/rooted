@@ -1,4 +1,4 @@
-import { isClient } from './is-client.mts'
+import { environment } from './environment.mts'
 
 /**
  * @internal
@@ -16,7 +16,7 @@ import { isClient } from './is-client.mts'
 export function createGlobalAbortSignal(): AbortSignal {
 	const controller = new AbortController()
 
-	if (isClient()) {
+	if (environment.hasDom) {
 		window.addEventListener('pagehide', (event) => {
 			if (!event.persisted) {
 				controller.abort('page unloaded')

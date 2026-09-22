@@ -11,6 +11,8 @@ import { CssClassDictionary } from '@rooted/elements';
 import { CssClasses } from '@rooted/elements';
 import { cssClasses } from '@rooted/elements';
 import { ElementFactory } from '@rooted/elements';
+import { Environment } from '@rooted/util';
+import { environment } from '@rooted/util';
 import { EventBuilder } from '@rooted/elements/events';
 import { match } from '@rooted/util';
 import { MatchKey } from '@rooted/util';
@@ -65,6 +67,10 @@ export { cssClasses }
 export type CssModule = Record<string, CssClass> & {
     readonly [cssArtifacts]: CssArtifacts;
 };
+
+export { Environment }
+
+export { environment }
 
 // @public
 export class GenericComponent extends RootedElement {

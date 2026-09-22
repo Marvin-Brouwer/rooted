@@ -16,6 +16,19 @@ export function choice<TMatched, TNotMatched = TMatched>(condition: boolean | nu
 // @internal
 export function createGlobalAbortSignal(): AbortSignal;
 
+// @internal
+export function definePrerendering(prerendering: boolean): void;
+
+// @public
+export type Environment = 'client' | 'preRenderer' | 'server';
+
+// @public
+export const environment: Readonly<{
+    readonly value: Environment;
+    is(test: Environment): boolean;
+    readonly hasDom: boolean;
+}>;
+
 // @public
 export function error(error: unknown): ErrorTuple;
 
@@ -30,6 +43,12 @@ export function isClient(): boolean;
 
 // @public
 export function isError<T>(value: TupleResult<T>): value is ErrorTuple;
+
+// @public
+export function isPrerendering(): boolean;
+
+// @public
+export function isServer(): boolean;
 
 // @public
 export function isSuccess<T>(value: TupleResult<T>): value is SuccessTuple<T>;

@@ -1,5 +1,5 @@
 import { href } from '@rooted/router'
-import { isClient } from '@rooted/util'
+import { environment } from '@rooted/util'
 
 /** Options for `localization.observeDocument`. */
 export type ObserveDocumentOptions = {
@@ -15,7 +15,7 @@ const managedAttribute = 'data-rooted-localization'
 /** @internal Creates the observeDocument function for a set of configured locales. */
 export function createDocumentObserver(supportedLocales: readonly string[], defaultLocale: string) {
 	return function observeDocument(options?: ObserveDocumentOptions): () => void {
-		if (!isClient()) return () => { /* nothing to dispose outside the browser */ }
+		if (!environment.hasDom) return () => { /* nothing to dispose outside the browser */ }
 
 		function update() {
 			const path = href.current().pathOnly

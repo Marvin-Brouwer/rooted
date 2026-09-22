@@ -4,6 +4,8 @@ import { pathToFileURL } from 'node:url'
 
 import { Event as HappyEvent, PopStateEvent as HappyPopStateEvent, Window } from 'happy-dom'
 
+import { definePrerendering } from '@rooted/util'
+
 import type { ResolvedConfig } from 'vite'
 
 // Capture Node's timer before any globals are overridden
@@ -213,6 +215,9 @@ function captureGlobals(): Record<string, unknown> {
 }
 
 function installGlobals(window: Record<string, unknown>): void {
+	// Set before the bundle is imported, so module-scope code in it already sees the pre-render
+	definePrerendering(true)
+
 	// Proxy so missing properties return a no-op instead of throwing
 	;(globalThis as unknown as Record<string, unknown>)['window'] = new Proxy(window, {
 		get(target, property): unknown {
@@ -260,4 +265,6 @@ function restoreGlobals(saved: Record<string, unknown>): void {
 			globals[key] = saved[key]
 		}
 	}
+
+	definePrerendering(false)
 }

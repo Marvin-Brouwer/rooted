@@ -6,7 +6,7 @@ import { cssLoader } from '@rooted/components/css-loader'
 import { llmsTxtPlugin, robotsPlugin, seoPlugin, type SeoOptions } from '@rooted/seo'
 import { ArrayElement } from '@rooted/util'
 
-type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
+export type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 
 import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-cycle-detector.mts'
 import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
@@ -37,9 +37,9 @@ function codeSplittingGroups(applicationGroups: CodeSplittingGroups): CodeSplitt
 	]
 }
 
-type RolldownOptions = NonNullable<BuildEnvironmentOptions['rolldownOptions']>
-type TreeshakeOptions = ArrayElement<NonNullable<RolldownOptions['treeshake']>>
-type OutputOptions = ArrayElement<NonNullable<RolldownOptions['output']>>
+export type RolldownOptions = NonNullable<BuildEnvironmentOptions['rolldownOptions']>
+export type TreeshakeOptions = ArrayElement<NonNullable<RolldownOptions['treeshake']>>
+export type OutputOptions = ArrayElement<NonNullable<RolldownOptions['output']>>
 /** Rolldown's code-splitting config object. */
 export type CodeSplittingOptions = NonNullable<Exclude<OutputOptions['codeSplitting'], boolean>>
 /** The `groups` field of {@link CodeSplittingOptions}. Build chunks by predicate. */
@@ -145,6 +145,9 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 			appType: 'spa',
 			base: resolveBase(manifest.webManifest.url),
 			resolve: manifest.resolve,
+			// What this bundle is built for. `@rooted/util` reads it to answer `environment.value`.
+			// The pre-render loads this same bundle, so it can't be told apart here and marks itself at run time instead.
+			define: { __ROOTED_ENVIRONMENT__: JSON.stringify('client') },
 			dev: {
 				sourcemap: true,
 			},

@@ -1,4 +1,4 @@
-import { isClient } from '@rooted/util'
+import { environment } from '@rooted/util'
 
 /**
  * Runs `render` inside a view transition, or plainly when the browser doesn't support one.
@@ -11,7 +11,7 @@ import { isClient } from '@rooted/util'
  * `finished` and `updateCallbackDone` are deliberately left alone. Those carry real render errors, and a skip doesn't reject them.
  */
 export function renderWithViewTransition(render: () => void): void {
-	if (!isClient() || !('startViewTransition' in document)) {
+	if (!environment.hasDom || !('startViewTransition' in document)) {
 		render()
 		return
 	}

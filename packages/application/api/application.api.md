@@ -6,6 +6,8 @@
 
 import { ArrayElement } from '@rooted/util';
 import { BuildEnvironmentOptions } from 'vite';
+import { Environment } from '@rooted/util';
+import { environment } from '@rooted/util';
 import { ManifestOptions } from 'vite-plugin-pwa';
 import { SeoOptions } from '@rooted/seo';
 import { UpdateStrategy } from '@rooted/pwa';
@@ -23,6 +25,10 @@ export type CodeSplittingOptions = NonNullable<Exclude<OutputOptions['codeSplitt
 export type DetectorOptions = {
     importCycle?: ImportCycleOptions;
 };
+
+export { Environment }
+
+export { environment }
 
 // @public (undocumented)
 export type ImportCycleOptions = {

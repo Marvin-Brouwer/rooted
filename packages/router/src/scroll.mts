@@ -1,4 +1,4 @@
-import { isClient } from '@rooted/util'
+import { environment } from '@rooted/util'
 
 import { savedNavigationState, saveToNavigationEntry, startTraverseSaving } from './scroll.navigation.mts'
 
@@ -55,7 +55,7 @@ export function registerScrollSaving(target?: Element): ScrollRegistration {
 	const id = `#${++nextRouterIdentity}`
 	activeRouters.set(id, { target })
 
-	if (isClient() && activeRouters.size === 1) {
+	if (environment.hasDom && activeRouters.size === 1) {
 		browserScrollRestoration = history.scrollRestoration
 		history.scrollRestoration = 'manual'
 		stopTraverseSaving = startTraverseSaving(currentOffsets)
@@ -65,7 +65,7 @@ export function registerScrollSaving(target?: Element): ScrollRegistration {
 		id,
 		unregister() {
 			activeRouters.delete(id)
-			if (isClient() && activeRouters.size === 0 && browserScrollRestoration !== undefined) {
+			if (environment.hasDom && activeRouters.size === 0 && browserScrollRestoration !== undefined) {
 				history.scrollRestoration = browserScrollRestoration
 				browserScrollRestoration = undefined
 				stopTraverseSaving?.()
@@ -85,7 +85,7 @@ export function registerScrollSaving(target?: Element): ScrollRegistration {
  * so this is safe to call freely without interfering with other listeners.
  */
 export function saveScrollOffsets(): void {
-	if (!isClient() || activeRouters.size === 0) return
+	if (!environment.hasDom || activeRouters.size === 0) return
 
 	const offsets = currentOffsets()
 	history.replaceState({ ...history.state, [ROUTER_KEY]: offsets }, '')
@@ -114,7 +114,7 @@ function currentOffsets(): RouterScrollState {
  * and all an entry carries before the router has saved to it.
  */
 export function currentEntryState(): unknown {
-	if (!isClient()) return undefined
+	if (!environment.hasDom) return undefined
 	return savedNavigationState() ?? history.state
 }
 
@@ -144,7 +144,7 @@ export function getSavedScrollOffset(state: unknown, routerId: string): ScrollOf
  * @param target - A custom scroll container. Omit for `window`.
  */
 export function scrollToOffset([x, y]: ScrollOffset, target?: Element): void {
-	if (!isClient()) return
+	if (!environment.hasDom) return
 
 	if (target) {
 		if (x === 0 && y === 0) target.scrollTo?.({ top: 0, left: 0, behavior: 'instant' })
@@ -180,7 +180,7 @@ const RESTORE_FRAME_BUDGET = 20
  * @param target - A custom scroll container. Omit for `window`.
  */
 export function restoreScrollOffset(offset: ScrollOffset, target?: Element): void {
-	if (!isClient()) return
+	if (!environment.hasDom) return
 
 	let framesLeft = RESTORE_FRAME_BUDGET
 
@@ -221,7 +221,7 @@ function reachedOffset([x, y]: ScrollOffset, target?: Element): boolean {
  * Returns `false` when nothing was saved, which includes every router having `scrollBehavior.saveScrollBeforeNavigate: false`.
  */
 export function restoreScrollPosition(): boolean {
-	if (!isClient()) return false
+	if (!environment.hasDom) return false
 
 	const state = currentEntryState()
 

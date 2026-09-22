@@ -1,4 +1,4 @@
-import { isClient } from '@rooted/util'
+import { environment } from '@rooted/util'
 
 import type { RouteSeoMetadata } from './route.metadata.mts'
 import type { ElementFactory } from '@rooted/components/elements'
@@ -46,7 +46,7 @@ export function applyRouteSeoMeta(
 	options: RouterSeoOptions | undefined,
 	element: ElementFactory,
 ): void {
-	if (!isClient()) return
+	if (!environment.hasDom) return
 	if (!seo) return
 
 	if (seo.title) {
