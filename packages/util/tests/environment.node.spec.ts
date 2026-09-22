@@ -1,12 +1,11 @@
 // @vitest-environment node
-// Runs in plain Node on purpose: 'server' means "no DOM and not the pre-render",
-// so under happy-dom there is no way to reach it.
+// Runs in plain Node on purpose: 'server' means "no DOM at all",
+// and the default happy-dom environment reports the pre-renderer instead.
 import { afterEach, describe, expect, test, vi } from 'vitest'
 
-import { definePrerendering, environment } from '../src/environment.mts'
+import { environment } from '../src/environment.mts'
 
 afterEach(() => {
-	definePrerendering(false)
 	vi.unstubAllGlobals()
 })
 
@@ -23,14 +22,6 @@ describe('environment, in plain Node', () => {
 		expect(environment.is('client')).toBe(false)
 		expect(environment.is('preRenderer')).toBe(false)
 	})
-
-	test('reports the pre-renderer when the build marks it, DOM or no DOM', () => {
-		// Act
-		definePrerendering(true)
-
-		// Assert
-		expect(environment.value).toBe('preRenderer')
-	})
 })
 
 describe('environment.hasDom', () => {
@@ -43,5 +34,19 @@ describe('environment.hasDom', () => {
 
 		// Assert
 		expect(environment.hasDom).toBe(true)
+	})
+
+	test('a window with happyDOM on it is the pre-renderer, without it the client', () => {
+		// Act
+		vi.stubGlobal('window', { happyDOM: {} })
+
+		// Assert
+		expect(environment.value).toBe('preRenderer')
+
+		// Act
+		vi.stubGlobal('window', {})
+
+		// Assert
+		expect(environment.value).toBe('client')
 	})
 })

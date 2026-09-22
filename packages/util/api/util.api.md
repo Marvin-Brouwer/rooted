@@ -16,9 +16,6 @@ export function choice<TMatched, TNotMatched = TMatched>(condition: boolean | nu
 // @internal
 export function createGlobalAbortSignal(): AbortSignal;
 
-// @internal
-export function definePrerendering(prerendering: boolean): void;
-
 // @public
 export type Environment = 'client' | 'preRenderer' | 'server';
 

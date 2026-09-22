@@ -2,24 +2,6 @@
 export type Environment = 'client' | 'preRenderer' | 'server'
 
 /**
- * Baked into the bundle by `rootedManifest()`. Absent when an app wires up Vite by hand,
- * and absent in a plain Node import of this package.
- */
-declare const __ROOTED_ENVIRONMENT__: Environment | undefined
-
-/**
- * Where the pre-render leaves its mark.
- *
- * It has to be a global, and only because everything better is closed off.
- * The pre-render imports the built client bundle, so no build-time constant can tell the two apart.
- * Vite replaces `process.env` with `{}` in a browser build, in every spelling,
- * so the environment variable that would otherwise carry this never arrives.
- * Nothing writes this in a browser: `definePrerendering` is called by the build tooling only,
- * so in a shipped app the property does not exist.
- */
-const environmentGlobal = '__rooted_environment'
-
-/**
  * Which environment this is, and whether there's a DOM to touch. Two different questions,
  * which is why they're two different properties.
  *
@@ -46,7 +28,8 @@ const environmentGlobal = '__rooted_environment'
 export const environment = Object.freeze({
 	/** The environment this is running in. */
 	get value(): Environment {
-		return resolveEnvironment()
+		if (!hasDom()) return 'server'
+		return isHappyDom() ? 'preRenderer' : 'client'
 	},
 	/** `true` when `test` is the environment this is running in. */
 	is(test: Environment): boolean {
@@ -59,31 +42,20 @@ export const environment = Object.freeze({
 })
 
 /**
- * @internal
- * Marks the current process as the pre-render, or clears the mark.
+ * happy-dom is what the build pre-renders in, so finding it means this is the pre-render.
  *
- * For the build tooling only: `@rooted/adapter` calls this around the static render pass,
- * and the router's manifest plugin around its route evaluation. App code has no reason to.
+ * Read with `in`, never a property read.
+ * The pre-render's `window` is a Proxy whose `get` hands back `() => {}` for anything missing,
+ * so `window.happyDOM` is truthy there for any name at all, including a typo. `in` goes to the target and behaves.
+ *
+ * This says "running under happy-dom", which is a shade broader than "pre-rendering",
+ * so a test suite using the happy-dom environment is caught by it too.
+ * That's the accepted trade for having no flag for a page to set and nothing for the build to remember to clean up.
+ * Stub a `window` without `happyDOM` on it to get `client` under test.
  */
-export function definePrerendering(prerendering: boolean): void {
-	if (prerendering) globals()[environmentGlobal] = 'preRenderer'
-	else delete globals()[environmentGlobal]
-}
-
-function resolveEnvironment(): Environment {
-	// The pre-render runs the client bundle in Node, so no build-time constant can tell it apart. It says so itself.
-	if (globals()[environmentGlobal] === 'preRenderer') return 'preRenderer'
-
-	// What this bundle was built for.
-	if (typeof __ROOTED_ENVIRONMENT__ !== 'undefined') return __ROOTED_ENVIRONMENT__
-
-	// Neither signal is there, so guess from the surroundings and assume a browser when one looks present.
-	// That's an app wiring up Vite by hand, or an older adapter, and both should keep working.
-	return hasDom() ? 'client' : 'server'
-}
-
-function globals(): Record<string, string | undefined> {
-	return globalThis as unknown as Record<string, string | undefined>
+function isHappyDom(): boolean {
+	// eslint-disable-next-line unicorn/prefer-global-this
+	return 'happyDOM' in window
 }
 
 function hasDom(): boolean {

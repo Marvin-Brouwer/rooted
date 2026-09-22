@@ -30,21 +30,21 @@ afterEach(async () => {
 })
 
 describe('createStaticRenderer()', () => {
-	test('marks the environment as the pre-render before the bundle is imported', async () => {
-		// Arrange: the bundle reads the mark at module scope, the way @rooted/util does
+	test('the bundle can tell it is being pre-rendered, at module scope', async () => {
+		// Arrange: how @rooted/util recognises the pre-render, checked the moment the bundle evaluates
 		const directory = await buildOutput(
-			'globalThis.__seen_by_bundle = globalThis.__rooted_environment\n',
+			"globalThis.__seen_by_bundle = { happyDom: 'happyDOM' in window, nonsense: '__nope' in window }\n",
 		)
 
 		// Act
 		const renderer = await createStaticRenderer(config, directory)
 
 		// Assert
-		expect((globalThis as Record<string, unknown>)['__seen_by_bundle']).toBe('preRenderer')
+		expect((globalThis as Record<string, unknown>)['__seen_by_bundle']).toEqual({ happyDom: true, nonsense: false })
 		await renderer?.dispose()
 	})
 
-	test('clears the mark on dispose', async () => {
+	test('leaves no window behind once disposed', async () => {
 		// Arrange
 		const directory = await buildOutput('export const loaded = true\n')
 		const renderer = await createStaticRenderer(config, directory)
@@ -53,10 +53,10 @@ describe('createStaticRenderer()', () => {
 		await renderer?.dispose()
 
 		// Assert
-		expect(Object.hasOwn(globalThis, '__rooted_environment')).toBe(false)
+		expect(typeof window).toBe('undefined')
 	})
 
-	test('clears the mark when the bundle fails to load', async () => {
+	test('restores the globals when the bundle fails to load', async () => {
 		// Arrange
 		const directory = await buildOutput('throw new Error("boom")\n')
 
@@ -65,6 +65,6 @@ describe('createStaticRenderer()', () => {
 
 		// Assert
 		expect(renderer).toBeUndefined()
-		expect(Object.hasOwn(globalThis, '__rooted_environment')).toBe(false)
+		expect(typeof window).toBe('undefined')
 	})
 })

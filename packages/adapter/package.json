@@ -37,7 +37,6 @@
 		}
 	},
 	"peerDependencies": {
-		"@rooted/util": "workspace:^",
 		"rolldown": ">= 1.0.0",
 		"vite": ">= 8.0.1"
 	},
@@ -50,7 +49,6 @@
 		"happy-dom": "^20.14.5"
 	},
 	"devDependencies": {
-		"@rooted/util": "workspace:^",
 		"@rooted/seo": "workspace:^",
 		"@rooted/development": "workspace:*",
 		"@rooted/router": "workspace:^",

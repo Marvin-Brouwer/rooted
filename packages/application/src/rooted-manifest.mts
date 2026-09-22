@@ -145,9 +145,6 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 			appType: 'spa',
 			base: resolveBase(manifest.webManifest.url),
 			resolve: manifest.resolve,
-			// What this bundle is built for. `@rooted/util` reads it to answer `environment.value`.
-			// The pre-render loads this same bundle, so it can't be told apart here and marks itself at run time instead.
-			define: { __ROOTED_ENVIRONMENT__: JSON.stringify('client') },
 			dev: {
 				sourcemap: true,
 			},

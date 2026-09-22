@@ -32,9 +32,10 @@ The arrow always points down. `elements` cannot import `components`. `store` doe
 
 Tiny shared helpers that have nowhere else to live: `environment`, seeded ID generation, dev-mode helpers, basic types like `TupleResult`. No DOM. No build-time concerns.
 
-`environment` is the one thing here the build touches, and only through `definePrerendering()`.
-The pre-render boots the built client bundle in happy-dom, so it looks exactly like a browser from the inside,
-and a constant baked in at build time can't say otherwise. The adapter marks the pass and `environment.value` reads the mark.
+`environment` needs no cooperation from the build, which is the point. The pre-render boots the built client bundle
+in happy-dom, so it looks like a browser from the inside and no build-time constant can say otherwise.
+It's recognised by finding happy-dom instead, which means our own happy-dom test runs report `preRenderer` too.
+That's accepted: stub a `window` without `happyDOM` on it to get `client` under test.
 `environment.hasDom` is the separate, dumber question of whether there's a `window` at all, which the pre-render also answers yes to.
 
 The bar for adding to `util` is high. If something fits in `elements` or `events`, it goes there.

@@ -77,22 +77,16 @@ describe('withDomGlobals()', () => {
 		expect('location' in globalThis).toBe(false)
 	})
 
-	test('marks the environment as the pre-render for the duration of the callback', async () => {
+	test('reads as the pre-render environment for the duration of the callback', async () => {
+		// Arrange
+		expect(environment.value).toBe('server')
+
 		// Act
 		const seen = await withDomGlobals(() => Promise.resolve(environment.value))
 
-		// Assert: route files run against a fake DOM, same as the pre-render, so they get the same answer
+		// Assert: route files run against happy-dom, same as the pre-render, so they get the same answer
 		expect(seen).toBe('preRenderer')
-		expect(Object.hasOwn(globalThis, '__rooted_environment')).toBe(false)
-	})
-
-	test('clears the pre-render mark when the callback throws', async () => {
-		// Act
-		const failing = withDomGlobals(() => Promise.reject(new Error('boom')))
-
-		// Assert
-		await expect(failing).rejects.toThrow('boom')
-		expect(Object.hasOwn(globalThis, '__rooted_environment')).toBe(false)
+		expect(environment.value).toBe('server')
 	})
 
 	test('restores the environment when the callback throws', async () => {

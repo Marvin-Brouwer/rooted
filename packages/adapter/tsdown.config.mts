@@ -8,7 +8,7 @@ export default defineConfig({
 	// `SeoApi` is used internally and never reaches the emitted declarations.
 	// Without this the dts build follows @rooted/seo into vite-plugin-pwa and sharp,
 	// whose CommonJS d.ts rolldown cannot bundle.
-	external: ['@rooted/seo', '@rooted/util'],
+	external: ['@rooted/seo'],
 	dts: true,
 	clean: true,
 	sourcemap: 'inline',

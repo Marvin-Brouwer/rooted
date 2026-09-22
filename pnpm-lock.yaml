@@ -134,9 +134,6 @@ importers:
       '@rooted/tsdown':
         specifier: workspace:^
         version: link:../../tooling/tsdown
-      '@rooted/util':
-        specifier: workspace:^
-        version: link:../util
       '@types/node':
         specifier: ^26.6.1
         version: 26.6.2
