@@ -7,8 +7,4 @@
  */
 
 export * from '../rooted-manifest.mts'
-
-// Re-exported so plugin authors don't have to reach into `@rooted/util`.
-// Read from here it answers for the build process, not for the app: 'server' normally,
-// and 'preRenderer' while the static render pass is running.
 export { environment, type Environment } from '@rooted/util'
