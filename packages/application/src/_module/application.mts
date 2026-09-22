@@ -7,3 +7,4 @@
  */
 
 export * from '../rooted-manifest.mts'
+export { environment, type Environment } from '@rooted/util'

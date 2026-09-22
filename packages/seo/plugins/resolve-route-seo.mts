@@ -53,7 +53,7 @@ async function evaluateAtPath(seo: AnyRouteSeoResolver, tokens: Record<string, u
 		const previousLocation = Object.getOwnPropertyDescriptor(globalThis, 'location')
 
 		try {
-			// Minimal spoof: isClient() checks for window, href.current() reads location.href
+			// Minimal spoof: environment.hasDom checks for window, href.current() reads location.href
 			spoof('window', globals['window'] ?? {})
 			spoof('location', { href: `http://localhost${staticPath}` })
 			return await seo({ tokens })

@@ -6,6 +6,8 @@
 
 import { ArrayElement } from '@rooted/util';
 import { BuildEnvironmentOptions } from 'vite';
+import { Environment } from '@rooted/util';
+import { environment } from '@rooted/util';
 import { ManifestOptions } from 'vite-plugin-pwa';
 import { SeoOptions } from '@rooted/seo';
 import { UpdateStrategy } from '@rooted/pwa';
@@ -24,17 +26,9 @@ export type DetectorOptions = {
     importCycle?: ImportCycleOptions;
 };
 
-// @public (undocumented)
-export type ImportCycleOptions = {
-    when?: 'development' | 'production' | 'always' | 'never';
-    mode?: 'error' | 'warn';
-};
+export { Environment }
 
-// @public (undocumented)
-export type OutputOptions = ArrayElement<NonNullable<RolldownOptions['output']>>;
-
-// @public (undocumented)
-export type RolldownOptions = NonNullable<BuildEnvironmentOptions['rolldownOptions']>;
+export { environment }
 
 // @public
 export type RootedApplicationManifest = {
@@ -55,12 +49,6 @@ export type RootedApplicationManifest = {
 
 // @public
 export function rootedManifest(manifest: RootedApplicationManifest): UserConfigFnObject;
-
-// @public (undocumented)
-export type RuntimeCaching = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number];
-
-// @public (undocumented)
-export type TreeshakeOptions = ArrayElement<NonNullable<RolldownOptions['treeshake']>>;
 
 // (No @packageDocumentation comment for this package)
 

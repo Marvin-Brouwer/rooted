@@ -8,8 +8,8 @@
 
 export * from '../base-url.mts'
 export * from '../choice.mts'
+export * from '../environment.mts'
 export * from '../global-abort-signal.mts'
-export * from '../is-client.mts'
 export * from '../is-thenable.mts'
 export * from '../match.mts'
 export * from '../optional.mts'

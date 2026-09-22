@@ -5,6 +5,8 @@
 ```ts
 
 import { ElementOnHandlers } from '@rooted/events';
+import { Environment } from '@rooted/util';
+import { environment } from '@rooted/util';
 
 // @public
 export type Aria = AriaStringProperties & AriaIdReferenceProperties;
@@ -57,6 +59,10 @@ export interface ElementCreatorFunction {
 
 // @public (undocumented)
 export type ElementFactory = ElementCreatorFunction;
+
+export { Environment }
+
+export { environment }
 
 // @public
 export type HtmlElementProperties<KElement extends keyof HTMLElementTagNameMap> = HtmlElementPropertiesMapped<HTMLElementTagNameMap[KElement]>;

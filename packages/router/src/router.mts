@@ -1,6 +1,6 @@
 import { Component, component } from '@rooted/components'
 import { createComponent } from '@rooted/components/elements'
-import { isClient } from '@rooted/util'
+import { environment } from '@rooted/util'
 
 import { devHelper } from './dev-helper.mts'
 import * as href from './href.mts'
@@ -157,7 +157,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 			let lastPath: string | undefined
 
 			let scrollId: string | undefined
-			if (saveScrollBeforeNavigate && isClient()) {
+			if (saveScrollBeforeNavigate && environment.hasDom) {
 				// `navigate` is a free function and can't see these options, so this
 				// router joins the registry for as long as it's mounted, and its
 				// position rides along on the history entry under this id.

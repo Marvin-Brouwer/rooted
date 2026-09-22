@@ -1,5 +1,5 @@
 import { href } from '@rooted/router'
-import { isClient } from '@rooted/util'
+import { environment } from '@rooted/util'
 import { isDevelopment } from '@rooted/util/dev'
 
 import { compileDictionary, lookupKey, type CompiledEntry, type DictionaryLoader } from './dictionary.mts'
@@ -255,7 +255,7 @@ export function configureLocalization<
 	const loading = new Map<TLocale, Promise<void>>()
 
 	function rawSegment(): string | undefined {
-		if (!isClient()) return undefined
+		if (!environment.hasDom) return undefined
 		const segment = href.current().pathOnly.split('/')[1]
 		return segment === '' ? undefined : segment
 	}
@@ -272,7 +272,7 @@ export function configureLocalization<
 	// The locale the latest navigation resolved to, and whether that navigation
 	// changed it. Both are updated once per `popstate`, never per `load` call,
 	// so every caller within one navigation gets the same answer.
-	let navigationLocale = isClient() ? currentLocale() : defaultLocale
+	let navigationLocale = environment.hasDom ? currentLocale() : defaultLocale
 	let localeChanged = false
 
 	function load(locale?: TLocale): Promise<LocaleLoadResult<TLocale>> {
@@ -302,7 +302,7 @@ export function configureLocalization<
 	// Start downloading the current locale's dictionary as soon as possible,
 	// in parallel with whatever the navigation is loading. Route resolvers
 	// still `await load()` for a guaranteed translated first paint.
-	if (isClient()) {
+	if (environment.hasDom) {
 		window.addEventListener('popstate', () => {
 			const next = currentLocale()
 			localeChanged = next !== navigationLocale

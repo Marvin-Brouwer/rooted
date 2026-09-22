@@ -4,6 +4,8 @@
 // every assertion here pass vacuously.
 import { describe, test, expect } from 'vitest'
 
+import { environment } from '@rooted/util'
+
 import { withDomGlobals } from '../plugins/dom-globals.mts'
 
 describe('withDomGlobals()', () => {
@@ -73,6 +75,18 @@ describe('withDomGlobals()', () => {
 		expect(() => { globals['location'] = { href: 'http://example.com/' } }).not.toThrow()
 		expect(() => Reflect.deleteProperty(globalThis, 'location')).not.toThrow()
 		expect('location' in globalThis).toBe(false)
+	})
+
+	test('reads as the pre-render environment for the duration of the callback', async () => {
+		// Arrange
+		expect(environment.value).toBe('server')
+
+		// Act
+		const seen = await withDomGlobals(() => Promise.resolve(environment.value))
+
+		// Assert: route files run against happy-dom, same as the pre-render, so they get the same answer
+		expect(seen).toBe('preRenderer')
+		expect(environment.value).toBe('server')
 	})
 
 	test('restores the environment when the callback throws', async () => {

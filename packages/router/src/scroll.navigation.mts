@@ -1,4 +1,4 @@
-import { isClient } from '@rooted/util'
+import { environment } from '@rooted/util'
 
 import type { RouterScrollState } from './scroll.mts'
 
@@ -12,7 +12,7 @@ const ROUTER_KEY = '@rooted/router'
  * which leaves back and forward reading whatever the last push wrote.
  */
 function hasNavigationApi(): boolean {
-	return isClient() && 'navigation' in globalThis
+	return environment.hasDom && 'navigation' in globalThis
 }
 
 /**

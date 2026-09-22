@@ -50,11 +50,13 @@
 		"extract-api": "rooted-development extract-api"
 	},
 	"peerDependencies": {
-		"@rooted/events": "workspace:^"
+		"@rooted/events": "workspace:^",
+		"@rooted/util": "workspace:^"
 	},
 	"devDependencies": {
 		"@rooted/development": "workspace:*",
 		"@rooted/events": "workspace:^",
+		"@rooted/util": "workspace:^",
 		"tsx": "^4.23.13"
 	}
 }
