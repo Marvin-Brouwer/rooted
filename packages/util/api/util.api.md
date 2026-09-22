@@ -36,16 +36,7 @@ export function error(error: Error): ErrorTuple;
 export type ErrorTuple = [success: false, value: never, error: Error];
 
 // @public
-export function isClient(): boolean;
-
-// @public
 export function isError<T>(value: TupleResult<T>): value is ErrorTuple;
-
-// @public
-export function isPrerendering(): boolean;
-
-// @public
-export function isServer(): boolean;
 
 // @public
 export function isSuccess<T>(value: TupleResult<T>): value is SuccessTuple<T>;
