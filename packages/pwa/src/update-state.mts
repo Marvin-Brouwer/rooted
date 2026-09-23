@@ -88,21 +88,13 @@ async function watchForUpdate(handler: UpdateReadyHandler, listening: AbortContr
  * Every other open tab of the app switches to the new version at the same moment, because a browser can't hand over one tab at a time.
  * The registration script reloads those too, since their route chunks are gone from the new precache.
  *
- * Called while the page is still loading, it waits for the `load` event before it hands over.
- * In Chromium, a handover sent as the page opens can leave the new version stuck waiting,
- * and then later calls can't move it either until the app is closed (#364).
- * Waiting for `load` makes that less likely but doesn't rule it out: in testing, about one in five still got stuck.
- * A handover from a button press, on a page that has finished loading, hasn't.
- *
  * The reload waits until the new version is actually in control.
  * If that never happens the promise never settles and the page stays as it is.
- * That's rare, and reloading anyway is worse:
+ * It hasn't happened for a button press in testing, and reloading anyway would be worse:
  * the reload comes back on the old version, and the new one can still take over underneath it.
  * The update still lands once every window of the app is closed.
  */
 export async function applyUpdate(): Promise<boolean> {
-	await pageLoaded()
-
 	const registration = await currentRegistration()
 	if (!registration || !handOver(registration)) return false
 
@@ -111,8 +103,3 @@ export async function applyUpdate(): Promise<boolean> {
 	return true
 }
 
-function pageLoaded() {
-	if (document.readyState === 'complete') return Promise.resolve()
-
-	return new Promise<void>(resolve => window.addEventListener('load', () => resolve(), { once: true }))
-}

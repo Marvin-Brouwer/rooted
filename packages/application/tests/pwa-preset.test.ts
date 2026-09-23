@@ -56,10 +56,10 @@ describe('pwaPresetOptions()', () => {
 
 	test('loads your own worker scripts through workbox, which puts them ahead of its own listeners', () => {
 		// Act
-		const preset = options({ workerScripts: ['update-gate.js'] })
+		const preset = options({ workerScripts: ['my-worker-code.js'] })
 
 		// Assert
-		expect(preset.workbox?.importScripts).toEqual(['update-gate.js'])
+		expect(preset.workbox?.importScripts).toEqual(['my-worker-code.js'])
 	})
 
 	test('adds no worker scripts when the app has none', () => {

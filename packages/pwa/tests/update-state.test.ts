@@ -146,22 +146,4 @@ describe('applyUpdate()', () => {
 		expect(reload).not.toHaveBeenCalled()
 		vi.useRealTimers()
 	})
-
-	test('waits for the page to finish loading before it hands over', async () => {
-		// Arrange -- #364: a handover sent during the load can leave the new version stuck
-		const readyState = vi.spyOn(document, 'readyState', 'get').mockReturnValue('interactive')
-		const waiting = createWorker('installed')
-		stubServiceWorker({ registration: createRegistration(waiting) })
-		void applyUpdate()
-		await settle()
-		expect(waiting.postMessage).not.toHaveBeenCalled()
-
-		// Act
-		readyState.mockReturnValue('complete')
-		window.dispatchEvent(new Event('load'))
-		await settle()
-
-		// Assert
-		expect(waiting.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' })
-	})
 })

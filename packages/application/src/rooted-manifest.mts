@@ -73,16 +73,16 @@ export type RootedApplicationManifest = {
 	 * Scripts to load at the top of the generated service worker, before workbox sets itself up.
 	 * Each one is a URL relative to the worker, so a file in `public/` is just its file name.
 	 *
-	 * This is where your own worker code goes, for the odd thing the generated worker doesn't do.
+	 * This is where your own worker code goes, for the odd thing the generated worker doesn't do,
+	 * like update behaviour that differs from rooted's.
 	 * Because these run first, an `install` or `activate` listener in them sees the event before workbox does.
-	 * The PWA guide has an example that holds updates back until the user asks for one.
 	 *
 	 * rooted doesn't bundle or check these. They load with `importScripts`, so they're classic scripts, not modules.
 	 *
 	 * @example
 	 * ```ts
 	 * export default rootedManifest({
-	 *   workerScripts: ['update-gate.js'], // public/update-gate.js
+	 *   workerScripts: ['my-worker-code.js'], // public/my-worker-code.js
 	 * })
 	 * ```
 	 */
