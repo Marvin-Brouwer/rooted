@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <title>rooted</title>
+  <path d="M6,5 L8.50,3 L11.00,5 L13.50,3 L16.00,5 L18.50,3 L21.00,5 L23.50,3 L26.00,5 L26,28 Q26,30 24,30 L8,30 Q6,30 6,28 Z" fill="#dcc095" stroke="#1b2a1f" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M16,26 L16,15" stroke="#1b2a1f" stroke-width="2" stroke-linecap="round"/>
+  <path d="M16,16 C14,11 10,11 8.5,12.5 C10,16 14,17 16,16 Z" fill="#4f9a5f" stroke="#1b2a1f" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M16,15 C18,10 22,9.5 23.5,11 C22,14.5 18,16 16,15 Z" fill="#2f6b45" stroke="#1b2a1f" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>
