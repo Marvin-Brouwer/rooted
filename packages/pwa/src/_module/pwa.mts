@@ -12,5 +12,5 @@
  * @module
  */
 
-export { registerWorker, type RegisterWorkerOptions, type UpdateStrategy } from '../register-worker.mts'
+export { registerWorker, type RegisterWorkerOptions } from '../register-worker.mts'
 export { onUpdateReady, applyUpdate, type UpdateReadyHandler } from '../update-state.mts'

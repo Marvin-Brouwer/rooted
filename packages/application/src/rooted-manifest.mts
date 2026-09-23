@@ -13,7 +13,6 @@ import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
 import { buildWebManifest, pwaPreset } from '../plugins/pwa-preset.mts'
 import { pwaRegisterPlugin } from '../plugins/pwa-register.mts'
 
-import type { UpdateStrategy } from '@rooted/pwa'
 import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
 
 function codeSplittingGroups(applicationGroups: CodeSplittingGroups): CodeSplittingGroups {
@@ -71,19 +70,23 @@ export type RootedApplicationManifest = {
 	seo?: SeoOptions
 	runtimeCaching?: RuntimeCaching[]
 	/**
-	 * When a new version is allowed to take over.
-	 * Defaults to `'automatic'`.
+	 * Scripts to load at the top of the generated service worker, before workbox sets itself up.
+	 * Each one is a URL relative to the worker, so a file in `public/` is just its file name.
 	 *
-	 * - `'automatic'` takes a version that was already waiting when the page opened, and reloads onto it.
-	 *   That costs one quick extra load.
-	 * - `'explicit'` leaves the new version waiting until the app calls `applyUpdate()` from `@rooted/pwa`,
-	 *   or someone presses an `ApplyUpdateButton`.
+	 * This is where your own worker code goes, for the odd thing the generated worker doesn't do,
+	 * like update behaviour that differs from rooted's.
+	 * Because these run first, an `install` or `activate` listener in them sees the event before workbox does.
 	 *
-	 * Neither one updates a page that is already running.
-	 * The router resolves route chunks with `await import()` against the precache the page started on,
-	 * so swapping the bundle mid-session breaks navigation.
+	 * rooted doesn't bundle or check these. They load with `importScripts`, so they're classic scripts, not modules.
+	 *
+	 * @example
+	 * ```ts
+	 * export default rootedManifest({
+	 *   workerScripts: ['my-worker-code.js'], // public/my-worker-code.js
+	 * })
+	 * ```
 	 */
-	updates?: UpdateStrategy
+	workerScripts?: string[]
 }
 
 function resolveBase(url: string | undefined): string | undefined {
@@ -199,8 +202,8 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 						analyzerMode: 'static',
 					},
 				),
-				pwaPreset({ manifest, webManifest, skipPwaGenerator, minify, runtimeCaching: manifest.runtimeCaching }),
-				pwaRegisterPlugin({ skip: skipPwaGenerator, updates: manifest.updates ?? 'automatic' }),
+				pwaPreset({ manifest, webManifest, skipPwaGenerator, minify, runtimeCaching: manifest.runtimeCaching, workerScripts: manifest.workerScripts }),
+				pwaRegisterPlugin({ skip: skipPwaGenerator }),
 				pwaAssetsPlugin({ webManifest, skip: skipPwaAssets, deploymentUrl: manifest.webManifest.url }),
 				seoPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo),
 				manifest.seo?.robots !== false && robotsPlugin(manifest.webManifest.url, manifest.seo?.robots),

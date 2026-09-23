@@ -92,45 +92,23 @@ describe('registerWorker()', () => {
 		expect(registration.update).not.toHaveBeenCalled()
 	})
 
-	test('takes a version that was already waiting when the page opened', async () => {
+	test('never hands a waiting version over on its own, the browser does that once the app is closed', async () => {
 		// Arrange
 		const waiting = createWorker('installed')
 		stubServiceWorker({ registration: createRegistration(waiting) })
 
 		// Act
-		await register({ updates: 'automatic' })
+		await register()
 
-		// Assert
-		expect(waiting.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' })
-	})
-
-	test('reloads once the version it took is actually in control', async () => {
-		// Arrange
-		const { container } = stubServiceWorker({ registration: createRegistration(createWorker('installed')) })
-		await register({ updates: 'automatic' })
-
-		// Act
-		container.dispatchEvent(new Event('controllerchange'))
-
-		// Assert
-		expect(location.reload).toHaveBeenCalledTimes(1)
-	})
-
-	test('leaves the page alone when the handover does not take, rather than reloading in a loop', async () => {
-		// Arrange
-		stubServiceWorker({ registration: createRegistration(createWorker('installed')) })
-
-		// Act
-		await register({ updates: 'automatic' })
-
-		// Assert
+		// Assert -- #364: a handover sent while the page loads can get the new version stuck
+		expect(waiting.postMessage).not.toHaveBeenCalled()
 		expect(location.reload).not.toHaveBeenCalled()
 	})
 
 	test('leaves a version that turns up mid-session alone, which is the whole point of #331', async () => {
 		// Arrange
 		const { registration } = stubServiceWorker()
-		await register({ updates: 'automatic' })
+		await register()
 
 		// Act -- a new worker finishes installing while the page is running
 		const waiting = createWorker('installed')
@@ -142,16 +120,28 @@ describe('registerWorker()', () => {
 		expect(location.reload).not.toHaveBeenCalled()
 	})
 
-	test('leaves a waiting version alone under explicit, even at startup', async () => {
+	test('reloads when another tab hands over, so this one does not route against a precache that is gone', async () => {
 		// Arrange
-		const waiting = createWorker('installed')
-		stubServiceWorker({ registration: createRegistration(waiting) })
+		const { container } = stubServiceWorker()
+		await register()
 
 		// Act
-		await register({ updates: 'explicit' })
+		container.dispatchEvent(new Event('controllerchange'))
 
 		// Assert
-		expect(waiting.postMessage).not.toHaveBeenCalled()
+		expect(location.reload).toHaveBeenCalledTimes(1)
+	})
+
+	test('does not reload when a worker claims a page that nothing controlled yet', async () => {
+		// Arrange
+		const { container } = stubServiceWorker({ controlled: false })
+		await register()
+
+		// Act -- a first visit, loaded from the network, so it already is the build that worker serves
+		container.dispatchEvent(new Event('controllerchange'))
+
+		// Assert
+		expect(location.reload).not.toHaveBeenCalled()
 	})
 
 	test('does nothing where there is no service worker at all', async () => {

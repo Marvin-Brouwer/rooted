@@ -19,20 +19,12 @@ export function registerWorker(options?: RegisterWorkerOptions): Promise<Service
 // @public
 export type RegisterWorkerOptions = {
     workerUrl?: string | URL;
-    updates?: UpdateStrategy;
     checkInterval?: number | false;
     signal?: AbortSignal;
 };
 
 // @public
 export type UpdateReadyHandler = () => void;
-
-// @public
-export type UpdateStrategy =
-/** A version that was already waiting when the page opened is taken on the spot. */
-'automatic' |
-/** The waiting version keeps waiting until something calls {@link applyUpdate}. */
-'explicit';
 
 // (No @packageDocumentation comment for this package)
 

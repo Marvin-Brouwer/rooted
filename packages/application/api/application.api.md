@@ -10,7 +10,6 @@ import { Environment } from '@rooted/util';
 import { environment } from '@rooted/util';
 import { ManifestOptions } from 'vite-plugin-pwa';
 import { SeoOptions } from '@rooted/seo';
-import { UpdateStrategy } from '@rooted/pwa';
 import { UserConfig } from 'vite';
 import { UserConfigFnObject } from 'vite';
 import { VitePWAOptions } from 'vite-plugin-pwa';
@@ -44,7 +43,7 @@ export type RootedApplicationManifest = {
     icon?: string;
     seo?: SeoOptions;
     runtimeCaching?: RuntimeCaching[];
-    updates?: UpdateStrategy;
+    workerScripts?: string[];
 };
 
 // @public
