@@ -2,14 +2,12 @@ import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
-import type { UpdateStrategy } from '@rooted/pwa'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 export const pwaRegisterPluginName = 'vite-plugin:rooted-pwa-register'
 
 export type PwaRegisterOptions = {
 	skip: boolean
-	updates: UpdateStrategy
 	/** The built `@rooted/pwa` entry. Defaults to the one this package depends on. */
 	clientModule?: string
 }
@@ -23,7 +21,7 @@ function defaultClientModule() {
  * Builds the registration script from the built `@rooted/pwa` module plus one generated call.
  * Throws when the module isn't there or isn't the shape the emitted script needs.
  */
-export async function buildRegisterScript(clientModule: string, updates: UpdateStrategy): Promise<string> {
+export async function buildRegisterScript(clientModule: string): Promise<string> {
 	let source: string
 	try {
 		source = await readFile(clientModule, 'utf8')
@@ -47,20 +45,19 @@ export async function buildRegisterScript(clientModule: string, updates: UpdateS
 	// An inline sourcemap would triple the size of a script nobody debugs.
 	const withoutSourcemap = source.replace(/\n\/\/# sourceMappingURL=[^\n]*\n?$/, '\n')
 
-	return `${withoutSourcemap}registerWorker(${JSON.stringify({ updates })})\n`
+	return `${withoutSourcemap}registerWorker()\n`
 }
 
 /**
  * Emits the service worker registration script and puts it in `index.html`.
  *
  * rooted injects its own rather than vite-plugin-pwa's `registerSW.js`, which registers the worker and nothing else.
- * This one also keeps checking for a new version while the app runs,
- * and under `'automatic'` takes a version that was already waiting when the page opened.
+ * This one also keeps checking for a new version while the app runs.
  *
  * Build only.
  * vite-plugin-pwa doesn't generate a worker in dev, so there'd be nothing to register.
  */
-export function pwaRegisterPlugin({ skip, updates, clientModule }: PwaRegisterOptions): Plugin {
+export function pwaRegisterPlugin({ skip, clientModule }: PwaRegisterOptions): Plugin {
 	let base = '/'
 	let fileName: string | undefined
 
@@ -76,7 +73,7 @@ export function pwaRegisterPlugin({ skip, updates, clientModule }: PwaRegisterOp
 		async buildStart() {
 			if (skip) return
 
-			const script = await buildRegisterScript(clientModule ?? defaultClientModule(), updates)
+			const script = await buildRegisterScript(clientModule ?? defaultClientModule())
 			// Hashed by hand rather than through `assetFileNames`,
 			// so `transformIndexHtml` knows the name without having to reach for the emit reference.
 			const hash = createHash('sha256').update(script).digest('hex').slice(0, 8)

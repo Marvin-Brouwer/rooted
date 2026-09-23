@@ -133,18 +133,35 @@ describe('applyUpdate()', () => {
 		expect(reload).not.toHaveBeenCalled()
 	})
 
-	test('reloads anyway when the new worker never takes control, rather than hanging', async () => {
+	test('does not reload until the new version is in control, so it cannot land back on the old one', async () => {
 		// Arrange
 		vi.useFakeTimers()
 		stubServiceWorker({ registration: createRegistration(createWorker('installed')) })
 
 		// Act
-		const applied = applyUpdate()
-		await vi.advanceTimersByTimeAsync(5000)
+		void applyUpdate()
+		await vi.advanceTimersByTimeAsync(60_000)
 
 		// Assert
-		expect(await applied).toBe(true)
-		expect(reload).toHaveBeenCalledTimes(1)
+		expect(reload).not.toHaveBeenCalled()
 		vi.useRealTimers()
+	})
+
+	test('waits for the page to finish loading before it hands over', async () => {
+		// Arrange -- #364: a handover sent during the load can leave the new version stuck
+		const readyState = vi.spyOn(document, 'readyState', 'get').mockReturnValue('interactive')
+		const waiting = createWorker('installed')
+		stubServiceWorker({ registration: createRegistration(waiting) })
+		void applyUpdate()
+		await settle()
+		expect(waiting.postMessage).not.toHaveBeenCalled()
+
+		// Act
+		readyState.mockReturnValue('complete')
+		window.dispatchEvent(new Event('load'))
+		await settle()
+
+		// Assert
+		expect(waiting.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' })
 	})
 })

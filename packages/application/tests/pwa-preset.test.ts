@@ -12,6 +12,7 @@ function options(manifest: Partial<RootedApplicationManifest> = {}) {
 		skipPwaGenerator: false,
 		minify: false,
 		runtimeCaching: undefined,
+		workerScripts: manifest.workerScripts,
 	})
 }
 
@@ -45,10 +46,27 @@ describe('pwaPresetOptions()', () => {
 			skipPwaGenerator: false,
 			minify: false,
 			runtimeCaching: [apiCache],
+			workerScripts: undefined,
 		})
 
 		// Assert
 		expect(preset.workbox?.runtimeCaching).toHaveLength(2)
 		expect(preset.workbox?.runtimeCaching?.at(-1)).toBe(apiCache)
+	})
+
+	test('loads your own worker scripts through workbox, which puts them ahead of its own listeners', () => {
+		// Act
+		const preset = options({ workerScripts: ['update-gate.js'] })
+
+		// Assert
+		expect(preset.workbox?.importScripts).toEqual(['update-gate.js'])
+	})
+
+	test('adds no worker scripts when the app has none', () => {
+		// Act
+		const preset = options()
+
+		// Assert
+		expect(preset.workbox).not.toHaveProperty('importScripts')
 	})
 })

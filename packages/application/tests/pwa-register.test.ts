@@ -7,7 +7,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { buildRegisterScript, pwaRegisterPlugin } from '../plugins/pwa-register.mts'
 
-import type { UpdateStrategy } from '@rooted/pwa'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 /** Stands in for the built `@rooted/pwa` entry, which is one self-contained module. */
@@ -33,13 +32,12 @@ type Hooks = Plugin & {
 }
 
 /** Drives the plugin's hooks the way Vite would, without booting Vite. */
-function build(options: { skip?: boolean, updates?: UpdateStrategy, base?: string, clientModule?: string } = {}) {
-	const { skip = false, updates = 'automatic', base = '/' } = options
+function build(options: { skip?: boolean, base?: string, clientModule?: string } = {}) {
+	const { skip = false, base = '/' } = options
 	const emitFile = vi.fn()
 
 	const plugin = pwaRegisterPlugin({
 		skip,
-		updates,
 		clientModule: options.clientModule ?? clientModule,
 	}) as Hooks
 	plugin.configResolved.call(plugin, { base } as ResolvedConfig)
@@ -54,16 +52,16 @@ function build(options: { skip?: boolean, updates?: UpdateStrategy, base?: strin
 describe('buildRegisterScript()', () => {
 	test('appends the call that starts the registration', async () => {
 		// Act
-		const script = await buildRegisterScript(clientModule, 'explicit')
+		const script = await buildRegisterScript(clientModule)
 
 		// Assert
 		expect(script).toContain('function registerWorker() {}')
-		expect(script.trimEnd().endsWith('registerWorker({"updates":"explicit"})')).toBe(true)
+		expect(script.trimEnd().endsWith('registerWorker()')).toBe(true)
 	})
 
 	test('drops the inline sourcemap, which nobody debugs and which triples the size', async () => {
 		// Act
-		const script = await buildRegisterScript(clientModule, 'automatic')
+		const script = await buildRegisterScript(clientModule)
 
 		// Assert
 		expect(script).not.toContain('sourceMappingURL')
@@ -74,7 +72,7 @@ describe('buildRegisterScript()', () => {
 		const missing = path.join(root, 'not-built.mjs')
 
 		// Act
-		const failure = buildRegisterScript(missing, 'automatic')
+		const failure = buildRegisterScript(missing)
 
 		// Assert
 		await expect(failure).rejects.toThrow(missing)
@@ -85,7 +83,7 @@ describe('buildRegisterScript()', () => {
 		await writeFile(clientModule, 'import { handOver } from "./registration.mjs"\n', 'utf8')
 
 		// Act
-		const failure = buildRegisterScript(clientModule, 'automatic')
+		const failure = buildRegisterScript(clientModule)
 
 		// Assert
 		await expect(failure).rejects.toThrow('standalone')
@@ -96,7 +94,7 @@ describe('buildRegisterScript()', () => {
 		await writeFile(clientModule, 'export const somethingElse = 1\n', 'utf8')
 
 		// Act
-		const failure = buildRegisterScript(clientModule, 'automatic')
+		const failure = buildRegisterScript(clientModule)
 
 		// Assert
 		await expect(failure).rejects.toThrow('registerWorker')
@@ -133,18 +131,6 @@ describe('pwaRegisterPlugin()', () => {
 
 		// Assert
 		expect(tag.attrs.src).toMatch(/^\/recipe-book\/worker-register\./)
-	})
-
-	test('carries the update strategy into the emitted script', async () => {
-		// Arrange
-		const { emitFile, start } = build({ updates: 'explicit' })
-
-		// Act
-		await start()
-
-		// Assert
-		const [emitted] = emitFile.mock.calls[0] as [{ source: string }]
-		expect(emitted.source).toContain('registerWorker({"updates":"explicit"})')
 	})
 
 	test('emits nothing when the pwa generator is skipped, because there is no worker to register', async () => {

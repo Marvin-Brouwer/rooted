@@ -34,6 +34,6 @@ export const UpdateBanner = component({
 })
 ```
 
-rooted never swaps the bundle underneath a page that is already running: the router resolves route chunks with `await import()` against the precache the page started on, so a mid-session swap breaks navigation. An update lands on the next page load, or when someone asks for it.
+rooted never swaps the bundle underneath a page that is already running: the router resolves route chunks with `await import()` against the precache the page started on, so a mid-session swap breaks navigation. An update lands once the app is closed, or when someone asks for it. Reloading a tab isn't closing it.
 
 More in the [PWA guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/pwa.md).
