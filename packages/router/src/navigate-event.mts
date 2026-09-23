@@ -17,9 +17,21 @@ export class NavigateEvent extends CustomEvent<never> {
 }
 
 /**
- * Fired by the router when a route's `resolve` function throws.
+ * Passed to the router's `on.error` handler when a route's `resolve` throws. The router renders `notFound` either way.
  *
- * Set `event.errorHandled = true` inside your handler to prevent the error from being re-thrown after the handler returns.
+ * `detail` is the error. Set `event.errorHandled = true` inside your handler to keep the router from passing it on to `reportError` after the handler returns.
+ *
+ * @example
+ * ```ts
+ * create(Router, {
+ *   on: {
+ *     error(event) {
+ *       telemetry.track('route-failed', { href: event.href, message: event.detail.message })
+ *       event.errorHandled = true
+ *     },
+ *   },
+ * })
+ * ```
  */
 export class NavigationErrorEvent extends CustomEvent<Error> {
 	public errorHandled = false

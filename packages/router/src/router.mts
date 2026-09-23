@@ -1,13 +1,13 @@
 import { Component, component } from '@rooted/components'
-import { createComponent } from '@rooted/components/elements'
 import { environment } from '@rooted/util'
 
 import { devHelper } from './dev-helper.mts'
 import * as href from './href.mts'
 import { NavigateEvent } from './navigate-event.mts'
-import { RouteMatch } from './route.match.mts'
 import { isRoute, routeMetadata } from './route.metadata.mts'
 import { AnyRoute, route } from './route.mts'
+import { reportRouteError } from './router.error.mts'
+import { matchRoute, SuccessRouteMatch } from './router.match.mts'
 import { renderWithViewTransition } from './router.view-transition.mts'
 import { currentEntryState, getSavedScrollOffset, registerScrollSaving, restoreScrollOffset, ScrollOffset, scrollToOffset } from './scroll.mts'
 import { applyRouteSeoMeta, type RouterSeoOptions } from './seo-meta.mts'
@@ -23,7 +23,8 @@ const TOP: ScrollOffset = [0, 0]
  * Configuration object passed to {@link router}.
  *
  * - `home`: component rendered at `/`.
- * - `notFound`: component rendered when no route matches the current URL.
+ * - `notFound`: component rendered when no route matches the current URL,
+ *   or when the matching route's `resolve` throws.
  * - All other keys: {@link Route} values registered with the router. The key
  *   names are used only for duplicate-route detection in development; they have
  *   no effect at runtime.
@@ -109,6 +110,11 @@ export type RouterOptions = {
  * **Suppression:** if a route's `resolve` returns `undefined`,
  * the router treats the URL as intentionally unmatched by that pattern and does _not_ fall back to any shorter-matching route.
  * The `notFound` component is rendered instead.
+ *
+ * **Errors:** if a route's `resolve` throws (a lazy `import()` that can't be fetched, say), `notFound` is rendered too,
+ * and the error goes to `on.error` as a {@link NavigationErrorEvent}. Unless the handler sets `event.errorHandled = true`,
+ * it's then passed to `reportError`, so it reaches `window`'s `error` event like any uncaught exception.
+ * A failing route competes on specificity like any other, so a broader fallback route doesn't hide it.
  *
  * Route results are cached by pathname so `resolve` is only called once per unique path visited.
  *
@@ -205,6 +211,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 					}
 					else if (matchRouteResult.kind === 'error') {
 						applyTransition(() => renderRoute())
+						reportRouteError(handlers?.error, matchRouteResult.error, matchRouteResult.route, currentHref)
 					}
 					else {
 						const seo = await resolveSeo(matchRouteResult.route, matchRouteResult.match)
@@ -232,83 +239,11 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 	})
 }
 
-type SuccessRouteMatch = RouteMatch<any> & { success: true }
-
 // Evaluates a lazy seo resolver with the matched tokens, once per navigation
 async function resolveSeo(route: AnyRoute, match: SuccessRouteMatch) {
 	const seo = route[routeMetadata].seo
 	if (typeof seo !== 'function') return seo
 	return await seo({ tokens: match.tokens })
-}
-type FilterRoutesResult
-	= { kind: 'match', route: AnyRoute, match: SuccessRouteMatch, element: Element }
-	| { kind: 'error', error: Error, route: AnyRoute }
-	| undefined
-
-type FilterRouteResult
-	= { kind: 'no-match' }
-	| { kind: 'suppressed', patternLength: number }
-	| { kind: 'matched', match: SuccessRouteMatch, element: Element }
-	| { kind: 'error', error: Error, route: AnyRoute }
-
-async function filterRoute(route: AnyRoute, target: href.Path): Promise<FilterRouteResult> {
-	const patternMatch = await route.match({ target })
-	if (!patternMatch.success) return { kind: 'no-match' }
-
-	try {
-		const element = await route.resolve({ create: createComponent, tokens: patternMatch.tokens })
-		if (!element) return { kind: 'suppressed', patternLength: patternMatch.length }
-
-		return { kind: 'matched', match: patternMatch, element }
-	}
-	catch (rawError) {
-		const error = rawError instanceof Error ? rawError : new Error(String(rawError))
-		return { kind: 'error', error, route }
-	}
-}
-
-async function matchRoute(target: href.Path, routes: AnyRoute[]): Promise<FilterRoutesResult> {
-	// Find the best filtered route in parallel
-	const results = await Promise.all(routes.map(async route => ({
-		route,
-		result: await filterRoute(route, target),
-	})))
-
-	let best: { kind: 'match', route: AnyRoute, match: SuccessRouteMatch, element: Element } | undefined
-	let errorResult: { kind: 'error', error: Error, route: AnyRoute } | undefined
-	let highestSuppressedLength = -1
-
-	for (const { route, result } of results) {
-		if (result.kind === 'error') {
-			errorResult = result
-			continue
-		}
-		if (result.kind === 'suppressed') {
-			highestSuppressedLength = Math.max(highestSuppressedLength, result.patternLength)
-			continue
-		}
-		if (result.kind !== 'matched') continue
-
-		if (!best || result.match.length > best.match.length) {
-			best = { kind: 'match', route, match: result.match, element: result.element }
-			continue
-		}
-		// Equal length: non-wildcard beats wildcard (more specific wins)
-		if (result.match.length === best.match.length && !route[routeMetadata].hasWildcard && best.route[routeMetadata].hasWildcard) {
-			best = { kind: 'match', route, match: result.match, element: result.element }
-		}
-	}
-
-	// Suppression: a longer structural match was filtered, treat as no match.
-	if (best && highestSuppressedLength > best.match.length) return undefined
-
-	// If we have a valid best match, return it
-	if (best) return best
-
-	// If no match and there was an error, propagate the error
-	if (errorResult) return errorResult
-
-	return undefined
 }
 
 function normalizeHref(target: () => href.Path) {
