@@ -220,9 +220,9 @@ import type { Plugin } from 'vite'
 export function myHostAdapter(): Plugin[] {
   return staticAdapter({
     name: 'rooted:my-host',
-    // Set this to 'routed' if the config you write below makes the host
-    // match :param routes itself, or 'catch-all' if it can only match
-    // everything under a prefix. It defaults to 'not-found'.
+    // Set this to 'routed' if the config you write below makes the host match :param routes itself,
+    // or 'catch-all' if it can only match everything under a prefix.
+    // It defaults to 'not-found'.
     dynamicRoutes: 'not-found',
     async setup({ outputDirectory, resolvedRoutes }) {
       // resolvedRoutes.staticPaths  -- pre-rendered paths
