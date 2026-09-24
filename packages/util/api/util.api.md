@@ -57,6 +57,10 @@ export type MatchKey = string | number;
 export function optional<T>(condition: boolean | null | undefined, value: T): T | undefined;
 
 // @public
+function reportError_2(error: unknown): void;
+export { reportError_2 as reportError }
+
+// @public
 export function seededId(name: string): string;
 
 // @public

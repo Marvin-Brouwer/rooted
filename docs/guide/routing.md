@@ -178,8 +178,34 @@ create(Router, {
 | `scrollBehavior.saveScrollBeforeNavigate` | Save the scroll position onto the entry a navigation leaves, so back restores it. Default `true`. |
 | `scrollBehavior.target` | A custom scroll container. Defaults to `window`. |
 | `on.navigate` | Fires twice per navigation, with `event.navigationType === 'start'` and `'end'`. |
-| `on.error` | Fires when a route's `resolve` throws. |
+| `on.error` | Fires when a route's `resolve` throws. See [When a route fails](#when-a-route-fails). |
 | `seo` | Runtime SEO meta options. See [SEO](./seo.md). |
+
+### When a route fails
+
+If a route's `resolve` throws, the router renders `notFound`, the same as a URL nothing matches. In practice this is usually a lazy `import()` whose chunk couldn't be fetched, a stale chunk after a deploy for example.
+
+The error isn't swallowed. It goes to `on.error` as a `NavigationErrorEvent`, with the error in `event.detail`, the failing route and the `href`. Unless the handler sets `event.errorHandled = true`, the router then passes it to `reportError`, so it shows up on `window`'s `error` event and in `on('global', 'unhandled-error')` like any uncaught exception.
+
+```ts
+create(Router, {
+  on: {
+    error(event) {
+      // A reload picks up the new chunks after a deploy. Only once per page, or a chunk that's really gone reloads forever.
+      if (!event.detail.message.includes('dynamically imported module')) return
+      if (sessionStorage.getItem('reloaded-for') === event.href) return
+
+      sessionStorage.setItem('reloaded-for', event.href)
+      event.errorHandled = true
+      location.reload()
+    },
+  },
+})
+```
+
+The message check is only an illustration. The exact text differs per browser, so match whatever your bundler and target browsers produce.
+
+A failing route competes on specificity like any other route. A broader route, a wildcard fallback for example, doesn't hide a more specific route that threw.
 
 ## Navigation
 
