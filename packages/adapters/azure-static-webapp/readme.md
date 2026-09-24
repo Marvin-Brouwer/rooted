@@ -2,7 +2,8 @@
 
 Deployment adapter for Azure Static Web Apps. Part of the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework.
 
-Writes `staticwebapp.config.json` to the output directory with explicit route rules for pre-rendered paths and parameterized routes.
+Writes `staticwebapp.config.json` to the output directory, with a rule per parameterized route so it answers `200` instead of `404`.
+Azure only allows a wildcard at the end of a route, so `/recipe/:id/` becomes `/recipe/*` and `/recipe/42/extra/` answers `200` as well.
 
 > [!IMPORTANT]
 > This package is still in alpha.

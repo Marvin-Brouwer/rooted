@@ -1,8 +1,11 @@
-import { writeFile } from 'node:fs/promises'
+import { readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import { staticAdapter } from '@rooted/adapter'
 
+import { buildAzureRoutes } from './adapter/routes.mts'
+
+import type { AzureRoute } from './adapter/routes.mts'
 import type { AdapterRoutes } from '@rooted/adapter'
 import type { Plugin } from 'vite'
 
@@ -20,16 +23,16 @@ export type AzureStaticWebappAdapterOptions = {
 /**
  * Adapter for Azure Static Web Apps.
  *
- * Writes `staticwebapp.config.json` to the output directory with routing rules built from the route manifest and/or manual `routes` option:
- * - Pre-rendered routes get explicit `200` entries so Azure serves their HTML directly.
- * - Everything else returns a `404` response that serves `404.html`, matching the
- *   standard SPA behaviour: the shell loads and the client-side router takes over.
+ * Writes `staticwebapp.config.json` to the output directory. Pre-rendered pages are plain files, which Azure serves with a `200` on its own.
+ * Each `:param` route gets a rewrite to `404.html` that answers `200`, so `/recipe/42/` serves the shell and the browser-side router renders it.
+ * Anything else falls through to the `404` override, which serves `404.html` with a real `404`.
  *
- * "Everything else" includes your `:param` routes, so `/recipe/42/` renders but answers `404`.
- * That's why this adapter leaves `dynamicRoutes` at its default.
- * Azure only supports a wildcard at the end of a route and has no per-segment match, so a `/recipe/*` rule would also claim `/recipe/42/extra/`,
- * trading a wrong `404` on a real page for a wrong `200` on a path that isn't one.
- * See [issue #311](https://github.com/Marvin-Brouwer/rooted/issues/311).
+ * Azure only supports a wildcard at the end of a route, so `/recipe/:id/` is written as `/recipe/*`. That has a cost:
+ * - `/recipe/42/extra/` answers `200` on Azure, where `vite dev` and `vite preview` answer `404`. The page still renders your not-found view.
+ * - A route that starts with a `:param`, like `/:slug/`, becomes `/*`, and every unknown path answers `200`.
+ *
+ * Real files under a wildcard's prefix get their own rule so the wildcard doesn't hide them.
+ * With a `/*` that's every file in the build, and Azure caps the config at 20 KB, so a large enough build fails here rather than at deploy time.
  *
  * @example `vite.config.ts`
  * ```ts
@@ -49,36 +52,47 @@ export function azureStaticWebappAdapter(options?: AzureStaticWebappAdapterOptio
 	return staticAdapter({
 		name: 'rooted:azure-static-webapp',
 		routes: options?.routes,
+		// The wildcard rewrites below are what Azure matches :param routes with.
+		dynamicRoutes: 'routed',
 		async setup({ outputDirectory, resolvedRoutes }) {
-			const staticRoutes: AzureRoute[] = resolvedRoutes.staticPaths
-				.filter(p => p.split('/').filter(Boolean).length > 0)
-				.map(p => ({
-					route: p,
-					serve: `/${p.split('/').filter(Boolean).join('/')}/index.html`,
-					statusCode: 200 as const,
-				}))
+			const outputFiles = await listFiles(outputDirectory)
 
 			const config: AzureStaticWebAppConfig = {
-				routes: staticRoutes,
+				routes: buildAzureRoutes(resolvedRoutes, outputFiles, '404.html'),
 				trailingSlash: 'auto',
 				responseOverrides: {
 					404: { rewrite: '/404.html', statusCode: 404 },
 				},
 			}
 
-			await writeFile(
-				path.join(outputDirectory, 'staticwebapp.config.json'),
-				JSON.stringify(config, undefined, 2),
-				'utf8',
-			)
+			const contents = JSON.stringify(config, undefined, 2)
+			const size = Buffer.byteLength(contents, 'utf8')
+			if (size > maxConfigSize) {
+				throw new Error(
+					`staticwebapp.config.json is ${size} bytes, over Azure's limit of ${maxConfigSize}. `
+					+ 'Every file under a :param route\'s prefix needs its own rule, '
+					+ 'and a route that starts with a :param (like /:slug/) puts every file in the build under it.',
+				)
+			}
+
+			await writeFile(path.join(outputDirectory, 'staticwebapp.config.json'), contents, 'utf8')
 		},
 	})
 }
 
-type AzureRoute = { route: string; serve: string; statusCode: 200 }
+// Azure's documented maximum for staticwebapp.config.json.
+const maxConfigSize = 20 * 1024
 
 type AzureStaticWebAppConfig = {
 	routes: AzureRoute[]
 	trailingSlash: 'always' | 'never' | 'auto'
 	responseOverrides: { 404: { rewrite: string; statusCode: 404 } }
+}
+
+/** Every file in the output directory, relative to it and with `/` separators. */
+async function listFiles(outputDirectory: string): Promise<string[]> {
+	const entries = await readdir(outputDirectory, { recursive: true, withFileTypes: true })
+	return entries
+		.filter(entry => entry.isFile())
+		.map(entry => path.relative(outputDirectory, path.join(entry.parentPath, entry.name)).split(path.sep).join('/'))
 }
