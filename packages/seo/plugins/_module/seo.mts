@@ -28,5 +28,7 @@ export type {
 	RouteSeoProvider,
 	SeoApi,
 	SeoPrepareTask,
+	SitemapAlternate,
+	SitemapAlternateProvider,
 	SitemapEntry,
 } from '../seo-api.mts'

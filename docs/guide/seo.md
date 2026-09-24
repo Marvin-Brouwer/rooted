@@ -210,6 +210,7 @@ This is most useful from another Vite plugin's `configResolved` or `buildStart` 
 | `addRouteSeoProvider` | Supplies a page's metadata for `injectRouteHtml`. |
 | `getPages` / `getPageSeo` | Read back what the providers supplied. |
 | `addRouteHeadLinks` | Adds `<link>` tags to a page's head, used by hreflang. |
+| `addSitemapAlternates` | Adds `xhtml:link` hreflang alternates to a page's `sitemap.xml` entry. |
 | `addRouteHtmlTransform` | Free-form HTML transform, after meta tags and head links. |
 | `addPrepareTask` | Async work that must finish before any metadata is read. |
 

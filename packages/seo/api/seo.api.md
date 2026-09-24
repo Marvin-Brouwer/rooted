@@ -93,6 +93,7 @@ export type SeoApi = {
     injectRouteHtml(html: string, staticPath: string): string;
     injectRootHtml(html: string): string;
     addRouteHeadLinks(provider: RouteHeadLinkProvider): void;
+    addSitemapAlternates(provider: SitemapAlternateProvider): void;
     addRouteSeoProvider(provider: RouteSeoProvider): void;
     addPageProvider(provider: PageProvider): void;
     getPages(): Promise<PageEntry[]>;
@@ -124,6 +125,15 @@ export const seoPluginName = "rooted:seo";
 export type SeoPrepareTask = () => Promise<void>;
 
 // @public
+export type SitemapAlternate = {
+    hreflang: string;
+    path: string;
+};
+
+// @public
+export type SitemapAlternateProvider = (staticPath: string) => SitemapAlternate[] | undefined;
+
+// @public
 export type SitemapEntry = {
     loc: string;
     lastmod?: string;
@@ -133,6 +143,10 @@ export type SitemapEntry = {
         loc: string;
         title?: string;
         caption?: string;
+    }>;
+    alternates?: Array<{
+        hreflang: string;
+        href: string;
     }>;
 };
 

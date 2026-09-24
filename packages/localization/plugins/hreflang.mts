@@ -6,7 +6,7 @@ import { localeTokenBrand } from '../src/locale-token.mts'
 import type { LocaleTokenInfo } from '../src/locale-token.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Constant, Parameter } from '@rooted/router/routes'
-import type { RouteHeadLink, SeoApi } from '@rooted/seo'
+import type { RouteHeadLink, SeoApi, SitemapAlternate } from '@rooted/seo'
 import type { Plugin } from 'vite'
 
 
@@ -26,6 +26,7 @@ type LocalizedVariant = {
 	locale: string
 	defaultLocale: string
 	locales: readonly string[]
+	alternates: SitemapAlternate[]
 	links: RouteHeadLink[]
 }
 
@@ -35,6 +36,7 @@ type LocalizedVariant = {
  * For every route composed with `localization.parameter`, each prerendered locale variant gets:
  * - one `<link rel="alternate" hreflang>` per configured locale plus an
  *   `x-default` pointing at the default locale,
+ * - the same set as `xhtml:link` alternates on its `sitemap.xml` entry,
  * - a `lang` attribute on the `<html>` tag,
  * - `og:locale` and `og:locale:alternate` meta tags.
  *
@@ -80,6 +82,7 @@ export function localizationSeo(): Plugin {
 			})
 
 			seoApi?.addRouteHeadLinks(staticPath => variants().get(staticPath)?.links)
+			seoApi?.addSitemapAlternates(staticPath => variants().get(staticPath)?.alternates)
 
 			// Per-variant lang attribute and og:locale meta tags
 			seoApi?.addRouteHtmlTransform((html, staticPath) => {
@@ -112,22 +115,22 @@ function buildVariantIndex(manifestApi: RouteManifestApi | undefined): Map<strin
 		const defaultIndex = Math.max(locales.indexOf(defaultLocale), 0)
 
 		for (let variant = 0; variant < variantCount; variant++) {
-			const links: RouteHeadLink[] = locales.map((locale, localeIndex) => ({
-				rel: 'alternate',
+			const alternates: SitemapAlternate[] = locales.map((locale, localeIndex) => ({
 				hreflang: locale,
 				path: (pathsByLocale[localeIndex] as string[])[variant],
 			}))
-			links.push({
-				rel: 'alternate',
+			alternates.push({
 				hreflang: 'x-default',
 				path: (pathsByLocale[defaultIndex] as string[])[variant],
 			})
+			const links: RouteHeadLink[] = alternates.map(alternate => ({ rel: 'alternate', ...alternate }))
 
 			for (let localeIndex = 0; localeIndex < locales.length; localeIndex++) {
 				index.set((pathsByLocale[localeIndex] as string[])[variant], {
 					locale: locales[localeIndex],
 					defaultLocale,
 					locales,
+					alternates,
 					links,
 				})
 			}
