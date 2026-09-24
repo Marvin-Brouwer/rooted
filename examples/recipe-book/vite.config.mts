@@ -64,7 +64,8 @@ export default rootedManifest({
 			routeManifestPath: './src/_routes.g.mts',
 		}),
 		routeSeoPlugin(),
-		azureStaticWebappAdapter(),
+		// Recipe pages should be indexed, a 200 on /recipe/42/extra/ is the price.
+		azureStaticWebappAdapter({ dynamicRoutes: 'catch-all' }),
 	],
 	codeSplitting: {
 		groups: codeSplittingGroups,

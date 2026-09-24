@@ -1,4 +1,5 @@
 import { resolveAdapterRoutes } from '../utility/adapter-routes.mts'
+import { createCatchAllMatcher } from '../utility/catch-all.mts'
 import { createRouteMatcher } from '../utility/route-matcher.mts'
 
 import type { AdapterRoutes, DynamicRouteSupport } from '../adapter.mts'
@@ -31,13 +32,17 @@ export function createMatchers(
 	dynamicRoutes: DynamicRouteSupport,
 ): RouteMatchers {
 	const isStatic = createRouteMatcher({ staticPaths: routes.staticPaths, dynamicPatterns: [] })
-	const isRoute = createRouteMatcher(routes)
+	const isRoute = dynamicRoutes === 'catch-all' ? createCatchAllMatcher(routes) : createRouteMatcher(routes)
+	// Only the exact routes redirect to their canonical slash, catch-all or not:
+	// nothing says the host redirects /recipe/42/extra to /recipe/42/extra/.
+	const isExactRoute = createRouteMatcher(routes)
+	const hostMatchesDynamicRoutes = dynamicRoutes !== 'not-found'
 
 	return {
 		isStatic,
 		isRoute,
-		dynamicStatus: dynamicRoutes === 'routed' ? 200 : 404,
-		shouldRedirect: dynamicRoutes === 'routed' ? isRoute : isStatic,
+		dynamicStatus: hostMatchesDynamicRoutes ? 200 : 404,
+		shouldRedirect: hostMatchesDynamicRoutes ? isExactRoute : isStatic,
 	}
 }
 

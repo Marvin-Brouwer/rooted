@@ -6,6 +6,7 @@ import { requestTarget, wantsHtml } from '../utility/request-url.mts'
 import { createMatchers } from './matchers.mts'
 import { redirectToCanonical } from './response.mts'
 
+import type { DynamicRouteSupport } from '../adapter.mts'
 import type { Connect, PreviewServer, ResolvedConfig } from 'vite'
 
 type ServerResponse = Parameters<Connect.NextHandleFunction>[1]
@@ -18,6 +19,8 @@ type RouteTable = {
 	fallback: string
 	/** What the host answers for a matched dynamic route. Older builds have no field. */
 	dynamicStatus?: 200 | 404
+	/** Only written when the host matches dynamic routes by prefix. See {@link DynamicRouteSupport}. */
+	dynamicMatch?: 'catch-all'
 }
 
 /**
@@ -45,7 +48,7 @@ export function previewNotFound(name: string, config: ResolvedConfig) {
 
 		const matchers = createMatchers(
 			{ staticPaths: table.staticRoutes, dynamicPatterns: table.dynamicRoutes },
-			table.dynamicStatus === 404 ? 'fallback' : 'routed',
+			dynamicRouteSupport(table),
 		)
 
 		server.middlewares.use((request, response, next) => {
@@ -70,6 +73,11 @@ export function previewNotFound(name: string, config: ResolvedConfig) {
 			send(response, 404, table.html)
 		})
 	}
+}
+
+function dynamicRouteSupport(table: RouteTable): DynamicRouteSupport {
+	if (table.dynamicMatch === 'catch-all') return 'catch-all'
+	return table.dynamicStatus === 404 ? 'not-found' : 'routed'
 }
 
 function readRouteTable(outputDirectory: string): (RouteTable & { html: string }) | undefined {

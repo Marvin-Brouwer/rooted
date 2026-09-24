@@ -2,7 +2,11 @@
 
 Deployment adapter for Azure Static Web Apps. Part of the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework.
 
-Writes `staticwebapp.config.json` to the output directory with explicit route rules for pre-rendered paths and parameterized routes.
+Writes `staticwebapp.config.json` to the output directory.
+
+Azure can't match a `:param` route exactly, so you have to pick how it's wrong with the required `dynamicRoutes` option.
+`'not-found'` answers `404` on real dynamic pages. `'catch-all'` answers `200` on them, and also on paths below them that aren't routes.
+The [adapters guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/adapters.md#azure-static-web-apps-pick-one) has the full trade-off.
 
 > [!IMPORTANT]
 > This package is still in alpha.
@@ -20,7 +24,7 @@ import { azureStaticWebappAdapter } from '@rooted-adapters/azure-static-webapp'
 export default rootedManifest({
   plugins: [
     generateRouteManifest({ glob: './src/**/_routes.mts', routeManifestPath: './src/_routes.g.mts' }),
-    azureStaticWebappAdapter(),
+    azureStaticWebappAdapter({ dynamicRoutes: 'catch-all' }),
   ],
 })
 ```

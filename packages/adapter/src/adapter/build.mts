@@ -73,7 +73,8 @@ export function buildPlugin<TApplication>(definition: InternalDefinition<TApplic
 					staticRoutes: resolvedRoutes.staticPaths,
 					dynamicRoutes: resolvedRoutes.dynamicPatterns,
 					fallback: fallbackFileName,
-					dynamicStatus: definition.dynamicRoutes === 'routed' ? 200 : 404,
+					dynamicStatus: definition.dynamicRoutes === 'not-found' ? 404 : 200,
+					...(definition.dynamicRoutes === 'catch-all' && { dynamicMatch: 'catch-all' }),
 				}, undefined, 2),
 				'utf8',
 			)
