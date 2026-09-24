@@ -146,12 +146,37 @@ describe('routedNotFound() in preview', () => {
 			expect(outcome.location).toBe('/categories/')
 		})
 	})
+
+	describe("on a host that only matches by prefix (dynamicMatch 'catch-all')", () => {
+		test('serves the shell with a 200 for a path deeper than any route', async () => {
+			// Arrange -- the host wrote /recipe/* and can't tell these apart
+			await buildOutput({ staticRoutes: [], dynamicRoutes: ['/recipe/:id/'], dynamicStatus: 200, dynamicMatch: 'catch-all' })
+
+			// Act
+			const outcome = await request(await preview(), '/recipe/42/extra/')
+
+			// Assert
+			expect(outcome.status).toBe(200)
+			expect(outcome.body).toContain('the fallback shell')
+		})
+
+		test('still answers a path outside every prefix with a 404', async () => {
+			// Arrange
+			await buildOutput({ staticRoutes: [], dynamicRoutes: ['/recipe/:id/'], dynamicStatus: 200, dynamicMatch: 'catch-all' })
+
+			// Act
+			const outcome = await request(await preview(), '/nope/')
+
+			// Assert
+			expect(outcome.status).toBe(404)
+		})
+	})
 })
 
 // ---------------------------------------------------------------------------
 
 async function buildOutput(
-	routes: { staticRoutes: string[], dynamicRoutes: string[], dynamicStatus?: 200 | 404 },
+	routes: { staticRoutes: string[], dynamicRoutes: string[], dynamicStatus?: 200 | 404, dynamicMatch?: 'catch-all' },
 	fallback = '404.html',
 ) {
 	const outputDirectory = path.join(root, 'dist')

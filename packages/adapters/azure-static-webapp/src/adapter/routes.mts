@@ -1,4 +1,4 @@
-import { withTrailingSlash } from '@rooted/adapter'
+import { catchAllPrefixes, withTrailingSlash } from '@rooted/adapter'
 
 import type { ResolvedAdapterRoutes } from '@rooted/adapter'
 
@@ -39,7 +39,7 @@ export function buildAzureRoutes(
 	outputFiles: string[],
 	fallbackFileName: string,
 ): AzureRoute[] {
-	const prefixes = wildcardPrefixes(routes.dynamicPatterns)
+	const prefixes = catchAllPrefixes(routes.dynamicPatterns)
 
 	const files = [
 		...outputFiles.map(file => `/${file}`).filter(file => file !== `/${configFileName}`),
@@ -53,17 +53,4 @@ export function buildAzureRoutes(
 		.map(prefix => ({ route: `${prefix}*`, rewrite: `/${fallbackFileName}` }))
 
 	return [...passThrough, ...wildcards]
-}
-
-/** `/recipe/:id/ingredients/` becomes `/recipe/`. A `/` prefix covers everything, so it's the only one kept. */
-function wildcardPrefixes(dynamicPatterns: string[]): string[] {
-	const prefixes = [...new Set(dynamicPatterns.flatMap(wildcardPrefix))]
-	return prefixes.includes('/') ? ['/'] : prefixes
-}
-
-function wildcardPrefix(pattern: string): string[] {
-	const segments = pattern.split('/')
-	const firstParameter = segments.findIndex(segment => segment.startsWith(':'))
-	if (firstParameter === -1) return []
-	return [`${segments.slice(0, firstParameter).join('/')}/`]
 }

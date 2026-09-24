@@ -42,6 +42,8 @@ Each adapter handles two things: writing a catch-all fallback so the browser-sid
 | Fastify (any Node.js host) | `@rooted-adapters/fastify` |
 | Express (any Node.js host) | `@rooted-adapters/express` |
 
+On Google Cloud Run, run the `fastify` or `express` adapter's `server.mjs` in a container. It answers an exact 200 or 404 like on any other Node.js host, so there's no separate Cloud Run adapter.
+
 Add the adapter to your `vite.config.mts`:
 
 ```ts
@@ -129,14 +131,33 @@ Static hosts don't all behave the same, and dev mirrors whichever one you picked
 | Adapter | Static route | Dynamic `:param` route | Unknown path |
 |---|---|---|---|
 | `fastify`, `express` | 200 | 200 | 404 + shell |
-| `netlify-hosting`, `cloudflare-pages`, `gitlab-pages`, `firebase-hosting`, `vercel-static`, `azure-static-webapp` | 200 | 200 | 404 + shell |
+| `netlify-hosting`, `cloudflare-pages`, `gitlab-pages`, `firebase-hosting`, `vercel-static` | 200 | 200 | 404 + shell |
+| `azure-static-webapp` | 200 | your choice, see [below](#azure-static-web-apps-pick-one) | 404 + shell, or 200 + shell under a caught prefix |
 | `github-pages`, `git-pages`, `codeberg-pages`, `aws-s3`, `azure-blob`, `cloudflare-r2`, `gcp-cloud-storage`, `scaleway-object-storage`, `static-site` | 200 | **404** + shell | 404 + shell |
 
 The middle column is the one to watch. A host in the bottom row only serves files and has no rule for `/products/42/`: there's no directory there, so it falls through to `404.html`. The page still renders, because the browser-side router takes over, but the response is a 404 and dev says so rather than pretending otherwise. Same for the canonical redirect - `/categories` redirects because the host has a directory to redirect to, `/products/42` doesn't because it hasn't.
 
-`azure-static-webapp` is in the middle row with a catch: Azure only supports a wildcard at the end of a route, so `/products/:id/` is written as `/products/*`. That also claims `/products/42/extra/`, which gets a 200 and your not-found page, where dev says 404. A route that starts with a parameter, like `/:slug/`, becomes `/*` and every unknown path gets a 200.
-
 If the middle column matters for your site, pick a host from the middle row, or accept the 404 and move on. It's a status code, not a broken page.
+
+### Azure Static Web Apps: pick one
+
+Azure can't match a `:param` route exactly. A wildcard is only allowed at the end of a rule, and there's no per-segment match, so no rule means "`/products/` plus exactly one segment". Both ways of dealing with that are wrong somewhere, so `azureStaticWebappAdapter` makes you choose with a required `dynamicRoutes` option. There's no default.
+
+**`dynamicRoutes: 'not-found'`** writes no rule for dynamic routes.
+
+- `/products/42/` gets the shell with a 404. The page renders, but crawlers drop it. If your dynamic pages are the content you want found, that's most of your site gone from search.
+- Every path that isn't a route gets a 404. No soft 404s.
+
+**`dynamicRoutes: 'catch-all'`** cuts each route at its first parameter, so `/products/:id/` becomes `/products/*`.
+
+- `/products/42/` gets a 200.
+- So does `/products/42/extra/`, which isn't a route. Your not-found page renders with a 200. Nothing links there, so crawlers rarely see it, but it's a soft 404 when they do.
+- A route that starts with a parameter, like `/:slug/`, becomes `/*`, and every unknown path on the site gets a 200. The build warns you when that happens.
+- Azure checks rules before files, so every real file under a wildcard gets a rule of its own to stay reachable. With `/*` that's every file in the build, and Azure caps `staticwebapp.config.json` at 20 KB. The build fails if it goes over.
+
+`vite dev` and `vite preview` answer the same way as the option you pick, including the 200 on `/products/42/extra/`.
+
+If you want both right, you need something that runs the route matching itself, like the `fastify` or `express` adapter.
 
 Start the server:
 
@@ -200,8 +221,9 @@ export function myHostAdapter(): Plugin[] {
   return staticAdapter({
     name: 'rooted:my-host',
     // Set this to 'routed' if the config you write below makes the host
-    // match :param routes itself. It defaults to 'fallback'.
-    dynamicRoutes: 'fallback',
+    // match :param routes itself, or 'catch-all' if it can only match
+    // everything under a prefix. It defaults to 'not-found'.
+    dynamicRoutes: 'not-found',
     async setup({ outputDirectory, resolvedRoutes }) {
       // resolvedRoutes.staticPaths  -- pre-rendered paths
       // resolvedRoutes.dynamicPatterns  -- :param patterns

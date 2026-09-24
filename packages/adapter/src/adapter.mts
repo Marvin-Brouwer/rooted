@@ -23,12 +23,15 @@ export type ResolvedAdapterRoutes = {
 /**
  * What a host does with a `:param` route, and so what `vite dev` and `vite preview` should answer for one.
  *
- * `'routed'` means the adapter writes config the host matches them with, so a dynamic route answers 200.
- * `'fallback'` means the host only serves files: it has no rule for `/recipe/42/`, so it serves the fallback shell with a 404.
- * The page still renders, because the browser-side router takes over,
- * but the status is a 404 and dev says so rather than pretending otherwise.
+ * - `'routed'`: the adapter writes config the host matches them with, one segment per `:param`, so a dynamic route answers 200.
+ * - `'not-found'`: the host only serves files. It has no rule for `/recipe/42/`, so it serves the fallback shell with a 404.
+ *   The page still renders, because the browser-side router takes over,
+ *   but the status is a 404 and dev says so rather than pretending otherwise.
+ * - `'catch-all'`: the host can only put a wildcard at the end of a rule, so `/recipe/:id/` is written as `/recipe/*`.
+ *   Real dynamic routes answer 200, and so does anything deeper, like `/recipe/42/extra/`. Dev answers the same way.
+ *   See `createCatchAllMatcher`.
  */
-export type DynamicRouteSupport = 'routed' | 'fallback'
+export type DynamicRouteSupport = 'routed' | 'not-found' | 'catch-all'
 
 /**
  * Context passed to {@link StaticAdapterDefinition.setup} and {@link RoutedAdapterDefinition.setup}.
@@ -68,8 +71,9 @@ export type StaticAdapterDefinition = {
 	/**
 	 * What this host does with a `:param` route. See {@link DynamicRouteSupport}.
 	 *
-	 * Defaults to `'fallback'`, which is what a host does with no routing config written for it.
-	 * Set it to `'routed'` if your `setup` writes rules the host matches dynamic routes with.
+	 * Defaults to `'not-found'`, which is what a host does with no routing config written for it.
+	 * Set it to `'routed'` if your `setup` writes rules the host matches dynamic routes with,
+	 * or `'catch-all'` if those rules can only match everything under a prefix.
 	 */
 	dynamicRoutes?: DynamicRouteSupport
 	/**
@@ -128,7 +132,7 @@ export function staticAdapter(definition: StaticAdapterDefinition): Plugin[] {
 	return createAdapter({
 		...definition,
 		mode: 'static',
-		dynamicRoutes: definition.dynamicRoutes ?? 'fallback',
+		dynamicRoutes: definition.dynamicRoutes ?? 'not-found',
 	})
 }
 

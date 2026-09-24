@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { routedNotFound } from '../src/routed-not-found.mts'
 
+import type { DynamicRouteSupport } from '../src/adapter.mts'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Connect, Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
@@ -234,11 +235,11 @@ describe('routedNotFound()', () => {
 		expect(outcome).toEqual({ handled: 'next' })
 	})
 
-	describe("on a host that only serves files (dynamicRoutes: 'fallback')", () => {
+	describe("on a host that only serves files (dynamicRoutes: 'not-found')", () => {
 		test('answers a dynamic route with the shell and a 404', async () => {
 			// Arrange -- the host has no rule for /recipe/42/, so it serves
 			// 404.html: the page renders, the status doesn't lie
-			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'fallback' })
+			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'not-found' })
 
 			// Act
 			const outcome = await request(server, '/recipe/42/')
@@ -250,7 +251,7 @@ describe('routedNotFound()', () => {
 
 		test('still lets a pre-rendered static path through with a 200', async () => {
 			// Arrange
-			const server = serve({ routes: ['/categories/'], dynamicRoutes: 'fallback' })
+			const server = serve({ routes: ['/categories/'], dynamicRoutes: 'not-found' })
 
 			// Act
 			const outcome = await request(server, '/categories/')
@@ -261,7 +262,7 @@ describe('routedNotFound()', () => {
 
 		test('redirects a static path written without its slash, because the host has a directory there', async () => {
 			// Arrange
-			const server = serve({ routes: ['/categories/'], dynamicRoutes: 'fallback' })
+			const server = serve({ routes: ['/categories/'], dynamicRoutes: 'not-found' })
 
 			// Act
 			const outcome = await request(server, '/categories')
@@ -273,7 +274,7 @@ describe('routedNotFound()', () => {
 
 		test('does not redirect a dynamic route, because the host has nothing to redirect to', async () => {
 			// Arrange
-			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'fallback' })
+			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'not-found' })
 
 			// Act
 			const outcome = await request(server, '/recipe/42')
@@ -286,13 +287,59 @@ describe('routedNotFound()', () => {
 
 		test('answers a dynamic route with a 404 after vite declined it too', async () => {
 			// Arrange
-			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'fallback' }, '/', 'post')
+			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'not-found' }, '/', 'post')
 
 			// Act -- */* is what fetch sends by default
 			const outcome = await request(server, '/recipe/42/', '*/*')
 
 			// Assert
 			expect(outcome.status).toBe(404)
+		})
+	})
+
+	describe("on a host that only matches by prefix (dynamicRoutes: 'catch-all')", () => {
+		test('lets a dynamic route through with a 200', async () => {
+			// Arrange
+			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'catch-all' })
+
+			// Act
+			const outcome = await request(server, '/recipe/42/')
+
+			// Assert
+			expect(outcome).toEqual({ handled: 'next' })
+		})
+
+		test('lets a path deeper than the route through too, because the host serves it', async () => {
+			// Arrange -- the host wrote /recipe/* and can't tell these apart
+			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'catch-all' })
+
+			// Act
+			const outcome = await request(server, '/recipe/42/extra/')
+
+			// Assert
+			expect(outcome).toEqual({ handled: 'next' })
+		})
+
+		test('answers a path outside every prefix with a 404', async () => {
+			// Arrange
+			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'catch-all' })
+
+			// Act
+			const outcome = await request(server, '/nope/')
+
+			// Assert
+			expect(outcome.status).toBe(404)
+		})
+
+		test('only redirects the exact routes to their canonical slash', async () => {
+			// Arrange
+			const server = serve({ routes: ['/recipe/:id/'], dynamicRoutes: 'catch-all' })
+
+			// Act
+			const outcome = await request(server, '/recipe/42/extra')
+
+			// Assert
+			expect(outcome.location).toBeUndefined()
 		})
 	})
 })
@@ -302,7 +349,7 @@ describe('routedNotFound()', () => {
 type Outcome = { handled: 'next' | 'responded', status?: number, body?: string, location?: string }
 
 function serve(
-	options: { routes?: string[], dynamicRoutes?: 'routed' | 'fallback' },
+	options: { routes?: string[], dynamicRoutes?: DynamicRouteSupport },
 	base = '/',
 	which: 'pre' | 'post' = 'pre',
 ) {

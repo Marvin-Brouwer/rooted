@@ -29,28 +29,6 @@ describe('buildAzureRoutes()', () => {
 		])
 	})
 
-	test('writes one wildcard for patterns that share a prefix', () => {
-		// Arrange
-		const routes = { staticPaths: [], dynamicPatterns: ['/recipe/:id/', '/recipe/:id/ingredients/', '/recipe/:id/:step/'] }
-
-		// Act
-		const azureRoutes = buildAzureRoutes(routes, [], '404.html')
-
-		// Assert -- Azure has no per-segment match, so the literal segments after :id can't narrow it
-		expect(azureRoutes).toEqual([{ route: '/recipe/*', rewrite: '/404.html' }])
-	})
-
-	test('collapses to a single root wildcard when a pattern starts with a parameter', () => {
-		// Arrange
-		const routes = { staticPaths: [], dynamicPatterns: ['/recipe/:id/', '/:slug/'] }
-
-		// Act
-		const azureRoutes = buildAzureRoutes(routes, [], '404.html')
-
-		// Assert
-		expect(azureRoutes).toEqual([{ route: '/*', rewrite: '/404.html' }])
-	})
-
 	test('lets files under a prefix through ahead of the wildcard', () => {
 		// Arrange
 		const routes = { staticPaths: [], dynamicPatterns: ['/recipe/:id/'] }
