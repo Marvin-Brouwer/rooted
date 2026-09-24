@@ -1,13 +1,9 @@
+import { reportError } from '@rooted/util'
+
 import { NavigationErrorEvent } from './navigate-event.mts'
 
 import type { ErrorHandler } from './navigate-event.mts'
 import type { AnyRoute } from './route.mts'
-
-// Hands the error to the browser's global error handling, the same place an uncaught exception would end up.
-function reportUnhandled(error: unknown) {
-	if (typeof globalThis.reportError === 'function') globalThis.reportError(error)
-	else queueMicrotask(() => { throw error })
-}
 
 /**
  * Tells the app a route's `resolve` threw.
@@ -22,8 +18,8 @@ export function reportRouteError(handler: ErrorHandler | undefined, error: Error
 		handler?.(event)
 	}
 	catch (handlerError) {
-		reportUnhandled(handlerError)
+		reportError(handlerError)
 	}
 
-	if (!event.errorHandled) reportUnhandled(error)
+	if (!event.errorHandled) reportError(error)
 }
