@@ -47,6 +47,16 @@ export type SitemapEntry = {
 		title?: string
 		caption?: string
 	}>
+	/**
+	 * Other language versions of this page, written as `<xhtml:link rel="alternate" hreflang>` elements.
+	 * List the whole group, this page included, the same way the hreflang head links do.
+	 */
+	alternates?: Array<{
+		/** Language code, or `'x-default'`. */
+		hreflang: string
+		/** Absolute URL of that version. */
+		href: string
+	}>
 }
 
 /**
@@ -81,6 +91,27 @@ export type RouteHeadLink = {
  * Register the provider early, in `configResolved` or `buildStart`.
  */
 export type RouteHeadLinkProvider = (staticPath: string) => RouteHeadLink[] | undefined
+
+/**
+ * One language version of a page, for its sitemap entry.
+ */
+export type SitemapAlternate = {
+	/** Language code, or `'x-default'`. */
+	hreflang: string
+	/**
+	 * Root-relative path of that version (e.g. `/nl-NL/about/`).
+	 * The SEO plugin resolves it against the deployment URL or the Vite base.
+	 */
+	path: string
+}
+
+/**
+ * Returns the language versions of a page for its `sitemap.xml` entry, or `undefined` when it has none.
+ *
+ * The sitemap counterpart of {@link RouteHeadLinkProvider}. Called while `sitemap.xml` is written (during `closeBundle`),
+ * so register it in `configResolved` or `buildStart`.
+ */
+export type SitemapAlternateProvider = (staticPath: string) => SitemapAlternate[] | undefined
 
 /**
  * Free-form transform applied to a prerendered page's HTML, after meta tags and head links. Use it for changes the other seams can't express,
@@ -210,6 +241,11 @@ export type SeoApi = {
 	 * so registering in `configResolved` or `buildStart` is always early enough.
 	 */
 	addRouteHeadLinks(provider: RouteHeadLinkProvider): void
+	/**
+	 * Registers a provider of language versions per page, written as `xhtml:link` alternates on the page's `sitemap.xml` entry.
+	 * `@rooted/localization` uses it to group the locale variants of a route.
+	 */
+	addSitemapAlternates(provider: SitemapAlternateProvider): void
 	/**
 	 * Registers a source of per-page SEO metadata for {@link SeoApi.injectRouteHtml}.
 	 * Providers are asked in registration order and the first non-`undefined` answer wins.

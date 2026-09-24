@@ -6,7 +6,7 @@ import { localizationSeo } from '../plugins/hreflang.mts'
 import { dictionary } from '../src/dictionary.mts'
 import { configureLocalization } from '../src/localization.mts'
 
-import type { RouteHeadLink, RouteHeadLinkProvider, RouteHtmlTransform, SeoPrepareTask } from '@rooted/seo'
+import type { RouteHeadLink, RouteHeadLinkProvider, RouteHtmlTransform, SeoPrepareTask, SitemapAlternateProvider } from '@rooted/seo'
 import type { ResolvedConfig } from 'vite'
 
 const localization = configureLocalization({
@@ -16,12 +16,14 @@ const localization = configureLocalization({
 
 type Registered = {
 	provider: RouteHeadLinkProvider
+	sitemapAlternates: SitemapAlternateProvider
 	transform: RouteHtmlTransform
 	prepareTasks: SeoPrepareTask[]
 }
 
 function setup(routes: unknown[]): Registered {
 	let provider: RouteHeadLinkProvider | undefined
+	let sitemapAlternates: SitemapAlternateProvider | undefined
 	let transform: RouteHtmlTransform | undefined
 	const prepareTasks: SeoPrepareTask[] = []
 
@@ -35,6 +37,7 @@ function setup(routes: unknown[]): Registered {
 				name: 'rooted:seo',
 				api: {
 					addRouteHeadLinks(p: RouteHeadLinkProvider) { provider = p },
+					addSitemapAlternates(p: SitemapAlternateProvider) { sitemapAlternates = p },
 					addRouteHtmlTransform(t: RouteHtmlTransform) { transform = t },
 					addPrepareTask(task: SeoPrepareTask) { prepareTasks.push(task) },
 				},
@@ -46,8 +49,8 @@ function setup(routes: unknown[]): Registered {
 	const hook = plugin.configResolved as (config: ResolvedConfig) => void
 	hook(fakeConfig)
 
-	if (!provider || !transform) throw new Error('provider or transform was not registered')
-	return { provider, transform, prepareTasks }
+	if (!provider || !sitemapAlternates || !transform) throw new Error('provider, sitemap alternates or transform was not registered')
+	return { provider, sitemapAlternates, transform, prepareTasks }
 }
 
 function byHreflang(links: RouteHeadLink[] | undefined, hreflang: string) {
@@ -112,6 +115,36 @@ describe('localizationSeo()', () => {
 
 		// Assert
 		expect(links).toBeUndefined()
+	})
+
+	test('provides the full locale group as sitemap alternates for every variant', () => {
+		// Arrange
+		const aboutRoute = route`/${localization.parameter}/about/`({ resolve: () => Promise.resolve(void 0) })
+		const { sitemapAlternates } = setup([aboutRoute])
+
+		// Act
+		const alternates = sitemapAlternates('/nl-NL/about/')
+
+		// Assert
+		expect(alternates).toEqual([
+			{ hreflang: 'en-GB', path: '/en-GB/about/' },
+			{ hreflang: 'nl-NL', path: '/nl-NL/about/' },
+			{ hreflang: 'x-default', path: '/en-GB/about/' },
+		])
+		// Every url in the group carries the same set, itself included
+		expect(sitemapAlternates('/en-GB/about/')).toEqual(alternates)
+	})
+
+	test('provides no sitemap alternates for paths without a localized route', () => {
+		// Arrange
+		const plainRoute = route`/plain/`({ resolve: () => Promise.resolve(void 0) })
+		const { sitemapAlternates } = setup([plainRoute])
+
+		// Act
+		const alternates = sitemapAlternates('/plain/')
+
+		// Assert
+		expect(alternates).toBeUndefined()
 	})
 
 	test('the prepare task loads every configured dictionary', async () => {

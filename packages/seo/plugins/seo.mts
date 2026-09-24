@@ -9,7 +9,7 @@ import { injectCanonical, injectHeadLinks, injectMetaTags, injectOgTags, injectR
 import { buildSitemapIndexXml, buildSitemapXml } from './seo-sitemap.mts'
 
 import type { RobotsOptions } from './robots.mts'
-import type { AdditionalSitemap, LlmsTxtOptions, PageEntry, PageProvider, PageSeoMetadata, RouteHeadLinkProvider, RouteHtmlTransform, RouteSeoProvider, SeoApi, SeoPrepareTask, SitemapEntry } from './seo-api.mts'
+import type { AdditionalSitemap, LlmsTxtOptions, PageEntry, PageProvider, PageSeoMetadata, RouteHeadLinkProvider, RouteHtmlTransform, RouteSeoProvider, SeoApi, SeoPrepareTask, SitemapAlternateProvider, SitemapEntry } from './seo-api.mts'
 import type { Plugin, ResolvedConfig } from 'vite'
 import type { ManifestOptions } from 'vite-plugin-pwa'
 
@@ -75,6 +75,7 @@ export function seoPlugin(
 
 	const additionalSitemaps = new Map<string, AdditionalSitemap>()
 	const headLinkProviders: RouteHeadLinkProvider[] = []
+	const sitemapAlternateProviders: SitemapAlternateProvider[] = []
 	const routeSeoProviders: RouteSeoProvider[] = []
 	const pageProviders: PageProvider[] = []
 	let collectedPages: Promise<PageEntry[]> | undefined
@@ -111,6 +112,12 @@ export function seoPlugin(
 			if (seo !== undefined) return seo
 		}
 		return undefined
+	}
+
+	function sitemapAlternates(staticPath: string): Pick<SitemapEntry, 'alternates'> {
+		const alternates = sitemapAlternateProviders.flatMap(provider => provider(staticPath) ?? [])
+		if (alternates.length === 0) return {}
+		return { alternates: alternates.map(({ hreflang, path }) => ({ hreflang, href: toLocation(path) })) }
 	}
 
 	function toLocation(staticPath: string): string {
@@ -150,6 +157,9 @@ export function seoPlugin(
 			addRouteHeadLinks(provider: RouteHeadLinkProvider): void {
 				headLinkProviders.push(provider)
 			},
+			addSitemapAlternates(provider: SitemapAlternateProvider): void {
+				sitemapAlternateProviders.push(provider)
+			},
 			addRouteSeoProvider(provider: RouteSeoProvider): void {
 				routeSeoProviders.push(provider)
 			},
@@ -185,13 +195,13 @@ export function seoPlugin(
 			const entries = new Map<string, SitemapEntry>()
 			if (homeLastModified !== undefined) {
 				const loc = toLocation('/')
-				entries.set(loc, { loc, lastmod: homeLastModified })
+				entries.set(loc, { loc, lastmod: homeLastModified, ...sitemapAlternates('/') })
 			}
 			for (const { path: staticPath, excludeFromSitemap, ...entry } of await getPages()) {
 				if (excludeFromSitemap) continue
 				const loc = toLocation(staticPath)
 				if (entries.has(loc)) continue
-				entries.set(loc, { loc, ...entry })
+				entries.set(loc, { loc, ...entry, ...sitemapAlternates(staticPath) })
 			}
 
 			if (entries.size > 0) {

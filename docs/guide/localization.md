@@ -263,6 +263,17 @@ plugins: [
 
 The plugin reads the locales straight off `localization.parameter`, so it takes no options.
 
+It also adds the same alternates to `sitemap.xml`, so each locale group describes itself there too. Every variant's entry lists the full set, itself and `x-default` included:
+
+```xml
+<url>
+  <loc>https://example.com/nl-NL/about/</loc>
+  <xhtml:link rel="alternate" hreflang="en-GB" href="https://example.com/en-GB/about/" />
+  <xhtml:link rel="alternate" hreflang="nl-NL" href="https://example.com/nl-NL/about/" />
+  <xhtml:link rel="alternate" hreflang="x-default" href="https://example.com/en-GB/about/" />
+</url>
+```
+
 ## Translated URLs and international SEO
 
 The locale segment is the part of the path that changes per language. Everything after it is shared:
@@ -311,7 +322,6 @@ It's tempting to assume this matters less now that a lot of traffic arrives thro
 ## Honest limitations (v1)
 
 - `llms.txt` lists every locale variant, so the same page appears once per language.
-- The sitemap gets one entry per locale variant, but no `xhtml:link` alternate annotations, so the hreflang tags in the HTML head are the only place that signal lives. See [#253](https://github.com/Marvin-Brouwer/rooted/issues/253).
 - Mixed routes (a locale token plus a typed token or a wildcard) aren't unrolled, so they're not prerendered and not in the sitemap. A typed token has no value set to walk, so there's nothing to enumerate unless the route supplies the values itself. See [#254](https://github.com/Marvin-Brouwer/rooted/issues/254).
 - A build-time check for missing dictionary entries doesn't exist yet. Missing translations surface at runtime, in development, with the `[i18n missing]` marker. See [#252](https://github.com/Marvin-Brouwer/rooted/issues/252).
 - `dictionaries` doesn't check that you covered every locale, because it's what defines the locale set in the first place. `branch` does check, since by then the locales are known.
