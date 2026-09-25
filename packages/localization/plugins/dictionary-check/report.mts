@@ -4,7 +4,7 @@ import type { LocatedSite } from './link.mts'
 /** What one locale's dictionary lacks, and what it has that nothing uses. */
 export type LocaleReport = {
 	locale: string
-	file: string | undefined
+	file: string
 	missing: Array<{ text: string, sites: LocatedSite[] }>
 	unused: string[]
 }
@@ -34,7 +34,7 @@ export function formatMissing(report: LocaleReport, display: (id: string) => str
 }
 
 export function formatUnused(report: LocaleReport, display: (id: string) => string): string {
-	const file = report.file === undefined ? '' : display(report.file)
+	const file = display(report.file)
 	const rows = report.unused.map(text => [JSON.stringify(text), file] as const)
 	return `${report.locale} has ${count(rows.length, 'unused ')}:\n${table(rows)}`
 }

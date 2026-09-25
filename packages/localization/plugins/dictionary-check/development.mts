@@ -2,7 +2,6 @@ import { crawl, entryModules } from './crawl.mts'
 import { runCheck } from './run.mts'
 import { isScannable, type ModuleScan } from './scan.mts'
 
-import type { LocaleTokenInfo } from '../../src/locale-token.mts'
 import type { CachedResolve } from './link.mts'
 import type { HotUpdateOptions, Logger, ResolvedConfig } from 'vite'
 
@@ -13,8 +12,6 @@ export type DevelopmentCheckOptions = {
 	resolve: CachedResolve
 	/** Prefixes every logged line. */
 	label: string
-	/** Locale tokens from the route manifest, read on every run so a restarted manifest is picked up. */
-	tokens: () => readonly LocaleTokenInfo[]
 	display: (id: string) => string
 }
 
@@ -42,7 +39,7 @@ export function createDevelopmentCheck(options: DevelopmentCheckOptions): Develo
 
 	async function check() {
 		await crawl(await entryModules(options.config, resolve), scans, resolve)
-		const result = await runCheck({ scans, resolve, tokens: options.tokens(), display: options.display })
+		const result = await runCheck({ scans, resolve, display: options.display })
 		const messages = [...result.notes, ...result.missing, ...result.unused]
 		const report = messages.join('\n')
 		if (report === lastReport) return

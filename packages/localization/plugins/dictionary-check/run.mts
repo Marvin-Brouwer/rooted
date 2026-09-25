@@ -16,7 +16,7 @@ export async function runCheck(sources: EntrySources): Promise<CheckResult> {
 	const instances = await linkSites(sources.scans, sources.resolve)
 
 	for (const instance of instances) {
-		const { entries, notes } = await readEntries(instance, instances.length, sources)
+		const { entries, notes } = await readEntries(instance, sources)
 		result.notes.push(...notes)
 
 		for (const localeEntries of entries) {

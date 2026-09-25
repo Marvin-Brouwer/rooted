@@ -3,14 +3,24 @@ import { routeManifestPluginName, seoPluginName } from '@rooted/seo'
 
 import { localeTokenBrand } from '../src/locale-token.mts'
 
-import { collectLocaleTokenInfos, findLocaleToken } from './locale-tokens.mts'
-
-import type { RouteLike } from './locale-tokens.mts'
+import type { LocaleTokenInfo } from '../src/locale-token.mts'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Constant, Parameter } from '@rooted/router/routes'
 import type { RouteHeadLink, SeoApi, SitemapAlternate } from '@rooted/seo'
 import type { Plugin } from 'vite'
 
+
+// Structural view of a route, matching what the manifest api exposes. The
+// route objects come from a jiti-loaded module copy, so detection relies on
+// shape and Symbol.for brands, never on module identity.
+type RouteLike = {
+	getMetadata(): {
+		routeParts: Array<string | object>
+		staticPaths: false | readonly string[]
+	}
+}
+
+type LocaleToken = Parameter<'locale', Constant> & { [localeTokenBrand]: LocaleTokenInfo }
 
 type LocalizedVariant = {
 	locale: string
@@ -130,6 +140,18 @@ function buildVariantIndex(manifestApi: RouteManifestApi | undefined): Map<strin
 	return index
 }
 
+function collectLocaleTokenInfos(manifestApi: RouteManifestApi | undefined): LocaleTokenInfo[] {
+	const seen = new Set<LocaleToken>()
+
+	for (const route of manifestApi?.routes ?? []) {
+		if (!Object.hasOwn(route, 'getMetadata')) continue
+		const localeToken = findLocaleToken((route as RouteLike).getMetadata().routeParts)
+		if (localeToken) seen.add(localeToken)
+	}
+
+	return [...seen].map(localeToken => localeToken[localeTokenBrand])
+}
+
 function setHtmlLang(html: string, locale: string): string {
 	return html.replace(/<html([^>]*)>/i, (_tag, attributes: string) => {
 		if (/\slang=["'][^"']*["']/i.test(attributes)) {
@@ -154,6 +176,19 @@ function injectOgLocales(html: string, variant: LocalizedVariant): string {
 	}
 
 	return html.replace('</head>', `${tags.join('\n')}\n</head>`)
+}
+
+function findLocaleToken(routeParts: Array<string | object>): LocaleToken | undefined {
+	for (const part of routeParts) {
+		if (typeof part === 'string') continue
+		if (Object.hasOwn(part, 'getMetadata')) {
+			const found = findLocaleToken((part as RouteLike).getMetadata().routeParts)
+			if (found) return found
+			continue
+		}
+		if (localeTokenBrand in part) return part as LocaleToken
+	}
+	return undefined
 }
 
 // Mirrors the router's staticPaths unrolling, with locale tokens pinned to a

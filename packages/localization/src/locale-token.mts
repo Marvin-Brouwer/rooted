@@ -1,6 +1,5 @@
 import { token } from '@rooted/router/routes'
 
-import type { Dictionary } from './dictionary.mts'
 import type { Constant, Parameter } from '@rooted/router/routes'
 
 /**
@@ -21,12 +20,6 @@ export type LocaleTokenInfo = {
 	 * without knowing the localization instance.
 	 */
 	load(locale: string): Promise<void>
-	/**
-	 * Runs one locale's dictionary loader and hands back its entries as written, without compiling them.
-	 * Resolves `undefined` for the default locale, a locale without a loader, or a loader that fails.
-	 * Carried on the token so build tooling can check dictionaries against the `text` call sites.
-	 */
-	readDictionary(locale: string): Promise<Dictionary | undefined>
 }
 
 /**
@@ -39,11 +32,10 @@ export type LocaleParameter<TLocale extends string> = Parameter<'locale', Consta
 export function createLocaleParameter<TLocale extends string>(
 	defaultLocale: TLocale,
 	locales: readonly TLocale[],
-	load: LocaleTokenInfo['load'],
-	readDictionary: LocaleTokenInfo['readDictionary'],
+	load: (locale: string) => Promise<void>,
 ): LocaleParameter<TLocale> {
 	const parameter = token('locale', locales as readonly TLocale[] as readonly [TLocale, ...TLocale[]])
 	return Object.assign(parameter, {
-		[localeTokenBrand]: { defaultLocale, locales, load, readDictionary } satisfies LocaleTokenInfo,
+		[localeTokenBrand]: { defaultLocale, locales, load } satisfies LocaleTokenInfo,
 	}) as LocaleParameter<TLocale>
 }

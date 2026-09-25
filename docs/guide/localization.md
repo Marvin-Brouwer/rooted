@@ -172,7 +172,6 @@ The `[i18n missing]` marker only shows up for text you actually look at. The `lo
 import { localizationDictionaryCheck } from '@rooted/localization/vite'
 
 plugins: [
-  generateRouteManifest({ glob: './src/**/_routes.mts', routeManifestPath: './src/_routes.g.mts' }),
   localizationDictionaryCheck(),
   myAdapter(),
 ]
@@ -201,10 +200,7 @@ It takes no other options. Call sites are found by following imports back to the
 
 In dev, Vite only processes the modules the browser asks for, so the plugin follows the imports itself, starting from the module scripts in `index.html`. That's the same set of modules the build ends up with.
 
-Dictionaries are read in one of two ways:
-
-- When every key is a string literal, `translation('some text', ...)`, the dictionary file is read from source. That's the normal case, and it's always up to date with what's on disk.
-- When some keys are computed, the plugin runs the dictionary loader through the locale token instead, which needs `generateRouteManifest` and a route using `localization.parameter`. In dev that's the copy loaded when the server started, so restart it to recheck after editing such a dictionary. Without the manifest, computed keys are skipped and the plugin warns that they weren't checked.
+Dictionaries are read from source, the files named in `configureLocalization({ dictionaries })`. Keys are the default-language text written out, so they're string literals. A key that isn't, like `translation(prefix + ' us', ...)`, can't be read, and the plugin warns that it wasn't checked.
 
 ## Loading other per-locale content
 

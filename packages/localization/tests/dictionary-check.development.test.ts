@@ -59,11 +59,11 @@ async function startDevelopment(files: Record<string, string>, strict = false): 
 
 	const plugin = localizationDictionaryCheck({ strict }) as unknown as {
 		configResolved(config: ResolvedConfig): void
-		buildStart: { handler(this: typeof context): void }
+		buildStart(this: typeof context): void
 		hotUpdate(options: Pick<HotUpdateOptions, 'type' | 'file'>): void
 	}
 	plugin.configResolved(config as unknown as ResolvedConfig)
-	plugin.buildStart.handler.call(context)
+	plugin.buildStart.call(context)
 
 	return {
 		warnings,

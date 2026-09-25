@@ -1,14 +1,10 @@
 import path from 'node:path'
 
-import { routeManifestPluginName } from '@rooted/seo'
-
 import { createDevelopmentCheck, type DevelopmentCheck } from './dictionary-check/development.mts'
 import { cachedResolve } from './dictionary-check/link.mts'
 import { runCheck } from './dictionary-check/run.mts'
 import { isScannable, scanModule, type ModuleScan } from './dictionary-check/scan.mts'
-import { collectLocaleTokenInfos } from './locale-tokens.mts'
 
-import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 /** Options for {@link localizationDictionaryCheck}. */
@@ -30,15 +26,15 @@ export type DictionaryCheckOptions = {
  * ```ts
  * import { localizationDictionaryCheck } from '@rooted/localization/vite'
  *
- * plugins: [generateRouteManifest({ ... }), localizationDictionaryCheck(), myAdapter()]
+ * plugins: [localizationDictionaryCheck(), myAdapter()]
  * ```
  *
  * It needs no options. Call sites are found by following imports back to the `configureLocalization` call,
  * so the instance can be named, renamed or re-exported however you like.
  * The key is built the same way `text` builds it at runtime, so what the check reports is what would render untranslated.
  *
- * Dictionaries are read from source when every key is a string literal. One with computed keys is loaded through the locale token instead,
- * which needs `generateRouteManifest` with a route using `localization.parameter`. In dev, that copy is the one loaded at startup, so restart to pick up changes to it.
+ * Dictionaries are read from source. Their keys are the default-language text written out, so they're string literals;
+ * a key that isn't can't be read, and the check says so instead of guessing.
  *
  * It runs when `vite dev` starts, again every time you save a file it covers, and at the end of `vite build`.
  * In dev it follows the imports from `index.html` itself, so pages you haven't opened are checked too, and `strict` never stops the dev server.
@@ -50,7 +46,6 @@ export function localizationDictionaryCheck(options: DictionaryCheckOptions = {}
 	const name = 'vite-plugin:rooted-localization-dictionary-check'
 	const scans = new Map<string, ModuleScan>()
 	let config: ResolvedConfig | undefined
-	let manifestApi: RouteManifestApi | undefined
 	let development: DevelopmentCheck | undefined
 
 	function display(id: string): string {
@@ -64,8 +59,6 @@ export function localizationDictionaryCheck(options: DictionaryCheckOptions = {}
 
 		configResolved(resolvedConfig) {
 			config = resolvedConfig
-			const manifestPlugin = resolvedConfig.plugins.find(plugin => plugin.name === routeManifestPluginName)
-			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
 		},
 
 		// Only reruns the check, HMR itself carries on as usual
@@ -73,25 +66,19 @@ export function localizationDictionaryCheck(options: DictionaryCheckOptions = {}
 			development?.fileChanged(type, file)
 		},
 
-		// Last and on its own, so the route manifest has loaded its routes by now.
-		// In dev this runs once, when the server starts.
-		buildStart: {
-			order: 'post',
-			sequential: true,
-			handler() {
-				scans.clear()
-				if (config?.command !== 'serve') return
-				development = createDevelopmentCheck({
-					config,
-					logger: config.logger,
-					resolve: cachedResolve((source, importer) => this.resolve(source, importer)),
-					label: `[${name}]`,
-					tokens: () => collectLocaleTokenInfos(manifestApi),
-					display,
-				})
-				// Not awaited, the server shouldn't wait for the report
-				development.run()
-			},
+		// In dev this runs once, when the server starts
+		buildStart() {
+			scans.clear()
+			if (config?.command !== 'serve') return
+			development = createDevelopmentCheck({
+				config,
+				logger: config.logger,
+				resolve: cachedResolve((source, importer) => this.resolve(source, importer)),
+				label: `[${name}]`,
+				display,
+			})
+			// Not awaited, the server shouldn't wait for the report
+			development.run()
 		},
 
 		// Before other transforms, so positions point into the source as written.
@@ -113,7 +100,7 @@ export function localizationDictionaryCheck(options: DictionaryCheckOptions = {}
 			if (error || config?.command !== 'build') return
 
 			const resolve = cachedResolve((source, importer) => this.resolve(source, importer))
-			const result = await runCheck({ scans, resolve, tokens: collectLocaleTokenInfos(manifestApi), display })
+			const result = await runCheck({ scans, resolve, display })
 
 			for (const message of [...result.notes, ...result.unused]) this.warn(message)
 			if (result.missing.length === 0) return
