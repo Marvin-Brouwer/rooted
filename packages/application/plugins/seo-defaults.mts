@@ -1,0 +1,99 @@
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
+
+import type { Plugin } from 'vite'
+
+export const seoDefaultsPluginName = 'vite-plugin:rooted-seo-defaults'
+
+/** The site-wide title and description, as written in `index.html`. */
+export type HtmlSeoDefaults = {
+	title: string | undefined
+	description: string | undefined
+}
+
+/** A whole `<meta>` tag, including quoted values that contain `>`. */
+const META_TAG = /<meta\b(?:[^>"']|"[^"]*"|'[^']*')*>/gi
+/** `name="description"`, as its own attribute, so `data-name` doesn't match. */
+const DESCRIPTION_NAME = /\sname\s*=\s*(?:"description"|'description'|description(?=[\s/>]))/i
+/** The `content` value, in whichever of the three quoting styles it's written. */
+const CONTENT_ATTRIBUTE = /\scontent\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i
+
+/**
+ * Reads the `<title>` and the description meta out of the `<head>` of an HTML document.
+ *
+ * Regex, not a parser, so loading the config doesn't pull in a DOM library. It skips comments,
+ * handles `>` inside quoted attribute values, and only looks at the head, so an `<svg><title>` in the body doesn't count.
+ * Every pattern is linear, so no input makes it slow.
+ */
+export function readHtmlSeoDefaults(html: string): HtmlSeoDefaults {
+	const withoutComments = html.replaceAll(/<!--[\s\S]*?(?:-->|$)/g, '')
+	const head = /<head\b[\s\S]*?<\/head>/i.exec(withoutComments)?.[0] ?? withoutComments
+
+	const title = /<title\b[^>]*>([^<]*)<\/title>/i.exec(head)?.[1]
+	const description = head.match(META_TAG)
+		?.find(tag => DESCRIPTION_NAME.test(tag))
+		?.match(CONTENT_ATTRIBUTE)
+		?.slice(1)
+		.find(value => value !== undefined)
+
+	return {
+		title: title === undefined ? undefined : decodeEntities(title),
+		description: description === undefined ? undefined : decodeEntities(description),
+	}
+}
+
+/**
+ * Puts the `index.html` title and description in `import.meta.env.ROOTED_DEFAULT_TITLE` and `ROOTED_DEFAULT_DESCRIPTION`.
+ *
+ * The router falls back to these when a route has no `seo.title` or `seo.description`.
+ * It can't read them off the page: after landing on a pre-rendered static route, the document has that route's title,
+ * not the one from `index.html`.
+ *
+ * During `vite dev` it watches `index.html` and restarts the server when the title or description changes,
+ * because a `define` only changes when the config is loaded again. Other edits to `index.html` don't restart anything.
+ */
+export function seoDefaultsPlugin(): Plugin {
+	let loaded: HtmlSeoDefaults | undefined
+
+	return {
+		name: seoDefaultsPluginName,
+
+		async config(userConfig) {
+			loaded = await readIndexHtml(path.resolve(userConfig.root ?? process.cwd()))
+			if (!loaded) return
+
+			return {
+				define: {
+					'import.meta.env.ROOTED_DEFAULT_TITLE': JSON.stringify(loaded.title ?? ''),
+					'import.meta.env.ROOTED_DEFAULT_DESCRIPTION': JSON.stringify(loaded.description ?? ''),
+				},
+			}
+		},
+
+		configureServer(server) {
+			const indexPath = path.join(server.config.root, 'index.html')
+			server.watcher.add(indexPath)
+			server.watcher.on('change', async (file) => {
+				if (path.resolve(file) !== indexPath) return
+				const current = await readIndexHtml(server.config.root)
+				if (current?.title === loaded?.title && current?.description === loaded?.description) return
+				await server.restart()
+			})
+		},
+	}
+}
+
+async function readIndexHtml(root: string): Promise<HtmlSeoDefaults | undefined> {
+	const html = await readFile(path.join(root, 'index.html'), 'utf8').catch(() => undefined)
+	return html === undefined ? undefined : readHtmlSeoDefaults(html)
+}
+
+const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: '\'' }
+
+function decodeEntities(text: string): string {
+	return text.replaceAll(/&(#x[\da-f]+|#\d+|[a-z]+);/gi, (entity: string, code: string) => {
+		if (code.startsWith('#x') || code.startsWith('#X')) return String.fromCodePoint(Number.parseInt(code.slice(2), 16))
+		if (code.startsWith('#')) return String.fromCodePoint(Number.parseInt(code.slice(1), 10))
+		return ENTITIES[code.toLowerCase()] ?? entity
+	})
+}

@@ -10,6 +10,7 @@ import { reportRouteError } from './router.error.mts'
 import { matchRoute, SuccessRouteMatch } from './router.match.mts'
 import { renderWithViewTransition } from './router.view-transition.mts'
 import { currentEntryState, getSavedScrollOffset, registerScrollSaving, restoreScrollOffset, ScrollOffset, scrollToOffset } from './scroll.mts'
+import { readSeoDefaults } from './seo-meta.defaults.mts'
 import { applyRouteSeoMeta, type RouterSeoOptions } from './seo-meta.mts'
 
 import type { ErrorHandler, NavigateHandler } from './navigate-event.mts'
@@ -161,6 +162,7 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 			} = options ?? {}
 
 			let lastPath: string | undefined
+			const seoDefaults = readSeoDefaults()
 
 			let scrollId: string | undefined
 			if (saveScrollBeforeNavigate && environment.hasDom) {
@@ -207,15 +209,17 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 				try {
 					const matchRouteResult = await matchRoute(target, routes)
 					if (!matchRouteResult) {
+						applyRouteSeoMeta(undefined, target.pathOnly, seoOptions, seoDefaults, element)
 						applyTransition(() => renderRoute())
 					}
 					else if (matchRouteResult.kind === 'error') {
+						applyRouteSeoMeta(undefined, target.pathOnly, seoOptions, seoDefaults, element)
 						applyTransition(() => renderRoute())
 						reportRouteError(handlers?.error, matchRouteResult.error, matchRouteResult.route, currentHref)
 					}
 					else {
 						const seo = await resolveSeo(matchRouteResult.route, matchRouteResult.match)
-						applyRouteSeoMeta(seo, target.pathOnly, seoOptions, element)
+						applyRouteSeoMeta(seo, target.pathOnly, seoOptions, seoDefaults, element)
 						applyTransition(() => renderRoute(matchRouteResult.element))
 					}
 				}

@@ -1,6 +1,7 @@
 import { environment } from '@rooted/util'
 
 import type { RouteSeoMetadata } from './route.metadata.mts'
+import type { SeoDefaults } from './seo-meta.defaults.mts'
 import type { ElementFactory } from '@rooted/components/elements'
 
 /**
@@ -38,35 +39,34 @@ export type RouterSeoOptions = {
  * Updates `document.title` and the relevant `<meta>` / `<link>` tags in `document.head` to reflect the SEO metadata of the matched route.
  *
  * Called by the router after each successful route match, with the route's seo already evaluated (lazy seo resolvers run in the router,
- * per navigation). No-ops when there is no seo metadata or when running outside a browser context.
+ * per navigation). A route without a title or description gets `defaults` for them, the same as the build gives its page,
+ * and route-specific tags from the previous route are removed rather than left behind. No-ops outside a browser context.
  */
 export function applyRouteSeoMeta(
 	seo: RouteSeoMetadata | undefined,
 	currentPath: string,
 	options: RouterSeoOptions | undefined,
+	defaults: SeoDefaults,
 	element: ElementFactory,
 ): void {
 	if (!environment.hasDom) return
-	if (!seo) return
 
-	if (seo.title) {
-		document.title = options?.titleSuffix
-			? `${seo.title}${options.titleSuffix}`
-			: seo.title
-	}
+	document.title = seo?.title
+		? `${seo.title}${options?.titleSuffix ?? ''}`
+		: defaults.title
 
-	setMetaByName('description', seo.description, element)
-	setMetaByName('robots', seo.noIndex ? 'noindex' : undefined, element)
+	setMetaByName('description', seo?.description || defaults.description, element)
+	setMetaByName('robots', seo?.noIndex ? 'noindex' : undefined, element)
 
 	const base = options?.deploymentUrl ?? location.origin
 	const canonicalUrl = new URL(currentPath, base).href
 	setLinkCanonical(canonicalUrl, element)
 
-	setMetaByProperty('og:title', seo.title, element)
-	setMetaByProperty('og:description', seo.description, element)
+	setMetaByProperty('og:title', seo?.title, element)
+	setMetaByProperty('og:description', seo?.description, element)
 	setMetaByProperty('og:url', canonicalUrl, element)
 
-	const ogImage = seo.image ?? options?.defaultOgImage
+	const ogImage = seo?.image ?? options?.defaultOgImage
 	if (ogImage) setMetaByProperty('og:image', ogImage, element)
 }
 
