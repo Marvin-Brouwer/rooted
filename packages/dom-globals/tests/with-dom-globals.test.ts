@@ -2,6 +2,7 @@
 // Runs in plain Node on purpose: this module exists to make route files
 // evaluatable where there is no DOM, so a happy-dom environment would make
 // every assertion here pass vacuously.
+import { Window } from 'happy-dom'
 import { describe, test, expect } from 'vitest'
 
 import { environment } from '@rooted/util'
@@ -122,5 +123,92 @@ describe('withDomGlobals()', () => {
 		// Assert
 		expect(seen).toBe('object')
 		expect(typeof window).toBe('undefined')
+	})
+})
+
+describe('withDomGlobals() with options', () => {
+	test('leaves Node\'s fetch alone by default', async () => {
+		// Arrange
+		const nodeFetch = globalThis.fetch
+
+		// Act
+		const seen = await withDomGlobals(() => Promise.resolve(globalThis.fetch))
+
+		// Assert
+		expect(seen).toBe(nodeFetch)
+	})
+
+	test('installs the window\'s fetch when asked', async () => {
+		// Arrange
+		const windowFetch = () => Promise.reject(new Error('offline'))
+		const window = Object.assign(new Window({ url: 'http://localhost/' }), { fetch: windowFetch })
+
+		// Act
+		const seen = await withDomGlobals(() => Promise.resolve(globalThis.fetch), { window, fetch: true })
+
+		// Assert
+		expect(seen).toBe(windowFetch)
+	})
+
+	test('puts Node\'s fetch back after installing the window\'s', async () => {
+		// Arrange
+		const nodeFetch = globalThis.fetch
+		const window = new Window({ url: 'http://localhost/' })
+
+		// Act
+		await withDomGlobals(() => Promise.resolve(), { window, fetch: true })
+
+		// Assert
+		expect(globalThis.fetch).toBe(nodeFetch)
+	})
+
+	test('skips keys a catch-all proxy window does not really have', async () => {
+		// Arrange
+		const document = {}
+		const window = new Proxy({ document }, {
+			get: (target, property) => (Reflect.get(target, property) as unknown) ?? (() => {}),
+		})
+
+		// Act
+		const seen = await withDomGlobals(
+			() => Promise.resolve({ document: globalThis.document, element: 'HTMLElement' in globalThis }),
+			{ window },
+		)
+
+		// Assert
+		expect(seen).toEqual({ document, element: false })
+	})
+
+	test('leaves a window it was given open', async () => {
+		// Arrange
+		const window = new Window({ url: 'http://localhost/' })
+		let closed = false
+		window.happyDOM.close = () => {
+			closed = true
+			return Promise.resolve()
+		}
+
+		// Act
+		await withDomGlobals(() => Promise.resolve(), { window })
+
+		// Assert
+		expect(closed).toBe(false)
+	})
+
+	test('takes a half-done install back off when it throws', async () => {
+		// Arrange
+		const window = new Proxy({ document: {} }, {
+			get: (target, property) => {
+				if (property === 'document') throw new Error('boom')
+				return Reflect.get(target, property) as unknown
+			},
+		})
+
+		// Act
+		const failing = withDomGlobals(() => Promise.resolve(), { window })
+
+		// Assert
+		await expect(failing).rejects.toThrow('boom')
+		expect(typeof globalThis.window).toBe('undefined')
 	})
 })

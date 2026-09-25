@@ -30,42 +30,14 @@ const FETCH_GLOBALS = ['fetch', 'Request', 'Response', 'Headers', 'FormData', 'B
 // cannot overwrite (it throws in strict mode).
 const DYNAMIC_GLOBALS = ['location', 'history', 'navigator', 'screen'] as const
 
-/** Options for {@link installDomGlobals}. */
-export type DomGlobalsOptions = {
-	/**
-	 * Also install `fetch`, `Request`, `Response`, `Headers`, `FormData`, `Blob` and `File` from the window.
-	 * Off by default, because Node has its own and most build code expects those.
-	 */
-	fetch?: boolean
-}
-
-/**
- * Puts `window` and its DOM classes onto `globalThis`, and returns a function that puts back exactly what was there before.
- *
- * Globals are captured and restored as property descriptors, not values, so anything that existed before keeps its original shape.
- * That matters for `location` and `navigator`:
- * replacing an accessor with a plain value breaks later build code that expects to assign or delete them.
- *
- * Keys the window doesn't have are skipped, checked with `in`.
- * So a `Proxy` window that answers every `get` is fine to pass, as long as it doesn't trap `has`.
- *
- * Nothing stops two installs from overlapping. The second one would capture the first one's fake globals as "before".
- * Restore in a `finally`, or use {@link withDomGlobals} which does that and serializes calls.
- *
- * @example
- * ```ts
- * const restore = installDomGlobals(new Window({ url: 'http://localhost/' }), { fetch: true })
- * try {
- * 	await import(bundlePath)
- * }
- * finally {
- * 	restore()
- * }
- * ```
- */
-export function installDomGlobals(window: object, options: DomGlobalsOptions = {}): () => void {
+// Puts `window` and its DOM classes onto globalThis, and returns a function that puts back exactly what was there before.
+// Captured and restored as property descriptors, not values, so `location` and `navigator` keep their original shape:
+// replacing an accessor with a plain value breaks later build code that assigns or deletes them.
+// Keys the window doesn't have are skipped, checked with `in`, so a Proxy window that answers every `get` is fine.
+// Nothing stops two installs from overlapping, which is why only withDomGlobals calls this.
+export function installDomGlobals(window: object, includeFetch = false): () => void {
 	const source = window as Record<string, unknown>
-	const copied = options.fetch ? [...WINDOW_GLOBALS, ...FETCH_GLOBALS] : WINDOW_GLOBALS
+	const copied = includeFetch ? [...WINDOW_GLOBALS, ...FETCH_GLOBALS] : WINDOW_GLOBALS
 	const saved = captureGlobals(['window', ...DYNAMIC_GLOBALS, ...copied])
 
 	try {

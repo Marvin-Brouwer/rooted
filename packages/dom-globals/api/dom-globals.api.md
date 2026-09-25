@@ -5,15 +5,13 @@
 ```ts
 
 // @public
-export type DomGlobalsOptions = {
+export function withDomGlobals<T>(evaluate: () => Promise<T>, options?: WithDomGlobalsOptions): Promise<T>;
+
+// @public
+export type WithDomGlobalsOptions = {
+    window?: object;
     fetch?: boolean;
 };
-
-// @public
-export function installDomGlobals(window: object, options?: DomGlobalsOptions): () => void;
-
-// @public
-export function withDomGlobals<T>(evaluate: () => Promise<T>): Promise<T>;
 
 // (No @packageDocumentation comment for this package)
 

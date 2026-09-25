@@ -24,7 +24,8 @@ The split exists for two reasons:
 @rooted/pwa           # imports components (components entry only)
 @rooted/application   # build-time. imports application primitives.
 @rooted/seo           # build-time. imports router (optional peer, types only).
-@rooted/adapter       # build-time. imports seo (types only), dom-globals.
+@rooted/prerender     # build-time, Node only. imports dom-globals.
+@rooted/adapter       # build-time. imports seo (types only), prerender.
 ```
 
 The arrow always points down. `elements` cannot import `components`. `store` does not import `components` (it's usable outside rooted apps). `application` is build-time only and does not ship runtime code that depends on the others. It does depend on `pwa`, but only to copy that package's built file into the build output.
@@ -133,13 +134,17 @@ These packages live in `packages/adapter/` and `packages/adapters/*/`. The split
 
 ## `@rooted/dom-globals`
 
-Puts a happy-dom window onto `globalThis` in plain Node and takes it off again. Two places need that during a build: the router's manifest plugin, to evaluate route files through jiti in `buildStart`, and the adapter's pre-renderer, to boot the built bundle in `closeBundle`.
-They used to carry a copy each, and the copies drifted: one restored in a `finally`, the other only on the happy path.
+Puts a happy-dom window onto `globalThis` in plain Node for as long as a callback runs, and takes it off again. The router's manifest plugin needs that to evaluate route files through jiti in `buildStart`, and `@rooted/prerender` needs it to boot the built bundle in `closeBundle`.
+It exports `withDomGlobals` and nothing else, so every install ends in a `finally` and none can be left open by hand.
 
-Its own package because neither of its users is the right home. `util` goes to the browser and this pulls in happy-dom, router importing from adapter would invert the layering, and installing a DOM isn't the router's job.
+Installing the DOM once for the whole build, `buildStart` through `closeBundle`, doesn't work, and `environment` from `@rooted/util` doesn't change that. `environment` only covers rooted's own code. Third-party code makes its own call, usually by checking for `document`.
+Tried against the recipe book with the PWA on: the `import.meta.url` shim Rollup emits into CommonJS output resolves to `http://localhost/` instead of a file URL, and vite-plugin-pwa fails with `Unable to write the service worker file. 'The URL must be of scheme file'`.
 
-Installing the DOM once for the whole build, `buildStart` through `buildEnd`, was tried first and dropped. Every plugin and dependency then sees `window`, `document` and `location`, and plenty of libraries check `typeof window === 'undefined'` to decide whether they're in Node.
-It also broke vite-plugin-pwa's workbox writer with `Cannot set property location of #<Object> which has only a getter`. So the DOM stays installed for exactly as long as the code that needs it runs.
+## `@rooted/prerender`
+
+Boots the built app in happy-dom, navigates it to each static route and hands back the rendered body. `@rooted/adapter` calls it after the bundle is written and injects the result into the HTML files it generated.
+
+`renderer(options, use)` takes a callback rather than returning something to dispose, so shutting the app down and restoring the globals can't be skipped when writing a file throws. The adapter imports it dynamically, so loading an adapter in `vite.config` doesn't load happy-dom.
 
 ## What about `examples/recipe-book`?
 

@@ -5,6 +5,7 @@ import { routeManifestPluginName, seoPluginName } from '@rooted/seo'
 
 import { resolveAdapterRoutes } from '../utility/adapter-routes.mts'
 
+import { injectSnapshot } from './inject-snapshot.mts'
 import { buildMiddlewareFiles } from './middleware-build.mts'
 
 import type { InternalDefinition } from './create.mts'
@@ -116,28 +117,17 @@ export function buildPlugin<TApplication>(definition: InternalDefinition<TApplic
 			// static route, and inject the resulting body HTML into the shell files.
 			// Imported here so that loading an adapter, which every vite.config
 			// using one does, doesn't drag happy-dom in with it (issue #291).
-			const { createStaticRenderer, injectSnapshot } = await import('../static-renderer.mts')
-			const renderer = await createStaticRenderer(config, outputDirectory)
-				.catch((error: unknown) => {
-					config.logger.warn(`[static-renderer] Setup error: ${String(error)}`)
-				})
+			const { renderer } = await import('@rooted/prerender')
+			await renderer({ outputDirectory, base: config.base, logger: config.logger }, async render => {
+				for (const { staticPath, routeDirectory } of staticRoutes) {
+					const snapshot = await render(staticPath)
+					if (!snapshot) continue
 
-			if (renderer) {
-				// The renderer's DOM stays on globalThis until dispose, so a failed write mustn't skip it
-				try {
-					for (const { staticPath, routeDirectory } of staticRoutes) {
-						const snapshot = await renderer.render(staticPath)
-						if (!snapshot) continue
-
-						const htmlPath = path.join(routeDirectory, 'index.html')
-						const html = await readFile(htmlPath, 'utf8')
-						await writeFile(htmlPath, injectSnapshot(html, snapshot), 'utf8')
-					}
+					const htmlPath = path.join(routeDirectory, 'index.html')
+					const html = await readFile(htmlPath, 'utf8')
+					await writeFile(htmlPath, injectSnapshot(html, snapshot), 'utf8')
 				}
-				finally {
-					await renderer.dispose()
-				}
-			}
+			})
 		},
 	}
 }

@@ -118,12 +118,9 @@ importers:
 
   packages/adapter:
     dependencies:
-      '@rooted/dom-globals':
+      '@rooted/prerender':
         specifier: workspace:^
-        version: link:../dom-globals
-      happy-dom:
-        specifier: ^20.14.5
-        version: 20.14.5
+        version: link:../prerender
     devDependencies:
       '@rooted/development':
         specifier: workspace:*
@@ -762,6 +759,25 @@ importers:
       '@rooted/development':
         specifier: workspace:*
         version: link:../../tooling/development
+      tsx:
+        specifier: ^4.23.13
+        version: 4.23.13
+
+  packages/prerender:
+    dependencies:
+      '@rooted/dom-globals':
+        specifier: workspace:^
+        version: link:../dom-globals
+      happy-dom:
+        specifier: ^20.14.5
+        version: 20.14.5
+    devDependencies:
+      '@rooted/development':
+        specifier: workspace:*
+        version: link:../../tooling/development
+      '@types/node':
+        specifier: ^26.6.1
+        version: 26.6.2
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
