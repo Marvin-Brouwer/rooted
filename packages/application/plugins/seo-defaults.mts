@@ -49,26 +49,43 @@ export function readHtmlSeoDefaults(html: string): HtmlSeoDefaults {
  * It can't read them off the page: after landing on a pre-rendered static route, the document has that route's title,
  * not the one from `index.html`.
  *
- * Reads `index.html` once, when Vite loads the config, so editing its title during `vite dev` needs a restart to show up here.
+ * During `vite dev` it watches `index.html` and restarts the server when the title or description changes,
+ * because a `define` only changes when the config is loaded again. Other edits to `index.html` don't restart anything.
  */
 export function seoDefaultsPlugin(): Plugin {
+	let loaded: HtmlSeoDefaults | undefined
+
 	return {
 		name: seoDefaultsPluginName,
 
 		async config(userConfig) {
-			const root = path.resolve(userConfig.root ?? process.cwd())
-			const html = await readFile(path.join(root, 'index.html'), 'utf8').catch(() => undefined)
-			if (html === undefined) return
+			loaded = await readIndexHtml(path.resolve(userConfig.root ?? process.cwd()))
+			if (!loaded) return
 
-			const { title, description } = readHtmlSeoDefaults(html)
 			return {
 				define: {
-					'import.meta.env.ROOTED_DEFAULT_TITLE': JSON.stringify(title ?? ''),
-					'import.meta.env.ROOTED_DEFAULT_DESCRIPTION': JSON.stringify(description ?? ''),
+					'import.meta.env.ROOTED_DEFAULT_TITLE': JSON.stringify(loaded.title ?? ''),
+					'import.meta.env.ROOTED_DEFAULT_DESCRIPTION': JSON.stringify(loaded.description ?? ''),
 				},
 			}
 		},
+
+		configureServer(server) {
+			const indexPath = path.join(server.config.root, 'index.html')
+			server.watcher.add(indexPath)
+			server.watcher.on('change', async (file) => {
+				if (path.resolve(file) !== indexPath) return
+				const current = await readIndexHtml(server.config.root)
+				if (current?.title === loaded?.title && current?.description === loaded?.description) return
+				await server.restart()
+			})
+		},
 	}
+}
+
+async function readIndexHtml(root: string): Promise<HtmlSeoDefaults | undefined> {
+	const html = await readFile(path.join(root, 'index.html'), 'utf8').catch(() => undefined)
+	return html === undefined ? undefined : readHtmlSeoDefaults(html)
 }
 
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: '\'' }

@@ -3,11 +3,11 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { readHtmlSeoDefaults, seoDefaultsPlugin } from '../plugins/seo-defaults.mts'
 
-import type { UserConfig } from 'vite'
+import type { UserConfig, ViteDevServer } from 'vite'
 
 describe('readHtmlSeoDefaults()', () => {
 	test('reads the title and the description', () => {
@@ -107,9 +107,34 @@ describe('seoDefaultsPlugin()', () => {
 		await rm(root, { recursive: true, force: true })
 	})
 
-	async function config(userConfig: UserConfig) {
-		const hook = seoDefaultsPlugin().config as (config: UserConfig) => Promise<UserConfig | undefined>
+	async function config(userConfig: UserConfig, plugin = seoDefaultsPlugin()) {
+		const hook = plugin.config as (config: UserConfig) => Promise<UserConfig | undefined>
 		return await hook(userConfig)
+	}
+
+	/** Loads the config, starts a stand-in dev server, and returns what an edit to a file would do. */
+	async function devServer() {
+		const plugin = seoDefaultsPlugin()
+		await config({ root }, plugin)
+
+		let onChange: (file: string) => Promise<void> = () => Promise.resolve()
+		const restart = vi.fn(() => Promise.resolve())
+		const server = {
+			config: { root },
+			restart,
+			watcher: {
+				add: vi.fn(),
+				on: (_event: string, handler: typeof onChange) => { onChange = handler },
+			},
+		}
+		const hook = plugin.configureServer as (server: ViteDevServer) => void
+		hook(server as unknown as ViteDevServer)
+
+		return { restart, change: (file: string) => onChange(file) }
+	}
+
+	function writeIndexHtml(html: string) {
+		return writeFile(path.join(root, 'index.html'), html, 'utf8')
 	}
 
 	test('defines the index.html title and description', async () => {
@@ -132,5 +157,44 @@ describe('seoDefaultsPlugin()', () => {
 
 		// Assert
 		expect(result).toBeUndefined()
+	})
+
+	test('restarts the dev server when the title changes', async () => {
+		// Arrange
+		await writeIndexHtml('<title>Before</title>')
+		const server = await devServer()
+		await writeIndexHtml('<title>After</title>')
+
+		// Act
+		await server.change(path.join(root, 'index.html'))
+
+		// Assert
+		expect(server.restart).toHaveBeenCalledOnce()
+	})
+
+	test('leaves the dev server alone when something else in index.html changes', async () => {
+		// Arrange
+		await writeIndexHtml('<title>Same</title>')
+		const server = await devServer()
+		await writeIndexHtml('<title>Same</title><link rel="icon" href="/icon.svg">')
+
+		// Act
+		await server.change(path.join(root, 'index.html'))
+
+		// Assert
+		expect(server.restart).not.toHaveBeenCalled()
+	})
+
+	test('ignores changes to other files', async () => {
+		// Arrange
+		await writeIndexHtml('<title>Before</title>')
+		const server = await devServer()
+		await writeIndexHtml('<title>After</title>')
+
+		// Act
+		await server.change(path.join(root, 'src', 'application.mts'))
+
+		// Assert
+		expect(server.restart).not.toHaveBeenCalled()
 	})
 })
