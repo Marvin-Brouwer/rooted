@@ -51,12 +51,11 @@ export function applyRouteSeoMeta(
 ): void {
 	if (!environment.hasDom) return
 
-	const title = seo?.title
+	document.title = seo?.title
 		? `${seo.title}${options?.titleSuffix ?? ''}`
 		: defaults.title
-	if (title !== undefined) document.title = title
 
-	setMetaByName('description', seo?.description ?? defaults.description, element)
+	setMetaByName('description', seo?.description || defaults.description, element)
 	setMetaByName('robots', seo?.noIndex ? 'noindex' : undefined, element)
 
 	const base = options?.deploymentUrl ?? location.origin

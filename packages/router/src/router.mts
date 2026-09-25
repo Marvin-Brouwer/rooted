@@ -162,7 +162,6 @@ export function router<const T extends RouterConfig>(config: ValidatedRouterConf
 			} = options ?? {}
 
 			let lastPath: string | undefined
-			// Before the first navigation touches the head
 			const seoDefaults = readSeoDefaults()
 
 			let scrollId: string | undefined
