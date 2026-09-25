@@ -1,12 +1,10 @@
-import { normalizePath } from 'vite'
-
 import { crawl, entryModules } from './crawl.mts'
 import { cachedResolve } from './link.mts'
 import { runCheck } from './run.mts'
 import { isScannable, type ModuleScan } from './scan.mts'
 
 import type { LocaleTokenInfo } from '../../src/locale-token.mts'
-import type { ViteDevServer } from 'vite'
+import type { HotUpdateOptions, ViteDevServer } from 'vite'
 
 export type DevelopmentCheckOptions = {
 	/** Prefixes every logged line. */
@@ -19,11 +17,16 @@ export type DevelopmentCheckOptions = {
 // Saves tend to come in bursts (format on save, several files at once)
 const settleDelay = 100
 
+/** Hands the plugin's `hotUpdate` events to the dev check. */
+export type DevelopmentCheck = {
+	fileChanged(type: HotUpdateOptions['type'], file: string): void
+}
+
 /**
  * Runs the check once the dev server is listening, and again after every save of a file it covers.
  * Reports go to the terminal, and only when they changed since the last run.
  */
-export function watchDictionaries(server: ViteDevServer, options: DevelopmentCheckOptions): void {
+export function createDevelopmentCheck(server: ViteDevServer, options: DevelopmentCheckOptions): DevelopmentCheck {
 	const { logger } = server.config
 	const scans = new Map<string, ModuleScan>()
 	const resolve = cachedResolve(async (source, importer) => {
@@ -61,23 +64,21 @@ export function watchDictionaries(server: ViteDevServer, options: DevelopmentChe
 		}, settleDelay)
 	}
 
-	server.watcher.on('change', (file: string) => {
-		const id = normalizePath(file)
-		if (id.endsWith('.html')) return schedule()
-		if (!scans.delete(id)) return
-		schedule()
-	})
-	// A new or removed file can change what an import resolves to
-	for (const event of ['add', 'unlink'] as const) {
-		server.watcher.on(event, (file: string) => {
-			const id = normalizePath(file)
-			if (!isScannable(id)) return
-			scans.delete(id)
-			resolve.clear()
-			schedule()
-		})
-	}
-
 	if (server.httpServer) server.httpServer.once('listening', schedule)
 	else schedule()
+
+	return {
+		fileChanged(type, file) {
+			if (type === 'update') {
+				// The entries live in the html, a scanned file just needs reading again
+				if (file.endsWith('.html') || scans.delete(file)) schedule()
+				return
+			}
+			if (!isScannable(file)) return
+			// A new or removed file can change what an import resolves to
+			scans.delete(file)
+			resolve.clear()
+			schedule()
+		},
+	}
 }

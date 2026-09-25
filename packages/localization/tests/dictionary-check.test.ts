@@ -5,7 +5,7 @@ import { describe, test, expect } from 'vitest'
 import { route } from '@rooted/router/routes'
 
 import { localizationDictionaryCheck, type DictionaryCheckOptions } from '../plugins/dictionary-check.mts'
-import { dictionary, translation } from '../src/dictionary.mts'
+import { dictionary, lookupKey, translation, translationKey } from '../src/dictionary.mts'
 import { configureLocalization } from '../src/localization.mts'
 
 import type { ResolvedConfig } from 'vite'
@@ -107,6 +107,38 @@ describe('localizationDictionaryCheck()', () => {
 
 		// Assert
 		expect(warnings).toEqual([])
+	})
+
+	test('names missing placeholders after their expression, so the line works as a key', async () => {
+		// Arrange
+		const files = {
+			'i18n.mts': configModule,
+			'nl-NL.mts': dictionaryModule(),
+			'page.mts': `import { localization } from './i18n.mts'\nlocalization.text\`hello \${lastName}, \${user.firstName}\``,
+		}
+
+		// Act
+		const warnings = await check(files)
+
+		// Assert
+		expect(warnings).toEqual(['nl-NL is missing 1 entry:\n  "hello {lastName}, {firstName}"  page.mts:2:1'])
+	})
+
+	test('numbers placeholders it can\'t name, and escapes literal braces', async () => {
+		// Arrange
+		const files = {
+			'i18n.mts': configModule,
+			'nl-NL.mts': dictionaryModule(),
+			'page.mts': `import { localization } from './i18n.mts'\nlocalization.text\`{\${count + 1}} \${a.name} \${b.name}\``,
+		}
+
+		// Act
+		const warnings = await check(files)
+
+		// Assert
+		const written = '{{{0}}} {name} {2}'
+		expect(warnings[0]).toContain(JSON.stringify(written))
+		expect(translationKey(written)).toBe(lookupKey(['{', '} ', ' ', '']))
 	})
 
 	test('follows renamed imports, re-exports, namespaces and a destructured text', async () => {

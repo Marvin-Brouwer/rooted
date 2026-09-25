@@ -193,7 +193,7 @@ Each time, it warns about entries a locale is missing, and about entries nothing
   "old label"  src/_shared/i18n/dictionaries/nl-NL.mts
 ```
 
-A missing key with parameters shows `{}` where they go (`"hello {}, {}"`), because the call site only has positions, not names. That's also how `text` looks the entry up at runtime, so the names in the dictionary don't matter for the match.
+A missing key is written the way it would go into the dictionary, so you can paste it into `translation(...)`. Its placeholders are named after the expression at the call site: `${lastName}` and `${user.lastName}` both become `{lastName}`, and anything the plugin can't name, like `${count + 1}`, gets its position, `{0}`. You're free to rename them in the dictionary. `text` matches on the text around the placeholders, not on their names.
 
 Missing entries are warnings by default, since a half-translated locale is a normal state while translation is in progress. Pass `{ strict: true }` to fail the build on them instead. That only affects `vite build`: the dev server never stops over a missing translation, and unused entries only ever warn.
 

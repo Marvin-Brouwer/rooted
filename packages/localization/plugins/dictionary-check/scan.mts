@@ -6,6 +6,7 @@ import { bindingPath, propertyName, stringValue, unwrap, type BindingPath } from
 import { readInstanceOptions, type InstanceOptions } from './instances.mts'
 import { readDictionaryCall, type StaticDictionary } from './literals.mts'
 import { exportBindings, importBindings, staticDependencies, type ExportBinding, type ImportBinding } from './module-bindings.mts'
+import { writtenKey } from './written-key.mts'
 
 import type { ESTree } from 'vite'
 
@@ -20,7 +21,7 @@ export type TextSite = SourcePosition & {
 	instance: BindingPath
 	/** The lookup key, built the same way `text` builds it at runtime. */
 	key: string
-	/** The template as written, with `{}` where the substitutions go. */
+	/** The template written as a dictionary key, see {@link writtenKey}. */
 	text: string
 }
 
@@ -93,7 +94,7 @@ export function scanModule(code: string, id: string): ModuleScan {
 			const tag = bindingPath(node.tag)
 			if (!tag) return
 			const parts = node.quasi.quasis.map(quasi => quasi.value.cooked ?? quasi.value.raw)
-			pending.push({ tag, key: lookupKey(parts), text: parts.join('{}'), ...position(node.start) })
+			pending.push({ tag, key: lookupKey(parts), text: writtenKey(parts, node.quasi.expressions), ...position(node.start) })
 		},
 	}).visit(program)
 

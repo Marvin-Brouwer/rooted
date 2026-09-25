@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { routeManifestPluginName } from '@rooted/seo'
 
-import { watchDictionaries } from './dictionary-check/development.mts'
+import { createDevelopmentCheck, type DevelopmentCheck } from './dictionary-check/development.mts'
 import { cachedResolve } from './dictionary-check/link.mts'
 import { runCheck } from './dictionary-check/run.mts'
 import { isScannable, scanModule, type ModuleScan } from './dictionary-check/scan.mts'
@@ -51,6 +51,7 @@ export function localizationDictionaryCheck(options: DictionaryCheckOptions = {}
 	const scans = new Map<string, ModuleScan>()
 	let config: ResolvedConfig | undefined
 	let manifestApi: RouteManifestApi | undefined
+	let development: DevelopmentCheck | undefined
 
 	function display(id: string): string {
 		return path.relative(config?.root ?? process.cwd(), id).replaceAll('\\', '/')
@@ -68,7 +69,12 @@ export function localizationDictionaryCheck(options: DictionaryCheckOptions = {}
 		},
 
 		configureServer(server) {
-			watchDictionaries(server, { label: `[${name}]`, tokens: () => collectLocaleTokenInfos(manifestApi), display })
+			development = createDevelopmentCheck(server, { label: `[${name}]`, tokens: () => collectLocaleTokenInfos(manifestApi), display })
+		},
+
+		// Only reruns the check, HMR itself carries on as usual
+		hotUpdate({ type, file }) {
+			development?.fileChanged(type, file)
 		},
 
 		buildStart() {

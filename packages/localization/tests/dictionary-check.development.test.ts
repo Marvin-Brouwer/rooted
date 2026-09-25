@@ -1,4 +1,3 @@
-import { EventEmitter } from 'node:events'
 import { existsSync } from 'node:fs'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -8,13 +7,12 @@ import { afterEach, describe, test, expect, vi } from 'vitest'
 
 import { localizationDictionaryCheck } from '../plugins/dictionary-check.mts'
 
-import type { ResolvedConfig, ViteDevServer } from 'vite'
+import type { HotUpdateOptions, ResolvedConfig, ViteDevServer } from 'vite'
 
 type DevelopmentServer = {
-	watcher: EventEmitter
 	warnings: string[]
 	infos: string[]
-	/** Writes a file and tells the watcher, the way an editor save would. */
+	/** Writes a file and passes on the hot update Vite raises for it. */
 	save(file: string, code: string): Promise<void>
 }
 
@@ -39,7 +37,6 @@ async function startServer(files: Record<string, string>, strict = false): Promi
 
 	const warnings: string[] = []
 	const infos: string[] = []
-	const watcher = new EventEmitter()
 	const config = {
 		root: directory,
 		command: 'serve',
@@ -57,21 +54,21 @@ async function startServer(files: Record<string, string>, strict = false): Promi
 		const id = source.startsWith('/') ? path.join(directory, source) : path.join(path.dirname(importer), source)
 		return Promise.resolve(source.match(/^[./]/) && existsSync(id) ? { id, external: false } : null)
 	}
-	const server = { config, watcher, httpServer: null, environments: { client: { pluginContainer: { resolveId } } } }
+	const server = { config, httpServer: null, environments: { client: { pluginContainer: { resolveId } } } }
 
 	const plugin = localizationDictionaryCheck({ strict }) as unknown as {
 		configResolved(config: ResolvedConfig): void
 		configureServer(server: ViteDevServer): void
+		hotUpdate(options: Pick<HotUpdateOptions, 'type' | 'file'>): void
 	}
 	plugin.configResolved(config as unknown as ResolvedConfig)
 	plugin.configureServer(server as unknown as ViteDevServer)
 
 	return {
-		watcher,
 		warnings,
 		infos,
 		async save(file, code) {
-			watcher.emit('change', await write(file, code))
+			plugin.hotUpdate({ type: 'update', file: await write(file, code) })
 		},
 	}
 }
