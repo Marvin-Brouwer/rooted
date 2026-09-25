@@ -44,6 +44,7 @@ export type LocaleTokenInfo = {
     defaultLocale: string;
     locales: readonly string[];
     load(locale: string): Promise<void>;
+    readDictionary(locale: string): Promise<Dictionary | undefined>;
 };
 
 // @public

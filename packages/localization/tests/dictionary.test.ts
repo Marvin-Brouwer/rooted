@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, afterEach } from 'vitest'
 
-import { translation, dictionary, parseTemplate, lookupKey, compileDictionary } from '../src/dictionary.mts'
+import { translation, dictionary, parseTemplate, lookupKey, translationKey, compileDictionary } from '../src/dictionary.mts'
 
 afterEach(() => {
 	vi.restoreAllMocks()
@@ -29,6 +29,19 @@ describe('dictionary()', () => {
 
 		// Assert
 		expect(result).toEqual([greeting, example])
+	})
+})
+
+describe('translationKey()', () => {
+	test('matches the lookup key of a call site with the same text', () => {
+		// Arrange
+		const callSiteParts = ['hello ', ', ', '']
+
+		// Act
+		const result = translationKey('hello {lastName}, {firstName}')
+
+		// Assert
+		expect(result).toBe(lookupKey(callSiteParts))
 	})
 })
 

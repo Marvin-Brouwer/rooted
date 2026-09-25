@@ -2,7 +2,7 @@ import { href } from '@rooted/router'
 import { environment } from '@rooted/util'
 import { isDevelopment } from '@rooted/util/dev'
 
-import { compileDictionary, lookupKey, type CompiledEntry, type DictionaryLoader } from './dictionary.mts'
+import { compileDictionary, lookupKey, type CompiledEntry, type Dictionary, type DictionaryLoader } from './dictionary.mts'
 import { createDocumentObserver, type ObserveDocumentOptions } from './document.mts'
 import { createLocaleParameter, type LocaleParameter } from './locale-token.mts'
 import { createLocalizedFactory, type LocalizedRender } from './localized.mts'
@@ -312,6 +312,17 @@ export function configureLocalization<
 		void load()
 	}
 
+	async function readDictionary(locale: string): Promise<Dictionary | undefined> {
+		const loader = dictionaries.get(locale as TLocale)
+		if (!loader) return undefined
+		try {
+			return (await loader()).default
+		}
+		catch {
+			return undefined
+		}
+	}
+
 	function branch<T>(loaders: LocaleBranches<TLocale, T>): Promise<T> {
 		const locale = currentLocale()
 		const loader = loaders[locale]
@@ -353,7 +364,12 @@ export function configureLocalization<
 	}
 
 	return {
-		parameter: createLocaleParameter(defaultLocale, supportedLocales, async locale => void await load(locale as TLocale)),
+		parameter: createLocaleParameter(
+			defaultLocale,
+			supportedLocales,
+			async locale => void await load(locale as TLocale),
+			readDictionary,
+		),
 		supportedLocales,
 		dictionaries,
 		Locale: defaultLocale,
