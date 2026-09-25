@@ -11,16 +11,28 @@ export type HtmlSeoDefaults = {
 	description: string | undefined
 }
 
+/** A whole `<meta>` tag, including quoted values that contain `>`. */
+const META_TAG = /<meta\b(?:[^>"']|"[^"]*"|'[^']*')*>/gi
+/** `name="description"`, as its own attribute, so `data-name` doesn't match. */
+const DESCRIPTION_NAME = /\sname\s*=\s*(?:"description"|'description'|description(?=[\s/>]))/i
+/** The `content` value, in whichever of the three quoting styles it's written. */
+const CONTENT_ATTRIBUTE = /\scontent\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i
+
 /**
- * Reads the `<title>` and the description meta out of an HTML document.
- * Regex, not a parser: it only has to handle an `index.html` somebody wrote by hand.
+ * Reads the `<title>` and the description meta out of the `<head>` of an HTML document.
+ *
+ * Regex, not a parser, so loading the config doesn't pull in a DOM library. It skips comments,
+ * handles `>` inside quoted attribute values, and only looks at the head, so an `<svg><title>` in the body doesn't count.
+ * Every pattern is linear, so no input makes it slow.
  */
 export function readHtmlSeoDefaults(html: string): HtmlSeoDefaults {
-	const title = /<title[^>]*>([^<]*)<\/title>/i.exec(html)?.[1]
+	const withoutComments = html.replaceAll(/<!--[\s\S]*?(?:-->|$)/g, '')
+	const head = /<head\b[\s\S]*?<\/head>/i.exec(withoutComments)?.[0] ?? withoutComments
 
-	const description = html.match(/<meta\b[^>]*>/gi)
-		?.find(tag => /\bname\s*=\s*["']description["']/i.test(tag))
-		?.match(/\bcontent\s*=\s*(?:"([^"]*)"|'([^']*)')/i)
+	const title = /<title\b[^>]*>([^<]*)<\/title>/i.exec(head)?.[1]
+	const description = head.match(META_TAG)
+		?.find(tag => DESCRIPTION_NAME.test(tag))
+		?.match(CONTENT_ATTRIBUTE)
 		?.slice(1)
 		.find(value => value !== undefined)
 

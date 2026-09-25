@@ -43,6 +43,50 @@ describe('readHtmlSeoDefaults()', () => {
 		expect(result.title).toBe('Salt & Pepper – 🌶')
 	})
 
+	test('ignores a data-name attribute', () => {
+		// Arrange
+		const html = '<meta data-name="description" content="wrong"><meta name="description" content="right">'
+
+		// Act
+		const result = readHtmlSeoDefaults(html)
+
+		// Assert
+		expect(result.description).toBe('right')
+	})
+
+	test('keeps a > inside a quoted value', () => {
+		// Arrange
+		const html = '<meta name="description" content="1 > 0 is true">'
+
+		// Act
+		const result = readHtmlSeoDefaults(html)
+
+		// Assert
+		expect(result.description).toBe('1 > 0 is true')
+	})
+
+	test('skips commented-out tags', () => {
+		// Arrange
+		const html = '<!-- <title>Old</title> --><title>Current</title>'
+
+		// Act
+		const result = readHtmlSeoDefaults(html)
+
+		// Assert
+		expect(result.title).toBe('Current')
+	})
+
+	test('only reads the head, not an svg title in the body', () => {
+		// Arrange
+		const html = '<head><title>Page</title></head><body><svg><title>Icon</title></svg></body>'
+
+		// Act
+		const result = readHtmlSeoDefaults(html)
+
+		// Assert
+		expect(result.title).toBe('Page')
+	})
+
 	test('leaves out what isn\'t there', () => {
 		// Act
 		const result = readHtmlSeoDefaults('<head><meta name="viewport" content="width=device-width"></head>')

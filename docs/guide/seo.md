@@ -86,7 +86,7 @@ Two paths:
   The plugin doesn't read your routes to do this. It asks whoever registered a page and metadata provider, and `routeSeoPlugin` is what registers them from the route manifest. That's why the routing-free half works on its own, and it's the seam to use if your pages come from somewhere other than routes.
 - **At runtime**, when the router navigates to a new route, it updates `document.title` and the existing meta tags in place. This happens inside the router; you don't have to wire it up.
 
-  A route without a `seo.title` or `seo.description` gets the title and description from your `index.html`, the same as its pre-rendered page does. The previous route's Open Graph and robots tags are removed, not left behind. `rootedManifest` reads `index.html` at build time and passes the values in through `import.meta.env`, because after landing on a pre-rendered page the document only has that page's own title. Without `rootedManifest` there are no defaults, so such a route gets an empty title and no description. `og:image` is the exception: it only changes when a route or `defaultOgImage` sets one.
+  A route that doesn't set a `seo.title` or `seo.description` shows the title and description from your `index.html`, the same as its pre-rendered page. Tags that only belong to the previous route, like its Open Graph title and description or a `noindex`, are removed when you navigate away. `og:image` only changes when the new route or `defaultOgImage` sets one, so set `defaultOgImage` if your routes don't all have an image.
 
 You can pass router-specific SEO options through the router itself:
 
