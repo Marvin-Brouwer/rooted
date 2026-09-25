@@ -17,6 +17,8 @@ The published `@rooted/*` packages live here, one folder each.
 | [`@rooted/pwa`](./pwa) | Service worker registration and the update components. |
 | [`@rooted/seo`](./seo) | Build-time SEO: meta tags, sitemaps, `robots.txt`, and `llms.txt`. |
 | [`@rooted/adapter`](./adapter) | Base package for deployment adapters. See also [`adapters/`](./adapters). |
+| [`@rooted/dom-globals`](./dom-globals) | Build-time happy-dom globals for the route manifest and pre-rendering. Not part of the public API. |
+| [`@rooted/prerender`](./prerender) | Build-time pre-rendering in happy-dom, used by `@rooted/adapter`. Not part of the public API. |
 | [`@rooted/util`](./util) | Internal utilities. Not part of the public API. |
 
 For usage docs, start in [`docs/guide/`](../docs/guide/). For the deeper APIs, see [`docs/advanced/`](../docs/advanced/). For the "why" behind the package layout, see [`docs/maintainers/package-design.md`](../docs/maintainers/package-design.md).

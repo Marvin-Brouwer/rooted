@@ -18,7 +18,7 @@ export function injectMetaTags(
 	}
 
 	if (seo?.noIndex) {
-		html = insertBeforeHead(html, `\t<meta name="robots" content="noindex" />`)
+		html = replaceOrInsertMeta(html, 'name', 'robots', 'noindex')
 	}
 
 	html = injectCanonical(html, canonicalUrl)
@@ -27,9 +27,10 @@ export function injectMetaTags(
 	return html
 }
 
+// Replaces rather than skips: a pre-rendered page already carries the tags the app wrote at runtime,
+// and those are built from the pre-renderer's `http://localhost` origin.
 export function injectCanonical(html: string, canonicalUrl: string): string {
-	if (/<link[^>]+rel=["']canonical["']/i.test(html)) return html
-	return insertBeforeHead(html, `\t<link rel="canonical" href="${escapeAttribute(canonicalUrl)}" />`)
+	return replaceOrInsert(html, /<link[^>]+rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${escapeAttribute(canonicalUrl)}" />`)
 }
 
 export function injectOgTags(
@@ -38,22 +39,19 @@ export function injectOgTags(
 	canonicalUrl: string,
 	defaultOgImage: string | undefined,
 ): string {
-	const ogImage = seo?.image ?? defaultOgImage
-	const tags: string[] = []
+	if (seo?.title) html = replaceOrInsertMeta(html, 'property', 'og:title', seo.title)
+	if (seo?.description) html = replaceOrInsertMeta(html, 'property', 'og:description', seo.description)
+	html = replaceOrInsertMeta(html, 'property', 'og:url', canonicalUrl)
 
-	if (seo?.title && !hasMeta(html, 'property', 'og:title'))
-		tags.push(`\t<meta property="og:title" content="${escapeAttribute(seo.title)}" />`)
-	if (seo?.description && !hasMeta(html, 'property', 'og:description'))
-		tags.push(`\t<meta property="og:description" content="${escapeAttribute(seo.description)}" />`)
-	if (!hasMeta(html, 'property', 'og:url'))
-		tags.push(`\t<meta property="og:url" content="${escapeAttribute(canonicalUrl)}" />`)
-	if (ogImage && !hasMeta(html, 'property', 'og:image'))
-		tags.push(`\t<meta property="og:image" content="${escapeAttribute(ogImage)}" />`)
+	// The page's own image wins, the default only fills a gap
+	if (seo?.image) html = replaceOrInsertMeta(html, 'property', 'og:image', seo.image)
+	else if (defaultOgImage && !hasMeta(html, 'property', 'og:image'))
+		html = insertBeforeHead(html, `\t<meta property="og:image" content="${escapeAttribute(defaultOgImage)}" />`)
+
 	if (!hasMeta(html, 'property', 'og:type'))
-		tags.push(`\t<meta property="og:type" content="website" />`)
+		html = insertBeforeHead(html, `\t<meta property="og:type" content="website" />`)
 
-	if (tags.length === 0) return html
-	return insertBeforeHead(html, tags.join('\n'))
+	return html
 }
 
 export function injectHeadLinks(
@@ -63,20 +61,21 @@ export function injectHeadLinks(
 	const tags: string[] = []
 
 	for (const link of links) {
-		if (hasLink(html, link.rel, link.hreflang)) continue
 		const hreflang = link.hreflang ? ` hreflang="${escapeAttribute(link.hreflang)}"` : ''
-		tags.push(`\t<link rel="${escapeAttribute(link.rel)}"${hreflang} href="${escapeAttribute(link.href)}" />`)
+		const tag = `<link rel="${escapeAttribute(link.rel)}"${hreflang} href="${escapeAttribute(link.href)}" />`
+		const existing = linkPattern(link.rel, link.hreflang)
+		if (existing.test(html)) html = html.replace(existing, tag)
+		else tags.push(`\t${tag}`)
 	}
 
 	if (tags.length === 0) return html
 	return insertBeforeHead(html, tags.join('\n'))
 }
 
-function hasLink(html: string, relation: string, hreflang: string | undefined): boolean {
-	if (!hreflang) return new RegExp(`<link[^>]+rel=["']${relation}["']`, 'i').test(html)
+function linkPattern(relation: string, hreflang: string | undefined): RegExp {
+	if (!hreflang) return new RegExp(`<link[^>]+rel=["']${relation}["'][^>]*>`, 'i')
 	// Attribute order is not guaranteed, so require both attributes on the same tag
-	const pattern = new RegExp(`<link(?=[^>]+rel=["']${relation}["'])(?=[^>]+hreflang=["']${hreflang}["'])[^>]*>`, 'i')
-	return pattern.test(html)
+	return new RegExp(`<link(?=[^>]+rel=["']${relation}["'])(?=[^>]+hreflang=["']${hreflang}["'])[^>]*>`, 'i')
 }
 
 export function injectRootJsonLd(
@@ -100,9 +99,12 @@ export function injectRootJsonLd(
 
 function replaceOrInsertMeta(html: string, attribute: string, value: string, content: string): string {
 	const pattern = new RegExp(`<meta[^>]+${attribute}=["']${value}["'][^>]*>`, 'i')
-	const replacement = `<meta ${attribute}="${value}" content="${escapeAttribute(content)}" />`
-	if (pattern.test(html)) return html.replace(pattern, replacement)
-	return insertBeforeHead(html, `\t${replacement}`)
+	return replaceOrInsert(html, pattern, `<meta ${attribute}="${value}" content="${escapeAttribute(content)}" />`)
+}
+
+function replaceOrInsert(html: string, pattern: RegExp, tag: string): string {
+	if (pattern.test(html)) return html.replace(pattern, tag)
+	return insertBeforeHead(html, `\t${tag}`)
 }
 
 function hasMeta(html: string, attribute: string, value: string): boolean {

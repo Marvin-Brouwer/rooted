@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import { analyzer } from 'vite-bundle-analyzer'
 import { ManifestOptions, type VitePWAOptions } from 'vite-plugin-pwa'
 
+import { prerenderSettings, type SettleOptions } from '@rooted/adapter'
 import { cssLoader } from '@rooted/components/css-loader'
 import { llmsTxtPlugin, robotsPlugin, seoPlugin, type SeoOptions } from '@rooted/seo'
 import { ArrayElement } from '@rooted/util'
@@ -69,6 +70,17 @@ export type RootedApplicationManifest = {
 	 */
 	icon?: string
 	seo?: SeoOptions
+	/**
+	 * How long pre-rendering waits for each page to finish before writing it.
+	 * By default a page is done once its document has gone 30ms without changing, and never waits longer than 2 seconds.
+	 *
+	 * @example
+	 * ```ts
+	 * // A page that loads its content in steps, with pauses in between
+	 * prerender: { quietPeriod: 100, timeout: 5000 }
+	 * ```
+	 */
+	prerender?: SettleOptions
 	runtimeCaching?: RuntimeCaching[]
 	/**
 	 * Scripts to load at the top of the generated service worker, before workbox sets itself up.
@@ -208,6 +220,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 				pwaAssetsPlugin({ webManifest, skip: skipPwaAssets, deploymentUrl: manifest.webManifest.url }),
 				seoPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo),
 				seoDefaultsPlugin(),
+				manifest.prerender && prerenderSettings(manifest.prerender),
 				manifest.seo?.robots !== false && robotsPlugin(manifest.webManifest.url, manifest.seo?.robots),
 				manifest.seo?.llmsTxt !== false && llmsTxtPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo?.llmsTxt || undefined),
 			],

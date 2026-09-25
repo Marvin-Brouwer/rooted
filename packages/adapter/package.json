@@ -46,7 +46,7 @@
 		}
 	},
 	"dependencies": {
-		"happy-dom": "^20.14.5"
+		"@rooted/prerender": "workspace:^"
 	},
 	"devDependencies": {
 		"@rooted/seo": "workspace:^",

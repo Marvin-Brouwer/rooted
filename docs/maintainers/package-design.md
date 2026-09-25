@@ -14,16 +14,18 @@ The split exists for two reasons:
 @rooted/elements      # imports util
 @rooted/events        # imports util
 @rooted/observers     # leaf. no dependencies at all
+@rooted/dom-globals   # build-time, Node only. leaf (happy-dom).
 @rooted/storage       # imports util (no DOM-component deps)
 @rooted/store         # imports util
 @rooted/components    # imports util, elements, events
-@rooted/router        # imports util, components
+@rooted/router        # imports util, components, dom-globals (manifest plugin only)
 @rooted/localization  # imports util, router, components
 @rooted/markdown      # imports components
 @rooted/pwa           # imports components (components entry only)
 @rooted/application   # build-time. imports application primitives.
 @rooted/seo           # build-time. imports router (optional peer, types only).
-@rooted/adapter       # build-time. imports seo (types only).
+@rooted/prerender     # build-time, Node only. imports dom-globals.
+@rooted/adapter       # build-time. imports seo (types only), prerender.
 ```
 
 The arrow always points down. `elements` cannot import `components`. `store` does not import `components` (it's usable outside rooted apps). `application` is build-time only and does not ship runtime code that depends on the others. It does depend on `pwa`, but only to copy that package's built file into the build output.
@@ -129,6 +131,28 @@ The 17 `@rooted-adapters/*` packages are thin wrappers around `@rooted/adapter`.
 App developers install one `@rooted-adapters/*` package in `devDependencies` and never touch `@rooted/adapter` directly. Adapter authors who need to publish a custom host adapter depend on `@rooted/adapter` and call `staticAdapter` or `routedAdapter`.
 
 These packages live in `packages/adapter/` and `packages/adapters/*/`. The split is documented in [adr/2026-05-17.adapter-split.md](../adr/2026-05-17.adapter-split.md).
+
+## `@rooted/dom-globals`
+
+Puts a happy-dom window onto `globalThis` in plain Node for as long as a callback runs, and takes it off again. The router's manifest plugin needs that to evaluate route files through jiti in `buildStart`, and `@rooted/prerender` needs it inside each render worker to boot the built bundle.
+It exports `withDomGlobals` and nothing else, so every install ends in a `finally` and none can be left open by hand.
+
+Installing the DOM once for the whole build, `buildStart` through `closeBundle`, doesn't work, and `environment` from `@rooted/util` doesn't change that. `environment` only covers rooted's own code. Third-party code makes its own call, usually by checking for `document`.
+Tried against the recipe book with the PWA on: the `import.meta.url` shim Rollup emits into CommonJS output resolves to `http://localhost/` instead of a file URL, and vite-plugin-pwa fails with `Unable to write the service worker file. 'The URL must be of scheme file'`.
+
+## `@rooted/prerender`
+
+Boots the built app in happy-dom for each static route, inside the real `index.html` and at the route's own URL, and hands back the whole document. `@rooted/adapter` calls it after the bundle is written, puts the route's SEO over the result and writes it as that route's page.
+The whole document rather than just the body, because the app writes to `<head>` too: component stylesheets are `<link>` tags added at runtime, and without them a pre-rendered page shows unstyled until the JS runs.
+
+Every page gets its own worker thread. That's the only way to get a fresh module graph in Node: an ES module is evaluated once per thread, so an app booted once and navigated from route to route carries everything over, stylesheets, stores and components included. It also means the fake DOM never touches the build's own `globalThis`.
+The cost is a full boot per page. Pages render side by side, as many as the machine has cores.
+
+Nothing tells the renderer when a page is done, since route components load lazily. So it waits until the document has gone 30ms without a change, 2 seconds at most per page. An app changes both with `rootedManifest({ prerender: { quietPeriod, timeout } })`, which reaches the adapter through the `prerenderSettings` plugin, the same way `@rooted/seo` is found.
+
+happy-dom can do this on its own: its `Browser` loads each page's scripts itself, in a fresh window. It can't run a Vite bundle yet, though. Its module compiler doesn't rewrite `import.meta` after a `?`, and Vite's preload helper does exactly that. Once that's fixed, the worker can go, and so can `@rooted/dom-globals` for the pre-render.
+
+`renderer(options, use)` takes a callback rather than returning something to dispose, so there's nothing to forget when writing a file throws. The adapter imports it dynamically, so loading an adapter in `vite.config` doesn't load happy-dom.
 
 ## What about `examples/recipe-book`?
 

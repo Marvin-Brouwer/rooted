@@ -5,9 +5,9 @@ import path from 'node:path'
 import { createJiti } from 'jiti'
 import { glob } from 'tinyglobby'
 
-import packageJson from '../package.json' with { type: 'json' }
+import { withDomGlobals } from '@rooted/dom-globals'
 
-import { withDomGlobals } from './dom-globals.mts'
+import packageJson from '../package.json' with { type: 'json' }
 
 // Via the package entry, not `../src/route.mts`, so this build shares the declaration. See #245.
 import type { AnyRoute, UnknownRoute } from '@rooted/router'

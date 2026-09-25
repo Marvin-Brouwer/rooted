@@ -67,7 +67,7 @@
 		"extract-api": "rooted-development extract-api"
 	},
 	"dependencies": {
-		"happy-dom": "^20.14.5",
+		"@rooted/dom-globals": "workspace:^",
 		"jiti": "^2.7.0",
 		"tinyglobby": "^0.2.17"
 	},

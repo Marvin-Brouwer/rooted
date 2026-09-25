@@ -59,6 +59,14 @@ export default defineConfig({
 				replacement: fileURLToPath(new URL('packages/seo/plugins/_module/seo.mts', import.meta.url)),
 			},
 			{
+				find: '@rooted/dom-globals',
+				replacement: fileURLToPath(new URL('packages/dom-globals/src/_module/dom-globals.mts', import.meta.url)),
+			},
+			{
+				find: '@rooted/prerender',
+				replacement: fileURLToPath(new URL('packages/prerender/src/_module/prerender.mts', import.meta.url)),
+			},
+			{
 				find: '@rooted/adapter',
 				replacement: fileURLToPath(new URL('packages/adapter/src/_module/adapter.mts', import.meta.url)),
 			},

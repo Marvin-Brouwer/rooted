@@ -173,6 +173,8 @@ See the [`recipe-book` example](./examples/recipe-book) for a full vertical-slic
 | [`@rooted/pwa`](./packages/pwa) | Service worker registration, plus components for showing that a new version is waiting. |
 | [`@rooted/seo`](./packages/seo) | Build-time SEO: meta tags, Open Graph, sitemaps, `robots.txt`, and `llms.txt`. |
 | [`@rooted/adapter`](./packages/adapter) | Base package for deployment adapters. Prerendering and the shared build work. |
+| [`@rooted/dom-globals`](./packages/dom-globals) | Build-time plumbing that puts a happy-dom window on `globalThis` in Node. Not for app code. |
+| [`@rooted/prerender`](./packages/prerender) | Build-time pre-rendering of the built app in happy-dom, used by the adapters. Not for app code. |
 | [`@rooted/util`](./packages/util) | Shared utilities (seeded IDs, client-side checks, dev helpers). |
 
 
