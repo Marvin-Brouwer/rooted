@@ -64,3 +64,14 @@ export function exportBindings(program: ESTree.Program, defaultBinding: string) 
 
 	return { exports, starExports }
 }
+
+/** The specifiers of every static import and re-export that loads a module at runtime. */
+export function staticDependencies(program: ESTree.Program): string[] {
+	const sources: string[] = []
+	for (const statement of program.body) {
+		if (statement.type === 'ImportDeclaration' && statement.importKind !== 'type') sources.push(statement.source.value)
+		if (statement.type === 'ExportAllDeclaration' && statement.exportKind !== 'type') sources.push(statement.source.value)
+		if (statement.type === 'ExportNamedDeclaration' && statement.source && statement.exportKind !== 'type') sources.push(statement.source.value)
+	}
+	return sources
+}

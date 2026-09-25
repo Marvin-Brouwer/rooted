@@ -42,7 +42,7 @@ async function check(files: SourceFiles, { routes, ...options }: CheckSetup = {}
 		transform: { handler(this: typeof context, code: string, id: string): void }
 		buildEnd(this: typeof context, error?: Error): Promise<void>
 	}
-	hooks.configResolved({ root, plugins: manifestPlugins } as unknown as ResolvedConfig)
+	hooks.configResolved({ root, command: 'build', plugins: manifestPlugins } as unknown as ResolvedConfig)
 	hooks.buildStart()
 	for (const [file, code] of Object.entries(files)) hooks.transform.handler.call(context, code, path.posix.join(root, file))
 	await hooks.buildEnd.call(context)

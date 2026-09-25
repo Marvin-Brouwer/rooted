@@ -4,6 +4,21 @@ import type { ModuleScan, SourcePosition, TextSite } from './scan.mts'
 /** Resolves an import specifier to a module id, `undefined` for externals and anything unresolvable. */
 export type Resolve = (source: string, importer: string) => Promise<string | undefined>
 
+/** Wraps a resolver so each specifier is only resolved once per importer. `clear` forgets everything, for when files come and go. */
+export function cachedResolve(resolve: Resolve): Resolve & { clear(): void } {
+	const cache = new Map<string, Promise<string | undefined>>()
+	const cached = (source: string, importer: string) => {
+		const key = `${importer}\u0000${source}`
+		let result = cache.get(key)
+		if (!result) {
+			result = resolve(source, importer)
+			cache.set(key, result)
+		}
+		return result
+	}
+	return Object.assign(cached, { clear: () => cache.clear() })
+}
+
 export type LocatedSite = TextSite & { id: string }
 
 /** A `configureLocalization` call with the `text` call sites that lead back to it. */

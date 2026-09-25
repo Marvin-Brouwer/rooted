@@ -22,8 +22,8 @@ export type EntrySources = {
 }
 
 /**
- * Reads every dictionary of one instance. Evaluated entries through the matching locale token come first,
- * since they hold whatever the dictionary module computed. Without one, the keys are read from the dictionary module's source.
+ * Reads every dictionary of one instance. A dictionary whose keys are all string literals is read from source,
+ * which stays current while `vite dev` runs. Otherwise the matching locale token loads it, so computed keys count too.
  * Whatever can't be read either way ends up in `notes` rather than being reported as missing or unused.
  */
 export async function readEntries(instance: LinkedInstance, instanceCount: number, sources: EntrySources) {
@@ -42,6 +42,13 @@ export async function readEntries(instance: LinkedInstance, instanceCount: numbe
 	for (const locale of locales) {
 		const specifier = instance.dictionaries.get(locale)
 		const file = specifier === undefined ? undefined : await sources.resolve(specifier, instance.id)
+		const dictionary = file === undefined ? undefined : sources.scans.get(file)?.dictionary
+
+		// Source is always current, the token's copy is whatever loaded at startup
+		if (file !== undefined && dictionary?.unreadable === 0) {
+			entries.push({ locale, file, keys: dictionary.keys })
+			continue
+		}
 
 		const evaluated = await token?.readDictionary(locale)
 		if (evaluated) {
@@ -49,15 +56,12 @@ export async function readEntries(instance: LinkedInstance, instanceCount: numbe
 			continue
 		}
 
-		const dictionary = file === undefined ? undefined : sources.scans.get(file)?.dictionary
 		if (file === undefined || !dictionary) {
 			notes.push(`${locale}: couldn't read the dictionary for configureLocalization at ${where}, so it isn't checked.`)
 			continue
 		}
-		if (dictionary.unreadable > 0) {
-			const count = dictionary.unreadable === 1 ? '1 entry has' : `${dictionary.unreadable} entries have`
-			notes.push(`${locale}: ${count} a key that isn't a string literal in ${sources.display(file)}, so ${dictionary.unreadable === 1 ? 'it isn\'t' : 'they aren\'t'} checked and may cover some of the missing entries.`)
-		}
+		const count = dictionary.unreadable === 1 ? '1 entry has' : `${dictionary.unreadable} entries have`
+		notes.push(`${locale}: ${count} a key that isn't a string literal in ${sources.display(file)}, so ${dictionary.unreadable === 1 ? 'it isn\'t' : 'they aren\'t'} checked and may cover some of the missing entries.`)
 		entries.push({ locale, file, keys: dictionary.keys })
 	}
 

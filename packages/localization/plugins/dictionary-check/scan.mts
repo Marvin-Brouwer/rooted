@@ -2,10 +2,10 @@ import { parseAst, Visitor } from 'vite'
 
 import { lookupKey } from '../../src/dictionary.mts'
 
-import { bindingPath, propertyName, unwrap, type BindingPath } from './ast.mts'
+import { bindingPath, propertyName, stringValue, unwrap, type BindingPath } from './ast.mts'
 import { readInstanceOptions, type InstanceOptions } from './instances.mts'
 import { readDictionaryCall, type StaticDictionary } from './literals.mts'
-import { exportBindings, importBindings, type ExportBinding, type ImportBinding } from './module-bindings.mts'
+import { exportBindings, importBindings, staticDependencies, type ExportBinding, type ImportBinding } from './module-bindings.mts'
 
 import type { ESTree } from 'vite'
 
@@ -34,9 +34,17 @@ export type ModuleScan = {
 	sites: readonly TextSite[]
 	/** The `dictionary(...)` entries in this module, if it has any. */
 	dictionary: StaticDictionary | undefined
+	/** Every module this one loads: static imports, re-exports and `import('...')` with a literal specifier. */
+	dependencies: readonly string[]
 }
 
 const packageName = '@rooted/localization'
+const scannableFile = /\.[cm]?[jt]sx?$/
+
+/** Whether a module id is a script of the app itself: no query, not virtual, not a dependency. */
+export function isScannable(id: string): boolean {
+	return !id.includes('?') && !id.startsWith('\0') && !id.includes('/node_modules/') && scannableFile.test(id)
+}
 
 export function scanModule(code: string, id: string): ModuleScan {
 	const program = parseAst(code, { lang: languageOf(id) }, id)
@@ -44,6 +52,7 @@ export function scanModule(code: string, id: string): ModuleScan {
 
 	const imports = importBindings(program)
 	const { exports, starExports } = exportBindings(program, defaultExportBinding)
+	const dependencies = new Set(staticDependencies(program))
 	const packageFunction = packageFunctionReader(imports)
 
 	const instances = new Map<string, InstanceOptions & SourcePosition>()
@@ -76,6 +85,10 @@ export function scanModule(code: string, id: string): ModuleScan {
 			dictionary ??= { keys: new Map(), unreadable: 0 }
 			readDictionaryCall(node, call => packageFunction(call) === 'translation', dictionary)
 		},
+		ImportExpression(node) {
+			const specifier = stringValue(node.source)
+			if (specifier !== undefined) dependencies.add(specifier)
+		},
 		TaggedTemplateExpression(node) {
 			const tag = bindingPath(node.tag)
 			if (!tag) return
@@ -93,7 +106,7 @@ export function scanModule(code: string, id: string): ModuleScan {
 		if (instance) sites.push({ instance, ...site })
 	}
 
-	return { imports, exports, starExports, instances, sites, dictionary }
+	return { imports, exports, starExports, instances, sites, dictionary, dependencies: [...dependencies] }
 }
 
 // Names the package function a call goes to, whatever it was imported as
