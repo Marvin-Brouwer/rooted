@@ -123,15 +123,20 @@ export function buildPlugin<TApplication>(definition: InternalDefinition<TApplic
 				})
 
 			if (renderer) {
-				for (const { staticPath, routeDirectory } of staticRoutes) {
-					const snapshot = await renderer.render(staticPath)
-					if (!snapshot) continue
+				// The renderer's DOM stays on globalThis until dispose, so a failed write mustn't skip it
+				try {
+					for (const { staticPath, routeDirectory } of staticRoutes) {
+						const snapshot = await renderer.render(staticPath)
+						if (!snapshot) continue
 
-					const htmlPath = path.join(routeDirectory, 'index.html')
-					const html = await readFile(htmlPath, 'utf8')
-					await writeFile(htmlPath, injectSnapshot(html, snapshot), 'utf8')
+						const htmlPath = path.join(routeDirectory, 'index.html')
+						const html = await readFile(htmlPath, 'utf8')
+						await writeFile(htmlPath, injectSnapshot(html, snapshot), 'utf8')
+					}
 				}
-				await renderer.dispose()
+				finally {
+					await renderer.dispose()
+				}
 			}
 		},
 	}

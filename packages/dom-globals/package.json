@@ -1,0 +1,57 @@
+{
+	"name": "@rooted/dom-globals",
+	"version": "1.0.0-alpha.0",
+	"description": "Build-time happy-dom globals for the rooted framework",
+	"keywords": [
+		"happy-dom",
+		"prerender",
+		"typescript",
+		"rooted"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Marvin-Brouwer/rooted.git",
+		"directory": "packages/dom-globals"
+	},
+	"homepage": "https://github.com/Marvin-Brouwer/rooted#readme",
+	"bugs": "https://github.com/Marvin-Brouwer/rooted/issues",
+	"sideEffects": false,
+	"publishConfig": {
+		"registry": "https://registry.npmjs.org/",
+		"access": "public",
+		"provenance": true
+	},
+	"files": [
+		"dist",
+		"readme.md"
+	],
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
+	},
+	"exports": {
+		".": {
+			"source": "./src/_module/dom-globals.mts",
+			"import": "./dist/dom-globals.mjs",
+			"types": "./dist/dom-globals.d.mts"
+		}
+	},
+	"scripts": {
+		"build": "pnpm build:ci",
+		"build:dev": "pnpm build:ci && rooted-development extract-api",
+		"build:ci": "tsdown",
+		"watch": "tsdown --watch --no-clean",
+		"clean": "rm -rf dist",
+		"extract-api": "rooted-development extract-api"
+	},
+	"dependencies": {
+		"happy-dom": "^20.14.5"
+	},
+	"devDependencies": {
+		"@rooted/development": "workspace:*",
+		"@rooted/util": "workspace:^",
+		"@types/node": "^26.6.1",
+		"tsx": "^4.23.13"
+	}
+}

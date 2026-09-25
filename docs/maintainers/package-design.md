@@ -14,16 +14,17 @@ The split exists for two reasons:
 @rooted/elements      # imports util
 @rooted/events        # imports util
 @rooted/observers     # leaf. no dependencies at all
+@rooted/dom-globals   # build-time, Node only. leaf (happy-dom).
 @rooted/storage       # imports util (no DOM-component deps)
 @rooted/store         # imports util
 @rooted/components    # imports util, elements, events
-@rooted/router        # imports util, components
+@rooted/router        # imports util, components, dom-globals (manifest plugin only)
 @rooted/localization  # imports util, router, components
 @rooted/markdown      # imports components
 @rooted/pwa           # imports components (components entry only)
 @rooted/application   # build-time. imports application primitives.
 @rooted/seo           # build-time. imports router (optional peer, types only).
-@rooted/adapter       # build-time. imports seo (types only).
+@rooted/adapter       # build-time. imports seo (types only), dom-globals.
 ```
 
 The arrow always points down. `elements` cannot import `components`. `store` does not import `components` (it's usable outside rooted apps). `application` is build-time only and does not ship runtime code that depends on the others. It does depend on `pwa`, but only to copy that package's built file into the build output.
@@ -129,6 +130,16 @@ The 17 `@rooted-adapters/*` packages are thin wrappers around `@rooted/adapter`.
 App developers install one `@rooted-adapters/*` package in `devDependencies` and never touch `@rooted/adapter` directly. Adapter authors who need to publish a custom host adapter depend on `@rooted/adapter` and call `staticAdapter` or `routedAdapter`.
 
 These packages live in `packages/adapter/` and `packages/adapters/*/`. The split is documented in [adr/2026-05-17.adapter-split.md](../adr/2026-05-17.adapter-split.md).
+
+## `@rooted/dom-globals`
+
+Puts a happy-dom window onto `globalThis` in plain Node and takes it off again. Two places need that during a build: the router's manifest plugin, to evaluate route files through jiti in `buildStart`, and the adapter's pre-renderer, to boot the built bundle in `closeBundle`.
+They used to carry a copy each, and the copies drifted: one restored in a `finally`, the other only on the happy path.
+
+Its own package because neither of its users is the right home. `util` goes to the browser and this pulls in happy-dom, router importing from adapter would invert the layering, and installing a DOM isn't the router's job.
+
+Installing the DOM once for the whole build, `buildStart` through `buildEnd`, was tried first and dropped. Every plugin and dependency then sees `window`, `document` and `location`, and plenty of libraries check `typeof window === 'undefined'` to decide whether they're in Node.
+It also broke vite-plugin-pwa's workbox writer with `Cannot set property location of #<Object> which has only a getter`. So the DOM stays installed for exactly as long as the code that needs it runs.
 
 ## What about `examples/recipe-book`?
 

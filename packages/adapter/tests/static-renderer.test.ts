@@ -14,6 +14,9 @@ import type { ResolvedConfig } from 'vite'
 // createStaticRenderer only reads `base` and `logger`
 const config = { base: '/', logger: { warn() {} } } as unknown as ResolvedConfig
 
+// Read before any test runs, so a renderer that broke it in an earlier test can't hide that here
+const nodeNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+
 let outputDirectory: string | undefined
 
 /** A built app, reduced to the two files the renderer looks for. */
@@ -66,5 +69,19 @@ describe('createStaticRenderer()', () => {
 		// Assert
 		expect(renderer).toBeUndefined()
 		expect(typeof window).toBe('undefined')
+	})
+
+	test('restores navigator as the accessor Node defines once disposed', async () => {
+		// Arrange
+		const directory = await buildOutput('export const loaded = true\n')
+		const renderer = await createStaticRenderer(config, directory)
+
+		// Act
+		await renderer?.dispose()
+
+		// Assert
+		const after = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+		expect(after?.get).toBe(nodeNavigator?.get)
+		expect(after?.value).toBe(nodeNavigator?.value)
 	})
 })

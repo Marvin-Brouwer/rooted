@@ -6,7 +6,7 @@ import { describe, test, expect } from 'vitest'
 
 import { environment } from '@rooted/util'
 
-import { withDomGlobals } from '../plugins/dom-globals.mts'
+import { withDomGlobals } from '../src/_module/dom-globals.mts'
 
 describe('withDomGlobals()', () => {
 	test('the test environment really has no DOM', () => {
@@ -121,18 +121,6 @@ describe('withDomGlobals()', () => {
 
 		// Assert
 		expect(seen).toBe('object')
-		expect(typeof window).toBe('undefined')
-	})
-
-	test('the router root barrel can be imported inside it', async () => {
-		// Act: the exact import that crashes route-manifest generation without a DOM.
-		// It reaches @rooted/components -> @rooted/elements -> @rooted/events,
-		// where a class extends ErrorEvent at module scope.
-		const routerModule = await withDomGlobals(() => import('../src/_module/router.mts'))
-
-		// Assert
-		expect(routerModule.href).toBeDefined()
-		expect(routerModule.Link).toBeDefined()
 		expect(typeof window).toBe('undefined')
 	})
 })

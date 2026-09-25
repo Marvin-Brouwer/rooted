@@ -118,6 +118,9 @@ importers:
 
   packages/adapter:
     dependencies:
+      '@rooted/dom-globals':
+        specifier: workspace:^
+        version: link:../dom-globals
       happy-dom:
         specifier: ^20.14.5
         version: 20.14.5
@@ -655,6 +658,25 @@ importers:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1)
 
+  packages/dom-globals:
+    dependencies:
+      happy-dom:
+        specifier: ^20.14.5
+        version: 20.14.5
+    devDependencies:
+      '@rooted/development':
+        specifier: workspace:*
+        version: link:../../tooling/development
+      '@rooted/util':
+        specifier: workspace:^
+        version: link:../util
+      '@types/node':
+        specifier: ^26.6.1
+        version: 26.6.2
+      tsx:
+        specifier: ^4.23.13
+        version: 4.23.13
+
   packages/elements:
     devDependencies:
       '@rooted/development':
@@ -758,9 +780,9 @@ importers:
 
   packages/router:
     dependencies:
-      happy-dom:
-        specifier: ^20.14.5
-        version: 20.14.5
+      '@rooted/dom-globals':
+        specifier: workspace:^
+        version: link:../dom-globals
       jiti:
         specifier: ^2.7.0
         version: 2.7.0
