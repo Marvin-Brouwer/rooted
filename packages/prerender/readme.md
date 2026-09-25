@@ -5,7 +5,7 @@ Build-time pre-rendering for the [`@rooted/*`](https://github.com/Marvin-Brouwer
 > [!IMPORTANT]
 > This package is still in alpha.
 
-Boots the built app in [happy-dom](https://github.com/capricorn86/happy-dom), navigates it to each static route and hands back the rendered body.
-`@rooted/adapter` uses it to fill the static HTML files it writes. The DOM globals come from `@rooted/dom-globals` and are gone again once rendering is done.
+Boots the built app in [happy-dom](https://github.com/capricorn86/happy-dom) for each static route, in a worker thread of its own, and hands back the rendered document.
+`@rooted/adapter` uses it to fill the static HTML files it writes. The DOM globals come from `@rooted/dom-globals` and only ever exist inside the worker.
 
 Node only. App code should not depend on this package directly.

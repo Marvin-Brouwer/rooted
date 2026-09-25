@@ -134,7 +134,7 @@ These packages live in `packages/adapter/` and `packages/adapters/*/`. The split
 
 ## `@rooted/dom-globals`
 
-Puts a happy-dom window onto `globalThis` in plain Node for as long as a callback runs, and takes it off again. The router's manifest plugin needs that to evaluate route files through jiti in `buildStart`, and `@rooted/prerender` needs it to boot the built bundle in `closeBundle`.
+Puts a happy-dom window onto `globalThis` in plain Node for as long as a callback runs, and takes it off again. The router's manifest plugin needs that to evaluate route files through jiti in `buildStart`, and `@rooted/prerender` needs it inside each render worker to boot the built bundle.
 It exports `withDomGlobals` and nothing else, so every install ends in a `finally` and none can be left open by hand.
 
 Installing the DOM once for the whole build, `buildStart` through `closeBundle`, doesn't work, and `environment` from `@rooted/util` doesn't change that. `environment` only covers rooted's own code. Third-party code makes its own call, usually by checking for `document`.
@@ -142,12 +142,15 @@ Tried against the recipe book with the PWA on: the `import.meta.url` shim Rollup
 
 ## `@rooted/prerender`
 
-Boots the built app in happy-dom, inside the real `index.html`, navigates it to each static route and hands back the whole document. `@rooted/adapter` calls it after the bundle is written, puts the route's SEO over the result and writes it as that route's page.
+Boots the built app in happy-dom for each static route, inside the real `index.html` and at the route's own URL, and hands back the whole document. `@rooted/adapter` calls it after the bundle is written, puts the route's SEO over the result and writes it as that route's page.
 The whole document rather than just the body, because the app writes to `<head>` too: component stylesheets are `<link>` tags added at runtime, and without them a pre-rendered page shows unstyled until the JS runs.
 
-The app boots once for all routes, so the document carries over from one route to the next. A stylesheet one route pulled in is still linked on every page rendered after it. Harmless, a few extra requests, and in a minified build there are only a couple of stylesheets anyway.
+Every page gets its own worker thread. That's the only way to get a fresh module graph in Node: an ES module is evaluated once per thread, so an app booted once and navigated from route to route carries everything over, stylesheets, stores and components included. It also means the fake DOM never touches the build's own `globalThis`.
+The cost is a full boot per page. Pages render side by side, as many as the machine has cores.
 
-`renderer(options, use)` takes a callback rather than returning something to dispose, so shutting the app down and restoring the globals can't be skipped when writing a file throws. The adapter imports it dynamically, so loading an adapter in `vite.config` doesn't load happy-dom.
+happy-dom can do this on its own: its `Browser` loads each page's scripts itself, in a fresh window. It can't run a Vite bundle yet, though. Its module compiler doesn't rewrite `import.meta` after a `?`, and Vite's preload helper does exactly that. Once that's fixed, the worker can go, and so can `@rooted/dom-globals` for the pre-render.
+
+`renderer(options, use)` takes a callback rather than returning something to dispose, so there's nothing to forget when writing a file throws. The adapter imports it dynamically, so loading an adapter in `vite.config` doesn't load happy-dom.
 
 ## What about `examples/recipe-book`?
 

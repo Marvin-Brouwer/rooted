@@ -115,19 +115,17 @@ export function buildPlugin<TApplication>(definition: InternalDefinition<TApplic
 				staticRoutes.push({ staticPath, htmlPath })
 			}
 
-			// SSG pre-render pass -- boot the app once in happy-dom, navigate to each
-			// static route, and write the whole rendered document over its shell.
+			// SSG pre-render pass -- boot the app in happy-dom for each static route,
+			// and write the whole rendered document over its shell.
 			// Imported here so that loading an adapter, which every vite.config
 			// using one does, doesn't drag happy-dom in with it (issue #291).
 			const { renderer } = await import('@rooted/prerender')
-			await renderer({ html: indexHtml, outputDirectory, base: config.base, logger: config.logger }, async render => {
-				for (const { staticPath, htmlPath } of staticRoutes) {
+			await renderer({ html: indexHtml, outputDirectory, base: config.base, logger: config.logger }, render =>
+				Promise.all(staticRoutes.map(async ({ staticPath, htmlPath }) => {
 					const rendered = await render(staticPath)
-					if (!rendered) continue
-
-					await writeFile(htmlPath, withRouteSeo(rendered, staticPath), 'utf8')
-				}
-			})
+					if (rendered) await writeFile(htmlPath, withRouteSeo(rendered, staticPath), 'utf8')
+				})),
+			)
 		},
 	}
 }

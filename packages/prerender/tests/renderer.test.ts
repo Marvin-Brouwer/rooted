@@ -1,18 +1,15 @@
 // @vitest-environment node
-// Runs in plain Node on purpose: the renderer installs its own happy-dom
-// and restores the globals afterwards, which only means anything where there were none.
+// Runs in plain Node on purpose: the renderer is supposed to leave this thread's globals alone,
+// which only means anything where there's no DOM to begin with.
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import { afterEach, describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 
 import { renderer } from '../src/_module/prerender.mts'
 
 import type { RendererOptions } from '../src/_module/prerender.mts'
-
-// Read before any test runs, so a renderer that broke it in an earlier test can't hide that here
-const nodeNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
 
 let outputDirectory: string | undefined
 
@@ -23,7 +20,7 @@ async function buildOutput(bundle: string, body = defaultBody, head = ''): Promi
 	outputDirectory = await mkdtemp(path.join(tmpdir(), 'rooted-prerender-'))
 	await writeFile(path.join(outputDirectory, 'bundle.mjs'), bundle)
 	const html = `<!DOCTYPE html><html><head><script type="module" src="/bundle.mjs"></script>${head}</head><body>${body}</body></html>`
-	return { html, outputDirectory, base: '/', logger: { warn() {} } }
+	return { html, outputDirectory, base: '/', logger: { warn: vi.fn() } }
 }
 
 afterEach(async () => {
@@ -35,14 +32,14 @@ describe('renderer()', () => {
 	test('the bundle can tell it is being pre-rendered, at module scope', async () => {
 		// Arrange: how @rooted/util recognises the pre-render, checked the moment the bundle evaluates
 		const options = await buildOutput(
-			"globalThis.__seen_by_bundle = { happyDom: 'happyDOM' in window, nonsense: '__nope' in window }\n",
+			"document.querySelector('#app').textContent = JSON.stringify({ happyDom: 'happyDOM' in window, nonsense: '__nope' in window })\n",
 		)
 
 		// Act
-		await renderer(options, () => Promise.resolve())
+		const html = await renderer(options, render => render('/'))
 
 		// Assert
-		expect((globalThis as Record<string, unknown>)['__seen_by_bundle']).toEqual({ happyDom: true, nonsense: false })
+		expect(html).toContain('{"happyDom":true,"nonsense":false}')
 	})
 
 	test('renders the whole document, doctype included', async () => {
@@ -54,6 +51,47 @@ describe('renderer()', () => {
 
 		// Assert
 		expect(html).toBe('<!DOCTYPE html>\n<html><head><script type="module" src="/bundle.mjs"></script></head><body><div id="app">booted</div></body></html>')
+	})
+
+	test('boots the app on the page\'s own URL', async () => {
+		// Arrange
+		const options = await buildOutput("document.querySelector('#app').textContent = location.pathname\n")
+
+		// Act
+		const html = await renderer(options, render => render('/recipes/pasta/'))
+
+		// Assert
+		expect(html).toContain('<div id="app">/recipes/pasta/</div>')
+	})
+
+	test('starts every page from scratch, nothing carries over', async () => {
+		// Arrange: module state and <head> both survive when one app renders every page
+		const options = await buildOutput(
+			'globalThis.boots = (globalThis.boots ?? 0) + 1\n'
+			+ "document.head.append(Object.assign(document.createElement('link'), { rel: 'stylesheet', href: location.pathname + 'page.css' }))\n"
+			+ "document.querySelector('#app').textContent = 'boot ' + globalThis.boots\n",
+		)
+
+		// Act
+		const pages = await renderer(options, render => Promise.all([render('/first/'), render('/second/')]))
+
+		// Assert
+		expect(pages?.[1]).toContain('<div id="app">boot 1</div>')
+		expect(pages?.[1]).toContain('href="/second/page.css"')
+		expect(pages?.[1]).not.toContain('/first/page.css')
+	})
+
+	test('waits for content the app renders after a lazy import', async () => {
+		// Arrange: route components load lazily, so the page isn't done when the bundle finishes evaluating
+		const options = await buildOutput(
+			"setTimeout(() => setTimeout(() => { document.querySelector('#app').textContent = 'lazy' }, 20), 0)\n",
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert
+		expect(html).toContain('<div id="app">lazy</div>')
 	})
 
 	test('keeps what the app added to head, like a component stylesheet', async () => {
@@ -86,67 +124,58 @@ describe('renderer()', () => {
 	test('doesn\'t run scripts from the shell, only the bundle', async () => {
 		// Arrange
 		const options = await buildOutput(
-			'export const loaded = true\n',
+			"document.querySelector('#app').textContent = String(globalThis.shellScriptRan)\n",
 			defaultBody,
-			'<script>globalThis.__shell_script_ran = true</script>',
+			'<script>globalThis.shellScriptRan = true</script>',
 		)
 
 		// Act
-		await renderer(options, () => Promise.resolve())
+		const html = await renderer(options, render => render('/'))
 
 		// Assert
-		expect((globalThis as Record<string, unknown>)['__shell_script_ran']).toBeUndefined()
+		expect(html).toContain('<div id="app">undefined</div>')
 	})
 
-	test('leaves no window behind once done', async () => {
+	test('never installs a DOM on this thread', async () => {
 		// Arrange
 		const options = await buildOutput('export const loaded = true\n')
 
 		// Act
-		await renderer(options, () => Promise.resolve())
-
-		// Assert
-		expect(typeof window).toBe('undefined')
-	})
-
-	test('leaves no window behind when the callback throws', async () => {
-		// Arrange
-		const options = await buildOutput('export const loaded = true\n')
-
-		// Act
-		const failing = renderer(options, () => Promise.reject(new Error('write failed')))
-
-		// Assert
-		await expect(failing).rejects.toThrow('write failed')
-		expect(typeof window).toBe('undefined')
-	})
-
-	test('skips the callback and restores the globals when the bundle fails to load', async () => {
-		// Arrange
-		const options = await buildOutput('throw new Error("boom")\n')
-		let called = false
-
-		// Act
-		const result = await renderer(options, () => {
-			called = true
-			return Promise.resolve('rendered')
+		const seenWhileRendering = await renderer(options, async (render) => {
+			const rendering = render('/')
+			const seen = typeof window
+			await rendering
+			return seen
 		})
 
 		// Assert
-		expect({ result, called }).toEqual({ result: undefined, called: false })
+		expect(seenWhileRendering).toBe('undefined')
 		expect(typeof window).toBe('undefined')
+		expect(Object.getOwnPropertyDescriptor(globalThis, 'navigator')?.get).toBeTypeOf('function')
 	})
 
-	test('restores navigator as the accessor Node defines', async () => {
+	test('warns and returns undefined for a page whose bundle throws', async () => {
 		// Arrange
-		const options = await buildOutput('export const loaded = true\n')
+		const options = await buildOutput('throw new Error("boom")\n')
 
 		// Act
-		await renderer(options, () => Promise.resolve())
+		const html = await renderer(options, render => render('/broken/'))
 
 		// Assert
-		const after = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
-		expect(after?.get).toBe(nodeNavigator?.get)
-		expect(after?.value).toBe(nodeNavigator?.value)
+		expect(html).toBeUndefined()
+		expect(options.logger.warn).toHaveBeenCalledWith(expect.stringContaining('Rendering /broken/ failed: Error: boom'))
+	})
+
+	test('skips the callback when the shell has no module script', async () => {
+		// Arrange
+		const options = { ...await buildOutput(''), html: '<html><head></head><body></body></html>' }
+		const use = vi.fn(() => Promise.resolve('rendered'))
+
+		// Act
+		const result = await renderer(options, use)
+
+		// Assert
+		expect(result).toBeUndefined()
+		expect(use).not.toHaveBeenCalled()
 	})
 })
