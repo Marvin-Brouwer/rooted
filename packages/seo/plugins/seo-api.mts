@@ -212,9 +212,10 @@ export type SeoApi = {
 	/**
 	 * Injects per-page meta tags into an HTML string for a static route.
 	 *
-	 * Inserts `<title>`, `<meta name="description">`, `<link rel="canonical">`,
-	 * `<meta name="robots">` (when `noIndex` is true), and Open Graph tags.
-	 * Tags that already exist in the HTML are left unchanged.
+	 * Sets `<title>`, `<meta name="description">`, `<link rel="canonical">`,
+	 * `<meta name="robots">` (when `noIndex` is true), Open Graph tags and the site's `WebSite` JSON-LD.
+	 * What the route says wins: a tag already in the HTML, from the shell or written by the app while pre-rendering, is replaced.
+	 * The default `og:image` and `og:type` only fill a gap.
 	 *
 	 * Metadata comes from the providers registered with {@link SeoApi.addRouteSeoProvider},
 	 * so the caller doesn't need to know where a page's SEO came from.

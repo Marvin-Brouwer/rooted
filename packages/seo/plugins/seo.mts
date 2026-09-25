@@ -140,7 +140,8 @@ export function seoPlugin(
 				return new URL(file, deploymentUrl).href
 			},
 			injectRouteHtml(html: string, staticPath: string): string {
-				let result = injectMetaTags(html, routeSeo(staticPath), toLocation(staticPath), defaultOgImage, titleSuffix)
+				let result = injectRootJsonLd(html, webManifest, deploymentUrl)
+				result = injectMetaTags(result, routeSeo(staticPath), toLocation(staticPath), defaultOgImage, titleSuffix)
 				const links = headLinkProviders.flatMap(provider => provider(staticPath) ?? [])
 				if (links.length > 0) {
 					result = injectHeadLinks(result, links.map(link => ({ rel: link.rel, hreflang: link.hreflang, href: toLocation(link.path) })))

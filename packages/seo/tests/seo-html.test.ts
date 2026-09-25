@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest'
 
-import { injectHeadLinks } from '../plugins/seo-html.mts'
+import { injectHeadLinks, injectMetaTags } from '../plugins/seo-html.mts'
 
 const shell = '<html><head><title>x</title>\n</head><body></body></html>'
 
@@ -21,9 +21,9 @@ describe('injectHeadLinks()', () => {
 		expect(result.indexOf('hreflang="en-GB"')).toBeLessThan(result.indexOf('</head>'))
 	})
 
-	test('skips links that already exist with the same rel and hreflang', () => {
-		// Arrange
-		const existing = shell.replace('</head>', '<link rel="alternate" hreflang="en-GB" href="https://old.example/" />\n</head>')
+	test('replaces a link that already exists with the same rel and hreflang', () => {
+		// Arrange: what the app writes while pre-rendering, from happy-dom's origin
+		const existing = shell.replace('</head>', '<link rel="alternate" hreflang="en-GB" href="http://localhost/en-GB/">\n</head>')
 
 		// Act
 		const result = injectHeadLinks(existing, [
@@ -31,7 +31,7 @@ describe('injectHeadLinks()', () => {
 		])
 
 		// Assert
-		expect(result).toBe(existing)
+		expect(result).toBe(shell.replace('</head>', '<link rel="alternate" hreflang="en-GB" href="https://example.com/en-GB/" />\n</head>'))
 	})
 
 	test('escapes attribute values', () => {
@@ -50,5 +50,44 @@ describe('injectHeadLinks()', () => {
 
 		// Assert
 		expect(result).toBe(shell)
+	})
+})
+
+describe('injectMetaTags() on a pre-rendered page', () => {
+	// What the router writes into <head> at runtime, from happy-dom's origin
+	const rendered = '<html><head><title>Runtime</title>'
+		+ '<link rel="canonical" href="http://localhost/about/">'
+		+ '<meta property="og:url" content="http://localhost/about/">'
+		+ '<meta property="og:title" content="Runtime">'
+		+ '<meta property="og:image" content="https://example.com/runtime.png">'
+		+ '\n</head><body></body></html>'
+
+	test('replaces the canonical and og:url with the deployment URL', () => {
+		// Act
+		const result = injectMetaTags(rendered, undefined, 'https://example.com/about/', undefined, undefined)
+
+		// Assert
+		expect(result).toContain('<link rel="canonical" href="https://example.com/about/" />')
+		expect(result).toContain('<meta property="og:url" content="https://example.com/about/" />')
+		expect(result).not.toContain('localhost')
+	})
+
+	test('replaces the title and og:title with the route\'s', () => {
+		// Act
+		const result = injectMetaTags(rendered, { title: 'About' }, 'https://example.com/about/', undefined, ' | Site')
+
+		// Assert
+		expect(result).toContain('<title>About | Site</title>')
+		expect(result).toContain('<meta property="og:title" content="About" />')
+		expect(result.match(/og:title/g)).toHaveLength(1)
+	})
+
+	test('keeps an og:image that is there when the route has none of its own', () => {
+		// Act
+		const result = injectMetaTags(rendered, undefined, 'https://example.com/about/', 'https://example.com/default.png', undefined)
+
+		// Assert
+		expect(result).toContain('content="https://example.com/runtime.png"')
+		expect(result).not.toContain('default.png')
 	})
 })
