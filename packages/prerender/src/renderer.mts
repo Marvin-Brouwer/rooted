@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -15,7 +14,9 @@ const SCRIPT_MODULE_RE = /<script[^>]+type=["']module["'][^>]+src=["']([^"']+)["
 
 /** Options for {@link renderer}. The last two line up with Vite's `ResolvedConfig`, so `config.base` and `config.logger` fit. */
 export type RendererOptions = {
-	/** The build output: `index.html` plus the bundle its module script points at. */
+	/** The page shell to boot the app in, usually the built `index.html`. Its module script says which bundle to load. */
+	html: string
+	/** The build output the module script's `src` is relative to. */
 	outputDirectory: string
 	/** The app's base path, `/` unless it's served from a subfolder. */
 	base: string
@@ -23,16 +24,24 @@ export type RendererOptions = {
 	logger: { warn(message: string): void }
 }
 
-/** Navigates the booted app to `staticPath` and returns `document.body.innerHTML`, or `undefined` when there's nothing to show. */
+/**
+ * Navigates the booted app to `staticPath` and returns the whole document as HTML, doctype included.
+ * That's the shell as the app left it: the rendered body, plus whatever the app added to `<head>`,
+ * like component stylesheets and the route's title. Returns `undefined` when rendering fails.
+ */
 export type Render = (staticPath: string) => Promise<string | undefined>
 
 /**
  * Boots the built app in happy-dom and hands `use` a function that renders one path at a time.
  *
+ * The app boots inside `options.html`, so it finds its mount point the way it would in a browser, custom selector or not.
+ * Scripts in the shell don't run, only the bundle does. Every render serializes the whole document,
+ * so something the app added to `<head>` on one route (a stylesheet, say) is still there on the next.
+ *
  * Once `use` settles, whether it returned or threw, the app is shut down and the globals are put back.
  * There's nothing to dispose by hand.
  *
- * Returns what `use` returned. When the app can't be booted (no readable `index.html`, no module script in it,
+ * Returns what `use` returned. When the app can't be booted (no module script in `options.html`,
  * or the bundle throws on import), it warns through `logger`, skips `use` and returns `undefined`.
  * An error thrown by `use` itself is passed on.
  *
@@ -41,22 +50,24 @@ export type Render = (staticPath: string) => Promise<string | undefined>
  *
  * @example
  * ```ts
- * await renderer({ outputDirectory, base: config.base, logger: config.logger }, async render => {
+ * await renderer({ html: indexHtml, outputDirectory, base: config.base, logger: config.logger }, async render => {
  * 	for (const staticPath of staticPaths) {
- * 		const body = await render(staticPath)
- * 		if (body) await writeSnapshot(staticPath, body)
+ * 		const html = await render(staticPath)
+ * 		if (html) await writePage(staticPath, html)
  * 	}
  * })
  * ```
  */
 export async function renderer<T>(options: RendererOptions, use: (render: Render) => Promise<T>): Promise<T | undefined> {
-	const bundlePath = await findBundle(options)
+	const bundlePath = findBundle(options)
 	if (!bundlePath) return undefined
 
 	const happyWindow = new Window({
 		url: `http://localhost${options.base}`,
 		settings: {
+			// The bundle is imported by Node below. Nothing in the shell should run on its own.
 			disableJavaScriptFileLoading: true,
+			disableJavaScriptEvaluation: true,
 			disableCSSFileLoading: true,
 		},
 	})
@@ -64,8 +75,8 @@ export async function renderer<T>(options: RendererOptions, use: (render: Render
 	const pendingIO: Array<() => void> = []
 	installStubs(happyWindow as unknown as Record<string, unknown>, pendingIO)
 
-	// Seed the document body with the app mount point before the bundle boots
-	happyWindow.document.body.innerHTML = '<div id="app"></div>'
+	// The real shell, so the app mounts where it would in a browser
+	happyWindow.document.write(options.html)
 
 	// Proxied so a missing property on `window` is a no-op function instead of a throw
 	const noOpWindow = new Proxy(happyWindow, {
@@ -79,7 +90,7 @@ export async function renderer<T>(options: RendererOptions, use: (render: Render
 			happyWindow.history.pushState(undefined, '', options.base + staticPath.slice(1))
 			happyWindow.dispatchEvent(new HappyPopStateEvent('popstate', { state: undefined }))
 			await tick()
-			return happyWindow.document.body.innerHTML || undefined
+			return serialize(happyWindow.document)
 		}
 		catch {
 			return undefined
@@ -108,16 +119,10 @@ export async function renderer<T>(options: RendererOptions, use: (render: Render
 	}, { window: noOpWindow, fetch: true })
 }
 
-async function findBundle(options: RendererOptions): Promise<string | undefined> {
-	const indexHtml = await readFile(path.join(options.outputDirectory, 'index.html'), 'utf8')
-		.catch((error: unknown) => {
-			options.logger.warn(`[static-renderer] Setup error: ${String(error)}. Skipping SSG pre-render.`)
-		})
-	if (indexHtml === undefined) return undefined
-
-	const scriptMatch = SCRIPT_MODULE_RE.exec(indexHtml)
+function findBundle(options: RendererOptions): string | undefined {
+	const scriptMatch = SCRIPT_MODULE_RE.exec(options.html)
 	if (!scriptMatch) {
-		options.logger.warn('[static-renderer] No module script found in built index.html. Skipping SSG pre-render.')
+		options.logger.warn('[static-renderer] No module script found in the page shell. Skipping SSG pre-render.')
 		return undefined
 	}
 
@@ -126,6 +131,11 @@ async function findBundle(options: RendererOptions): Promise<string | undefined>
 		? scriptSource.slice(options.base.length)
 		: scriptSource.replace(/^\//, '')
 	return path.join(options.outputDirectory, relativeSource)
+}
+
+function serialize(document: Window['document']): string {
+	const doctype = document.doctype ? `<!DOCTYPE ${document.doctype.name}>\n` : ''
+	return doctype + document.documentElement.outerHTML
 }
 
 async function shutDown(happyWindow: Window, pendingIO: Array<() => void>): Promise<void> {

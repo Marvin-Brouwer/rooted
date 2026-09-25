@@ -12,6 +12,7 @@ export function renderer<T>(options: RendererOptions, use: (render: Render) => P
 
 // @public
 export type RendererOptions = {
+    html: string;
     outputDirectory: string;
     base: string;
     logger: {

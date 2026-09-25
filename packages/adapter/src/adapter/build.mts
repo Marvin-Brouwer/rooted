@@ -5,7 +5,6 @@ import { routeManifestPluginName, seoPluginName } from '@rooted/seo'
 
 import { resolveAdapterRoutes } from '../utility/adapter-routes.mts'
 
-import { injectSnapshot } from './inject-snapshot.mts'
 import { buildMiddlewareFiles } from './middleware-build.mts'
 
 import type { InternalDefinition } from './create.mts'
@@ -97,7 +96,11 @@ export function buildPlugin<TApplication>(definition: InternalDefinition<TApplic
 				await writeFile(indexHtmlPath, rootHtml, 'utf8')
 			}
 
-			const staticRoutes: Array<{ staticPath: string, routeDirectory: string }> = []
+			// Route-level SEO goes on last, over whatever the page ended up as,
+			// so it wins over the title and meta the app sets while rendering
+			const withRouteSeo = (html: string, staticPath: string) => seoApi ? seoApi.injectRouteHtml(html, staticPath) : html
+
+			const staticRoutes: Array<{ staticPath: string, htmlPath: string }> = []
 
 			for (const staticPath of resolvedRoutes.staticPaths) {
 				const segments = staticPath.split('/').filter(Boolean)
@@ -106,26 +109,23 @@ export function buildPlugin<TApplication>(definition: InternalDefinition<TApplic
 				const routeDirectory = path.join(outputDirectory, ...segments)
 				await mkdir(routeDirectory, { recursive: true })
 
-				const html = seoApi
-					? seoApi.injectRouteHtml(indexHtml, staticPath)
-					: indexHtml
-				await writeFile(path.join(routeDirectory, 'index.html'), html, 'utf8')
-				staticRoutes.push({ staticPath, routeDirectory })
+				// The plain shell stays as the page when pre-rendering is skipped or a route fails to render
+				const htmlPath = path.join(routeDirectory, 'index.html')
+				await writeFile(htmlPath, withRouteSeo(indexHtml, staticPath), 'utf8')
+				staticRoutes.push({ staticPath, htmlPath })
 			}
 
 			// SSG pre-render pass -- boot the app once in happy-dom, navigate to each
-			// static route, and inject the resulting body HTML into the shell files.
+			// static route, and write the whole rendered document over its shell.
 			// Imported here so that loading an adapter, which every vite.config
 			// using one does, doesn't drag happy-dom in with it (issue #291).
 			const { renderer } = await import('@rooted/prerender')
-			await renderer({ outputDirectory, base: config.base, logger: config.logger }, async render => {
-				for (const { staticPath, routeDirectory } of staticRoutes) {
-					const snapshot = await render(staticPath)
-					if (!snapshot) continue
+			await renderer({ html: indexHtml, outputDirectory, base: config.base, logger: config.logger }, async render => {
+				for (const { staticPath, htmlPath } of staticRoutes) {
+					const rendered = await render(staticPath)
+					if (!rendered) continue
 
-					const htmlPath = path.join(routeDirectory, 'index.html')
-					const html = await readFile(htmlPath, 'utf8')
-					await writeFile(htmlPath, injectSnapshot(html, snapshot), 'utf8')
+					await writeFile(htmlPath, withRouteSeo(rendered, staticPath), 'utf8')
 				}
 			})
 		},

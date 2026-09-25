@@ -142,7 +142,10 @@ Tried against the recipe book with the PWA on: the `import.meta.url` shim Rollup
 
 ## `@rooted/prerender`
 
-Boots the built app in happy-dom, navigates it to each static route and hands back the rendered body. `@rooted/adapter` calls it after the bundle is written and injects the result into the HTML files it generated.
+Boots the built app in happy-dom, inside the real `index.html`, navigates it to each static route and hands back the whole document. `@rooted/adapter` calls it after the bundle is written, puts the route's SEO over the result and writes it as that route's page.
+The whole document rather than just the body, because the app writes to `<head>` too: component stylesheets are `<link>` tags added at runtime, and without them a pre-rendered page shows unstyled until the JS runs.
+
+The app boots once for all routes, so the document carries over from one route to the next. A stylesheet one route pulled in is still linked on every page rendered after it. Harmless, a few extra requests, and in a minified build there are only a couple of stylesheets anyway.
 
 `renderer(options, use)` takes a callback rather than returning something to dispose, so shutting the app down and restoring the globals can't be skipped when writing a file throws. The adapter imports it dynamically, so loading an adapter in `vite.config` doesn't load happy-dom.
 

@@ -1,4 +1,6 @@
 // Globals copied from the window onto globalThis. Node built-ins (setTimeout, process, Buffer, URL, …) are intentionally left alone.
+// That's also why this isn't @happy-dom/global-registrator: it copies every window property that differs,
+// which replaces 33 things Node already has, timers, queueMicrotask, Buffer, URL, crypto and fetch among them.
 const WINDOW_GLOBALS = [
 	'document', 'customElements',
 	'HTMLElement', 'Element', 'Node', 'EventTarget', 'DocumentFragment', 'ShadowRoot',

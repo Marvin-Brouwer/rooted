@@ -16,12 +16,14 @@ const nodeNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
 
 let outputDirectory: string | undefined
 
-/** A built app, reduced to the two files the renderer looks for. */
-async function buildOutput(bundle: string): Promise<RendererOptions> {
+const defaultBody = '<div id="app"></div>'
+
+/** A built app, reduced to a page shell and the bundle its module script points at. */
+async function buildOutput(bundle: string, body = defaultBody, head = ''): Promise<RendererOptions> {
 	outputDirectory = await mkdtemp(path.join(tmpdir(), 'rooted-prerender-'))
-	await writeFile(path.join(outputDirectory, 'index.html'), '<script type="module" src="/bundle.mjs"></script>')
 	await writeFile(path.join(outputDirectory, 'bundle.mjs'), bundle)
-	return { outputDirectory, base: '/', logger: { warn() {} } }
+	const html = `<!DOCTYPE html><html><head><script type="module" src="/bundle.mjs"></script>${head}</head><body>${body}</body></html>`
+	return { html, outputDirectory, base: '/', logger: { warn() {} } }
 }
 
 afterEach(async () => {
@@ -43,15 +45,57 @@ describe('renderer()', () => {
 		expect((globalThis as Record<string, unknown>)['__seen_by_bundle']).toEqual({ happyDom: true, nonsense: false })
 	})
 
-	test('renders what the app put in the body', async () => {
+	test('renders the whole document, doctype included', async () => {
 		// Arrange
 		const options = await buildOutput("document.querySelector('#app').textContent = 'booted'\n")
 
 		// Act
-		const body = await renderer(options, render => render('/'))
+		const html = await renderer(options, render => render('/'))
 
 		// Assert
-		expect(body).toBe('<div id="app">booted</div>')
+		expect(html).toBe('<!DOCTYPE html>\n<html><head><script type="module" src="/bundle.mjs"></script></head><body><div id="app">booted</div></body></html>')
+	})
+
+	test('keeps what the app added to head, like a component stylesheet', async () => {
+		// Arrange
+		const options = await buildOutput(
+			"document.head.append(Object.assign(document.createElement('link'), { rel: 'stylesheet', href: '/assets/card.css' }))\n",
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert
+		expect(html).toContain('<link rel="stylesheet" href="/assets/card.css"></head>')
+	})
+
+	test('boots in the real shell, so a custom mount point is there', async () => {
+		// Arrange
+		const options = await buildOutput(
+			"document.querySelector('main#root.shell').textContent = 'mounted'\n",
+			'<main id="root" class="shell"></main>',
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert
+		expect(html).toContain('<main id="root" class="shell">mounted</main>')
+	})
+
+	test('doesn\'t run scripts from the shell, only the bundle', async () => {
+		// Arrange
+		const options = await buildOutput(
+			'export const loaded = true\n',
+			defaultBody,
+			'<script>globalThis.__shell_script_ran = true</script>',
+		)
+
+		// Act
+		await renderer(options, () => Promise.resolve())
+
+		// Assert
+		expect((globalThis as Record<string, unknown>)['__shell_script_ran']).toBeUndefined()
 	})
 
 	test('leaves no window behind once done', async () => {
