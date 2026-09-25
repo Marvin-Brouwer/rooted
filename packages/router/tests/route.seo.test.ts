@@ -182,8 +182,14 @@ describe('route() — lazy seo resolvers', () => {
 })
 
 describe('applyRouteSeoMeta()', () => {
+	const defaults = { title: 'Site title', description: 'Site description' }
+
 	function apply(seo: Parameters<typeof applyRouteSeoMeta>[0], options?: Parameters<typeof applyRouteSeoMeta>[2]) {
-		applyRouteSeoMeta(seo, '/test/', options, elementFactory)
+		applyRouteSeoMeta(seo, '/test/', options, defaults, elementFactory)
+	}
+
+	function meta(selector: string) {
+		return document.head.querySelector(selector)?.getAttribute('content')
 	}
 
 	test('sets the document title, with suffix', () => {
@@ -214,14 +220,50 @@ describe('applyRouteSeoMeta()', () => {
 		expect(document.head.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe('https://example.com/test/')
 	})
 
-	test('does nothing without seo metadata', () => {
+	test('falls back to the default title and description without seo metadata', () => {
 		// Arrange
-		document.title = 'untouched'
+		apply({ title: 'Previous', description: 'Previous description' })
 
 		// Act
 		apply(undefined)
 
 		// Assert
-		expect(document.title).toBe('untouched')
+		expect(document.title).toBe('Site title')
+		expect(meta('meta[name="description"]')).toBe('Site description')
+	})
+
+	test('removes the previous route\'s tags without seo metadata', () => {
+		// Arrange
+		apply({ title: 'Previous', description: 'Previous description', noIndex: true })
+
+		// Act
+		apply(undefined)
+
+		// Assert
+		expect(document.head.querySelector('meta[name="robots"]')).toBeNull()
+		expect(document.head.querySelector('meta[property="og:title"]')).toBeNull()
+		expect(document.head.querySelector('meta[property="og:description"]')).toBeNull()
+	})
+
+	test('points canonical at the current path without seo metadata', () => {
+		// Arrange
+		applyRouteSeoMeta({ title: 'Previous' }, '/previous/', { deploymentUrl: 'https://example.com/' }, defaults, elementFactory)
+
+		// Act
+		apply(undefined, { deploymentUrl: 'https://example.com/' })
+
+		// Assert
+		expect(document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href).toBe('https://example.com/test/')
+	})
+
+	test('falls back to the default title when seo has no title, without the suffix', () => {
+		// Arrange
+		apply({ title: 'Previous' }, { titleSuffix: ' | App' })
+
+		// Act
+		apply({ description: 'Only a description' }, { titleSuffix: ' | App' })
+
+		// Assert
+		expect(document.title).toBe('Site title')
 	})
 })

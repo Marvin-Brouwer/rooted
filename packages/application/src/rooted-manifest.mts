@@ -12,6 +12,7 @@ import { importCycleDetector, type ImportCycleOptions } from '../plugins/import-
 import { pwaAssetsPlugin } from '../plugins/pwa-assets.mts'
 import { buildWebManifest, pwaPreset } from '../plugins/pwa-preset.mts'
 import { pwaRegisterPlugin } from '../plugins/pwa-register.mts'
+import { seoDefaultsPlugin } from '../plugins/seo-defaults.mts'
 
 import type { BuildEnvironmentOptions, ConfigEnv, UserConfig } from 'vite'
 
@@ -206,6 +207,7 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 				pwaRegisterPlugin({ skip: skipPwaGenerator }),
 				pwaAssetsPlugin({ webManifest, skip: skipPwaAssets, deploymentUrl: manifest.webManifest.url }),
 				seoPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo),
+				seoDefaultsPlugin(),
 				manifest.seo?.robots !== false && robotsPlugin(manifest.webManifest.url, manifest.seo?.robots),
 				manifest.seo?.llmsTxt !== false && llmsTxtPlugin(manifest.webManifest.url, manifest.webManifest, manifest.seo?.llmsTxt || undefined),
 			],
