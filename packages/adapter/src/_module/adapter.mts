@@ -8,6 +8,7 @@
 
 export * from '../adapter.mts'
 export * from '../node-middleware.mts'
+export * from '../prerender-settings.mts'
 export * from '../routed-not-found.mts'
 export * from '../utility/adapter-routes.mts'
 export * from '../utility/catch-all.mts'

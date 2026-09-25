@@ -148,6 +148,8 @@ The whole document rather than just the body, because the app writes to `<head>`
 Every page gets its own worker thread. That's the only way to get a fresh module graph in Node: an ES module is evaluated once per thread, so an app booted once and navigated from route to route carries everything over, stylesheets, stores and components included. It also means the fake DOM never touches the build's own `globalThis`.
 The cost is a full boot per page. Pages render side by side, as many as the machine has cores.
 
+Nothing tells the renderer when a page is done, since route components load lazily. So it waits until the document has gone 30ms without a change, 2 seconds at most per page. An app changes both with `rootedManifest({ prerender: { quietPeriod, timeout } })`, which reaches the adapter through the `prerenderSettings` plugin, the same way `@rooted/seo` is found.
+
 happy-dom can do this on its own: its `Browser` loads each page's scripts itself, in a fresh window. It can't run a Vite bundle yet, though. Its module compiler doesn't rewrite `import.meta` after a `?`, and Vite's preload helper does exactly that. Once that's fixed, the worker can go, and so can `@rooted/dom-globals` for the pre-render.
 
 `renderer(options, use)` takes a callback rather than returning something to dispose, so there's nothing to forget when writing a file throws. The adapter imports it dynamically, so loading an adapter in `vite.config` doesn't load happy-dom.

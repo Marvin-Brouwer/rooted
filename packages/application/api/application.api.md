@@ -10,6 +10,7 @@ import { Environment } from '@rooted/util';
 import { environment } from '@rooted/util';
 import { ManifestOptions } from 'vite-plugin-pwa';
 import { SeoOptions } from '@rooted/seo';
+import { SettleOptions } from '@rooted/adapter';
 import { UserConfig } from 'vite';
 import { UserConfigFnObject } from 'vite';
 import { VitePWAOptions } from 'vite-plugin-pwa';
@@ -42,6 +43,7 @@ export type RootedApplicationManifest = {
     };
     icon?: string;
     seo?: SeoOptions;
+    prerender?: SettleOptions;
     runtimeCaching?: RuntimeCaching[];
     workerScripts?: string[];
 };

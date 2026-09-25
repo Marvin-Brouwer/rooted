@@ -94,6 +94,42 @@ describe('renderer()', () => {
 		expect(html).toContain('<div id="app">lazy</div>')
 	})
 
+	test('waits longer between changes when the quiet period is raised', async () => {
+		// Arrange: a second step 80ms after the first, well past the default 30ms quiet period
+		const options = {
+			...await buildOutput(
+				"document.querySelector('#app').textContent = 'step 1'\n"
+				+ "setTimeout(() => { document.querySelector('#app').textContent = 'step 2' }, 80)\n",
+			),
+			settle: { quietPeriod: 300 },
+		}
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert
+		expect(html).toContain('<div id="app">step 2</div>')
+	})
+
+	test('writes a page that never stops changing as it is once the timeout runs out', async () => {
+		// Arrange: a clock, showing how long it's been running since the bundle loaded
+		const options = {
+			...await buildOutput(
+				"const started = Date.now()\n"
+				+ "setInterval(() => { document.querySelector('#app').textContent = 'running ' + (Date.now() - started) }, 5)\n",
+			),
+			settle: { timeout: 200 },
+		}
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert: well short of the 2 second default, measured inside the page so worker start-up doesn't count
+		const running = Number(/running (\d+)/.exec(html ?? '')?.[1])
+		expect(running).toBeGreaterThan(0)
+		expect(running).toBeLessThan(1000)
+	})
+
 	test('keeps what the app added to head, like a component stylesheet', async () => {
 		// Arrange
 		const options = await buildOutput(

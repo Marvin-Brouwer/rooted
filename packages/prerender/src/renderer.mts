@@ -12,7 +12,21 @@ const fromSource = import.meta.url.endsWith('.mts')
 const workerUrl = new URL(fromSource ? './renderer/worker.mts' : './render-worker.mjs', import.meta.url)
 const workerArguments = fromSource ? ['--conditions=source'] : []
 
-/** Options for {@link renderer}. The last two line up with Vite's `ResolvedConfig`, so `config.base` and `config.logger` fit. */
+/** How long to wait for a page to finish rendering before it's written. */
+export type SettleOptions = {
+	/**
+	 * How long the document has to go without changing before the page counts as done, in milliseconds. Defaults to 30.
+	 * Raise it when a page finishes in steps with pauses between them, like a component that fetches after a timeout.
+	 */
+	quietPeriod?: number
+	/**
+	 * The most to wait per page, in milliseconds. Defaults to 2000.
+	 * A page that never stops changing, like one with a clock on it, is written as it looks when this runs out.
+	 */
+	timeout?: number
+}
+
+/** Options for {@link renderer}. `base` and `logger` line up with Vite's `ResolvedConfig`, so `config.base` and `config.logger` fit. */
 export type RendererOptions = {
 	/** The page shell to boot the app in, usually the built `index.html`. Its module script says which bundle to load. */
 	html: string
@@ -22,6 +36,8 @@ export type RendererOptions = {
 	base: string
 	/** Where to report that pre-rendering was skipped. */
 	logger: { warn(message: string): void }
+	/** How long to wait for each page to finish rendering. */
+	settle?: SettleOptions
 }
 
 /**
@@ -60,10 +76,12 @@ export async function renderer<T>(options: RendererOptions, use: (render: Render
 	if (!bundlePath) return undefined
 
 	const limit = concurrencyLimit(availableParallelism())
+	const quietPeriod = options.settle?.quietPeriod ?? 30
+	const timeout = options.settle?.timeout ?? 2000
 
 	const render: Render = async (staticPath) => {
 		const url = `http://localhost${options.base}${staticPath.slice(1)}`
-		const result = await limit(() => runWorker({ html: options.html, url, bundlePath }))
+		const result = await limit(() => runWorker({ html: options.html, url, bundlePath, quietPeriod, timeout }))
 		if ('html' in result) return result.html
 
 		options.logger.warn(`[prerender] Rendering ${staticPath} failed: ${result.error}. Keeping the plain shell for it.`)

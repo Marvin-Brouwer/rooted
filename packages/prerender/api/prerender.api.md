@@ -18,6 +18,13 @@ export type RendererOptions = {
     logger: {
         warn(message: string): void;
     };
+    settle?: SettleOptions;
+};
+
+// @public
+export type SettleOptions = {
+    quietPeriod?: number;
+    timeout?: number;
 };
 
 // (No @packageDocumentation comment for this package)

@@ -15,6 +15,10 @@ export type RenderJob = {
 	url: string
 	/** The bundle the shell's module script points at, as a file path. */
 	bundlePath: string
+	/** Milliseconds without a document change before the page counts as done. */
+	quietPeriod: number
+	/** The most milliseconds to wait for that. */
+	timeout: number
 }
 
 /** What a worker hands back. */
@@ -32,7 +36,7 @@ const result: RenderResult = await renderPage(job).then(
 )
 parentPort?.postMessage(result)
 
-async function renderPage({ html, url, bundlePath }: RenderJob): Promise<string> {
+async function renderPage({ html, url, bundlePath, quietPeriod, timeout }: RenderJob): Promise<string> {
 	const happyWindow = new Window({
 		url,
 		settings: {
@@ -60,7 +64,7 @@ async function renderPage({ html, url, bundlePath }: RenderJob): Promise<string>
 		try {
 			// The bundle reads DOM globals on import, so they must be in place first.
 			await import(pathToFileURL(bundlePath).href)
-			await settle(happyWindow.document)
+			await settle(happyWindow.document, quietPeriod, timeout)
 			return serialize(happyWindow.document)
 		}
 		finally {
@@ -70,16 +74,21 @@ async function renderPage({ html, url, bundlePath }: RenderJob): Promise<string>
 }
 
 // Route components load lazily, so the page isn't done when the bundle finishes evaluating,
-// and nothing tells us when it is. So this waits for 30ms without a change to the document, 2 seconds at most.
-// A page that keeps changing (a clock, an animation) gets rendered as it is after those 2 seconds.
-async function settle(document: Window['document']): Promise<void> {
+// and nothing tells us when it is. So this waits until the document goes `quietPeriod` without a change,
+// or `timeout` runs out, whichever comes first.
+async function settle(document: Window['document'], quietPeriod: number, timeout: number): Promise<void> {
+	const started = Date.now()
+	let lastChange = started
 	let previous = ''
-	let quietChecks = 0
-	for (let check = 0; check < 200 && quietChecks < 3; check++) {
-		await tick(10)
+
+	while (Date.now() - started < timeout) {
+		await tick(Math.min(10, quietPeriod))
 		const current = document.documentElement.outerHTML
-		quietChecks = current === previous ? quietChecks + 1 : 0
-		previous = current
+		if (current !== previous) {
+			previous = current
+			lastChange = Date.now()
+		}
+		else if (Date.now() - lastChange >= quietPeriod) return
 	}
 }
 

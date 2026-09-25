@@ -3,11 +3,13 @@ import path from 'node:path'
 
 import { routeManifestPluginName, seoPluginName } from '@rooted/seo'
 
+import { prerenderSettingsPluginName } from '../prerender-settings.mts'
 import { resolveAdapterRoutes } from '../utility/adapter-routes.mts'
 
 import { buildMiddlewareFiles } from './middleware-build.mts'
 
 import type { InternalDefinition } from './create.mts'
+import type { SettleOptions } from '@rooted/prerender'
 import type { RouteManifestApi } from '@rooted/router/manifest'
 import type { SeoApi } from '@rooted/seo'
 import type { Plugin, ResolvedConfig } from 'vite'
@@ -22,6 +24,7 @@ export function buildPlugin<TApplication>(definition: InternalDefinition<TApplic
 	let config: ResolvedConfig
 	let manifestApi: RouteManifestApi | undefined
 	let seoApi: SeoApi | undefined
+	let settle: SettleOptions | undefined
 
 	return {
 		name: definition.name,
@@ -33,6 +36,8 @@ export function buildPlugin<TApplication>(definition: InternalDefinition<TApplic
 			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
 			const seoPlugin = resolved.plugins.find(p => p.name === seoPluginName)
 			seoApi = (seoPlugin as { api?: SeoApi } | undefined)?.api
+			const settingsPlugin = resolved.plugins.find(p => p.name === prerenderSettingsPluginName)
+			settle = (settingsPlugin as { api?: { settle?: SettleOptions } } | undefined)?.api?.settle
 		},
 
 		async closeBundle() {
@@ -120,7 +125,7 @@ export function buildPlugin<TApplication>(definition: InternalDefinition<TApplic
 			// Imported here so that loading an adapter, which every vite.config
 			// using one does, doesn't drag happy-dom in with it (issue #291).
 			const { renderer } = await import('@rooted/prerender')
-			await renderer({ html: indexHtml, outputDirectory, base: config.base, logger: config.logger }, render =>
+			await renderer({ html: indexHtml, outputDirectory, base: config.base, logger: config.logger, settle }, render =>
 				Promise.all(staticRoutes.map(async ({ staticPath, htmlPath }) => {
 					const rendered = await render(staticPath)
 					if (rendered) await writeFile(htmlPath, withRouteSeo(rendered, staticPath), 'utf8')
