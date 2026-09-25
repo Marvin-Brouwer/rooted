@@ -7,9 +7,9 @@ import { afterEach, describe, test, expect, vi } from 'vitest'
 
 import { localizationDictionaryCheck } from '../plugins/dictionary-check.mts'
 
-import type { HotUpdateOptions, ResolvedConfig, ViteDevServer } from 'vite'
+import type { HotUpdateOptions, ResolvedConfig } from 'vite'
 
-type DevelopmentServer = {
+type Development = {
 	warnings: string[]
 	infos: string[]
 	/** Writes a file and passes on the hot update Vite raises for it. */
@@ -23,8 +23,8 @@ afterEach(async () => {
 	root = undefined
 })
 
-// Starts the plugin against a fake dev server over real files in a temp folder
-async function startServer(files: Record<string, string>, strict = false): Promise<DevelopmentServer> {
+// Starts the plugin the way `vite dev` does, over real files in a temp folder
+async function startDevelopment(files: Record<string, string>, strict = false): Promise<Development> {
 	root = await mkdtemp(path.join(tmpdir(), 'dictionary-check-'))
 	const directory = root
 	const write = async (file: string, code: string) => {
@@ -50,19 +50,20 @@ async function startServer(files: Record<string, string>, strict = false): Promi
 			},
 		},
 	}
-	const resolveId = (source: string, importer: string) => {
-		const id = source.startsWith('/') ? path.join(directory, source) : path.join(path.dirname(importer), source)
-		return Promise.resolve(source.match(/^[./]/) && existsSync(id) ? { id, external: false } : null)
+	const context = {
+		resolve: (source: string, importer: string) => {
+			const id = source.startsWith('/') ? path.join(directory, source) : path.join(path.dirname(importer), source)
+			return Promise.resolve(source.match(/^[./]/) && existsSync(id) ? { id, external: false } : null)
+		},
 	}
-	const server = { config, httpServer: null, environments: { client: { pluginContainer: { resolveId } } } }
 
 	const plugin = localizationDictionaryCheck({ strict }) as unknown as {
 		configResolved(config: ResolvedConfig): void
-		configureServer(server: ViteDevServer): void
+		buildStart: { handler(this: typeof context): void }
 		hotUpdate(options: Pick<HotUpdateOptions, 'type' | 'file'>): void
 	}
 	plugin.configResolved(config as unknown as ResolvedConfig)
-	plugin.configureServer(server as unknown as ViteDevServer)
+	plugin.buildStart.handler.call(context)
 
 	return {
 		warnings,
@@ -101,61 +102,61 @@ const missingAboutUs = '[vite-plugin:rooted-localization-dictionary-check] nl-NL
 describe('localizationDictionaryCheck() in vite dev', () => {
 	test('reports missing entries on start, including pages nobody opened', async () => {
 		// Act
-		const server = await startServer(app)
+		const development = await startDevelopment(app)
 
 		// Assert
-		await vi.waitFor(() => expect(server.warnings).toEqual([missingAboutUs]))
+		await vi.waitFor(() => expect(development.warnings).toEqual([missingAboutUs]))
 	})
 
 	test('says so once a save fills in the missing entry', async () => {
 		// Arrange
-		const server = await startServer(app)
-		await vi.waitFor(() => expect(server.warnings).toHaveLength(1))
+		const development = await startDevelopment(app)
+		await vi.waitFor(() => expect(development.warnings).toHaveLength(1))
 
 		// Act
-		await server.save('src/nl-NL.mts', dictionaryModule('About us'))
+		await development.save('src/nl-NL.mts', dictionaryModule('About us'))
 
 		// Assert
-		await vi.waitFor(() => expect(server.infos).toEqual([
+		await vi.waitFor(() => expect(development.infos).toEqual([
 			'[vite-plugin:rooted-localization-dictionary-check] every dictionary matches its text call sites',
 		]))
-		expect(server.warnings).toHaveLength(1)
+		expect(development.warnings).toHaveLength(1)
 	})
 
 	test('reports a call site added by a save', async () => {
 		// Arrange
-		const server = await startServer({ ...app, 'src/nl-NL.mts': dictionaryModule('About us') })
+		const development = await startDevelopment({ ...app, 'src/nl-NL.mts': dictionaryModule('About us') })
 		// A clean start logs nothing, so give it time to finish
 		await new Promise(resolve => setTimeout(resolve, 300))
 
 		// Act
-		await server.save('src/about.mts', `${app['src/about.mts']}\nlocalization.text\`Contact\``)
+		await development.save('src/about.mts', `${app['src/about.mts']}\nlocalization.text\`Contact\``)
 
 		// Assert
-		await vi.waitFor(() => expect(server.warnings).toEqual([
+		await vi.waitFor(() => expect(development.warnings).toEqual([
 			'[vite-plugin:rooted-localization-dictionary-check] nl-NL is missing 1 entry:\n  "Contact"  src/about.mts:3:1',
 		]))
 	})
 
 	test('stays quiet when a save doesn\'t change the report', async () => {
 		// Arrange
-		const server = await startServer(app)
-		await vi.waitFor(() => expect(server.warnings).toHaveLength(1))
+		const development = await startDevelopment(app)
+		await vi.waitFor(() => expect(development.warnings).toHaveLength(1))
 
 		// Act
-		await server.save('src/about.mts', `${app['src/about.mts']}\n// a comment`)
+		await development.save('src/about.mts', `${app['src/about.mts']}\n// a comment`)
 		await new Promise(resolve => setTimeout(resolve, 300))
 
 		// Assert
-		expect(server.warnings).toEqual([missingAboutUs])
-		expect(server.infos).toEqual([])
+		expect(development.warnings).toEqual([missingAboutUs])
+		expect(development.infos).toEqual([])
 	})
 
 	test('only warns when strict', async () => {
 		// Act
-		const server = await startServer(app, true)
+		const development = await startDevelopment(app, true)
 
 		// Assert
-		await vi.waitFor(() => expect(server.warnings).toEqual([missingAboutUs]))
+		await vi.waitFor(() => expect(development.warnings).toEqual([missingAboutUs]))
 	})
 })

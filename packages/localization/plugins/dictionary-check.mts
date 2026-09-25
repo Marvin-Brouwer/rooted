@@ -68,17 +68,30 @@ export function localizationDictionaryCheck(options: DictionaryCheckOptions = {}
 			manifestApi = (manifestPlugin as { api?: RouteManifestApi } | undefined)?.api
 		},
 
-		configureServer(server) {
-			development = createDevelopmentCheck(server, { label: `[${name}]`, tokens: () => collectLocaleTokenInfos(manifestApi), display })
-		},
-
 		// Only reruns the check, HMR itself carries on as usual
 		hotUpdate({ type, file }) {
 			development?.fileChanged(type, file)
 		},
 
-		buildStart() {
-			scans.clear()
+		// Last and on its own, so the route manifest has loaded its routes by now.
+		// In dev this runs once, when the server starts.
+		buildStart: {
+			order: 'post',
+			sequential: true,
+			handler() {
+				scans.clear()
+				if (config?.command !== 'serve') return
+				development = createDevelopmentCheck({
+					config,
+					logger: config.logger,
+					resolve: cachedResolve((source, importer) => this.resolve(source, importer)),
+					label: `[${name}]`,
+					tokens: () => collectLocaleTokenInfos(manifestApi),
+					display,
+				})
+				// Not awaited, the server shouldn't wait for the report
+				development.run()
+			},
 		},
 
 		// Before other transforms, so positions point into the source as written.
@@ -99,10 +112,7 @@ export function localizationDictionaryCheck(options: DictionaryCheckOptions = {}
 		async buildEnd(error) {
 			if (error || config?.command !== 'build') return
 
-			const resolve = cachedResolve(async (source, importer) => {
-				const target = await this.resolve(source, importer)
-				return target && !target.external ? target.id : undefined
-			})
+			const resolve = cachedResolve((source, importer) => this.resolve(source, importer))
 			const result = await runCheck({ scans, resolve, tokens: collectLocaleTokenInfos(manifestApi), display })
 
 			for (const message of [...result.notes, ...result.unused]) this.warn(message)

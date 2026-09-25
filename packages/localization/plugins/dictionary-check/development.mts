@@ -1,15 +1,19 @@
 import { crawl, entryModules } from './crawl.mts'
-import { cachedResolve } from './link.mts'
 import { runCheck } from './run.mts'
 import { isScannable, type ModuleScan } from './scan.mts'
 
 import type { LocaleTokenInfo } from '../../src/locale-token.mts'
-import type { HotUpdateOptions, ViteDevServer } from 'vite'
+import type { CachedResolve } from './link.mts'
+import type { HotUpdateOptions, Logger, ResolvedConfig } from 'vite'
 
 export type DevelopmentCheckOptions = {
+	config: ResolvedConfig
+	logger: Logger
+	/** Vite's own resolver, so aliases resolve the way they do in the app. */
+	resolve: CachedResolve
 	/** Prefixes every logged line. */
 	label: string
-	/** Locale tokens from the route manifest, read on every run since the manifest loads after the server is created. */
+	/** Locale tokens from the route manifest, read on every run so a restarted manifest is picked up. */
 	tokens: () => readonly LocaleTokenInfo[]
 	display: (id: string) => string
 }
@@ -17,29 +21,27 @@ export type DevelopmentCheckOptions = {
 // Saves tend to come in bursts (format on save, several files at once)
 const settleDelay = 100
 
-/** Hands the plugin's `hotUpdate` events to the dev check. */
 export type DevelopmentCheck = {
+	/** Runs the check shortly, coalescing with anything else scheduled. */
+	run(): void
+	/** Takes the plugin's `hotUpdate` events. */
 	fileChanged(type: HotUpdateOptions['type'], file: string): void
 }
 
 /**
- * Runs the check once the dev server is listening, and again after every save of a file it covers.
- * Reports go to the terminal, and only when they changed since the last run.
+ * The check as it runs in `vite dev`: over the files on disk, reachable from the entries,
+ * and again after every save of a file it covers. Reports go to the terminal, and only when they changed since the last run.
  */
-export function createDevelopmentCheck(server: ViteDevServer, options: DevelopmentCheckOptions): DevelopmentCheck {
-	const { logger } = server.config
+export function createDevelopmentCheck(options: DevelopmentCheckOptions): DevelopmentCheck {
+	const { logger, resolve } = options
 	const scans = new Map<string, ModuleScan>()
-	const resolve = cachedResolve(async (source, importer) => {
-		const target = await server.environments.client.pluginContainer.resolveId(source, importer)
-		return target && !target.external ? target.id : undefined
-	})
 
 	let lastReport: string | undefined
 	let running = Promise.resolve()
 	let timer: ReturnType<typeof setTimeout> | undefined
 
 	async function check() {
-		await crawl(await entryModules(server.config, resolve), scans, resolve)
+		await crawl(await entryModules(options.config, resolve), scans, resolve)
 		const result = await runCheck({ scans, resolve, tokens: options.tokens(), display: options.display })
 		const messages = [...result.notes, ...result.missing, ...result.unused]
 		const report = messages.join('\n')
@@ -64,10 +66,8 @@ export function createDevelopmentCheck(server: ViteDevServer, options: Developme
 		}, settleDelay)
 	}
 
-	if (server.httpServer) server.httpServer.once('listening', schedule)
-	else schedule()
-
 	return {
+		run: schedule,
 		fileChanged(type, file) {
 			if (type === 'update') {
 				// The entries live in the html, a scanned file just needs reading again

@@ -38,12 +38,12 @@ async function check(files: SourceFiles, { routes, ...options }: CheckSetup = {}
 	const plugin = localizationDictionaryCheck(options)
 	const hooks = plugin as unknown as {
 		configResolved(config: ResolvedConfig): void
-		buildStart(): void
+		buildStart: { handler(this: typeof context): void }
 		transform: { handler(this: typeof context, code: string, id: string): void }
 		buildEnd(this: typeof context, error?: Error): Promise<void>
 	}
 	hooks.configResolved({ root, command: 'build', plugins: manifestPlugins } as unknown as ResolvedConfig)
-	hooks.buildStart()
+	hooks.buildStart.handler.call(context)
 	for (const [file, code] of Object.entries(files)) hooks.transform.handler.call(context, code, path.posix.join(root, file))
 	await hooks.buildEnd.call(context)
 

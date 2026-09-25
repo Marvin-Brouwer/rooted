@@ -4,8 +4,18 @@ import type { ModuleScan, SourcePosition, TextSite } from './scan.mts'
 /** Resolves an import specifier to a module id, `undefined` for externals and anything unresolvable. */
 export type Resolve = (source: string, importer: string) => Promise<string | undefined>
 
-/** Wraps a resolver so each specifier is only resolved once per importer. `clear` forgets everything, for when files come and go. */
-export function cachedResolve(resolve: Resolve): Resolve & { clear(): void } {
+/** The shape of a plugin context's `this.resolve`, as far as the check needs it. */
+export type ResolveHook = (source: string, importer: string) => Promise<{ id: string, external?: unknown } | null>
+
+/** A {@link Resolve} that remembers its answers. `clear` forgets them, for when files come and go. */
+export type CachedResolve = Resolve & { clear(): void }
+
+/** Wraps a plugin context's `resolve` so each specifier is only resolved once per importer. */
+export function cachedResolve(resolveId: ResolveHook): CachedResolve {
+	const resolve: Resolve = async (source, importer) => {
+		const target = await resolveId(source, importer)
+		return target && !target.external ? target.id : undefined
+	}
 	const cache = new Map<string, Promise<string | undefined>>()
 	const cached = (source: string, importer: string) => {
 		const key = `${importer}\u0000${source}`
