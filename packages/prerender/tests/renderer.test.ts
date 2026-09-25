@@ -190,6 +190,21 @@ describe('renderer()', () => {
 		expect(Object.getOwnPropertyDescriptor(globalThis, 'navigator')?.get).toBeTypeOf('function')
 	})
 
+	test('keeps a rendered page when the app throws while it is being shut down', async () => {
+		// Arrange: a timer the app never cleans up, firing into the shutdown
+		const options = await buildOutput(
+			"document.querySelector('#app').textContent = 'rendered'\n"
+			+ "window.addEventListener('pagehide', () => setTimeout(() => { throw new Error('too late') }, 0))\n",
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert
+		expect(html).toContain('<div id="app">rendered</div>')
+		expect(options.logger.warn).not.toHaveBeenCalled()
+	})
+
 	test('warns and returns undefined for a page whose bundle throws', async () => {
 		// Arrange
 		const options = await buildOutput('throw new Error("boom")\n')

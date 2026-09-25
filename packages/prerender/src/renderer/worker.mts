@@ -30,13 +30,15 @@ const nodeSetTimeout = globalThis.setTimeout.bind(globalThis)
 // A worker is a fresh module graph, so the app boots from scratch for every page: no stylesheets,
 // component state or stores left over from another route. It also keeps the fake DOM off the build's own globalThis.
 const job = workerData as RenderJob
-const result: RenderResult = await renderPage(job).then(
-	html => ({ html }),
-	(error: unknown) => ({ error: String(error) }),
-)
-parentPort?.postMessage(result)
+await renderPage(job, html => send({ html }))
+	// The renderer takes the first message, so an error after the page was already sent changes nothing
+	.catch((error: unknown) => send({ error: String(error) }))
 
-async function renderPage({ html, url, bundlePath, quietPeriod, timeout }: RenderJob): Promise<string> {
+function send(result: RenderResult): void {
+	parentPort?.postMessage(result)
+}
+
+async function renderPage({ html, url, bundlePath, quietPeriod, timeout }: RenderJob, rendered: (html: string) => void): Promise<void> {
 	const happyWindow = new Window({
 		url,
 		settings: {
@@ -65,7 +67,10 @@ async function renderPage({ html, url, bundlePath, quietPeriod, timeout }: Rende
 			// The bundle reads DOM globals on import, so they must be in place first.
 			await import(pathToFileURL(bundlePath).href)
 			await settle(happyWindow.document, quietPeriod, timeout)
-			return serialize(happyWindow.document)
+
+			// Sent before shutting down: the app's own timers still run while happy-dom closes,
+			// and one of them throwing then mustn't cost a page that's already rendered
+			rendered(serialize(happyWindow.document))
 		}
 		finally {
 			await shutDown(happyWindow, pendingIO)
