@@ -15,13 +15,17 @@ const workerArguments = fromSource ? ['--conditions=source'] : []
 /** How long to wait for a page to finish rendering before it's written. */
 export type SettleOptions = {
 	/**
-	 * How long the document has to go without changing before the page counts as done, in milliseconds. Defaults to 30.
+	 * How long the document has to go without changing before the page counts as done, in milliseconds.
 	 * Raise it when a page finishes in steps with pauses between them, like a component that fetches after a timeout.
+	 *
+	 * @defaultValue 30
 	 */
 	quietPeriod?: number
 	/**
-	 * The most to wait per page, in milliseconds. Defaults to 2000.
+	 * The most to wait per page, in milliseconds.
 	 * A page that never stops changing, like one with a clock on it, is written as it looks when this runs out.
+	 *
+	 * @defaultValue 2000
 	 */
 	timeout?: number
 }
