@@ -96,7 +96,7 @@ importers:
         version: 7.0.2
       '@varlock/vite-integration':
         specifier: ^1.5.2
-        version: 1.5.2(varlock@1.19.0)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1))
+        version: 1.5.2(varlock@1.20.0)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1))
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -110,8 +110,8 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
       varlock:
-        specifier: ^1.19.0
-        version: 1.19.0
+        specifier: ^1.20.0
+        version: 1.20.0
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1)
@@ -3553,22 +3553,22 @@ packages:
   '@ungap/structured-clone@1.3.3':
     resolution: {integrity: sha512-60YRaenCQcVjYEKOcG824+DRGGIQ3VKErcBoAEDJZz5bKIs2ZG+X/H9Nk+Q6EVkwJk5QNApxbrc5QtBSwtrXAg==}
 
-  '@varlock/native-helper-darwin@1.19.0':
-    resolution: {integrity: sha512-T8BxBz7SLTaEi/lYzn08HBc5f4Ko4wHnn8uKqO41obeFSPIiawMACV+DBtwrAILpMORMHEdGl1IUgkd/gYJDXQ==}
+  '@varlock/native-helper-darwin@1.20.0':
+    resolution: {integrity: sha512-+AidNOGpJ63+CifPsg0wCPLaCwOunoHCazWIPekTnujzk4HTVB1iowLsWBOaAfLq6TDeSKSis2gk7M9oSlcKNA==}
     os: [darwin]
 
-  '@varlock/native-helper-linux-arm64@1.19.0':
-    resolution: {integrity: sha512-w0xJGQGqEbBDP/s6bjkI9O0QYjBfbGwecsIZ/izb7VswOrSCt8s17VRl+aOsm+ATROT4Mk73C/6hr3rZwg+QDw==}
+  '@varlock/native-helper-linux-arm64@1.20.0':
+    resolution: {integrity: sha512-W7dxyWkEuzFf+qOKNHqs5j0QOy0vW/zXrusS9i0Zt4l4oP6u0hwWqS8xV2ww6KiG2SrV+Dvrn/23fh4kTE/cCA==}
     cpu: [arm64]
     os: [linux]
 
-  '@varlock/native-helper-linux-x64@1.19.0':
-    resolution: {integrity: sha512-stFot27mctUCAIDnfTtNsUyuariltvNbLKdOLCqn9Re7ksH6QYYyzE2R0bPR8jJZSjOpuhSYA4IHZf/ryRPKuA==}
+  '@varlock/native-helper-linux-x64@1.20.0':
+    resolution: {integrity: sha512-6N6w87D4ByujoVRz0hxFH/VXNOmr9rXnp+WDdzxHa2FZirmy31wW3LoiPjIXrmriNZ9p2C5JseECEDBKsnwQcg==}
     cpu: [x64]
     os: [linux]
 
-  '@varlock/native-helper-win32-x64@1.19.0':
-    resolution: {integrity: sha512-3xtFmb9Ho4z4PwQCOo3RF5kgLWX5sj/7y8y0ZnjGbQptJBj4+tJC9tY7rHFuhK3nHhiPFS+f232lsyVSHj1Y7w==}
+  '@varlock/native-helper-win32-x64@1.20.0':
+    resolution: {integrity: sha512-mDH00lx2h+dWmbARTnfmRu321SuZigKslUdX7dAn0/7+psShiFCx6QEWLjjyZgDPSCGVNbIM3JArC40vCTXJjw==}
     os: [win32, linux]
 
   '@varlock/vite-integration@1.5.2':
@@ -7289,8 +7289,8 @@ packages:
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
 
-  varlock@1.19.0:
-    resolution: {integrity: sha512-AWXBRJq38E/ETuTCsa503iV5Eg4N54ZbbgTr0hdyNHA5XMDsMFOmNzzko0t5aj+KtVlaH/T7dH0MdPZJ0lIYNg==}
+  varlock@1.20.0:
+    resolution: {integrity: sha512-MA5idJKpaQ36d90OxY4gWwWzdVKle6YUq3OI58o/j5ImCz3m8DFmonGbvixyFRhmm7sQeGcNyo8hBHc3kVLNqw==}
     engines: {bun: '>=1.3.3', node: '>=22.3.0'}
     hasBin: true
 
@@ -10027,21 +10027,21 @@ snapshots:
 
   '@ungap/structured-clone@1.3.3': {}
 
-  '@varlock/native-helper-darwin@1.19.0':
+  '@varlock/native-helper-darwin@1.20.0':
     optional: true
 
-  '@varlock/native-helper-linux-arm64@1.19.0':
+  '@varlock/native-helper-linux-arm64@1.20.0':
     optional: true
 
-  '@varlock/native-helper-linux-x64@1.19.0':
+  '@varlock/native-helper-linux-x64@1.20.0':
     optional: true
 
-  '@varlock/native-helper-win32-x64@1.19.0':
+  '@varlock/native-helper-win32-x64@1.20.0':
     optional: true
 
-  '@varlock/vite-integration@1.5.2(varlock@1.19.0)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1))':
+  '@varlock/vite-integration@1.5.2(varlock@1.20.0)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1))':
     dependencies:
-      varlock: 1.19.0
+      varlock: 1.20.0
       vite: 8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1)
 
   '@vite-pwa/assets-generator@1.0.2':
@@ -13923,12 +13923,12 @@ snapshots:
       spdx-correct: 3.2.0
       spdx-expression-parse: 3.0.1
 
-  varlock@1.19.0:
+  varlock@1.20.0:
     optionalDependencies:
-      '@varlock/native-helper-darwin': 1.19.0
-      '@varlock/native-helper-linux-arm64': 1.19.0
-      '@varlock/native-helper-linux-x64': 1.19.0
-      '@varlock/native-helper-win32-x64': 1.19.0
+      '@varlock/native-helper-darwin': 1.20.0
+      '@varlock/native-helper-linux-arm64': 1.20.0
+      '@varlock/native-helper-linux-x64': 1.20.0
+      '@varlock/native-helper-win32-x64': 1.20.0
 
   vary@1.1.2: {}
 
