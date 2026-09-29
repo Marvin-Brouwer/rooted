@@ -215,7 +215,7 @@ Measured from the tree-shaken production build of the [recipe-book example app](
 | Gzip   | ~11.72 kB |
 | Brotli | ~10.49 kB |
 
-These numbers go stale as the framework changes. Every build prints the size of each file it writes. For a treemap of what's in the bundle, run `pnpm --filter @rooted/example-recipe-book analyze`, which uses `bundleReport()` from [`@rooted/application`](./packages/application).
+These numbers go stale as the framework changes. Every build prints the size of each file it writes. The demo app links its current treemap in the footer ("Peek at the bundle"). To make one locally, run `pnpm --filter @rooted/example-recipe-book analyze`, which uses `bundleReport()` from [`@rooted/application`](./packages/application).
 
 
 ## Demo

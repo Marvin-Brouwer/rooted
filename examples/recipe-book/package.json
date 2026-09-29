@@ -8,9 +8,9 @@
 		"dev": "vite",
 		"analyze": "vite build -- --minify --no-mangle --no-pwa --analyze",
 		"analyze:dev": "vite build --mode development -- --no-mangle --no-pwa --analyze",
-		"build": "pnpm build:ci",
+		"build": "vite build -- --minify",
 		"build:dev": "vite build  --mode development -- --no-mangle --no-pwa",
-		"build:ci": "vite build -- --minify",
+		"build:ci": "vite build -- --minify --analyze",
 		"preview": "vite preview"
 	},
 	"dependencies": {
