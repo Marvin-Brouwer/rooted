@@ -7,6 +7,14 @@
 import { Plugin as Plugin_2 } from 'vite';
 
 // @public
+export type DictionaryCheckOptions = {
+    strict?: boolean;
+};
+
+// @public
+export function localizationDictionaryCheck(options?: DictionaryCheckOptions): Plugin_2;
+
+// @public
 export function localizationSeo(): Plugin_2;
 
 // (No @packageDocumentation comment for this package)

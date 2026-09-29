@@ -163,6 +163,45 @@ When a translation is missing, the default text renders. In development it's pre
 
 `text` reads the locale from the URL at call time. Since the router caches route results per pathname and the locale is part of the path, rendered pages and their translations stay in sync.
 
+## Checking dictionaries at build time
+
+The `[i18n missing]` marker only shows up for text you actually look at. The `localizationDictionaryCheck` Vite plugin checks every dictionary against every `text` call site in the app instead:
+
+```ts
+// vite.config.mts
+import { localizationDictionaryCheck } from '@rooted/localization/vite'
+
+plugins: [
+  localizationDictionaryCheck(),
+  myAdapter(),
+]
+```
+
+It runs at three points:
+
+- when `vite dev` starts, over the whole app, including pages you haven't opened yet,
+- after every save of a file it covers, printing the report again only when it changed (and one line when it's clean again),
+- at the end of `vite build`.
+
+Each time, it warns about entries a locale is missing, and about entries nothing uses anymore:
+
+```txt
+[plugin vite-plugin:rooted-localization-dictionary-check] nl-NL is missing 1 entry:
+  "Browse categories"  src/routes/categories.mts:12:18
+[plugin vite-plugin:rooted-localization-dictionary-check] nl-NL has 1 unused entry:
+  "old label"  src/_shared/i18n/dictionaries/nl-NL.mts
+```
+
+A missing key is written the way it would go into the dictionary, so you can paste it into `translation(...)`. Its placeholders are named after the expression at the call site: `${lastName}` and `${user.lastName}` both become `{lastName}`, and anything the plugin can't name, like `${count + 1}`, gets its position, `{0}`. You're free to rename them in the dictionary. `text` matches on the text around the placeholders, not on their names.
+
+Missing entries are warnings by default, since a half-translated locale is a normal state while translation is in progress. Pass `{ strict: true }` to fail the build on them instead. That only affects `vite build`: the dev server never stops over a missing translation, and unused entries only ever warn.
+
+It takes no other options. Call sites are found by following imports back to the `configureLocalization` call, so renaming the import, re-exporting the instance or destructuring `text` off it all still count. Some other `.text` tag that doesn't lead there is left alone.
+
+In dev, Vite only processes the modules the browser asks for, so the plugin follows the imports itself, starting from the module scripts in `index.html`. That's the same set of modules the build ends up with.
+
+Dictionaries are read from source, the files named in `configureLocalization({ dictionaries })`. Keys are the default-language text written out, so they're string literals. A key that isn't, like `translation(prefix + ' us', ...)`, can't be read, and the plugin warns that it wasn't checked.
+
 ## Loading other per-locale content
 
 Dictionaries are for labels. They're the wrong shape for a whole page of prose, an image, a data file, or markup that genuinely differs between languages rather than just saying the same thing in different words. Putting a page of text through `text` means one enormous dictionary key, and it still can't express markup that differs structurally.
@@ -323,7 +362,7 @@ It's tempting to assume this matters less now that a lot of traffic arrives thro
 
 - `llms.txt` lists every locale variant, so the same page appears once per language.
 - Mixed routes (a locale token plus a typed token or a wildcard) aren't unrolled, so they're not prerendered and not in the sitemap. A typed token has no value set to walk, so there's nothing to enumerate unless the route supplies the values itself. See [#254](https://github.com/Marvin-Brouwer/rooted/issues/254).
-- A build-time check for missing dictionary entries doesn't exist yet. Missing translations surface at runtime, in development, with the `[i18n missing]` marker. See [#252](https://github.com/Marvin-Brouwer/rooted/issues/252).
+- The dictionary check only sees modules the app actually loads, and in dev it doesn't follow `import.meta.glob`. It only recognises `text` reached through an import, a re-export or a destructure. Passing `text` around as a value (as a function argument, or stored on another object) hides those call sites from it. It also doesn't track shadowed names: a local variable that happens to share the instance's name is taken for the instance.
 - `dictionaries` doesn't check that you covered every locale, because it's what defines the locale set in the first place. `branch` does check, since by then the locales are known.
 - `localized` re-renders its whole subtree on a locale change. There's no partial update, so keep the callback cheap or wrap a smaller part of the tree.
 - Path segments other than the locale are shared across locales, so slugs aren't translated. See [Translated URLs and international SEO](#translated-urls-and-international-seo) for what that does and doesn't affect.

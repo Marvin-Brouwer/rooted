@@ -121,6 +121,11 @@ export function lookupKey(parts: ArrayLike<string>): string {
 	return Array.from(parts).join(lookupSeparator)
 }
 
+/** @internal Builds the lookup key for a dictionary key written with `{name}` placeholders. */
+export function translationKey(key: string): string {
+	return lookupKey(parseTemplate(key).parts)
+}
+
 /**
  * @internal Compiles one locale's dictionary, keyed by lookup key. Runs when
  * the dictionary chunk loads. In development, warns for translations that reference parameter names their key doesn't declare.
