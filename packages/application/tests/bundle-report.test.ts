@@ -1,14 +1,11 @@
 // @vitest-environment node
-import { mkdtemp, rm } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import path from 'node:path'
-
 import SondaVitePlugin from 'sonda/vite'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
-import { bundleReport, bundleReportOpenPluginName } from '../plugins/bundle-report.mts'
+import { bundleReport } from '../plugins/bundle-report.mts'
+import { bundleReportUrlPluginName } from '../plugins/bundle-report/print-url.mts'
 
-import type { Logger, Plugin, ResolvedConfig } from 'vite'
+import type { Plugin, ResolvedConfig } from 'vite'
 
 // Still the real Sonda, the spy only records what it was given.
 vi.mock('sonda/vite', async (importOriginal) => {
@@ -17,16 +14,16 @@ vi.mock('sonda/vite', async (importOriginal) => {
 })
 
 type SondaOptions = NonNullable<Parameters<typeof SondaVitePlugin>[0]>
-type OpenHooks = Plugin & {
+type UrlHooks = Plugin & {
 	configResolved: (config: ResolvedConfig) => void
-	closeBundle: { handler: () => Promise<void> }
+	closeBundle: { order: string, sequential: boolean, handler: () => void }
 }
 
 let argv: string[]
 
 beforeEach(() => {
 	argv = process.argv
-	// The opener is left out in CI, and these tests run in CI too.
+	// The URL is left out in CI, and these tests run in CI too.
 	vi.stubEnv('CI', '')
 })
 
@@ -40,12 +37,27 @@ function build(...flags: string[]) {
 	process.argv = [...argv, ...flags]
 	const plugins = bundleReport() as (Plugin | false)[]
 	const options = vi.mocked(SondaVitePlugin).mock.calls[0]?.[0] as SondaOptions
-	const opener = plugins.find(plugin => plugin && plugin.name === bundleReportOpenPluginName) as OpenHooks | undefined
-	return { plugins, options, opener }
+	const urlPlugin = plugins.find(plugin => plugin && plugin.name === bundleReportUrlPluginName) as UrlHooks | undefined
+	return { plugins, options, urlPlugin }
+}
+
+/** Runs the URL plugin against a resolved config with Vite's preview defaults, and returns what it logged. */
+function printedUrl(overrides: { base?: string, preview?: Partial<ResolvedConfig['preview']> } = {}) {
+	const { urlPlugin } = build('--report-bundle')
+	const info = vi.fn()
+	urlPlugin!.configResolved({
+		base: overrides.base ?? '/',
+		preview: { port: 4173, ...overrides.preview },
+		logger: { info },
+	} as unknown as ResolvedConfig)
+
+	urlPlugin!.closeBundle.handler()
+
+	return info.mock.calls[0]?.[0] as string
 }
 
 describe('bundleReport()', () => {
-	test('does nothing without --analyze', () => {
+	test('does nothing without --report-bundle', () => {
 		// Act
 		const { plugins } = build()
 
@@ -54,25 +66,33 @@ describe('bundleReport()', () => {
 		expect(SondaVitePlugin).not.toHaveBeenCalled()
 	})
 
-	test('hooks Sonda into the build with --analyze', () => {
+	test('doesn\'t answer to the old --analyze flag', () => {
 		// Act
 		const { plugins } = build('--analyze')
+
+		// Assert
+		expect(plugins).toEqual([])
+	})
+
+	test('hooks Sonda into the build with --report-bundle', () => {
+		// Act
+		const { plugins } = build('--report-bundle')
 
 		// Assert
 		expect(plugins).toContainEqual(expect.objectContaining({ name: 'sonda/vite', apply: 'build' }))
 	})
 
-	test('writes dist/stats.html, leaving the opening to rooted', () => {
+	test('writes dist/bundle.html and never opens it', () => {
 		// Act
-		const { options } = build('--analyze')
+		const { options } = build('--report-bundle')
 
 		// Assert
-		expect(options).toMatchObject({ format: 'html', filename: 'stats', outputDir: 'dist', open: false })
+		expect(options).toMatchObject({ format: 'html', filename: 'bundle', outputDir: 'dist', open: false })
 	})
 
 	test('reports gzip and brotli sizes', () => {
 		// Act
-		const { options } = build('--analyze')
+		const { options } = build('--report-bundle')
 
 		// Assert
 		expect(options).toMatchObject({ gzip: true, brotli: true })
@@ -80,7 +100,7 @@ describe('bundleReport()', () => {
 
 	test('leaves out the tagged css flavor, keeps the plain one', () => {
 		// Arrange
-		const { options } = build('--analyze')
+		const { options } = build('--report-bundle')
 		const files = ['assets/recipe.tagged.css', 'assets/recipe.tagged-B84dQdDs.css', 'assets/recipe-B84dQdDs.css']
 
 		// Act
@@ -90,49 +110,56 @@ describe('bundleReport()', () => {
 		expect(excluded).toEqual([true, true, false])
 	})
 
-	test('opens the report after Sonda has written it', () => {
-		// Act
-		const { opener } = build('--analyze')
-
-		// Assert
-		expect(opener?.closeBundle).toMatchObject({ order: 'post', sequential: true })
-	})
-
-	test('doesn\'t try to open the report in CI', () => {
-		// Arrange
-		vi.stubEnv('CI', 'true')
-
-		// Act
-		const { opener } = build('--analyze')
-
-		// Assert
-		expect(opener).toBeUndefined()
-	})
-
-	describe('without a program to open the report with', () => {
-		let emptyPath: string
-
-		beforeEach(async () => {
-			emptyPath = await mkdtemp(path.join(tmpdir(), 'rooted-bundle-report-'))
-			vi.stubEnv('PATH', emptyPath)
-		})
-
-		afterEach(async () => {
-			await rm(emptyPath, { recursive: true, force: true })
-		})
-
-		test('warns with where the report is instead of failing the build', async () => {
-			// Arrange
-			const { opener } = build('--analyze')
-			const warn = vi.fn()
-			opener!.configResolved({ logger: { warn } as unknown as Logger } as ResolvedConfig)
-
+	describe('the printed URL', () => {
+		test('points at vite preview\'s default address', () => {
 			// Act
-			await opener!.closeBundle.handler()
+			const message = printedUrl()
 
 			// Assert
-			expect(warn).toHaveBeenCalledWith(expect.stringContaining('isn\'t installed'))
-			expect(warn).toHaveBeenCalledWith(expect.stringContaining(path.resolve('dist', 'stats.html')))
+			expect(message).toContain('http://localhost:4173/bundle.html')
+		})
+
+		test('includes the base path', () => {
+			// Act
+			const message = printedUrl({ base: '/rooted/' })
+
+			// Assert
+			expect(message).toContain('http://localhost:4173/rooted/bundle.html')
+		})
+
+		test('follows the preview\'s https, host and port', () => {
+			// Act
+			const message = printedUrl({ preview: { https: {}, host: 'my-host', port: 5000 } })
+
+			// Assert
+			expect(message).toContain('https://my-host:5000/bundle.html')
+		})
+
+		test('uses localhost when preview listens on every address', () => {
+			// Act
+			const messages = [true, '0.0.0.0', '::'].map(host => printedUrl({ preview: { host } }))
+
+			// Assert
+			expect(messages).toEqual(messages.map(() => expect.stringContaining('http://localhost:4173/bundle.html')))
+		})
+
+		test('is printed after Sonda has written the report', () => {
+			// Act
+			const { urlPlugin } = build('--report-bundle')
+
+			// Assert
+			expect(urlPlugin?.closeBundle).toMatchObject({ order: 'post', sequential: true })
+		})
+
+		test('isn\'t printed in CI', () => {
+			// Arrange
+			vi.stubEnv('CI', 'true')
+
+			// Act
+			const { urlPlugin } = build('--report-bundle')
+
+			// Assert
+			expect(urlPlugin).toBeUndefined()
 		})
 	})
 })

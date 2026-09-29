@@ -1,46 +1,20 @@
-import path from 'node:path'
-
 import SondaVitePlugin from 'sonda/vite'
 
-import { openFile } from './bundle-report/open.mts'
+import { printReportUrl } from './bundle-report/print-url.mts'
 
-import type { Logger, Plugin, PluginOption } from 'vite'
+import type { PluginOption } from 'vite'
 
-export const bundleReportOpenPluginName = 'vite-plugin:rooted-bundle-report-open'
-
-const outputDirectory = 'dist'
-const filename = 'stats'
-
-/** Opens the report once Sonda has written it. A machine without a browser gets a warning, not a failed build. */
-function openReport(file: string): Plugin {
-	let logger: Logger | undefined
-
-	return {
-		name: bundleReportOpenPluginName,
-		apply: 'build',
-		configResolved(config) {
-			logger = config.logger
-		},
-		closeBundle: {
-			// Sonda writes the report in its own closeBundle, this has to come after it.
-			order: 'post',
-			sequential: true,
-			async handler() {
-				const reason = await openFile(file)
-				if (reason) logger?.warn(`Couldn't open the bundle report, ${reason}. It's at ${file}`)
-			},
-		},
-	}
-}
+const filename = 'bundle'
 
 /**
  * A treemap of what ended up in your bundle, made by [Sonda](https://sonda.dev).
  *
- * It does nothing on a normal build. Build with `--analyze` and it writes `dist/stats.html` and opens it in your browser.
- * In CI, or on a machine without a browser, it only writes the file.
+ * It does nothing on a normal build. Build with `--report-bundle` and it writes `dist/bundle.html`.
+ * Nothing opens by itself: look at it with `vite preview`. Outside CI the build prints the URL to go to.
  * Sizes are read from the sourcemaps of the minified output, with gzip and brotli next to them.
  * Working those out makes the build noticeably slower, which is why it waits for the flag.
  *
+ * `vite dev` doesn't make a report, since it doesn't bundle anything.
  * You don't need this for the numbers alone, every build already prints the size of each file it writes.
  *
  * @example
@@ -55,19 +29,19 @@ function openReport(file: string): Plugin {
  * ```
  *
  * ```sh
- * vite build -- --analyze
+ * vite build -- --report-bundle
+ * vite preview
  * ```
  */
 export function bundleReport(): PluginOption {
-	if (!process.argv.includes('--analyze')) return []
+	if (!process.argv.includes('--report-bundle')) return []
 
 	return [
 		SondaVitePlugin({
-			// Opened by openReport instead, Sonda's own opener crashes the build when there's no browser.
 			open: false,
 			format: 'html',
 			filename,
-			outputDir: outputDirectory,
+			outputDir: 'dist',
 			gzip: true,
 			brotli: true,
 			exclude: [
@@ -76,6 +50,6 @@ export function bundleReport(): PluginOption {
 				/\.tagged-[A-Za-z0-9_-]+\.css$/i,
 			],
 		}),
-		!process.env.CI && openReport(path.resolve(outputDirectory, `${filename}.html`)),
+		!process.env.CI && printReportUrl(`${filename}.html`),
 	]
 }
