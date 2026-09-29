@@ -109,16 +109,29 @@ describe('bundleReport()', () => {
 		expect(options).toMatchObject({ gzip: true, brotli: true })
 	})
 
-	test('leaves out the tagged css flavor, keeps the plain one', () => {
+	test('hands the css files to Sonda as chunks, so they make it into the report', () => {
 		// Arrange
-		const { options } = build('--report-bundle')
-		const files = ['assets/recipe.tagged.css', 'assets/recipe.tagged-B84dQdDs.css', 'assets/recipe-B84dQdDs.css']
+		const sondaWriteBundle = vi.fn()
+		vi.mocked(SondaVitePlugin).mockReturnValueOnce({ name: 'sonda/vite', writeBundle: sondaWriteBundle })
+		const { plugins } = build('--report-bundle')
+		const sonda = plugins.find(plugin => plugin && plugin.name === 'sonda/vite') as Plugin & {
+			writeBundle: (options: { dir: string }, bundle: Record<string, { type: string }>) => void
+		}
+		const script = { type: 'chunk', facadeModuleId: '/src/index.mts' }
 
 		// Act
-		const excluded = files.map(file => options.exclude?.some(pattern => pattern.test(file)) ?? false)
+		sonda.writeBundle({ dir: 'dist' }, {
+			'index.js': script,
+			'recipe.css': { type: 'asset' },
+			'photo.webp': { type: 'asset' },
+		})
 
 		// Assert
-		expect(excluded).toEqual([true, true, false])
+		expect(sondaWriteBundle).toHaveBeenCalledWith({ dir: 'dist' }, {
+			'index.js': script,
+			'recipe.css': { type: 'chunk', facadeModuleId: null },
+			'photo.webp': { type: 'asset' },
+		})
 	})
 
 	describe('sourcemaps', () => {

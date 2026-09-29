@@ -2,8 +2,9 @@ import SondaVitePlugin from 'sonda/vite'
 
 import { printReportUrl } from './bundle-report/print-url.mts'
 import { reportSourcemaps } from './bundle-report/sourcemaps.mts'
+import { withStyles } from './bundle-report/styles.mts'
 
-import type { PluginOption } from 'vite'
+import type { Plugin, PluginOption } from 'vite'
 
 const filename = 'bundle'
 
@@ -40,19 +41,14 @@ export function bundleReport(): PluginOption {
 	if (!process.argv.includes('--report-bundle')) return []
 
 	return [
-		SondaVitePlugin({
+		withStyles(SondaVitePlugin({
 			open: false,
 			format: 'html',
 			filename,
 			outputDir: 'dist',
 			gzip: true,
 			brotli: true,
-			exclude: [
-				// Only take one flavor of css, the other one distracts from the bundle size
-				/\.tagged\.css$/is,
-				/\.tagged-[A-Za-z0-9_-]+\.css$/i,
-			],
-		}),
+		}) as Plugin),
 		reportSourcemaps(),
 		!process.env.CI && printReportUrl(`${filename}.html`),
 	]
