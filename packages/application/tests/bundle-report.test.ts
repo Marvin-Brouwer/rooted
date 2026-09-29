@@ -1,11 +1,16 @@
 // @vitest-environment node
+import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+
 import SondaVitePlugin from 'sonda/vite'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { bundleReport } from '../plugins/bundle-report.mts'
 import { bundleReportUrlPluginName } from '../plugins/bundle-report/print-url.mts'
+import { bundleReportSourcemapsPluginName } from '../plugins/bundle-report/sourcemaps.mts'
 
-import type { Plugin, ResolvedConfig } from 'vite'
+import type { Plugin, ResolvedConfig, UserConfig } from 'vite'
 
 // Still the real Sonda, the spy only records what it was given.
 vi.mock('sonda/vite', async (importOriginal) => {
@@ -17,6 +22,11 @@ type SondaOptions = NonNullable<Parameters<typeof SondaVitePlugin>[0]>
 type UrlHooks = Plugin & {
 	configResolved: (config: ResolvedConfig) => void
 	closeBundle: { order: string, sequential: boolean, handler: () => void }
+}
+type SourcemapHooks = Plugin & {
+	config: (config: UserConfig) => UserConfig | undefined
+	writeBundle: (options: { dir?: string }, bundle: Record<string, object>) => void
+	closeBundle: { order: string, sequential: boolean, handler: () => Promise<void> }
 }
 
 let argv: string[]
@@ -38,7 +48,8 @@ function build(...flags: string[]) {
 	const plugins = bundleReport() as (Plugin | false)[]
 	const options = vi.mocked(SondaVitePlugin).mock.calls[0]?.[0] as SondaOptions
 	const urlPlugin = plugins.find(plugin => plugin && plugin.name === bundleReportUrlPluginName) as UrlHooks | undefined
-	return { plugins, options, urlPlugin }
+	const sourcemapsPlugin = plugins.find(plugin => plugin && plugin.name === bundleReportSourcemapsPluginName) as SourcemapHooks | undefined
+	return { plugins, options, urlPlugin, sourcemapsPlugin }
 }
 
 /** Runs the URL plugin against a resolved config with Vite's preview defaults, and returns what it logged. */
@@ -108,6 +119,62 @@ describe('bundleReport()', () => {
 
 		// Assert
 		expect(excluded).toEqual([true, true, false])
+	})
+
+	describe('sourcemaps', () => {
+		let outputDirectory: string
+
+		beforeEach(async () => {
+			outputDirectory = await mkdtemp(path.join(tmpdir(), 'rooted-bundle-report-'))
+			await writeFile(path.join(outputDirectory, 'index.js'), 'export {}\n')
+			await writeFile(path.join(outputDirectory, 'index.js.map'), '{}')
+		})
+
+		afterEach(async () => {
+			await rm(outputDirectory, { recursive: true, force: true })
+		})
+
+		/** Runs the sourcemaps plugin through a build that wrote `index.js` and `index.js.map` to `outputDirectory`. */
+		async function buildWith(sourcemap: boolean) {
+			const { sourcemapsPlugin } = build('--report-bundle')
+			const config = sourcemapsPlugin!.config({ build: { sourcemap } })
+			sourcemapsPlugin!.writeBundle({ dir: outputDirectory }, { 'index.js': {}, 'index.js.map': {} })
+			await sourcemapsPlugin!.closeBundle.handler()
+			return { config, left: await readdir(outputDirectory) }
+		}
+
+		test('turns on hidden maps for the report when the build has none', async () => {
+			// Act
+			const { config } = await buildWith(false)
+
+			// Assert
+			expect(config).toEqual({ build: { sourcemap: 'hidden' } })
+		})
+
+		test('removes the maps it caused once the report is written', async () => {
+			// Act
+			const { left } = await buildWith(false)
+
+			// Assert
+			expect(left).toEqual(['index.js'])
+		})
+
+		test('leaves maps the app asked for alone', async () => {
+			// Act
+			const { config, left } = await buildWith(true)
+
+			// Assert
+			expect(config).toBeUndefined()
+			expect(left.toSorted()).toEqual(['index.js', 'index.js.map'])
+		})
+
+		test('removes them after Sonda has read them', () => {
+			// Act
+			const { sourcemapsPlugin } = build('--report-bundle')
+
+			// Assert
+			expect(sourcemapsPlugin?.closeBundle).toMatchObject({ order: 'post', sequential: true })
+		})
 	})
 
 	describe('the printed URL', () => {

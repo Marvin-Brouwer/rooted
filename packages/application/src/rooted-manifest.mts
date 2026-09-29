@@ -185,8 +185,8 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 				target: 'esnext',
 				cssMinify: 'esbuild',
 				minify: 'terser',
-				// Linked while developing; in production the maps are written but the bundle doesn't point at them.
-				sourcemap: environment.mode === 'development' ? true : 'hidden',
+				// Only while developing. `bundleReport()` adds its own for the length of a report build.
+				sourcemap: environment.mode === 'development',
 			},
 			esbuild: {
 				minifyWhitespace: minify,

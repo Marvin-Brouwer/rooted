@@ -46,6 +46,8 @@ Every build prints the size of each file it writes, raw and gzipped, the way Vit
 
 For a treemap of what's actually in the bundle, add `bundleReport()` to your plugins and build with `--report-bundle`. It writes `dist/bundle.html` with [Sonda](https://sonda.dev). Nothing opens by itself: look at it with `vite preview`, and outside CI the build prints the URL to go to. Without the flag the plugin does nothing, so it's fine to leave it in. `vite dev` never makes a report, it doesn't bundle anything.
 
+Production builds don't write sourcemaps. The report needs them, so a `--report-bundle` build writes them for Sonda and deletes them again once `bundle.html` is done. Development-mode builds keep their maps either way.
+
 ```ts
 // vite.config.mts
 import { bundleReport, rootedManifest } from '@rooted/application'

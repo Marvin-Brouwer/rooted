@@ -1,6 +1,7 @@
 import SondaVitePlugin from 'sonda/vite'
 
 import { printReportUrl } from './bundle-report/print-url.mts'
+import { reportSourcemaps } from './bundle-report/sourcemaps.mts'
 
 import type { PluginOption } from 'vite'
 
@@ -13,6 +14,8 @@ const filename = 'bundle'
  * Nothing opens by itself: look at it with `vite preview`. Outside CI the build prints the URL to go to.
  * Sizes are read from the sourcemaps of the minified output, with gzip and brotli next to them.
  * Working those out makes the build noticeably slower, which is why it waits for the flag.
+ * If the build wasn't writing sourcemaps, it writes them for the report and deletes them afterwards,
+ * so `dist` ends up with `bundle.html` and no `.map` files.
  *
  * `vite dev` doesn't make a report, since it doesn't bundle anything.
  * You don't need this for the numbers alone, every build already prints the size of each file it writes.
@@ -50,6 +53,7 @@ export function bundleReport(): PluginOption {
 				/\.tagged-[A-Za-z0-9_-]+\.css$/i,
 			],
 		}),
+		reportSourcemaps(),
 		!process.env.CI && printReportUrl(`${filename}.html`),
 	]
 }
