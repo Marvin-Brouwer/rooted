@@ -72,16 +72,6 @@ export const Doormat = component({
 												},
 											}),
 											create(Link, {
-												href: href.path('/stats.html'),
-												target: '_blank',
-												rel: 'noopener noreferrer',
-												classes: styles.externalLink,
-												children: 'Peek at the bundle \u2197',
-												aria: {
-													label: 'Peek at the bundle (opens in new tab)',
-												},
-											}),
-											create(Link, {
 												href: href.for(ContentNoticeRoute),
 												classes: styles.link,
 												children: 'Content notice',

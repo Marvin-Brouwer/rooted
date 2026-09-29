@@ -211,11 +211,11 @@ Measured from the tree-shaken production build of the [recipe-book example app](
 
 | Format | Size |
 |--------|-------|
-| Raw    | ~27.50 KB |
-| Gzip   | ~11.88 KB |
-| Brotli | ~10.23 KB |
+| Raw    | ~34.05 kB |
+| Gzip   | ~11.72 kB |
+| Brotli | ~10.49 kB |
 
-These numbers go stale as the framework changes. The current report is at [marvin-brouwer.github.io/rooted/stats.html](https://marvin-brouwer.github.io/rooted/stats.html).
+These numbers go stale as the framework changes. Every build prints the size of each file it writes. For a treemap of what's in the bundle, run `pnpm --filter @rooted/example-recipe-book analyze`, which uses `bundleReport()` from [`@rooted/application`](./packages/application).
 
 
 ## Demo

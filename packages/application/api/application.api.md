@@ -9,11 +9,15 @@ import { BuildEnvironmentOptions } from 'vite';
 import { Environment } from '@rooted/util';
 import { environment } from '@rooted/util';
 import { ManifestOptions } from 'vite-plugin-pwa';
+import { PluginOption } from 'vite';
 import { SeoOptions } from '@rooted/seo';
 import { SettleOptions } from '@rooted/adapter';
 import { UserConfig } from 'vite';
 import { UserConfigFnObject } from 'vite';
 import { VitePWAOptions } from 'vite-plugin-pwa';
+
+// @public
+export function bundleReport(): PluginOption;
 
 // @public
 export type CodeSplittingGroups = NonNullable<CodeSplittingOptions['groups']>;

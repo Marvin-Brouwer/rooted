@@ -6,8 +6,8 @@
 	"homepage": "https://lively-sky-0adfd8510.7.azurestaticapps.net/",
 	"scripts": {
 		"dev": "vite",
-		"analyze": "vite build -- --minify --no-mangle --analyze",
-		"analyze:dev": "vite build --mode development -- --no-mangle --analyze",
+		"analyze": "vite build -- --minify --no-mangle --no-pwa --analyze",
+		"analyze:dev": "vite build --mode development -- --no-mangle --no-pwa --analyze",
 		"build": "pnpm build:ci",
 		"build:dev": "vite build  --mode development -- --no-mangle --no-pwa",
 		"build:ci": "vite build -- --minify",

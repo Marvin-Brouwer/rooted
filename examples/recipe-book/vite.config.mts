@@ -6,7 +6,7 @@ import { varlockVitePlugin } from '@varlock/vite-integration'
 import { ENV } from 'varlock/env'
 import { normalizePath } from 'vite'
 
-import { CodeSplittingGroups, rootedManifest } from '@rooted/application'
+import { bundleReport, CodeSplittingGroups, rootedManifest } from '@rooted/application'
 import { generateRouteManifest } from '@rooted/router/manifest'
 import { routeSeoPlugin } from '@rooted/seo/router'
 
@@ -66,6 +66,8 @@ export default rootedManifest({
 		routeSeoPlugin(),
 		// Recipe pages should be indexed, a 200 on /recipe/42/extra/ is the price.
 		azureStaticWebappAdapter({ dynamicRoutes: 'catch-all' }),
+		// `pnpm analyze` for the treemap
+		bundleReport(),
 	],
 	codeSplitting: {
 		groups: codeSplittingGroups,
