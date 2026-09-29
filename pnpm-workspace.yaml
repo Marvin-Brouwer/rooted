@@ -17,6 +17,10 @@ onlyBuiltDependencies:
   - "unrs-resolver"
 
 overrides:
+  # vitepress 1.x asks for vite ^5, and vite 5 has no fix for the dev server advisories
+  # (server.fs.deny bypass, .map path traversal, launch-editor, esbuild CORS). vitepress
+  # runs fine on vite 6. Drop this once the docs move to vitepress 2.
+  "vitepress>vite": "^6.4.3"
   "source-map@0.8.0-beta.0": "0.7.4"
   "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.4.15"
 
