@@ -66,7 +66,6 @@ export default rootedManifest({
 		routeSeoPlugin(),
 		// Recipe pages should be indexed, a 200 on /recipe/42/extra/ is the price.
 		azureStaticWebappAdapter({ dynamicRoutes: 'catch-all' }),
-		// `pnpm report-bundle` for the treemap, `build:ci` so the deployed demo has its bundle.html
 		bundleReport(),
 	],
 	codeSplitting: {
