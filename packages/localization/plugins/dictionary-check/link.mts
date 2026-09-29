@@ -1,0 +1,99 @@
+import type { InstanceOptions } from './instances.mts'
+import type { ModuleScan, SourcePosition, TextSite } from './scan.mts'
+
+/** Resolves an import specifier to a module id, `undefined` for externals and anything unresolvable. */
+export type Resolve = (source: string, importer: string) => Promise<string | undefined>
+
+/** The shape of a plugin context's `this.resolve`, as far as the check needs it. */
+export type ResolveHook = (source: string, importer: string) => Promise<{ id: string, external?: unknown } | null>
+
+/** A {@link Resolve} that remembers its answers. `clear` forgets them, for when files come and go. */
+export type CachedResolve = Resolve & { clear(): void }
+
+/** Wraps a plugin context's `resolve` so each specifier is only resolved once per importer. */
+export function cachedResolve(resolveId: ResolveHook): CachedResolve {
+	const resolve: Resolve = async (source, importer) => {
+		const target = await resolveId(source, importer)
+		return target && !target.external ? target.id : undefined
+	}
+	const cache = new Map<string, Promise<string | undefined>>()
+	const cached = (source: string, importer: string) => {
+		const key = `${importer}\u0000${source}`
+		let result = cache.get(key)
+		if (!result) {
+			result = resolve(source, importer)
+			cache.set(key, result)
+		}
+		return result
+	}
+	return Object.assign(cached, { clear: () => cache.clear() })
+}
+
+export type LocatedSite = TextSite & { id: string }
+
+/** A `configureLocalization` call with the `text` call sites that lead back to it. */
+export type LinkedInstance = InstanceOptions & SourcePosition & {
+	id: string
+	sites: LocatedSite[]
+}
+
+/**
+ * Follows every text site's binding through imports and re-exports to the `configureLocalization` call it came from.
+ * Sites that don't lead to one are some other `.text` tag and are dropped.
+ */
+export async function linkSites(scans: ReadonlyMap<string, ModuleScan>, resolve: Resolve): Promise<LinkedInstance[]> {
+	const instances = new Map<string, LinkedInstance>()
+	for (const [id, scan] of scans) {
+		for (const [local, options] of scan.instances) instances.set(instanceKey(id, local), { id, ...options, sites: [] })
+	}
+
+	async function fromLocal(id: string, local: string, members: readonly string[], visited: Set<string>): Promise<string | undefined> {
+		const scan = scans.get(id)
+		if (!scan) return undefined
+		if (scan.instances.has(local)) return members.length === 0 ? instanceKey(id, local) : undefined
+
+		const imported = scan.imports.get(local)
+		return imported && follow(id, imported, members, visited)
+	}
+
+	// Into the module a binding comes from. A namespace (`'*'`) is left through its first member.
+	async function follow(id: string, { source, imported }: { source: string, imported: string }, members: readonly string[], visited: Set<string>) {
+		const target = await resolve(source, id)
+		if (!target) return undefined
+		if (imported !== '*') return fromExport(target, imported, members, visited)
+		const [name, ...rest] = members
+		return name === undefined ? undefined : fromExport(target, name, rest, visited)
+	}
+
+	async function fromExport(id: string, name: string, members: readonly string[], visited: Set<string>): Promise<string | undefined> {
+		const visitKey = instanceKey(id, name)
+		const scan = scans.get(id)
+		if (!scan || visited.has(visitKey)) return undefined
+		visited.add(visitKey)
+
+		const exported = scan.exports.get(name)
+		if (exported) return 'local' in exported ? fromLocal(id, exported.local, members, visited) : follow(id, exported, members, visited)
+
+		// `export *` never forwards a default export
+		if (name === 'default') return undefined
+		for (const source of scan.starExports) {
+			const target = await resolve(source, id)
+			const found = target && await fromExport(target, name, members, visited)
+			if (found) return found
+		}
+		return undefined
+	}
+
+	for (const [id, scan] of scans) {
+		for (const site of scan.sites) {
+			const key = await fromLocal(id, site.instance.binding, site.instance.members, new Set())
+			if (key) instances.get(key)?.sites.push({ ...site, id })
+		}
+	}
+
+	return [...instances.values()]
+}
+
+function instanceKey(id: string, local: string): string {
+	return `${id}\u0000${local}`
+}

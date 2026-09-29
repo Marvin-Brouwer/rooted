@@ -30,11 +30,20 @@ const nodeSetTimeout = globalThis.setTimeout.bind(globalThis)
 // A worker is a fresh module graph, so the app boots from scratch for every page: no stylesheets,
 // component state or stores left over from another route. It also keeps the fake DOM off the build's own globalThis.
 const job = workerData as RenderJob
+let sent = false
+
+// Left uncaught, an error reaches the renderer as the worker's `error` event, which travels separately from messages
+// and can overtake a page that was already sent. So it's reported as a message too, and dropped once the page is out:
+// the app's own timers still run while happy-dom closes, and one of them throwing then mustn't cost a rendered page.
+process.on('uncaughtException', error => send({ error: String(error) }))
+
 await renderPage(job, html => send({ html }))
-	// The renderer takes the first message, so an error after the page was already sent changes nothing
 	.catch((error: unknown) => send({ error: String(error) }))
 
+// The renderer only takes the first result
 function send(result: RenderResult): void {
+	if (sent) return
+	sent = true
 	parentPort?.postMessage(result)
 }
 
@@ -68,8 +77,7 @@ async function renderPage({ html, url, bundlePath, quietPeriod, timeout }: Rende
 			await import(pathToFileURL(bundlePath).href)
 			await settle(happyWindow.document, quietPeriod, timeout)
 
-			// Sent before shutting down: the app's own timers still run while happy-dom closes,
-			// and one of them throwing then mustn't cost a page that's already rendered
+			// Sent before shutting down, see `send`
 			rendered(serialize(happyWindow.document))
 		}
 		finally {
