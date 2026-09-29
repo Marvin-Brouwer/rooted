@@ -7,6 +7,8 @@ import { afterEach, describe, test, expect, vi } from 'vitest'
 
 import { localizationDictionaryCheck } from '../plugins/dictionary-check.mts'
 
+import { configModule, dictionaryModule } from './dictionary-check.fixtures.ts'
+
 import type { HotUpdateOptions, ResolvedConfig } from 'vite'
 
 type Development = {
@@ -75,19 +77,6 @@ async function startDevelopment(files: Record<string, string>, strict = false): 
 }
 
 const indexHtml = '<html><body><script type="module" src="/src/main.mts"></script></body></html>'
-
-const configModule = `
-import { configureLocalization } from '@rooted/localization'
-export const localization = configureLocalization({
-	default: 'en-GB',
-	dictionaries: { 'nl-NL': () => import('./nl-NL.mts') },
-})
-`
-
-function dictionaryModule(...keys: string[]): string {
-	const entries = keys.map(key => `translation(${JSON.stringify(key)}, 'vertaald'),`)
-	return `import { dictionary, translation } from '@rooted/localization'\nexport default dictionary(\n${entries.join('\n')}\n)\n`
-}
 
 const app = {
 	'index.html': indexHtml,

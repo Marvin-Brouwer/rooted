@@ -5,6 +5,8 @@ import { describe, test, expect } from 'vitest'
 import { localizationDictionaryCheck, type DictionaryCheckOptions } from '../plugins/dictionary-check.mts'
 import { lookupKey, translationKey } from '../src/dictionary.mts'
 
+import { configModule, dictionaryModule } from './dictionary-check.fixtures.ts'
+
 import type { ResolvedConfig } from 'vite'
 
 type SourceFiles = Record<string, string>
@@ -39,19 +41,6 @@ async function check(files: SourceFiles, options: DictionaryCheckOptions = {}): 
 	await hooks.buildEnd.call(context)
 
 	return warnings
-}
-
-const configModule = `
-import { configureLocalization } from '@rooted/localization'
-export const localization = configureLocalization({
-	default: 'en-GB',
-	dictionaries: { 'nl-NL': () => import('./nl-NL.mts') },
-})
-`
-
-function dictionaryModule(...keys: string[]): string {
-	const entries = keys.map(key => `translation(${JSON.stringify(key)}, 'vertaald'),`)
-	return `import { dictionary, translation } from '@rooted/localization'\nexport default dictionary(\n${entries.join('\n')}\n)\n`
 }
 
 describe('localizationDictionaryCheck()', () => {

@@ -5,7 +5,7 @@ import { lookupKey } from '../../src/dictionary.mts'
 import { bindingPath, propertyName, stringValue, unwrap, type BindingPath } from './ast.mts'
 import { readInstanceOptions, type InstanceOptions } from './instances.mts'
 import { readDictionaryCall, type StaticDictionary } from './literals.mts'
-import { exportBindings, importBindings, staticDependencies, type ExportBinding, type ImportBinding } from './module-bindings.mts'
+import { moduleBindings, type ExportBinding, type ImportBinding } from './module-bindings.mts'
 import { writtenKey } from './written-key.mts'
 
 import type { ESTree } from 'vite'
@@ -51,9 +51,8 @@ export function scanModule(code: string, id: string): ModuleScan {
 	const program = parseAst(code, { lang: languageOf(id) }, id)
 	const position = positionReader(code)
 
-	const imports = importBindings(program)
-	const { exports, starExports } = exportBindings(program, defaultExportBinding)
-	const dependencies = new Set(staticDependencies(program))
+	const { imports, exports, starExports, dependencies: staticDependencies } = moduleBindings(program, defaultExportBinding)
+	const dependencies = new Set(staticDependencies)
 	const packageFunction = packageFunctionReader(imports)
 
 	const instances = new Map<string, InstanceOptions & SourcePosition>()
@@ -129,18 +128,8 @@ function languageOf(id: string): 'js' | 'jsx' | 'ts' | 'tsx' {
 }
 
 function positionReader(code: string) {
-	const lineStarts = [0]
-	for (let index = code.indexOf('\n'); index !== -1; index = code.indexOf('\n', index + 1)) lineStarts.push(index + 1)
-
 	return (offset: number): SourcePosition => {
-		// Binary search for the last line starting at or before the offset
-		let low = 0
-		let high = lineStarts.length - 1
-		while (low < high) {
-			const middle = Math.ceil((low + high) / 2)
-			if (lineStarts[middle] <= offset) low = middle
-			else high = middle - 1
-		}
-		return { line: low + 1, column: offset - lineStarts[low] + 1 }
+		const lines = code.slice(0, offset).split('\n')
+		return { line: lines.length, column: (lines.at(-1)?.length ?? 0) + 1 }
 	}
 }

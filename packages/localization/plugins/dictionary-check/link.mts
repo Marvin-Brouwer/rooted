@@ -53,9 +53,14 @@ export async function linkSites(scans: ReadonlyMap<string, ModuleScan>, resolve:
 		if (scan.instances.has(local)) return members.length === 0 ? instanceKey(id, local) : undefined
 
 		const imported = scan.imports.get(local)
-		const target = imported && await resolve(imported.source, id)
-		if (!imported || !target) return undefined
-		if (imported.imported !== '*') return fromExport(target, imported.imported, members, visited)
+		return imported && follow(id, imported, members, visited)
+	}
+
+	// Into the module a binding comes from. A namespace (`'*'`) is left through its first member.
+	async function follow(id: string, { source, imported }: { source: string, imported: string }, members: readonly string[], visited: Set<string>) {
+		const target = await resolve(source, id)
+		if (!target) return undefined
+		if (imported !== '*') return fromExport(target, imported, members, visited)
 		const [name, ...rest] = members
 		return name === undefined ? undefined : fromExport(target, name, rest, visited)
 	}
@@ -67,14 +72,7 @@ export async function linkSites(scans: ReadonlyMap<string, ModuleScan>, resolve:
 		visited.add(visitKey)
 
 		const exported = scan.exports.get(name)
-		if (exported && 'local' in exported) return fromLocal(id, exported.local, members, visited)
-		if (exported) {
-			const target = await resolve(exported.source, id)
-			if (!target) return undefined
-			if (exported.imported !== '*') return fromExport(target, exported.imported, members, visited)
-			const [next, ...rest] = members
-			return next === undefined ? undefined : fromExport(target, next, rest, visited)
-		}
+		if (exported) return 'local' in exported ? fromLocal(id, exported.local, members, visited) : follow(id, exported, members, visited)
 
 		// `export *` never forwards a default export
 		if (name === 'default') return undefined
