@@ -9,7 +9,7 @@ overrides:
   sourcemap-codec: npm:@jridgewell/sourcemap-codec@^1.4.15
 
 patchedDependencies:
-  semantic-release@25.0.8: 8f49f4716f30d6ad185d6af071c5b80b76c276cc1aa07a5668de2299eb937ab4
+  semantic-release@^25.0.8: 8f49f4716f30d6ad185d6af071c5b80b76c276cc1aa07a5668de2299eb937ab4
 
 importers:
 

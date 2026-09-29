@@ -28,4 +28,4 @@ peerDependencyRules:
     'vite-plugin-pwa>vite': '8'
 
 patchedDependencies:
-  semantic-release@25.0.8: patches/semantic-release@25.0.8.patch
+  semantic-release@^25.0.8: patches/semantic-release@25.patch
