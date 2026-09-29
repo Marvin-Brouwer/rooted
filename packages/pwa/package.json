@@ -57,6 +57,6 @@
 	"devDependencies": {
 		"@rooted/components": "workspace:^",
 		"@rooted/development": "workspace:*",
-		"tsx": "^4.23.13"
+		"tsx": "^4.23.15"
 	}
 }

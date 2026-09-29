@@ -52,6 +52,6 @@
 		"@rooted/development": "workspace:*",
 		"@rooted/util": "workspace:^",
 		"@types/node": "^26.6.1",
-		"tsx": "^4.23.13"
+		"tsx": "^4.23.15"
 	}
 }

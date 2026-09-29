@@ -57,6 +57,6 @@
 		"@rooted/development": "workspace:*",
 		"@rooted/events": "workspace:^",
 		"@rooted/util": "workspace:^",
-		"tsx": "^4.23.13"
+		"tsx": "^4.23.15"
 	}
 }
