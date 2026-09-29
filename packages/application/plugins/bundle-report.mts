@@ -3,10 +3,15 @@ import SondaVitePlugin from 'sonda/vite'
 import { printReportUrl } from './bundle-report/print-url.mts'
 import { reportSourcemaps } from './bundle-report/sourcemaps.mts'
 import { withStyles } from './bundle-report/styles.mts'
+import { workspacePaths } from './bundle-report/workspace-paths.mts'
 
 import type { Plugin, PluginOption } from 'vite'
 
 const filename = 'bundle'
+
+type SondaOptions = NonNullable<Parameters<typeof SondaVitePlugin>[0]> & {
+	sourcesPathNormalizer: (source: string, sourceRoot: string) => string
+}
 
 /**
  * A treemap of what ended up in your bundle, made by [Sonda](https://sonda.dev).
@@ -40,15 +45,19 @@ const filename = 'bundle'
 export function bundleReport(): PluginOption {
 	if (!process.argv.includes('--report-bundle')) return []
 
+	const sondaOptions: SondaOptions = {
+		open: false,
+		format: 'html',
+		filename,
+		outputDir: 'dist',
+		gzip: true,
+		brotli: true,
+		// Not in Sonda's public options, but it passes it through; its own framework integrations use it.
+		sourcesPathNormalizer: workspacePaths(process.cwd()),
+	}
+
 	return [
-		withStyles(SondaVitePlugin({
-			open: false,
-			format: 'html',
-			filename,
-			outputDir: 'dist',
-			gzip: true,
-			brotli: true,
-		}) as Plugin),
+		withStyles(SondaVitePlugin(sondaOptions) as Plugin),
 		reportSourcemaps(),
 		!process.env.CI && printReportUrl(`${filename}.html`),
 	]

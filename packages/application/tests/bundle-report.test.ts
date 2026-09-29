@@ -109,6 +109,14 @@ describe('bundleReport()', () => {
 		expect(options).toMatchObject({ gzip: true, brotli: true })
 	})
 
+	test('tells Sonda where linked workspace packages live, so it groups them as packages', () => {
+		// Act
+		const { options } = build('--report-bundle')
+
+		// Assert
+		expect(options).toHaveProperty('sourcesPathNormalizer', expect.any(Function))
+	})
+
 	test('hands the css files to Sonda as chunks, so they make it into the report', () => {
 		// Arrange
 		const sondaWriteBundle = vi.fn()

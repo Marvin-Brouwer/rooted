@@ -10,7 +10,7 @@
 		"report-bundle:dev": "vite build --mode development -- --no-mangle --no-pwa --report-bundle",
 		"build": "pnpm build:ci",
 		"build:dev": "vite build  --mode development -- --no-mangle --no-pwa",
-		"build:ci": "vite build -- --minify --report-bundle",
+		"build:ci": "vite build -- --minify --no-mangle --report-bundle",
 		"preview": "vite preview"
 	},
 	"dependencies": {
