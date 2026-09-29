@@ -3,7 +3,9 @@ export const configModule = `
 import { configureLocalization } from '@rooted/localization'
 export const localization = configureLocalization({
 	default: 'en-GB',
-	dictionaries: { 'nl-NL': () => import('./nl-NL.mts') },
+	dictionaries: {
+		'nl-NL': () => import('./nl-NL.mts')
+	},
 })
 `
 
