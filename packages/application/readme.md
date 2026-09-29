@@ -44,7 +44,7 @@ More in the [SEO guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/
 
 Every build prints the size of each file it writes, raw and gzipped, the way Vite always does.
 
-For a treemap of what's actually in the bundle, add `bundleReport()` to your plugins and build with `--analyze`. It writes `dist/stats.html` with [Sonda](https://sonda.dev) and opens it. Without the flag the plugin does nothing, so it's fine to leave it in.
+For a treemap of what's actually in the bundle, add `bundleReport()` to your plugins and build with `--analyze`. It writes `dist/stats.html` with [Sonda](https://sonda.dev) and opens it. In CI, or on a machine with nothing to open it with, you get the file and a warning instead. Without the flag the plugin does nothing, so it's fine to leave it in.
 
 ```ts
 // vite.config.mts
