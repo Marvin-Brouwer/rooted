@@ -66,8 +66,9 @@
 		"extract-api": "rooted-development extract-api"
 	},
 	"dependencies": {
+		"@rooted/elements": "workspace:^",
 		"@rooted/util": "workspace:^",
-		"@rooted/elements": "workspace:^"
+		"magic-string": "^1.4.2"
 	},
 	"peerDependencies": {
 		"vite": ">=8.0.1"
@@ -76,8 +77,8 @@
 		"@rooted/development": "workspace:*",
 		"@rooted/tsdown": "workspace:^",
 		"@types/node": "^26.6.1",
-		"tsx": "^4.23.15",
 		"esbuild": "^0.28.2",
+		"tsx": "^4.23.15",
 		"vite": "^8.3.1"
 	}
 }
