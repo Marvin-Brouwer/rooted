@@ -24,6 +24,7 @@ function codeSplittingGroups(applicationGroups: CodeSplittingGroups): CodeSplitt
 		...applicationGroups,
 		// Chunk shared if not imported correctly
 		{
+			debugName: 'shared',
 			priority: Number.NEGATIVE_INFINITY,
 			entriesAware: true,
 			name: (id) => {
