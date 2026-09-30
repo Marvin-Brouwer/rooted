@@ -62,7 +62,8 @@ export function markdownPlugin(): Plugin {
 
 			return {
 				code: `export default ${JSON.stringify({ ...data, ingredients, instructionsHtml })}`,
-				map: undefined,
+				// Generated data, nothing in it maps back to a line of the markdown.
+				map: { mappings: '' },
 			}
 		},
 	}
