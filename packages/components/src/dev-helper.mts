@@ -1,9 +1,9 @@
 /// <reference types="vite/types/import-meta.d.ts" />
 
+import { environment } from '@rooted/util'
 import { appendSourceLocation, isDevelopment } from '@rooted/util/dev'
 
 import { ComponentConstructor, definedAt } from '../../components/src/component.mts'
-import { environment } from '@rooted/util'
 
 function validateComponentName(name: string): void {
 	try {
