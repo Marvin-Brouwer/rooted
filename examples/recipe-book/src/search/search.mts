@@ -4,7 +4,7 @@ import { href, Link } from '@rooted/router'
 import { recipeCountLabel } from '../_shared/data/recipe-label.mts'
 import { RecipeRoute } from '../recipes/_routes.mts'
 
-import { SearchRoute } from './_routes.mts'
+import { getSearchQueryFromUrl } from './search-query.mts'
 import styles from './search.css'
 
 export const SearchPage = component({
@@ -72,8 +72,3 @@ export const SearchPage = component({
 		await render()
 	},
 })
-
-export async function getSearchQueryFromUrl() {
-	const match = await SearchRoute.match()
-	return match.success ? decodeURIComponent(match.tokens.query) : ''
-}
