@@ -207,15 +207,28 @@ The base `@rooted/adapter` package is for writing custom adapters. More in the [
 
 ## Bundle size
 
-Measured from the tree-shaken production build of the [recipe-book example app](./examples/recipe-book), the `@rooted/*` vendor chunk last came in at:
+Measured from the tree-shaken production build of the [recipe-book example app](./examples/recipe-book): which `@rooted/*` packages ended up in it, and what the whole app weighs.
 
-| Format | Size |
-|--------|-------|
-| Raw    | ~34.05 kB |
-| Gzip   | ~11.72 kB |
-| Brotli | ~10.49 kB |
+<!-- bundle-sizes:start -->
+| Package | Raw | Gzip | Brotli |
+|---------|----:|-----:|-------:|
+| `@rooted/router` | 16.42 kB | 5.62 kB | 5.10 kB |
+| `@rooted/components` | 4.57 kB | 1.71 kB | 1.46 kB |
+| `@rooted/storage` | 3.75 kB | 1.04 kB | 0.96 kB |
+| `@rooted/store` | 3.16 kB | 0.96 kB | 0.90 kB |
+| `@rooted/elements` | 2.11 kB | 0.77 kB | 0.69 kB |
+| `@rooted/events` | 1.81 kB | 0.63 kB | 0.56 kB |
+| `@rooted/pwa` | 1.31 kB | 0.57 kB | 0.47 kB |
+| `@rooted/util` | 0.89 kB | 0.40 kB | 0.34 kB |
+| **All of `@rooted`** | 34.02 kB | 11.70 kB | 10.48 kB |
+| **The whole app** (JS and CSS) | 114.42 kB | 43.14 kB | 36.89 kB |
 
-These numbers go stale as the framework changes. Every build prints the size of each file it writes. The demo app links its current treemap in the footer ("Peek at the bundle"). To make one locally, run `pnpm --filter @rooted/example-recipe-book report-bundle` and look at it with `vite preview`. It uses `bundleReport()` from [`@rooted/application`](./packages/application).
+The gzip and brotli sizes per package are estimates.
+Compression works on a whole file, so the share of one package in it can only be approximated.
+The whole app's numbers are the real compressed sizes of its files, added up.
+<!-- bundle-sizes:end -->
+
+These numbers are refreshed by hand every now and then, so they can lag behind the framework: run `pnpm build:ci`, then `pnpm bundle-sizes`. CI warns when they're out of date. The demo app links its current treemap in the footer ("Peek at the bundle"). To make one locally, run `pnpm --filter @rooted/example-recipe-book report-bundle` and look at it with `vite preview`. It uses `bundleReport()` from [`@rooted/application`](./packages/application).
 
 
 ## Demo

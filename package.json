@@ -18,6 +18,7 @@
 		"lint": "oxlint -c .repo/config/oxlint/oxlint.config.json --ignore-path .oxlintignore --fix . && node .repo/config/oxlint/check-packages.mjs",
 		"clean": "pnpm -r run clean",
 		"release": "multi-semantic-release --ignore-private-packages",
+		"bundle-sizes": "rooted-pipeline bundle-sizes",
 		"full-update": "pnpm update -r"
 	},
 	"devDependencies": {

@@ -16,7 +16,8 @@ type SondaOptions = NonNullable<Parameters<typeof SondaVitePlugin>[0]> & {
 /**
  * A treemap of what ended up in your bundle, made by [Sonda](https://sonda.dev).
  *
- * It does nothing on a normal build. Build with `--report-bundle` and it writes `dist/bundle.html`.
+ * It does nothing on a normal build. Build with `--report-bundle` and it writes `dist/bundle.html`,
+ * and the same data as `dist/bundle.json` for scripts.
  * Nothing opens by itself: look at it with `vite preview`. Outside CI the build prints the URL to go to.
  * Sizes are read from the sourcemaps of the minified output, with gzip and brotli next to them.
  * Working those out makes the build noticeably slower, which is why it waits for the flag.
@@ -47,7 +48,7 @@ export function bundleReport(): PluginOption {
 
 	const sondaOptions: SondaOptions = {
 		open: false,
-		format: 'html',
+		format: ['html', 'json'],
 		filename,
 		outputDir: 'dist',
 		gzip: true,

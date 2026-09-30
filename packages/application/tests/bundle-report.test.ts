@@ -93,12 +93,12 @@ describe('bundleReport()', () => {
 		expect(plugins).toContainEqual(expect.objectContaining({ name: 'sonda/vite', apply: 'build' }))
 	})
 
-	test('writes dist/bundle.html and never opens it', () => {
+	test('writes dist/bundle.html and dist/bundle.json, and never opens them', () => {
 		// Act
 		const { options } = build('--report-bundle')
 
 		// Assert
-		expect(options).toMatchObject({ format: 'html', filename: 'bundle', outputDir: 'dist', open: false })
+		expect(options).toMatchObject({ format: ['html', 'json'], filename: 'bundle', outputDir: 'dist', open: false })
 	})
 
 	test('reports gzip and brotli sizes', () => {
