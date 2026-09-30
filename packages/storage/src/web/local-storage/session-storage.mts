@@ -1,7 +1,7 @@
 import { jsonStringify, safeJsonParse } from '../../serializer.mts'
 
 /**
- * Typed wrapper around the browser's `sessionStorage`. Same shape and same guarantees as {@link import('./local-storage.mts').LocalStorage};
+ * Typed wrapper around the browser's `sessionStorage`. Same shape and same guarantees as {@link LocalStorage};
  * the only difference is the underlying browser storage. Cleared when the tab closes.
  *
  * @example
