@@ -212,16 +212,16 @@ Measured from the tree-shaken production build of the [recipe-book example app](
 <!-- bundle-sizes:start -->
 | Package | Raw | Gzip | Brotli |
 |---------|----:|-----:|-------:|
-| `@rooted/router` | 16.42 kB | 5.62 kB | 5.10 kB |
-| `@rooted/components` | 4.57 kB | 1.71 kB | 1.46 kB |
-| `@rooted/storage` | 3.75 kB | 1.04 kB | 0.96 kB |
-| `@rooted/store` | 3.16 kB | 0.96 kB | 0.90 kB |
-| `@rooted/elements` | 2.11 kB | 0.77 kB | 0.69 kB |
-| `@rooted/events` | 1.81 kB | 0.63 kB | 0.56 kB |
-| `@rooted/pwa` | 1.31 kB | 0.57 kB | 0.47 kB |
+| `@rooted/router` | 14.71 kB | 4.93 kB | 4.48 kB |
+| `@rooted/components` | 4.57 kB | 1.72 kB | 1.47 kB |
+| `@rooted/storage` | 3.75 kB | 1.05 kB | 0.96 kB |
+| `@rooted/store` | 3.16 kB | 0.97 kB | 0.92 kB |
+| `@rooted/elements` | 2.11 kB | 0.77 kB | 0.70 kB |
+| `@rooted/events` | 1.81 kB | 0.64 kB | 0.56 kB |
+| `@rooted/pwa` | 1.31 kB | 0.58 kB | 0.48 kB |
 | `@rooted/util` | 0.89 kB | 0.40 kB | 0.34 kB |
-| **All of `@rooted`** | 34.02 kB | 11.70 kB | 10.48 kB |
-| **The whole app** (JS and CSS) | 114.42 kB | 43.14 kB | 36.89 kB |
+| **All of `@rooted`** | 32.31 kB | 11.05 kB | 9.90 kB |
+| **The whole app** (JS and CSS) | 114.34 kB | 43.71 kB | 37.31 kB |
 
 The gzip and brotli sizes per package are estimates.
 Compression works on a whole file, so the share of one package in it can only be approximated.
