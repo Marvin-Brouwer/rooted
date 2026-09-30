@@ -104,6 +104,9 @@ importers:
       html-minifier-terser:
         specifier: ^7.2.0
         version: 7.2.0
+      magic-string:
+        specifier: ^1.4.2
+        version: 1.4.2
       marked:
         specifier: ^18.0.14
         version: 18.0.14

@@ -2,6 +2,8 @@ import { createReadStream } from 'node:fs'
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import MagicString from 'magic-string'
+
 import { seoPluginName, type SeoApi } from '@rooted/seo'
 
 import type { Logger, Plugin, ResolvedConfig } from 'vite'
@@ -100,10 +102,11 @@ export function responsiveImages({ accessKey, deploymentUrl }: ResponsiveImagesO
 			// Rewrite `https://unsplash.com/...` import specifiers to a virtual:ri/ prefix
 			// so Vite's importAnalysis doesn't treat them as browser-external URLs and
 			// skip resolveId entirely.
-			return code.replaceAll(
-				/(from\s+['"])https:\/\/(unsplash\.com\/photos\/[\w-]+(?:\?[^'"]*)?)/g,
-				'$1virtual:ri/https://$2',
-			)
+			const result = new MagicString(code)
+			for (const match of code.matchAll(/(from\s+['"])https:\/\/unsplash\.com\/photos\/[\w-]/g)) {
+				result.appendLeft(match.index + match[1].length, 'virtual:ri/')
+			}
+			return result.hasChanged() ? { code: result.toString(), map: result.generateMap({ hires: true }) } : undefined
 		},
 
 		resolveId(id) {
