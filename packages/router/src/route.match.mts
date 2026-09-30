@@ -1,5 +1,6 @@
 import { tupleResult } from '@rooted/util'
 
+import * as href from './href.mts'
 import { isParameterToken, isWildcardParameter, type RouteParameter, type TokenMatchResult } from './route.tokens.mts'
 
 import type { Path, Url } from './href.mts'
@@ -42,12 +43,7 @@ export type MatchRouteOptions = {
 
 /** @internal */
 export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<string | RouteParameter>) {
-	// This import caused circular references
-	let href: typeof import('./href.mts')
-
 	async function matchUrlPath(path: Path, checkInclusive: boolean) {
-		href ??= await import('./href.mts')
-
 		let offset = 0
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let parentParameters: Partial<PathParameterDictionary<any>> = {}
@@ -101,7 +97,6 @@ export function routeMatcher<T extends RouteParameter[]>(routeParts: Array<strin
 	}
 
 	async function match(options?: MatchRouteOptions): Promise<RouteMatch<AnyRoute>> {
-		href ??= await import('./href.mts')
 		const path = getPath(options?.target)
 		const checkInclusive = options?.checkInclusive ?? true
 
