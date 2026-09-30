@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import MagicString from 'magic-string'
+
 import { seededId } from '@rooted/util'
 
 import type { Plugin, ResolvedConfig } from 'vite'
@@ -421,13 +423,14 @@ export function cssLoader(options: CssLoaderOptions = {}): Plugin[] {
 					)
 				}
 			}
-			let result = code
+			// MagicString keeps the sourcemap right, the file names are longer than the tokens they replace.
+			const result = new MagicString(code)
 			for (const [filePath, { token }] of pending) {
 				const reference = emittedReferences.get(filePath)
 				if (!reference) continue
-				result = result.replaceAll(token, config.base + this.getFileName(reference))
+				result.replaceAll(token, config.base + this.getFileName(reference))
 			}
-			return result === code ? undefined : { code: result, map: undefined }
+			return result.hasChanged() ? { code: result.toString(), map: result.generateMap({ hires: true }) } : undefined
 		},
 	}
 

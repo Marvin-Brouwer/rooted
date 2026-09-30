@@ -207,15 +207,28 @@ The base `@rooted/adapter` package is for writing custom adapters. More in the [
 
 ## Bundle size
 
-Measured from the tree-shaken production build of the [recipe-book example app](./examples/recipe-book), the `@rooted/*` vendor chunk last came in at:
+Measured from the tree-shaken production build of the [recipe-book example app](./examples/recipe-book): which `@rooted/*` packages ended up in it, and what the whole app weighs.
 
-| Format | Size |
-|--------|-------|
-| Raw    | ~27.50 KB |
-| Gzip   | ~11.88 KB |
-| Brotli | ~10.23 KB |
+<!-- bundle-sizes:start -->
+| Package | Raw | Gzip | Brotli |
+|---------|----:|-----:|-------:|
+| `@rooted/router` | 14.71 kB | 4.93 kB | 4.48 kB |
+| `@rooted/components` | 4.57 kB | 1.72 kB | 1.47 kB |
+| `@rooted/storage` | 3.75 kB | 1.05 kB | 0.96 kB |
+| `@rooted/store` | 3.16 kB | 0.97 kB | 0.92 kB |
+| `@rooted/elements` | 2.11 kB | 0.77 kB | 0.70 kB |
+| `@rooted/events` | 1.81 kB | 0.64 kB | 0.56 kB |
+| `@rooted/pwa` | 1.31 kB | 0.58 kB | 0.48 kB |
+| `@rooted/util` | 0.89 kB | 0.40 kB | 0.34 kB |
+| **All of `@rooted`** | 32.31 kB | 11.05 kB | 9.90 kB |
+| **The whole app** (JS and CSS) | 114.34 kB | 43.71 kB | 37.31 kB |
 
-These numbers go stale as the framework changes. The current report is at [marvin-brouwer.github.io/rooted/stats.html](https://marvin-brouwer.github.io/rooted/stats.html).
+The gzip and brotli sizes per package are estimates.
+Compression works on a whole file, so the share of one package in it can only be approximated.
+The whole app's numbers are the real compressed sizes of its files, added up.
+<!-- bundle-sizes:end -->
+
+These numbers are refreshed by hand every now and then, so they can lag behind the framework: run `pnpm build:ci`, then `pnpm bundle-sizes`. CI warns when they're out of date. The demo app links its current treemap in the footer ("Peek at the bundle"). To make one locally, run `pnpm --filter @rooted/example-recipe-book report-bundle` and look at it with `vite preview`. It uses `bundleReport()` from [`@rooted/application`](./packages/application).
 
 
 ## Demo

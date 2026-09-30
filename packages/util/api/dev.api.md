@@ -11,7 +11,7 @@ export function appendSourceLocation(): string | undefined;
 export function formatStackFrame(frame: string | undefined): string | undefined;
 
 // @public
-export function isDevelopment(): any;
+export function isDevelopment(): boolean;
 
 // (No @packageDocumentation comment for this package)
 

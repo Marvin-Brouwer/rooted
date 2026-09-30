@@ -39,3 +39,31 @@ export default rootedManifest({
 A production build also emits a service worker. A new version never takes over a page that's already running: it lands once the app is closed, or when someone asks for it. The [PWA guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/pwa.md) covers how, the components in [`@rooted/pwa`](https://www.npmjs.com/package/@rooted/pwa) for showing there's an update, and `workerScripts` for adding your own worker code.
 
 More in the [SEO guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/seo.md).
+
+## Bundle size
+
+Every build prints the size of each file it writes, raw and gzipped, the way Vite always does.
+
+For a treemap of what's actually in the bundle, add `bundleReport()` to your plugins and build with `--report-bundle`. It writes `dist/bundle.html` with [Sonda](https://sonda.dev), and the same data as `dist/bundle.json` if you want to script something with it. Nothing opens by itself: look at it with `vite preview`, and outside CI the build prints the URL to go to. Without the flag the plugin does nothing, so it's fine to leave it in. `vite dev` never makes a report, it doesn't bundle anything.
+
+The treemap names files the way the build does. rooted's default production build names them by hash, so add `--no-mangle` if you want to see which chunk is which, e.g. `vendor/@rooted`.
+
+Production builds don't write sourcemaps. The report needs them, so a `--report-bundle` build writes them for Sonda and deletes them again once `bundle.html` is done. Development-mode builds keep their maps either way.
+
+```ts
+// vite.config.mts
+import { bundleReport, rootedManifest } from '@rooted/application'
+
+export default rootedManifest({
+  // ...
+  plugins: [bundleReport()],
+})
+```
+
+```sh
+vite build -- --report-bundle
+vite preview
+```
+
+`--report-bundle` doesn't skip the service worker. Add `--no-pwa` if you want the build to be quicker.
+

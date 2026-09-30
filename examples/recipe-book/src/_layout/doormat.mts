@@ -72,7 +72,7 @@ export const Doormat = component({
 												},
 											}),
 											create(Link, {
-												href: href.path('/stats.html'),
+												href: href.path('/bundle.html'),
 												target: '_blank',
 												rel: 'noopener noreferrer',
 												classes: styles.externalLink,

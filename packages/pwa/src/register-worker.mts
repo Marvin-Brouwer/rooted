@@ -48,7 +48,7 @@ export async function registerWorker(options: RegisterWorkerOptions = {}): Promi
 	if (!workersSupported()) return undefined
 
 	const {
-		workerUrl = new URL('worker.js', import.meta.url),
+		workerUrl = new URL(/* @vite-ignore */ 'worker.js', import.meta.url),
 		checkInterval = oneHour,
 		signal,
 	} = options

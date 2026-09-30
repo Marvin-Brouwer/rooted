@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite'
-import { analyzer } from 'vite-bundle-analyzer'
 import { ManifestOptions, type VitePWAOptions } from 'vite-plugin-pwa'
 
 import { prerenderSettings, type SettleOptions } from '@rooted/adapter'
@@ -25,6 +24,7 @@ function codeSplittingGroups(applicationGroups: CodeSplittingGroups): CodeSplitt
 		...applicationGroups,
 		// Chunk shared if not imported correctly
 		{
+			debugName: 'shared',
 			priority: Number.NEGATIVE_INFINITY,
 			entriesAware: true,
 			name: (id) => {
@@ -149,9 +149,8 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 	function buildConfig(environment: ConfigEnv): UserConfig {
 		const minify = environment.command === 'build' && process.argv.includes('--minify')
 		const mangle = !process.argv.includes('--no-mangle')
-		const analyzerMode = environment.command === 'build' && process.argv.includes('--analyze')
 
-		const skipPwaGenerator = analyzerMode || process.argv.includes('--no-pwa')
+		const skipPwaGenerator = process.argv.includes('--no-pwa')
 		const skipPwaAssets = !!manifest.icon || skipPwaGenerator
 
 		// Shared on purpose: the assets plugin lists the icons it generates in here.
@@ -187,9 +186,10 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 				target: 'esnext',
 				cssMinify: 'esbuild',
 				minify: 'terser',
+				// Only while developing. `bundleReport()` adds its own for the length of a report build.
+				sourcemap: environment.mode === 'development',
 			},
 			esbuild: {
-				sourcemap: 'external',
 				minifyWhitespace: minify,
 				treeShaking: true,
 			},
@@ -199,22 +199,6 @@ export function rootedManifest(manifest: RootedApplicationManifest) {
 				cssLoader({
 					minify,
 				}),
-				// We still use the analyzer in static when disabled
-				// We noticed completely disabling the analyzer resulted in bigger bundles somehow
-				analyzer(analyzerMode
-					? {
-						analyzerMode: 'server',
-						openAnalyzer: true,
-						exclude: [
-							// Only take one flavor of css, this distracts from the bundle size
-							/\.tagged\.css$/is,
-							/\.tagged-[A-Za-z0-9_-]+\.css$/i,
-						],
-					}
-					: {
-						analyzerMode: 'static',
-					},
-				),
 				pwaPreset({ manifest, webManifest, skipPwaGenerator, minify, runtimeCaching: manifest.runtimeCaching, workerScripts: manifest.workerScripts }),
 				pwaRegisterPlugin({ skip: skipPwaGenerator }),
 				pwaAssetsPlugin({ webManifest, skip: skipPwaAssets, deploymentUrl: manifest.webManifest.url }),

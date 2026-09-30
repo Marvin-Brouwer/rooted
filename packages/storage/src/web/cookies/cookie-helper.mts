@@ -14,7 +14,7 @@ const SAME_SITE_LABEL: Record<globalThis.CookieSameSite, string> = {
 /**
  * Build the string to assign to `document.cookie` for a single cookie.
  *
- * Takes {@link globalThis.CookieInit} directly. `value` is expected to already be a string.
+ * Takes the browser's {@link https://developer.mozilla.org/en-US/docs/Web/API/CookieStore/set#options | CookieInit} directly. `value` is expected to already be a string.
  * Callers in `cookie-storage.mts` handle JSON encoding before reaching this layer.
  *
  * A few things happen on the way out:

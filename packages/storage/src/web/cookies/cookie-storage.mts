@@ -4,12 +4,12 @@ import { buildCookieString, parseCookieHeader } from './cookie-helper.mts'
 import { resolveCookiePath } from './cookie-path.mts'
 
 /**
- * Re-export of {@link globalThis.CookieSameSite} so you have a single import path for everything cookie-related.
+ * Re-export of the browser's {@link https://developer.mozilla.org/en-US/docs/Web/API/CookieStore/set#samesite | CookieSameSite} so you have a single import path for everything cookie-related.
  */
 export type CookieSameSite = globalThis.CookieSameSite
 
 /**
- * Typed counterpart of {@link globalThis.CookieInit}.
+ * Typed counterpart of the browser's {@link https://developer.mozilla.org/en-US/docs/Web/API/CookieStore/set#options | CookieInit}.
  *
  * Everything except `value` is inherited from the DOM type via `Omit`.
  * `value` is widened to a generic `T` so you can hand it any value that round-trips through `JSON.stringify`.

@@ -7,4 +7,5 @@
  */
 
 export * from '../rooted-manifest.mts'
+export { bundleReport } from '../../plugins/bundle-report.mts'
 export { environment, type Environment } from '@rooted/util'

@@ -129,8 +129,6 @@ The service worker is only generated for a production build, so `pnpm dev` never
 vite build -- --no-pwa
 ```
 
-`--analyze` implies it.
-
 ## Migrating an app that already has a service worker
 
 > [!WARNING]

@@ -2,7 +2,7 @@
  * Returns `true` when running in a Vite dev build (`import.meta.env.DEV`).
  * Used by rooted's dev-mode helpers, which are dropped in production.
  */
-export function isDevelopment() {
+export function isDevelopment(): boolean {
 	return import.meta.env?.DEV ?? false
 }
 
