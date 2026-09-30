@@ -2,7 +2,7 @@ import { readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
+import { ConsoleMessageId, Extractor, ExtractorConfig } from '@microsoft/api-extractor'
 
 /**
  * Runs API Extractor against every public-entry `.d.mts` file in `<packageRoot>/dist`.
@@ -59,7 +59,15 @@ export async function extractApi(packageRoot: string) {
 			packageJsonFullPath: packageJsonPath,
 		})
 
-		const result = Extractor.invoke(config, { localBuild: true })
+		const result = Extractor.invoke(config, {
+			localBuild: true,
+			messageCallback(message) {
+				// Every API Extractor release so far bundles TypeScript 5.9, while the repo is on 6.
+				// Upgrading doesn't help yet, so the notice to upgrade is only noise on every module.
+				// The preamble still says which TypeScript version the analysis used.
+				if (message.messageId === ConsoleMessageId.CompilerVersionNotice) message.handled = true
+			},
+		})
 		if (!result.succeeded) allSucceeded = false
 	}
 
