@@ -3,6 +3,7 @@
 import { appendSourceLocation, isDevelopment } from '@rooted/util/dev'
 
 import { ComponentConstructor, definedAt } from '../../components/src/component.mts'
+import { environment } from '@rooted/util'
 
 function validateComponentName(name: string): void {
 	try {
@@ -64,7 +65,7 @@ export const devHelper = {
 	appendComponentMetaData: isDevelopment() ? appendComponentMetadata.bind(void 0) : void 0,
 }
 
-if (isDevelopment()) {
+if (isDevelopment() && environment.is('client')) {
 	console.info(
 		[
 			'%cGenerated with rooted',
@@ -83,7 +84,7 @@ if (isDevelopment()) {
 		'font-size:12px;color:#888;',
 	)
 }
-else {
+else if(environment.is('client')) {
 	console.warn(
 		[
 			'%cStop!',
