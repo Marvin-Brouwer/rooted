@@ -24,6 +24,19 @@ overrides:
   "source-map@0.8.0-beta.0": "0.7.4"
   "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.4.15"
 
+packageExtensions:
+  # semantic-release's plugins load the conventionalcommits preset by name and take
+  # whichever copy resolves, which was the 10.x one @commitlint/config-conventional
+  # brings in. 10.x needs conventional-changelog-writer 9, the plugins still ship 8:
+  # up to 10.3 that rendered empty release notes, 10.4 fails the release instead.
+  # Give the plugins their own 9.x. Drop this once release-notes-generator uses writer 9.
+  "@semantic-release/commit-analyzer":
+    dependencies:
+      conventional-changelog-conventionalcommits: "^9.3.1"
+  "@semantic-release/release-notes-generator":
+    dependencies:
+      conventional-changelog-conventionalcommits: "^9.3.1"
+
 allowedDeprecatedVersions:
   "glob": "11"
 
