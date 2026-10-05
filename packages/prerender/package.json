@@ -51,7 +51,7 @@
 	},
 	"devDependencies": {
 		"@rooted/development": "workspace:*",
-		"@types/node": "^26.6.1",
+		"@types/node": "^26.6.4",
 		"tsx": "^4.23.15"
 	}
 }
