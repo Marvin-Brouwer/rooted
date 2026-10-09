@@ -42,6 +42,34 @@ describe('renderer()', () => {
 		expect(html).toContain('{"happyDom":true,"nonsense":false}')
 	})
 
+	test('a property the window doesn\'t have reads as undefined, like in a browser', async () => {
+		// Arrange
+		const options = await buildOutput(
+			"document.querySelector('#app').textContent = typeof window.notARealThing + ' ' + String(window.opener)\n",
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert
+		expect(html).toContain('<div id="app">undefined null</div>')
+	})
+
+	test('the bundle can set its own globals on window', async () => {
+		// Arrange: how three.js checks for a second copy of itself
+		const options = await buildOutput(
+			"const before = window.__THREE__\n"
+			+ "window.__THREE__ = '180'\n"
+			+ "document.querySelector('#app').textContent = String(before) + ' ' + window.__THREE__\n",
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert
+		expect(html).toContain('<div id="app">undefined 180</div>')
+	})
+
 	test('renders the whole document, doctype included', async () => {
 		// Arrange
 		const options = await buildOutput("document.querySelector('#app').textContent = 'booted'\n")
