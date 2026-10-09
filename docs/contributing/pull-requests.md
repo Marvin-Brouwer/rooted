@@ -26,7 +26,7 @@ ci(release): switch to OIDC trusted publishing
 docs: add a contribution guide
 ```
 
-Types we use: `feat`, `fix`, `docs`, `ci`, `test`, `chore`, `perf`, `build`. We do not use `refactor`. See [commits](./commits.md) for the reasoning.
+Types we use: `feat`, `fix`, `docs`, `ci`, `test`, `chore`, `perf`, `revert`. Commitlint rejects anything else, `refactor` and `build` included. See [commits](./commits.md) for the reasoning.
 
 Keep the title under 80 characters. The body is for detail.
 
