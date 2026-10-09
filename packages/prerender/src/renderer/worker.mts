@@ -64,13 +64,6 @@ async function renderPage({ html, url, bundlePath, quietPeriod, timeout }: Rende
 	// The real shell, so the app mounts where it would in a browser
 	happyWindow.document.write(html)
 
-	// Proxied so a missing property on `window` is a no-op function instead of a throw
-	const noOpWindow = new Proxy(happyWindow, {
-		get(target, property): unknown {
-			return (Reflect.get(target, property) as unknown) ?? (() => {})
-		},
-	})
-
 	return withDomGlobals(async () => {
 		try {
 			// The bundle reads DOM globals on import, so they must be in place first.
@@ -83,7 +76,7 @@ async function renderPage({ html, url, bundlePath, quietPeriod, timeout }: Rende
 		finally {
 			await shutDown(happyWindow, pendingIO)
 		}
-	}, { window: noOpWindow, fetch: true })
+	}, { window: happyWindow, fetch: true })
 }
 
 // Route components load lazily, so the page isn't done when the bundle finishes evaluating,
