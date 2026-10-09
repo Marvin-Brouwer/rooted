@@ -33,12 +33,9 @@ export function deepClone<T>(value: T, seen?: WeakMap<object, unknown>): T;
 
 // @public
 export class Immutable<T> {
-    constructor(value: T);
+    static from<T extends StateObject>(value: T): Immutable<T>;
     get value(): ReadonlyState<T>;
 }
-
-// @public
-export function immutable<T extends StateObject>(value: T): Immutable<T>;
 
 // @public
 export type ReadonlyState<T> = T extends ((...arguments_: never) => unknown) ? T : T extends PromiseLike<unknown> | Immutable<unknown> ? T : T extends Date | RegExp | Error ? Readonly<T> : T extends Map<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> : T extends ReadonlyMap<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> : T extends Set<infer V> ? ReadonlySet<ReadonlyState<V>> : T extends ReadonlySet<infer V> ? ReadonlySet<ReadonlyState<V>> : T extends ReadonlyArray<infer V> ? number extends T['length'] ? ReadonlyArray<ReadonlyState<V>> : { readonly [K in keyof T]: ReadonlyState<T[K]>; } : T extends object ? { readonly [K in keyof T]: ReadonlyState<T[K]>; } : T;

@@ -1,16 +1,16 @@
 import { describe, expect, test, vi } from 'vitest'
 
 import { deepClone } from '../src/deepClone.mts'
-import { immutable } from '../src/immutable.mts'
+import { Immutable } from '../src/immutable.mts'
 import { createStore } from '../src/store.create.mts'
 
-describe('immutable', () => {
+describe('Immutable.from', () => {
 	test('deep-freezes the value it wraps, in place', () => {
 		// Arrange
 		const table = { entries: [{ id: 1 }] }
 
 		// Act
-		immutable(table)
+		Immutable.from(table)
 
 		// Assert
 		expect(Object.isFrozen(table)).toBe(true)
@@ -20,7 +20,7 @@ describe('immutable', () => {
 	test('blocks mutating methods on a wrapped Map', () => {
 		// Arrange
 		const lookup = new Map([['a', 1]])
-		immutable(lookup)
+		Immutable.from(lookup)
 
 		// Act
 		const write = () => lookup.set('b', 2)
@@ -34,7 +34,7 @@ describe('immutable', () => {
 		const bytes = new Uint8Array([1, 2, 3])
 
 		// Act
-		const wrapped = immutable(bytes)
+		const wrapped = Immutable.from(bytes)
 
 		// Assert
 		expect(wrapped.value).toBe(bytes)
@@ -42,7 +42,7 @@ describe('immutable', () => {
 
 	test('a write into the wrapped value is a type error', () => {
 		// Arrange
-		const wrapped = immutable({ count: 1 })
+		const wrapped = Immutable.from({ count: 1 })
 
 		// Act
 		const write = () => {
@@ -56,7 +56,7 @@ describe('immutable', () => {
 
 	test('deepClone hands back the wrapper itself', () => {
 		// Arrange
-		const wrapped = immutable(new Uint8Array([1, 2, 3]))
+		const wrapped = Immutable.from(new Uint8Array([1, 2, 3]))
 
 		// Act
 		const copy = deepClone({ file: wrapped })
@@ -66,11 +66,11 @@ describe('immutable', () => {
 	})
 })
 
-describe('createStore — immutable values in state', () => {
+describe('createStore — Immutable values in state', () => {
 	test('snapshots share the wrapped value instead of copying it', () => {
 		// Arrange
 		const bytes = new Uint8Array([1, 2, 3])
-		const store = createStore({ title: 'Kana', file: immutable(bytes) })
+		const store = createStore({ title: 'Kana', file: Immutable.from(bytes) })
 
 		// Act
 		store.update((state) => {
@@ -84,13 +84,13 @@ describe('createStore — immutable values in state', () => {
 	test('change does not fire when the same value is wrapped again', () => {
 		// Arrange
 		const bytes = new Uint8Array([1, 2, 3])
-		const store = createStore({ file: immutable(bytes) })
+		const store = createStore({ file: Immutable.from(bytes) })
 		const handler = vi.fn()
 		const controller = new AbortController()
 		store.on('change', controller.signal, handler)
 
 		// Act
-		store.update(() => ({ file: immutable(bytes) }))
+		store.update(() => ({ file: Immutable.from(bytes) }))
 
 		// Assert
 		expect(handler).not.toHaveBeenCalled()
@@ -99,13 +99,13 @@ describe('createStore — immutable values in state', () => {
 
 	test('change fires when a different value is wrapped, even with the same contents', () => {
 		// Arrange
-		const store = createStore({ file: immutable(new Uint8Array([1, 2, 3])) })
+		const store = createStore({ file: Immutable.from(new Uint8Array([1, 2, 3])) })
 		const handler = vi.fn()
 		const controller = new AbortController()
 		store.on('change', controller.signal, handler)
 
 		// Act
-		store.update(() => ({ file: immutable(new Uint8Array([1, 2, 3])) }))
+		store.update(() => ({ file: Immutable.from(new Uint8Array([1, 2, 3])) }))
 
 		// Assert
 		expect(handler).toHaveBeenCalledTimes(1)
@@ -115,10 +115,10 @@ describe('createStore — immutable values in state', () => {
 	test('an immutable value can be the whole state', () => {
 		// Arrange
 		const bytes = new Uint8Array([1, 2, 3])
-		const store = createStore(immutable(new Uint8Array([0])))
+		const store = createStore(Immutable.from(new Uint8Array([0])))
 
 		// Act
-		store.update(() => immutable(bytes))
+		store.update(() => Immutable.from(bytes))
 
 		// Assert
 		expect(store.value.value).toBe(bytes)

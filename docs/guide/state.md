@@ -75,19 +75,19 @@ The snapshot is built lazily on the first read after an `update` and cached unti
 
 ### Values that don't change
 
-Copying on read and hashing on update is cheap for ordinary state, and pure waste for a big value that never changes, like the bytes of a file or a large lookup table. Wrap one in `immutable` and the store shares it instead: no copy on read, and the hash only looks at which value it is, not what's in it.
+Copying on read and hashing on update is cheap for ordinary state, and pure waste for a big value that never changes, like the bytes of a file or a large lookup table. Wrap one with `Immutable.from` and the store shares it instead: no copy on read, and the hash only looks at which value it is, not what's in it.
 
 ```ts
-import { createStore, immutable } from '@rooted/store'
+import { createStore, Immutable } from '@rooted/store'
 
-const quiz = createStore({ title: 'Kana', file: immutable(bytes) })
+const quiz = createStore({ title: 'Kana', file: Immutable.from(bytes) })
 
-new Blob([quiz.value.file.value])                     // the same Uint8Array you passed in
-quiz.update(state => { state.title = 'Kanji' })      // doesn't copy or re-read the bytes
-quiz.update(() => ({ file: immutable(otherBytes) })) // fires 'change'
+new Blob([quiz.value.file.value])                          // the same Uint8Array you passed in
+quiz.update(state => { state.title = 'Kanji' })           // doesn't copy or re-read the bytes
+quiz.update(() => ({ file: Immutable.from(otherBytes) })) // fires 'change'
 ```
 
-`immutable` deep-freezes the value in place, so your own reference is frozen too. Bytes can't be frozen, so for a typed array, `ArrayBuffer` or `DataView` it's a promise you make: write into one anyway and every snapshot sees it, and no `change` fires. Change detection goes by identity, so wrapping the same value again is no change, and wrapping a different one with identical contents is.
+`Immutable.from` deep-freezes the value in place, so your own reference is frozen too. Bytes can't be frozen, so for a typed array, `ArrayBuffer` or `DataView` it's a promise you make: write into one anyway and every snapshot sees it, and no `change` fires. Change detection goes by identity, so wrapping the same value again is no change, and wrapping a different one with identical contents is.
 
 ## Updating
 
@@ -208,7 +208,7 @@ The honest list:
 - Class instances in state are cloned structurally. The prototype is preserved so `instanceof` keeps working, but the constructor isn't re-run, private fields (`#field`) are lost, identity changes, and any `WeakMap`/`WeakSet` entries keyed on the original won't see the clone. If your class carries behaviour the snapshot needs to keep, prefer plain data.
 - `Map` and `Set` snapshots throw a `TypeError` on `.set` / `.add` / `.delete` / `.clear`, since `Object.freeze` can't reach their internal slots and we'd rather fail loudly than silently mutate.
 - Typed arrays, `ArrayBuffer` and `DataView` snapshots are real copies, but they aren't frozen, because bytes can't be. TypeScript still marks them readonly. Writing into one at runtime never reaches the live state, but it does change that snapshot for everyone reading it until the next `update`. Each view gets a buffer of its own holding just its bytes, so two views that shared a buffer in state don't share one in the snapshot, and own properties on them aren't carried over.
-- Change detection writes out the bytes of every typed array, `ArrayBuffer` and `DataView` in state as hex, on every `update`. For a few kilobytes that's nothing. For megabytes it's a string twice that size each time. Wrap values like that in [`immutable`](#values-that-dont-change).
+- Change detection writes out the bytes of every typed array, `ArrayBuffer` and `DataView` in state as hex, on every `update`. For a few kilobytes that's nothing. For megabytes it's a string twice that size each time. Wrap values like that with [`Immutable.from`](#values-that-dont-change).
 - If your runtime supports immutable `ArrayBuffer`s (`buffer.sliceToImmutable()`, a TC39 proposal that no browser or Node version turns on by default yet), a buffer like that, and any view over it, is shared between state and snapshots instead of copied. Nobody can write to it, so there's nothing to protect.
 - State is concrete: no bare functions, no bare promises. `createStore.from` covers both, and a function or promise nested on a property is still fine.
 - A promise nested in state is shared between snapshots, not copied. There's no way to copy one: a promise's state lives in internal slots that a structural copy can't reach. So every snapshot hands you the same promise object, and anything with a callable `then` counts, not just a native `Promise`.

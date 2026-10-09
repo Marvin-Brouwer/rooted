@@ -8,7 +8,7 @@ import { Immutable } from './immutable.mts'
  *
  * What gets cloned: plain objects, arrays, `Date`, `Map`, `Set`, typed arrays, `ArrayBuffer`, `DataView`, class instances, and any symbol-keyed properties on them. Cycles are handled.
  *
- * Functions stay shared by reference, and so do promises and values wrapped in `immutable`. A promise's state lives in internal slots no copy can reach, so a structural copy of one is a dead object that throws the moment you await it. Sharing the reference is the only thing that works. The check is a callable `then`, so any thenable counts, not just a native `Promise`.
+ * Functions stay shared by reference, and so do promises and values wrapped in `Immutable.from`. A promise's state lives in internal slots no copy can reach, so a structural copy of one is a dead object that throws the moment you await it. Sharing the reference is the only thing that works. The check is a callable `then`, so any thenable counts, not just a native `Promise`.
  *
  * Typed arrays, `ArrayBuffer` and `DataView` are copied with their own `slice`, so the copy is a real one that works with `Blob`, IndexedDB and the rest. A typed array subclass stays a subclass. Each view gets a buffer holding only the bytes it covers: a `subarray` doesn't drag its whole parent buffer along, but two views that shared a buffer in the original don't share one in the copy. Own properties on them (a brand symbol, say) aren't carried over. A buffer that reports itself `immutable` (the Immutable ArrayBuffer proposal, which no browser or Node version turns on by default yet) can't be written by anyone, so it's shared instead of copied, and so is any view over it.
  *
