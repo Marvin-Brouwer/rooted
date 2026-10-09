@@ -42,6 +42,19 @@ describe('renderer()', () => {
 		expect(html).toContain('{"happyDom":true,"nonsense":false}')
 	})
 
+	test('a missing browser API is a no-op, a missing flag stays unset', async () => {
+		// Arrange: three.js reads `window.__THREE__` before setting it, and warns when it's already there
+		const options = await buildOutput(
+			"document.querySelector('#app').textContent = JSON.stringify({ api: typeof window.missingApi, flag: typeof window.__THREE__ })\n",
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert
+		expect(html).toContain('{"api":"function","flag":"undefined"}')
+	})
+
 	test('renders the whole document, doctype included', async () => {
 		// Arrange
 		const options = await buildOutput("document.querySelector('#app').textContent = 'booted'\n")

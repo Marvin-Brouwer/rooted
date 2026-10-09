@@ -64,10 +64,16 @@ async function renderPage({ html, url, bundlePath, quietPeriod, timeout }: Rende
 	// The real shell, so the app mounts where it would in a browser
 	happyWindow.document.write(html)
 
-	// Proxied so a missing property on `window` is a no-op function instead of a throw
+	// Proxied so a missing browser API on `window` is a no-op function instead of a throw.
+	// Names starting with an underscore and symbols are left alone: no browser API is named like that,
+	// and libraries keep their own flags there, such as three.js's `window.__THREE__`, which they read
+	// before setting. A no-op function there reads as already set.
 	const noOpWindow = new Proxy(happyWindow, {
 		get(target, property): unknown {
-			return (Reflect.get(target, property) as unknown) ?? (() => {})
+			const value = Reflect.get(target, property) as unknown
+			if (value !== undefined && value !== null) return value
+			if (typeof property === 'symbol' || property.startsWith('_')) return value
+			return () => {}
 		},
 	})
 
