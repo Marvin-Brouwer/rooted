@@ -1,6 +1,7 @@
 import { isThenable } from '@rooted/util'
 
 import { isBinaryData } from './binary-data.mts'
+import { Immutable } from './immutable.mts'
 
 const referenceIdentities = new WeakMap<object, number>()
 let nextReferenceIdentity = 0
@@ -35,6 +36,8 @@ function hashReplacer(_key: string, value: unknown): unknown {
 	if (isThenable(value)) return referenceIdentity(value, 'Promise')
 	if (typeof value === 'bigint') return value.toString()
 	if (value instanceof Date) return value.toISOString()
+	// Skipping the contents is what Immutable is for, so it goes by the identity of the value inside.
+	if (value instanceof Immutable) return referenceIdentity(value.value as object, 'Immutable')
 	if (typeof value === 'object' && isBinaryData(value)) return hashBinaryData(value)
 	if (Array.isArray(value)) return value
 	if (typeof value === 'object') {

@@ -14,3 +14,4 @@ export {
 	type Store, type StoreEvent, type StoreEventHandler,
 } from '../store.mts'
 export { deepClone } from '../deepClone.mts'
+export { immutable, type Immutable } from '../immutable.mts'
