@@ -80,11 +80,23 @@ Copying on read and hashing on update is cheap for ordinary state, and pure wast
 ```ts
 import { createStore, Immutable } from '@rooted/store'
 
-const quiz = createStore({ title: 'Kana', file: Immutable.from(bytes) })
+const quiz = createStore({
+  title: 'Kana',
+  file: Immutable.from(bytes),
+})
 
-new Blob([quiz.value.file.value])                          // the same Uint8Array you passed in
-quiz.update(state => { state.title = 'Kanji' })           // doesn't copy or re-read the bytes
-quiz.update(() => ({ file: Immutable.from(otherBytes) })) // fires 'change'
+// The same Uint8Array you passed in, no copy
+new Blob([quiz.value.file.value])
+
+// Doesn't copy or re-read the bytes
+quiz.update(state => {
+  state.title = 'Kanji'
+})
+
+// Fires 'change'
+quiz.update(() => ({
+  file: Immutable.from(otherBytes),
+}))
 ```
 
 `Immutable.from` deep-freezes the value in place, so your own reference is frozen too. Bytes can't be frozen, so for a typed array, `ArrayBuffer` or `DataView` it's a promise you make: write into one anyway and every snapshot sees it, and no `change` fires. Change detection goes by identity, so wrapping the same value again is no change, and wrapping a different one with identical contents is.

@@ -26,11 +26,23 @@ export class Immutable<T> {
 	 * ```ts
 	 * import { createStore, Immutable } from '@rooted/store'
 	 *
-	 * const quiz = createStore({ title: 'Kana', file: Immutable.from(bytes) })
+	 * const quiz = createStore({
+	 *   title: 'Kana',
+	 *   file: Immutable.from(bytes),
+	 * })
 	 *
-	 * new Blob([quiz.value.file.value])                          // the same Uint8Array you passed in, no copy
-	 * quiz.update(state => { state.title = 'Kanji' })           // doesn't copy or re-read the bytes
-	 * quiz.update(() => ({ file: Immutable.from(otherBytes) })) // fires 'change'
+	 * // The same Uint8Array you passed in, no copy
+	 * new Blob([quiz.value.file.value])
+	 *
+	 * // Doesn't copy or re-read the bytes
+	 * quiz.update(state => {
+	 *   state.title = 'Kanji'
+	 * })
+	 *
+	 * // Fires 'change'
+	 * quiz.update(() => ({
+	 *   file: Immutable.from(otherBytes),
+	 * }))
 	 * ```
 	 */
 	static from<T extends StateObject>(value: T): Immutable<T> {
