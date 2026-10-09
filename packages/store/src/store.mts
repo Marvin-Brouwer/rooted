@@ -1,4 +1,5 @@
-import { deepClone, deepFreeze } from './deepClone.mts'
+import { deepClone } from './deepClone.mts'
+import { deepFreeze } from './deepFreeze.mts'
 import { hashState } from './hash.mts'
 import { storeAbortSignal } from './store-abort-signal.mts'
 
