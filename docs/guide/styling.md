@@ -70,7 +70,7 @@ The shell is the layout of the page itself.
 
 ```css
 /* src/application.css */
-#app {
+:global(#app) {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -93,6 +93,8 @@ footer {
   margin-top: auto;
 }
 ```
+
+`#app` is the element from `index.html` the app mounts inside, so it sits outside the component and needs `:global(...)`. The rest is scoped as usual.
 
 Keep this file short. Anything specific to a component belongs in the component.
 

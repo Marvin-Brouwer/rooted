@@ -15,7 +15,7 @@ Add the rest as you need them: `@rooted/router` for routing, `@rooted/store` for
 
 ## 2. Set up the page
 
-Rooted replaces an element on the page with the app root. The default selector is `#app`.
+Rooted mounts the app inside an element on the page. The default selector is `#app`.
 
 ```html
 <!-- index.html -->
@@ -68,7 +68,7 @@ const App = component({
 application(App)
 ```
 
-`application(App)` looks for `#app` and replaces it with the app root. You can pass `{ selector: '#root' }` or `{ element: someNode }` if you want something different.
+`application(App)` looks for `#app` and mounts the app root inside it, replacing whatever it held. The `#app` element itself stays, which is what lets a pre-rendered page find it again in the browser. You can pass `{ selector: '#root' }` or `{ element: someNode }` if you want something different.
 
 ## 5. Add styles
 
