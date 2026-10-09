@@ -1,11 +1,16 @@
 import { isThenable } from '@rooted/util'
 
+import { isBinaryData } from './binary-data.mts'
+import { Immutable } from './immutable.mts'
+
 /**
  * Returns a deep copy of `value`.
  *
- * What gets cloned: plain objects, arrays, `Date`, `Map`, `Set`, class instances, and any symbol-keyed properties on them. Cycles are handled.
+ * What gets cloned: plain objects, arrays, `Date`, `Map`, `Set`, typed arrays, `ArrayBuffer`, `DataView`, class instances, and any symbol-keyed properties on them. Cycles are handled.
  *
- * Functions stay shared by reference, and so do promises. A promise's state lives in internal slots no copy can reach, so a structural copy of one is a dead object that throws the moment you await it. Sharing the reference is the only thing that works. The check is a callable `then`, so any thenable counts, not just a native `Promise`.
+ * Functions stay shared by reference, and so do promises and values wrapped in `Immutable.from`. A promise's state lives in internal slots no copy can reach, so a structural copy of one is a dead object that throws the moment you await it. Sharing the reference is the only thing that works. The check is a callable `then`, so any thenable counts, not just a native `Promise`.
+ *
+ * Typed arrays, `ArrayBuffer` and `DataView` are copied with their own `slice`, so the copy is a real one that works with `Blob`, IndexedDB and the rest. A typed array subclass stays a subclass. Each view gets a buffer holding only the bytes it covers: a `subarray` doesn't drag its whole parent buffer along, but two views that shared a buffer in the original don't share one in the copy. Own properties on them (a brand symbol, say) aren't carried over. A buffer that reports itself `immutable` (the Immutable ArrayBuffer proposal, which no browser or Node version turns on by default yet) can't be written by anyone, so it's shared instead of copied, and so is any view over it.
  *
  * Class instances are cloned structurally: a new object is created with the same prototype (so `instanceof` still works) and own properties are copied across. The trade-offs are real: private fields (`#field`) are lost, the constructor isn't re-run (no derived state, no observers re-wired), identity changes (`clone !== original`), and any `WeakMap`/`WeakSet` entries keyed on the original won't see the clone. If your class carries behaviour the clone needs to keep, prefer plain data.
  *
@@ -23,6 +28,13 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 	if (seen.has(object)) return seen.get(object) as T
 
 	if (isThenable(value)) return value
+	if (value instanceof Immutable) return value
+
+	if (isBinaryData(object)) {
+		const copy = cloneBinaryData(object)
+		seen.set(object, copy)
+		return copy as T
+	}
 
 	if (value instanceof Date) return new Date(value.getTime()) as unknown as T
 
@@ -64,6 +76,22 @@ export function deepClone<T>(value: T, seen: WeakMap<object, unknown> = new Weak
 	return copy as T
 }
 
+// Copies the bytes a binary value covers into a buffer of its own, or hands back the value itself when its buffer is immutable.
+function cloneBinaryData(value: ArrayBuffer | ArrayBufferView): ArrayBuffer | ArrayBufferView {
+	if (value instanceof ArrayBuffer) return isImmutableBuffer(value) ? value : value.slice(0)
+	if (isImmutableBuffer(value.buffer)) return value
+	if (value instanceof DataView) {
+		return new DataView(value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength))
+	}
+	// Every typed array has slice, and it builds the result through the value's own constructor, which is what keeps subclasses.
+	return (value as Uint8Array).slice()
+}
+
+// The Immutable ArrayBuffer proposal adds an `immutable` getter. On a runtime without it this reads undefined, so nothing is shared.
+function isImmutableBuffer(buffer: ArrayBufferLike): boolean {
+	return (buffer as { immutable?: boolean }).immutable === true
+}
+
 // Copies every own property of `source` onto `target`, cloning the values and sharing functions by reference. Keys `target` already owns are left alone, which is what keeps the array branch from overwriting the indices it just filled in.
 function cloneOwnProperties(source: object, target: object, seen: WeakMap<object, unknown>): void {
 	const from = source as Record<string | symbol, unknown>
@@ -72,78 +100,5 @@ function cloneOwnProperties(source: object, target: object, seen: WeakMap<object
 		if (Object.hasOwn(to, key)) continue
 		const property = from[key]
 		to[key] = typeof property === 'function' ? property : deepClone(property, seen)
-	}
-}
-
-/**
- * Recursively freezes a value in place. Cycles are handled via a `seen` set.
- *
- * Plain objects, arrays, class instances, `Date`, `RegExp`, `Error`, `Map`, and `Set` get `Object.freeze`d along with their reachable contents. `Map` and `Set` mutating methods (`set`, `add`, `delete`, `clear`) are shadowed with own properties that throw a `TypeError`, since `Object.freeze` alone can't reach the internal slots those methods use.
- *
- * Functions and promises are left alone. `deepClone` shares both by reference, so freezing one here would reach back into the value the caller still holds.
- */
-export function deepFreeze<T>(value: T, seen: WeakSet<object> = new WeakSet()): T {
-	// eslint-disable-next-line unicorn/no-null
-	if (value === null || typeof value !== 'object') return value
-	const object = value as object
-	if (seen.has(object)) return value
-	seen.add(object)
-
-	if (isThenable(value)) return value
-
-	if (value instanceof Date || value instanceof RegExp || value instanceof Error) {
-		Object.freeze(value)
-		return value
-	}
-
-	if (value instanceof Map) {
-		for (const [entryKey, entryValue] of value) {
-			deepFreeze(entryKey, seen)
-			deepFreeze(entryValue, seen)
-		}
-		freezeOwnProperties(object, seen)
-		blockMutation(object, ['set', 'delete', 'clear'])
-		Object.freeze(value)
-		return value
-	}
-
-	if (value instanceof Set) {
-		for (const entry of value) deepFreeze(entry, seen)
-		freezeOwnProperties(object, seen)
-		blockMutation(object, ['add', 'delete', 'clear'])
-		Object.freeze(value)
-		return value
-	}
-
-	if (Array.isArray(value)) {
-		freezeOwnProperties(object, seen)
-		Object.freeze(value)
-		return value
-	}
-
-	freezeOwnProperties(object, seen)
-	Object.freeze(value)
-	return value
-}
-
-function freezeOwnProperties(object: object, seen: WeakSet<object>): void {
-	const properties = object as Record<string | symbol, unknown>
-	for (const key of Reflect.ownKeys(properties)) {
-		const property = properties[key]
-		if (typeof property !== 'function') deepFreeze(property, seen)
-	}
-}
-
-function blockMutation(object: object, methods: readonly string[]): void {
-	const name = object.constructor.name
-	for (const method of methods) {
-		Object.defineProperty(object, method, {
-			value: () => {
-				throw new TypeError(`Cannot ${method} on a frozen ${name}`)
-			},
-			configurable: false,
-			writable: false,
-			enumerable: false,
-		})
 	}
 }

@@ -1,5 +1,7 @@
-import { deepClone, deepFreeze } from './deepClone.mts'
+import { deepClone } from './deepClone.mts'
+import { deepFreeze } from './deepFreeze.mts'
 import { hashState } from './hash.mts'
+import { Immutable } from './immutable.mts'
 import { storeAbortSignal } from './store-abort-signal.mts'
 
 type StoreEventDetail<TState> = { state: ReadonlyState<TState> }
@@ -40,11 +42,11 @@ export type StateType = StatePrimitive | StateObject | undefined | null
 /**
  * A recursively-readonly view of a state value.
  *
- * Marks every nested object, array, tuple, `Map`, `Set`, `Date`, `RegExp`, and `Error` as readonly. Stops at functions (there's no meaningful "readonly function"), promises (the snapshot holds the caller's promise, not a copy of it) and primitives.
+ * Marks every nested object, array, tuple, `Map`, `Set`, `Date`, `RegExp`, and `Error` as readonly. Stops at functions (there's no meaningful "readonly function"), promises (the snapshot holds the caller's promise, not a copy of it), {@link Immutable} (its `value` is readonly already) and primitives.
  */
 export type ReadonlyState<T> =
 	T extends (...arguments_: never) => unknown ? T :
-		T extends PromiseLike<unknown> ? T :
+		T extends PromiseLike<unknown> | Immutable<unknown> ? T :
 			T extends Date | RegExp | Error ? Readonly<T> :
 				T extends Map<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> :
 					T extends ReadonlyMap<infer K, infer V> ? ReadonlyMap<ReadonlyState<K>, ReadonlyState<V>> :
@@ -138,7 +140,8 @@ export class StoreImpl<TState extends StateType | Array<StateType>> extends Even
 		const result = setter(this.#state)
 
 		if (result !== undefined) {
-			this.#state = this.#holdsObject
+			// An Immutable has nothing to merge into a plain object (its value sits in a private field), so a returned one replaces the state outright.
+			this.#state = this.#holdsObject && !(result instanceof Immutable)
 				? Object.assign({}, this.#state as object, result) as TState
 				: result as TState
 		}

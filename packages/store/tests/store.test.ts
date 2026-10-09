@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from 'vitest'
 
-import { deepClone, deepFreeze } from '../src/deepClone.mts'
+import { deepClone } from '../src/deepClone.mts'
+import { deepFreeze } from '../src/deepFreeze.mts'
 import { hashState } from '../src/hash.mts'
 import { createStore } from '../src/store.create.mts'
 

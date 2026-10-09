@@ -1,5 +1,8 @@
 import { isThenable } from '@rooted/util'
 
+import { isBinaryData } from './binary-data.mts'
+import { Immutable } from './immutable.mts'
+
 const referenceIdentities = new WeakMap<object, number>()
 let nextReferenceIdentity = 0
 
@@ -13,6 +16,18 @@ function referenceIdentity(value: object, kind: string): string {
 	return `[${kind}#${id}]`
 }
 
+const hexDigits = Array.from({ length: 256 }, (_, byte) => byte.toString(16).padStart(2, '0'))
+
+// JSON.stringify can't see bytes: an ArrayBuffer comes out as `{}`, so swapping one for another looks like no change, and a typed array comes out as an object with a key per index. Write out the bytes the value covers as hex instead. The type name goes in front so the same bytes in a different type still count as a change.
+function hashBinaryData(value: ArrayBuffer | ArrayBufferView): string {
+	const bytes = value instanceof ArrayBuffer
+		? new Uint8Array(value)
+		: new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
+	let hex = ''
+	for (const byte of bytes) hex += hexDigits[byte]
+	return `[${value.constructor.name}:${hex}]`
+}
+
 function hashReplacer(_key: string, value: unknown): unknown {
 	// eslint-disable-next-line unicorn/no-null
 	if (value === null) return value
@@ -21,6 +36,9 @@ function hashReplacer(_key: string, value: unknown): unknown {
 	if (isThenable(value)) return referenceIdentity(value, 'Promise')
 	if (typeof value === 'bigint') return value.toString()
 	if (value instanceof Date) return value.toISOString()
+	// Skipping the contents is what Immutable is for, so it goes by the identity of the value inside.
+	if (value instanceof Immutable) return referenceIdentity(value.value as object, 'Immutable')
+	if (typeof value === 'object' && isBinaryData(value)) return hashBinaryData(value)
 	if (Array.isArray(value)) return value
 	if (typeof value === 'object') {
 		// If the object declares hashedProperties(), hash only that subset
