@@ -20,7 +20,7 @@ import { createStore } from '@rooted/store'
 const counter = createStore({ count: 0 })
 ```
 
-Stores hold pretty much anything: primitives, objects, arrays, `Date`, `Map`, `Set`, class instances, even values with functions or symbol-keyed brands on them. `createStore()` without arguments returns a store with `undefined` as the initial value.
+Stores hold pretty much anything: primitives, objects, arrays, `Date`, `Map`, `Set`, typed arrays, `ArrayBuffer`, `DataView`, class instances, even values with functions or symbol-keyed brands on them. `createStore()` without arguments returns a store with `undefined` as the initial value.
 
 ```ts
 const flag = createStore(true)             // Store<boolean>
@@ -191,6 +191,9 @@ The honest list:
 - Reads materialise a deep-frozen clone the first time after each update and cache it. For very large state trees this is measurable on first read. Updates with no readers pay nothing.
 - Class instances in state are cloned structurally. The prototype is preserved so `instanceof` keeps working, but the constructor isn't re-run, private fields (`#field`) are lost, identity changes, and any `WeakMap`/`WeakSet` entries keyed on the original won't see the clone. If your class carries behaviour the snapshot needs to keep, prefer plain data.
 - `Map` and `Set` snapshots throw a `TypeError` on `.set` / `.add` / `.delete` / `.clear`, since `Object.freeze` can't reach their internal slots and we'd rather fail loudly than silently mutate.
+- Typed arrays, `ArrayBuffer` and `DataView` snapshots are real copies, but they aren't frozen, because bytes can't be. TypeScript still marks them readonly. Writing into one at runtime never reaches the live state, but it does change that snapshot for everyone reading it until the next `update`. Each view gets a buffer of its own holding just its bytes, so two views that shared a buffer in state don't share one in the snapshot, and own properties on them aren't carried over.
+- Change detection writes out the bytes of every typed array, `ArrayBuffer` and `DataView` in state as hex, on every `update`. For a few kilobytes that's nothing. For megabytes it's a string twice that size each time, so keep large files out of state, or in a store of their own that doesn't update often.
+- If your runtime supports immutable `ArrayBuffer`s (`buffer.sliceToImmutable()`, still a TC39 proposal and not in Node 22), a buffer like that, and any view over it, is shared between state and snapshots instead of copied. Nobody can write to it, so there's nothing to protect.
 - State is concrete: no bare functions, no bare promises. `createStore.from` covers both, and a function or promise nested on a property is still fine.
 - A promise nested in state is shared between snapshots, not copied. There's no way to copy one: a promise's state lives in internal slots that a structural copy can't reach. So every snapshot hands you the same promise object, and anything with a callable `then` counts, not just a native `Promise`.
 - There is no time-travel debugging or middleware ecosystem. If you need those, this isn't the tool.
