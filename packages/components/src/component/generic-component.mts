@@ -6,6 +6,7 @@ import { create } from '../component-factory.mts'
 import { ComponentConstructor, ComponentContext } from '../component.mts'
 import { devHelper } from '../dev-helper.mts'
 import { pageAbortSignal } from '../page-abort-signal.mts'
+import { isInPreRenderedRoot } from '../pre-rendered-root.mts'
 import { RootedElement } from '../rooted-element.mts'
 
 import { applyContentStyleFallback, applyScope } from './styles.mts'
@@ -64,6 +65,8 @@ export class GenericComponent extends RootedElement {
 	protected onMount() {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const data = componentStore.get<any>(this)
+		// Markup from a pre-rendered page, which application() is about to replace
+		if (!data && isInPreRenderedRoot(this)) return
 		if (!data) throw new Error('[rooted] GenericComponent mounted without component data. Use create() to instantiate components.')
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const { component, options } = data

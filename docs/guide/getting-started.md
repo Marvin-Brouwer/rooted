@@ -15,7 +15,7 @@ Add the rest as you need them: `@rooted/router` for routing, `@rooted/store` for
 
 ## 2. Set up the page
 
-Rooted replaces an element on the page with the app root. The default selector is `#app`.
+Rooted mounts the app inside an element on the page. The default selector is `#app`.
 
 ```html
 <!-- index.html -->
@@ -24,6 +24,8 @@ Rooted replaces an element on the page with the app root. The default selector i
   <head>
     <meta charset="utf-8">
     <title>My app</title>
+    <link rel="stylesheet" href="/index.tokens.css">
+    <link rel="stylesheet" href="/index.theme.css">
   </head>
   <body>
     <div id="app"></div>
@@ -31,6 +33,8 @@ Rooted replaces an element on the page with the app root. The default selector i
   </body>
 </html>
 ```
+
+The two stylesheets are the app's global CSS: `index.tokens.css` holds design values as CSS custom properties, `index.theme.css` holds app-global styles like fonts and the `#app` element. They're linked here so they load before any JavaScript. Step 5 covers component styles, [Styling](./styling.md) covers both files.
 
 ## 3. Write a component
 
@@ -68,7 +72,7 @@ const App = component({
 application(App)
 ```
 
-`application(App)` looks for `#app` and replaces it with the app root. You can pass `{ selector: '#root' }` or `{ element: someNode }` if you want something different.
+`application(App)` looks for `#app` and mounts the app root inside it, replacing whatever it held. The `#app` element itself stays, which is what lets a pre-rendered page find it again in the browser. You can pass `{ selector: '#root' }` or `{ element: someNode }` if you want something different.
 
 ## 5. Add styles
 

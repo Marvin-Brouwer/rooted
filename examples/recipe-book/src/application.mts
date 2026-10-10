@@ -28,44 +28,39 @@ export const Application = component({
 		const progress = createStore<NavigationState>('idle')
 
 		append(
-			element('div', {
-				id: 'app',
+			element('header', {
+				classes: styles.stickyHeader,
 				children: [
-					element('header', {
-						classes: styles.stickyHeader,
-						children: [
-							create(NavigationMenu),
-							create(ContentBanner),
-						],
-					}),
-					element('main', {
-						id: 'main-content',
-						children: create(Router, {
-							viewTransition: true,
-							on: {
-								navigate(event) {
-									if (event.navigationType === 'start') {
-										if (progress.value === 'navigating') return
-										progress.update(() => 'navigating')
-										append(create(NavigationProgress, {
-											href: event.href,
-											state: progress
-										}))
-									}
-									if (event.navigationType === 'end') {
-										if (progress.value === 'idle') return
-										progress.update(() => 'idle')
-									}
-								},
-							},
-						}),
-					}),
-					element('footer', {
-						children: [create(Doormat)],
-					}),
-					create(Announcer),
+					create(NavigationMenu),
+					create(ContentBanner),
 				],
 			}),
+			element('main', {
+				id: 'main-content',
+				children: create(Router, {
+					viewTransition: true,
+					on: {
+						navigate(event) {
+							if (event.navigationType === 'start') {
+								if (progress.value === 'navigating') return
+								progress.update(() => 'navigating')
+								append(create(NavigationProgress, {
+									href: event.href,
+									state: progress
+								}))
+							}
+							if (event.navigationType === 'end') {
+								if (progress.value === 'idle') return
+								progress.update(() => 'idle')
+							}
+						},
+					},
+				}),
+			}),
+			element('footer', {
+				children: [create(Doormat)],
+			}),
+			create(Announcer),
 		)
 	},
 })

@@ -7,6 +7,14 @@ export function injectStyles(styles: CssModule) {
 	const { href } = styles[cssArtifacts]
 	if (injectedLinks.has(href)) return
 
+	// A pre-rendered page already has the link in its head. The attribute, not the `href` property,
+	// because the property resolves to an absolute URL.
+	const existing = document.head.querySelector<HTMLLinkElement>(`link[rel="stylesheet"][href="${CSS.escape(href)}"]`)
+	if (existing) {
+		injectedLinks.set(href, existing)
+		return
+	}
+
 	// This doesn't use the createElementFactory on purpose
 	// It gave really weird chunking errors in DTS
 	const link = Object.assign(document.createElement('link'), {
