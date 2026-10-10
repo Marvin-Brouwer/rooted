@@ -12,7 +12,7 @@ Each layer reads from the layer above it. Component CSS uses tokens. Theme CSS u
 ## Tokens
 
 ```css
-/* src/_styles/tokens.css */
+/* index.tokens.css */
 :root {
   --color-bg:    #faf7f2;
   --color-fg:    #1c1c1c;
@@ -40,7 +40,7 @@ Tokens are the only thing that changes when a designer asks for a colour update.
 ## Theme
 
 ```css
-/* src/_styles/theme.css */
+/* index.theme.css */
 body {
   background: var(--color-bg);
   color: var(--color-fg);
