@@ -26,7 +26,7 @@
 		"readme.md"
 	],
 	"engines": {
-		"node": ">=22.0.0",
+		"node": ">=22.15.0",
 		"pnpm": ">=10.0.0"
 	},
 	"exports": {

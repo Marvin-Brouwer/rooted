@@ -1,5 +1,4 @@
 import { availableParallelism } from 'node:os'
-import path from 'node:path'
 import { Worker } from 'node:worker_threads'
 
 import type { RenderJob, RenderResult } from './renderer/worker.mts'
@@ -76,16 +75,19 @@ export type Render = (staticPath: string) => Promise<string | undefined>
  * ```
  */
 export async function renderer<T>(options: RendererOptions, use: (render: Render) => Promise<T>): Promise<T | undefined> {
-	const bundlePath = findBundle(options)
-	if (!bundlePath) return undefined
+	// The app boots on a made-up origin. It needs one to resolve URLs, and the worker takes it back out of the page.
+	const root = new URL(options.base, 'http://localhost/')
+	const bundleUrl = findBundle(options, root)
+	if (!bundleUrl) return undefined
 
 	const limit = concurrencyLimit(availableParallelism())
 	const quietPeriod = options.settle?.quietPeriod ?? 30
 	const timeout = options.settle?.timeout ?? 2000
 
 	const render: Render = async (staticPath) => {
-		const url = `http://localhost${options.base}${staticPath.slice(1)}`
-		const result = await limit(() => runWorker({ html: options.html, url, bundlePath, quietPeriod, timeout }))
+		const url = new URL(staticPath.slice(1), root).href
+		const job = { html: options.html, url, root: root.href, outputDirectory: options.outputDirectory, bundleUrl, quietPeriod, timeout }
+		const result = await limit(() => runWorker(job))
 		if ('html' in result) return result.html
 
 		options.logger.warn(`[prerender] Rendering ${staticPath} failed: ${result.error}. Keeping the plain shell for it.`)
@@ -95,7 +97,7 @@ export async function renderer<T>(options: RendererOptions, use: (render: Render
 	return use(render)
 }
 
-function findBundle(options: RendererOptions): string | undefined {
+function findBundle(options: RendererOptions, root: URL): string | undefined {
 	const scriptMatch = SCRIPT_MODULE_RE.exec(options.html)
 	if (!scriptMatch) {
 		options.logger.warn('[prerender] No module script found in the page shell. Skipping SSG pre-render.')
@@ -106,7 +108,7 @@ function findBundle(options: RendererOptions): string | undefined {
 	const relativeSource = scriptSource.startsWith(options.base)
 		? scriptSource.slice(options.base.length)
 		: scriptSource.replace(/^\//, '')
-	return path.join(options.outputDirectory, relativeSource)
+	return new URL(relativeSource, root).href
 }
 
 async function runWorker(job: RenderJob): Promise<RenderResult> {
