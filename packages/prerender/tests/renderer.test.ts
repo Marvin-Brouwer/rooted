@@ -16,11 +16,11 @@ let outputDirectory: string | undefined
 const defaultBody = '<div id="app"></div>'
 
 /** A built app, reduced to a page shell and the bundle its module script points at. */
-async function buildOutput(bundle: string, body = defaultBody, head = ''): Promise<RendererOptions> {
+async function buildOutput(bundle: string, body = defaultBody, head = '', base = '/'): Promise<RendererOptions> {
 	outputDirectory = await mkdtemp(path.join(tmpdir(), 'rooted-prerender-'))
 	await writeFile(path.join(outputDirectory, 'bundle.mjs'), bundle)
-	const html = `<!DOCTYPE html><html><head><script type="module" src="/bundle.mjs"></script>${head}</head><body>${body}</body></html>`
-	return { html, outputDirectory, base: '/', logger: { warn: vi.fn() } }
+	const html = `<!DOCTYPE html><html><head><script type="module" src="${base}bundle.mjs"></script>${head}</head><body>${body}</body></html>`
+	return { html, outputDirectory, base, logger: { warn: vi.fn() } }
 }
 
 afterEach(async () => {
@@ -183,6 +183,65 @@ describe('renderer()', () => {
 
 		// Assert
 		expect(html).toContain('<main id="root" class="shell">mounted</main>')
+	})
+
+	test('loads chunks the bundle imports, from under the base', async () => {
+		// Arrange
+		const options = await buildOutput(
+			"const { page } = await import('./chunk.mjs')\n"
+			+ "document.querySelector('#app').textContent = page\n",
+			defaultBody, '', '/app/',
+		)
+		await writeFile(path.join(options.outputDirectory, 'chunk.mjs'), "export const page = 'from a chunk'\n")
+
+		// Act
+		const html = await renderer(options, render => render('/fight/'))
+
+		// Assert
+		expect(html).toContain('<div id="app">from a chunk</div>')
+	})
+
+	test('a URL resolved the way Vite\'s preload helper does it points at the site, not the disk', async () => {
+		// Arrange: the helper resolves against import.meta.url and writes the absolute result into a link
+		const options = await buildOutput(
+			"const dep = import.meta.resolve('/app/assets/page.mjs')\n"
+			+ "document.head.append(Object.assign(document.createElement('link'), { rel: 'modulepreload', href: dep }))\n",
+			defaultBody, '', '/app/',
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/fight/'))
+
+		// Assert
+		expect(html).toContain('<link rel="modulepreload" href="/app/assets/page.mjs"></head>')
+		expect(html).not.toContain('file:')
+	})
+
+	test('a URL relative to the bundle stays next to it on the site', async () => {
+		// Arrange: how Vite resolves assets with a relative base
+		const options = await buildOutput(
+			"document.querySelector('#app').append(Object.assign(document.createElement('img'), { src: new URL('./assets/logo.png', import.meta.url).href }))\n",
+			defaultBody, '', '/app/',
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/fight/'))
+
+		// Assert
+		expect(html).toContain('<div id="app"><img src="/app/assets/logo.png"></div>')
+	})
+
+	test('leaves URLs on other origins alone', async () => {
+		// Arrange
+		const options = await buildOutput(
+			"document.head.append(Object.assign(document.createElement('link'), { rel: 'preconnect', href: 'https://fonts.example.com/' }))\n",
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert
+		expect(html).toContain('<link rel="preconnect" href="https://fonts.example.com/">')
 	})
 
 	test('doesn\'t run scripts from the shell, only the bundle', async () => {

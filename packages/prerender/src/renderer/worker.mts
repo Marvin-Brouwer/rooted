@@ -1,10 +1,10 @@
-import { pathToFileURL } from 'node:url'
 import { parentPort, workerData } from 'node:worker_threads'
 
 import { Event as HappyEvent, Window } from 'happy-dom'
 
 import { withDomGlobals } from '@rooted/dom-globals'
 
+import { serveOutput } from './output-hooks.mts'
 import { installStubs } from './stubs.mts'
 
 /** What the renderer hands a worker: one page to boot and serialize. */
@@ -13,8 +13,12 @@ export type RenderJob = {
 	html: string
 	/** The page's full URL, so the app boots straight into the route. */
 	url: string
-	/** The bundle the shell's module script points at, as a file path. */
-	bundlePath: string
+	/** The app's base on the page's origin. The build output is served from here. */
+	root: string
+	/** The build output, where the files under `root` are read from. */
+	outputDirectory: string
+	/** The bundle the shell's module script points at, as a URL under `root`. */
+	bundleUrl: string
 	/** Milliseconds without a document change before the page counts as done. */
 	quietPeriod: number
 	/** The most milliseconds to wait for that. */
@@ -47,7 +51,7 @@ function send(result: RenderResult): void {
 	parentPort?.postMessage(result)
 }
 
-async function renderPage({ html, url, bundlePath, quietPeriod, timeout }: RenderJob, rendered: (html: string) => void): Promise<void> {
+async function renderPage({ html, url, root, outputDirectory, bundleUrl, quietPeriod, timeout }: RenderJob, rendered: (html: string) => void): Promise<void> {
 	const happyWindow = new Window({
 		url,
 		settings: {
@@ -64,14 +68,17 @@ async function renderPage({ html, url, bundlePath, quietPeriod, timeout }: Rende
 	// The real shell, so the app mounts where it would in a browser
 	happyWindow.document.write(html)
 
+	// From the page's origin rather than as a file, so what the app resolves against `import.meta.url` points at the site
+	serveOutput(root, outputDirectory)
+
 	return withDomGlobals(async () => {
 		try {
 			// The bundle reads DOM globals on import, so they must be in place first.
-			await import(pathToFileURL(bundlePath).href)
+			await import(bundleUrl)
 			await settle(happyWindow.document, quietPeriod, timeout)
 
 			// Sent before shutting down, see `send`
-			rendered(serialize(happyWindow.document))
+			rendered(serialize(happyWindow.document, new URL(root).origin))
 		}
 		finally {
 			await shutDown(happyWindow, pendingIO)
@@ -98,7 +105,15 @@ async function settle(document: Window['document'], quietPeriod: number, timeout
 	}
 }
 
-function serialize(document: Window['document']): string {
+// The origin is made up, so a URL on it would point at the visitor's own machine.
+// Vite's preload helper writes its links that way, and so does anything else built from `import.meta.url`.
+function serialize(document: Window['document'], origin: string): string {
+	for (const attribute of ['href', 'src']) {
+		for (const element of document.querySelectorAll(`[${attribute}^="${origin}/"]`)) {
+			element.setAttribute(attribute, element.getAttribute(attribute)?.slice(origin.length) ?? '')
+		}
+	}
+
 	const doctype = document.doctype ? `<!DOCTYPE ${document.doctype.name}>\n` : ''
 	return doctype + document.documentElement.outerHTML
 }
