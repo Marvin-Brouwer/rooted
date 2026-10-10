@@ -3,7 +3,7 @@
 Rooted apps put CSS in four places, in this order:
 
 1. **Tokens.** CSS custom properties at `:root`. Colours, spacing, type scale, dark-mode overrides. No selectors, no rules.
-2. **Theme.** Defaults for plain HTML elements (`p`, `h1`, `button`, `input`). Read tokens. Don't reference component classes.
+2. **Theme.** Defaults for plain HTML elements (`p`, `h1`, `button`, `input`), and the root element the app mounts inside. Read tokens. Don't reference component classes.
 3. **App shell.** The layout of the page itself: header sticky behaviour, `<main>` width, footer position. Lives in one file.
 4. **Components.** Per-component styles, scoped automatically. Lives in the component's `.css` file and is imported via the `styles` field.
 
@@ -58,9 +58,17 @@ button {
   padding: var(--space-s) var(--space-m);
   border-radius: var(--radius-s);
 }
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 ```
 
 Theme rules give you sane defaults. They are not specific to any one component.
+
+`#app` is the element from `index.html` the app mounts inside. It sits outside every component, so it's styled here rather than in a component's scoped CSS.
 
 Both tokens and theme are loaded once at the top of `index.html`, or imported from your app entry. They are not scoped by rooted.
 
@@ -70,12 +78,6 @@ The shell is the layout of the page itself.
 
 ```css
 /* src/application.css */
-:global(#app) {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
 .sticky-header {
   position: sticky;
   top: 0;
@@ -93,8 +95,6 @@ footer {
   margin-top: auto;
 }
 ```
-
-`#app` is the element from `index.html` the app mounts inside, so it sits outside the component and needs `:global(...)`. The rest is scoped as usual.
 
 Keep this file short. Anything specific to a component belongs in the component.
 
