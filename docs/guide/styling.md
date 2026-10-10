@@ -2,12 +2,14 @@
 
 Rooted apps put CSS in four places, in this order:
 
-1. **Tokens.** CSS custom properties at `:root`. Colours, spacing, type scale, dark-mode overrides. No selectors, no rules.
-2. **Theme.** Defaults for plain HTML elements (`p`, `h1`, `button`, `input`), and the root element the app mounts inside. Read tokens. Don't reference component classes.
-3. **App shell.** The layout of the page itself: header sticky behaviour, `<main>` width, footer position. Lives in one file.
+1. **Tokens.** `index.tokens.css`. Design values only: colours, spacing, type scale, dark-mode overrides, as CSS custom properties on `:root`. No other rules.
+2. **Theme.** `index.theme.css`. Everything that's global to the app: fonts, defaults for plain HTML elements, the root element the app mounts inside, thematic styles. Reads tokens, doesn't reference component classes.
+3. **App shell.** `src/application.css`. Layout of the application component's own children: header sticky behaviour, `<main>` width, footer position. Scoped like any component stylesheet.
 4. **Components.** Per-component styles, scoped automatically. Lives in the component's `.css` file and is imported via the `styles` field.
 
 Each layer reads from the layer above it. Component CSS uses tokens. Theme CSS uses tokens. The app shell uses both. Component CSS does not re-define theme defaults.
+
+Tokens and theme are linked from `index.html`, so they load with the page, before any JavaScript runs. Keeping them apart means a colour or spacing change only touches the tokens, and the theme never hard-codes a value.
 
 ## Tokens
 
@@ -70,11 +72,18 @@ Theme rules give you sane defaults. They are not specific to any one component.
 
 `#app` is the element from `index.html` the app mounts inside. It sits outside every component, so it's styled here rather than in a component's scoped CSS.
 
-Both tokens and theme are loaded once at the top of `index.html`, or imported from your app entry. They are not scoped by rooted.
+Link both from `index.html`:
+
+```html
+<link rel="stylesheet" href="/index.tokens.css" />
+<link rel="stylesheet" href="/index.theme.css" />
+```
+
+Don't import them from code. Rooted's CSS loader turns every `.css` import into a scoped component stylesheet, so the rules would only match inside one component, and the file isn't added to the page unless a component passes it to `styles`.
 
 ## App shell
 
-The shell is the layout of the page itself.
+The shell is the layout of the application component's own children: the sticky header, the width of `<main>`, where the footer sits. It's the application component's stylesheet, scoped like any other. App-global rules, like the root element or fonts, go in the theme.
 
 ```css
 /* src/application.css */
@@ -148,12 +157,14 @@ A plain element selector like `h1 { ... }` is also scoped, so it only affects `h
 :global(h1) { /* targets any h1 on the page, not scoped */ }
 ```
 
+It's meant for the odd selector inside a component. Rules that are global to the app belong in `index.theme.css`.
+
 For the gritty details, see [advanced/internals](../advanced/internals.md).
 
 ## What does not belong in component CSS
 
 - Token definitions. Use the token layer.
-- Defaults for plain elements. Use the theme layer.
+- Defaults for plain elements, fonts and other app-global styles. Use the theme layer.
 - Page-level layout (sticky headers, max-widths). Use the shell.
 
 If you find yourself redefining `font-family` on every component, that's a sign the theme layer is missing it.

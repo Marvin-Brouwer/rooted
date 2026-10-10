@@ -24,6 +24,8 @@ Rooted mounts the app inside an element on the page. The default selector is `#a
   <head>
     <meta charset="utf-8">
     <title>My app</title>
+    <link rel="stylesheet" href="/index.tokens.css">
+    <link rel="stylesheet" href="/index.theme.css">
   </head>
   <body>
     <div id="app"></div>
@@ -31,6 +33,8 @@ Rooted mounts the app inside an element on the page. The default selector is `#a
   </body>
 </html>
 ```
+
+The two stylesheets are the app's global CSS: `index.tokens.css` holds design values as CSS custom properties, `index.theme.css` holds app-global styles like fonts and the `#app` element. They're linked here so they load before any JavaScript. Step 5 covers component styles, [Styling](./styling.md) covers both files.
 
 ## 3. Write a component
 

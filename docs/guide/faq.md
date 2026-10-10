@@ -27,7 +27,7 @@ To escape the component boundary intentionally, use the `:global()` escape hatch
 :global(h1) { /* targets all h1 on the page, no scoping */ }
 ```
 
-See [Styling](./styling.md) for the full layering.
+For rules that are meant to apply app-wide, use `index.theme.css` instead. See [Styling](./styling.md) for the full layering.
 
 ## I see "Duplicate component name" in the console
 
