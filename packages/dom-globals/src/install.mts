@@ -19,7 +19,7 @@ const WINDOW_GLOBALS = [
 	'HashChangeEvent', 'ErrorEvent', 'ProgressEvent', 'SubmitEvent', 'UIEvent',
 	'MutationObserver', 'PerformanceObserver', 'IntersectionObserver', 'ResizeObserver',
 	'DOMParser', 'XMLSerializer', 'Range', 'Attr', 'NodeList', 'HTMLCollection',
-	'CSSStyleSheet',
+	'CSS', 'CSSStyleSheet',
 	'getComputedStyle',
 	'requestAnimationFrame', 'cancelAnimationFrame',
 ] as const

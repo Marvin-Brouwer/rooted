@@ -42,6 +42,15 @@ describe('withDomGlobals()', () => {
 		})
 	})
 
+	test('installs the CSS namespace for the duration of the callback', async () => {
+		// Act: how @rooted/components looks up a stylesheet link by its href
+		const escaped = await withDomGlobals(() => Promise.resolve(CSS.escape('/assets/a.css')))
+
+		// Assert
+		expect(escaped).toBe('\\/assets\\/a\\.css')
+		expect('CSS' in globalThis).toBe(false)
+	})
+
 	test('removes globals that did not exist before', async () => {
 		// Act
 		await withDomGlobals(() => Promise.resolve())
