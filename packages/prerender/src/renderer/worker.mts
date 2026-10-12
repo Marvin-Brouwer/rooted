@@ -4,6 +4,7 @@ import { Event as HappyEvent, Window } from 'happy-dom'
 
 import { withDomGlobals } from '@rooted/dom-globals'
 
+import { deferLoadEvents } from './load-events.mts'
 import { serveOutput } from './output-hooks.mts'
 import { installStubs } from './stubs.mts'
 
@@ -59,8 +60,11 @@ async function renderPage({ html, url, root, outputDirectory, bundleUrl, quietPe
 			disableJavaScriptFileLoading: true,
 			disableJavaScriptEvaluation: true,
 			disableCSSFileLoading: true,
+			// Nothing is fetched, so a stylesheet or script counts as loaded, like it would in the browser the page is for
+			handleDisabledFileLoadingAsSuccess: true,
 		},
 	})
+	deferLoadEvents(happyWindow)
 
 	const pendingIO: Array<() => void> = []
 	installStubs(happyWindow as unknown as Record<string, unknown>, pendingIO)

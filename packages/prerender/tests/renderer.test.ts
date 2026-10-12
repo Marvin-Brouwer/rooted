@@ -171,6 +171,38 @@ describe('renderer()', () => {
 		expect(html).toContain('<link rel="stylesheet" href="/assets/card.css"></head>')
 	})
 
+	test('a stylesheet the app waits for counts as loaded, the way Vite\'s preload helper waits for a chunk\'s CSS', async () => {
+		// Arrange: the helper only starts listening once the link is in the document
+		const options = await buildOutput(
+			"const link = Object.assign(document.createElement('link'), { rel: 'stylesheet', href: '/assets/page.css' })\n"
+			+ 'document.head.appendChild(link)\n'
+			+ "await new Promise((resolve, reject) => { link.addEventListener('load', resolve); link.addEventListener('error', reject) })\n"
+			+ "document.querySelector('#app').textContent = 'styled'\n",
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert
+		expect(html).toContain('<div id="app">styled</div>')
+	})
+
+	test('a script the app adds and waits for counts as loaded', async () => {
+		// Arrange
+		const options = await buildOutput(
+			"const script = Object.assign(document.createElement('script'), { src: '/assets/widget.js' })\n"
+			+ 'document.head.appendChild(script)\n'
+			+ "await new Promise((resolve, reject) => { script.addEventListener('load', resolve); script.addEventListener('error', reject) })\n"
+			+ "document.querySelector('#app').textContent = 'widget loaded'\n",
+		)
+
+		// Act
+		const html = await renderer(options, render => render('/'))
+
+		// Assert
+		expect(html).toContain('<div id="app">widget loaded</div>')
+	})
+
 	test('boots in the real shell, so a custom mount point is there', async () => {
 		// Arrange
 		const options = await buildOutput(
