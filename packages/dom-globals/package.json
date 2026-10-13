@@ -46,7 +46,7 @@
 		"extract-api": "rooted-development extract-api"
 	},
 	"dependencies": {
-		"happy-dom": "^20.14.5"
+		"happy-dom": "^20.14.6"
 	},
 	"devDependencies": {
 		"@rooted/development": "workspace:*",
