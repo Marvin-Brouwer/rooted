@@ -1,0 +1,153 @@
+# Style guide
+
+How rooted looks wherever it shows up: READMEs, docs, social previews, favicons. The brand is deliberately simple: a green square with the name in it, with nothing else added.
+
+---
+
+## Contents
+
+- [Name](#name)
+- [Logo](#logo)
+- [Colour](#colour)
+- [Typography](#typography)
+- [Banners and social previews](#banners-and-social-previews)
+- [Favicons and app icons](#favicons-and-app-icons)
+- [Don'ts](#donts)
+- [Files](#files)
+
+---
+
+## Name
+
+The name is always written **lowercase**: `rooted`, never `Rooted` or `ROOTED`. This applies in the logo, in headings and in running text. Package names follow the same rule: `@rooted/components`, `@rooted/router`.
+
+---
+
+## Logo
+
+The logo is a green square with `rooted` set in the bottom-right corner. At small sizes the full name stops being readable, so the logo has three tiers. Each tier replaces the previous one when that one becomes illegible:
+
+| Tier | File | Use at | Content |
+|------|------|--------|---------|
+| 1 | [`logo.svg`](./logo.svg) | 64 px and up | `rooted`, bottom-right |
+| 2 | [`logo-rd.svg`](./logo-rd.svg) | 32–48 px | a large `r` with a small `d` tucked under its arm |
+| 3 | [`logo-r-dot.svg`](./logo-r-dot.svg) | 16–24 px | the large `r` with a dot where the `d` was |
+
+<p>
+  <img src="./logo.svg" width="128" alt="rooted logo, tier 1"/>
+  <img src="./logo-rd.svg" width="128" alt="rooted logo, tier 2"/>
+  <img src="./logo-r-dot.svg" width="128" alt="rooted logo, tier 3"/>
+</p>
+
+All three tiers share the same tile, the same bottom-right anchor and the same colours. Pick the tier by the size it is **rendered** at, not by the size of the source file.
+
+### Construction
+
+All measurements are on the 256 × 256 tile.
+
+| Element | Tier 1 | Tier 2 | Tier 3 |
+|---------|--------|--------|--------|
+| Tile | full square, square corners, `#2f6b45` | same | same |
+| Main glyph | `rooted`, 216 wide, right edge at x 236, bottom at y 234 | `r`, 184 tall, left edge at x 40, baseline at y 226 | same `r` |
+| Corner glyph | none | `d`, 80 tall, right edge at x 232, baseline at y 226 | dot, radius 29.3, touching x 232 and y 226 |
+
+The margin around the wordmark is roughly 8 % of the tile on the right and the bottom. Keep it when scaling. The glyphs are outlines (paths), not live text, so the logo renders the same everywhere.
+
+### Clear space
+
+Keep at least **1/8 of the tile's width** free around the tile. Don't put other elements inside the tile.
+
+---
+
+## Colour
+
+| Name | Hex | Use |
+|------|-----|-----|
+| rooted green | `#2f6b45` | the tile, banner backgrounds |
+| white | `#ffffff` | the wordmark and glyphs on green |
+| mist | `#cfe3d5` | secondary text and code on green (taglines, banner snippets) |
+| night | `#0d1117` | dark backgrounds the logo sits on, body text on white |
+
+Contrast (WCAG 2.x):
+
+| Foreground | Background | Ratio | Notes |
+|------------|------------|-------|-------|
+| white | rooted green | 6.34 : 1 | AA for all text |
+| mist | rooted green | 4.71 : 1 | AA for normal text; use it for secondary text only |
+| rooted green | white | 6.34 : 1 | green text or links on white are fine |
+| rooted green | night | 2.98 : 1 | the tile edge is soft on dark backgrounds; the white glyphs carry the logo, so no outline is needed |
+
+Use one green. No gradients, shadows or tints of the tile.
+
+---
+
+## Typography
+
+| Role | Typeface | Weight | Notes |
+|------|----------|--------|-------|
+| Wordmark and logo glyphs | [Inter](https://rsms.me/inter/) | Black (900) | tight letter spacing; always outlined in the logo files |
+| Code, taglines, technical labels | [JetBrains Mono](https://www.jetbrains.com/lp/mono/) | Regular (400) | |
+
+Both typefaces are licensed under the SIL Open Font License, so they can be used freely, including outlined in a logo.
+
+---
+
+## Banners and social previews
+
+Banners are the tile, stretched: a green field with `rooted` in the bottom-right corner and a short, real code example in the top-left.
+
+| Format | Size | Wordmark width | Margin |
+|--------|------|----------------|--------|
+| README banner | 1500 × 400 | 42 % of the banner width | 9 % of the banner height |
+| Social preview (GitHub) | 1280 × 640 | 42 % of the banner width | 9 % of the banner height |
+
+Rules for the code example:
+
+- It is **real, working** rooted code, preferably taken from the docs.
+- At most **8 lines**. More than that turns into texture at social-preview size.
+- Set it in JetBrains Mono, coloured mist (`#cfe3d5`), with no syntax highlighting.
+- It sits in the top-left; the wordmark always keeps the bottom-right.
+
+---
+
+## Favicons and app icons
+
+| Asset | Tier | Sizes |
+|-------|------|-------|
+| `favicon.ico` | tier 3 at 16 px, tier 2 at 32 and 48 px | 16, 32, 48 |
+| `favicon.svg` (optional) | tier 3 | scalable |
+| `apple-touch-icon.png` | tier 1 | 180 |
+| Web app manifest icons | tier 1 | 192, 512 |
+| GitHub / npm avatar | tier 1 | as uploaded |
+
+A single SVG favicon can't switch tiers by size, and browsers that support SVG favicons prefer it over the `.ico` in tabs. If you ship `favicon.svg`, make it tier 3. Otherwise, leave it out and let the `.ico` choose.
+
+```html
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+```
+
+---
+
+## Don'ts
+
+- Don't capitalise the name, in the logo or anywhere else.
+- Don't move the wordmark out of the bottom-right corner, or centre it.
+- Don't recolour the tile, add gradients, shadows or outlines, or round the corners.
+- Don't use a tier outside its size range. A tiny `rooted` is unreadable, and a huge `r.` loses the name.
+- Don't add illustrations, mascots or icons to the tile.
+- Don't stretch or distort the tile. Banners are a wider green field with the wordmark placed in it, not a stretched logo file.
+
+---
+
+## Files
+
+| File | Contents |
+|------|----------|
+| [`logo.svg`](./logo.svg) | tier 1, `rooted` |
+| [`logo-rd.svg`](./logo-rd.svg) | tier 2, `r` + `d` |
+| [`logo-r-dot.svg`](./logo-r-dot.svg) | tier 3, `r` + dot |
+
+These files are covered by the [asset license](./LICENSE.md), not by the MIT license of the code.
