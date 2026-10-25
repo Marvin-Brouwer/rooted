@@ -66,7 +66,7 @@ Keep at least **1/8 of the tile's width** free around the tile. Don't put other 
 | rooted green | `#2f6b45` | the tile, banner backgrounds |
 | white | `#ffffff` | the wordmark and glyphs on green |
 | mist | `#cfe3d5` | secondary text and code on green (taglines, banner snippets) |
-| night | `#0d1117` | dark backgrounds the logo sits on, body text on white |
+| night | `#0d1117` | dark backgrounds the logo sits on, body text on white, banner text in dark mode |
 
 Contrast (WCAG 2.x):
 
@@ -101,6 +101,8 @@ Banners are the tile, stretched: a green field with `rooted` in the bottom-right
 <img src="./banner.svg" width="100%" alt="rooted banner: a code example on the left, the rooted wordmark on the right"/>
 
 [`banner.svg`](./banner.svg) is 280 px high and takes the full width it's given. The code stays anchored to the left and the wordmark to the bottom-right, however wide the banner gets. Below 780 px wide there's no room for both, so the code hides and only the wordmark is left.
+
+In dark mode the wordmark and the code turn night (`#0d1117`) instead of white and mist, so the banner doesn't glare on a dark page. This follows the browser or operating system setting (`prefers-color-scheme`). On GitHub that matches the site theme for anyone using the default "sync with system", but not for someone who picked a fixed GitHub theme that differs from their system. Night on green is 2.98 : 1, which is fine for the wordmark but low for the small code, so the code is there for flavour, not for reading closely.
 
 It only stretches when the image is told to, so always embed it with `width="100%"`:
 
