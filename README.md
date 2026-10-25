@@ -1,4 +1,4 @@
-# <img src="./docs/branding/logo.svg" width="128" alt="rooted"/>
+# <img src="./docs/branding/banner.svg" width="100%" alt="rooted"/>
 
 > A TypeScript framework for web apps. Rooted in custom elements, typed end-to-end, batteries included.
 
