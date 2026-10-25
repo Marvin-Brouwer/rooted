@@ -96,17 +96,48 @@ Both typefaces are licensed under the SIL Open Font License, so they can be used
 
 Banners are the tile, stretched: a green field with `rooted` in the bottom-right corner and a short, real code example in the top-left.
 
-| Format | Size | Wordmark width | Margin |
-|--------|------|----------------|--------|
-| README banner | 1500 × 400 | 42 % of the banner width | 9 % of the banner height |
-| Social preview (GitHub) | 1280 × 640 | 42 % of the banner width | 9 % of the banner height |
+### README banner
 
-Rules for the code example:
+<img src="./banner.svg" width="100%" alt="rooted banner: a code example on the left, the rooted wordmark on the right"/>
+
+[`banner.svg`](./banner.svg) is 280 px high and takes the full width it's given. The code stays anchored to the left and the wordmark to the bottom-right, however wide the banner gets. Below 780 px wide there's no room for both, so the code hides and only the wordmark is left.
+
+It only stretches when the image is told to, so always embed it with `width="100%"`:
+
+```html
+<img src="./docs/branding/banner.svg" width="100%" alt="rooted"/>
+```
+
+| Element | Value |
+|---------|-------|
+| Height | 280 px |
+| Margin | 32 px |
+| Wordmark | 300 px wide, bottom-right |
+| Code | 13 px JetBrains Mono, line height 1.6, top-left |
+
+### Social preview
+
+<img src="./social-card.png" width="640" alt="rooted social preview"/>
+
+[`social-card.svg`](./social-card.svg) is the source and [`social-card.png`](./social-card.png) is what you upload: GitHub only takes PNG, JPG or GIF for the social preview, under **Settings → General → Social preview**. GitHub doesn't read it from the repository, so after changing it, upload the PNG again.
+
+| Element | Value |
+|---------|-------|
+| Size | 1280 × 640 px |
+| Margin | 64 px |
+| Wordmark | 560 px wide, bottom-right |
+| Code | 26 px JetBrains Mono, line height 1.6, top-left |
+
+### The code example
 
 - It is **real, working** rooted code, preferably taken from the docs.
-- At most **8 lines**. More than that turns into texture at social-preview size.
+- At most **8 lines** of about **50 characters**. Longer lines run into the wordmark on narrow banners.
 - Set it in JetBrains Mono, coloured mist (`#cfe3d5`), with no syntax highlighting.
 - It sits in the top-left; the wordmark always keeps the bottom-right.
+
+The code is live text, not outlines, so it's easy to change: in both SVGs it's the `<text class="code">` element, with one `<tspan>` per line. Escape `<`, `>` and `&` as `&lt;`, `&gt;` and `&amp;`. JetBrains Mono is embedded in the file (printable ASCII only), because an SVG shown as an image can't load fonts from anywhere else. Characters outside ASCII fall back to the system's monospace font.
+
+After changing `social-card.svg`, export it to `social-card.png` at 1280 × 640 (open it in a browser and take a screenshot of the page, or export it from a vector editor).
 
 ---
 
@@ -149,5 +180,8 @@ A single SVG favicon can't switch tiers by size, and browsers that support SVG f
 | [`logo.svg`](./logo.svg) | tier 1, `rooted` |
 | [`logo-rd.svg`](./logo-rd.svg) | tier 2, `r` + `d` |
 | [`logo-r-dot.svg`](./logo-r-dot.svg) | tier 3, `r` + dot |
+| [`banner.svg`](./banner.svg) | README banner, full width |
+| [`social-card.svg`](./social-card.svg) | social preview source, 1280 × 640 |
+| [`social-card.png`](./social-card.png) | social preview to upload to GitHub |
 
 These files are covered by the [asset license](./LICENSE.md), not by the MIT license of the code.
