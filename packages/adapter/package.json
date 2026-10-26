@@ -57,7 +57,7 @@
 		"rolldown": "^1.2.15",
 		"tsx": "^4.23.15",
 		"typescript": "^6.0.3",
-		"vite": "^8.3.4"
+		"vite": "^8.3.5"
 	},
 	"scripts": {
 		"build": "pnpm build:ci",
