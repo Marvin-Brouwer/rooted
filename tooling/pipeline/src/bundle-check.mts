@@ -14,7 +14,7 @@ import { existsSync } from 'node:fs'
 import { glob, readFile } from 'node:fs/promises'
 import path from 'node:path'
 
-const repositoryRoot = path.resolve(import.meta.dirname, '../../..')
+const workspaceRoot = path.resolve(import.meta.dirname, '../../..')
 
 /** `import ... from '<specifier>'` and `export ... from '<specifier>'`. */
 const fromClause = /^\s*(?:import|export)\b[^'"]*\bfrom\s*['"]([^'"]+)['"]/
@@ -29,7 +29,7 @@ type Problem = {
 }
 
 async function checkBundle(relativePath: string): Promise<Problem[]> {
-	const absolutePath = path.join(repositoryRoot, relativePath)
+	const absolutePath = path.join(workspaceRoot, relativePath)
 	const source = await readFile(absolutePath, 'utf8')
 	const problems: Problem[] = []
 
@@ -49,7 +49,7 @@ async function checkBundle(relativePath: string): Promise<Problem[]> {
 	return problems
 }
 
-const bundles = await Array.fromAsync(glob('packages/**/dist/**/*.mjs', { cwd: repositoryRoot }))
+const bundles = await Array.fromAsync(glob('packages/**/dist/**/*.mjs', { cwd: workspaceRoot }))
 if (bundles.length === 0) {
 	console.error('No bundles found. Run `pnpm build:ci` first.')
 	// eslint-disable-next-line unicorn/no-process-exit

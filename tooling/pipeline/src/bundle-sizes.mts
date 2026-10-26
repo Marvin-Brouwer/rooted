@@ -12,9 +12,9 @@ import { existsSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-const repositoryRoot = path.resolve(import.meta.dirname, '../../..')
-const reportPath = path.join(repositoryRoot, 'examples/recipe-book/dist/bundle.json')
-const readmePath = path.join(repositoryRoot, 'README.md')
+const workspaceRoot = path.resolve(import.meta.dirname, '../../..')
+const reportPath = path.join(workspaceRoot, 'examples/recipe-book/dist/bundle.json')
+const readmePath = path.join(workspaceRoot, 'README.md')
 
 const startMarker = '<!-- bundle-sizes:start -->'
 const endMarker = '<!-- bundle-sizes:end -->'
@@ -95,7 +95,7 @@ function warn(message: string) {
 }
 
 if (!existsSync(reportPath)) {
-	const message = `No bundle report at ${path.relative(repositoryRoot, reportPath)}. Build the recipe-book first, with \`pnpm build:ci\`.`
+	const message = `No bundle report at ${path.relative(workspaceRoot, reportPath)}. Build the recipe-book first, with \`pnpm build:ci\`.`
 	if (check) warn(message)
 	else console.error(message)
 	// eslint-disable-next-line unicorn/no-process-exit
