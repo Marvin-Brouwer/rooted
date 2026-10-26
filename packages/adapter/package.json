@@ -54,7 +54,7 @@
 		"@rooted/router": "workspace:^",
 		"@rooted/tsdown": "workspace:^",
 		"@types/node": "^26.6.5",
-		"rolldown": "^1.2.14",
+		"rolldown": "^1.2.15",
 		"tsx": "^4.23.15",
 		"typescript": "^6.0.3",
 		"vite": "^8.3.4"
