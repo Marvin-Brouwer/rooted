@@ -7,7 +7,7 @@ import { glob } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
+const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 const FALLBACK_REGISTRY = 'https://registry.npmjs.org/'
 
 // `source` points at the unbuilt `.mts` entry. It exists so `tsc -p` inside this repo resolves a
@@ -18,7 +18,7 @@ const WORKSPACE_ONLY_CONDITIONS = new Set(['source'])
 
 function readRegistry() {
 	try {
-		const content = readFileSync(path.join(repoRoot, '.npmrc'), 'utf8')
+		const content = readFileSync(path.join(repositoryRoot, '.npmrc'), 'utf8')
 		const match = /^registry\s*=\s*(.+)$/m.exec(content)
 		return match?.[1]?.trim() ?? FALLBACK_REGISTRY
 	}
@@ -60,8 +60,8 @@ function isCovered(target, files) {
 const OFFICIAL_REGISTRY = readRegistry()
 
 const packageFiles = [
-	...await Array.fromAsync(glob('packages/*/package.json', { cwd: repoRoot })),
-	...await Array.fromAsync(glob('packages/adapters/*/package.json', { cwd: repoRoot })),
+	...await Array.fromAsync(glob('packages/*/package.json', { cwd: repositoryRoot })),
+	...await Array.fromAsync(glob('packages/adapters/*/package.json', { cwd: repositoryRoot })),
 ]
 
 let failed = false
@@ -72,7 +72,7 @@ function report(relativePath, message) {
 }
 
 for (const relativePath of packageFiles) {
-	const absolutePath = path.join(repoRoot, relativePath)
+	const absolutePath = path.join(repositoryRoot, relativePath)
 	const packageJson = JSON.parse(readFileSync(absolutePath, 'utf8'))
 	if (packageJson.private) continue
 
