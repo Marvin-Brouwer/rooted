@@ -22,8 +22,8 @@
 		"full-update": "pnpm update -r"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "^21.2.3",
-		"@commitlint/config-conventional": "^21.2.3",
+		"@commitlint/cli": "^21.2.4",
+		"@commitlint/config-conventional": "^21.2.4",
 		"@rooted/development": "workspace:*",
 		"@rooted/pipeline": "workspace:*",
 		"@types/unist": "^3.0.3",
