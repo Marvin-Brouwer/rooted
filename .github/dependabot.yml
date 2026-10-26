@@ -31,6 +31,13 @@ updates:
           - "@commitlint/*"
           - multi-semantic-release
           - "@semantic-release/*"
+      # Everything else that's a minor or patch bump lands in one weekly PR instead of one each.
+      # These get auto-approved and merged, so splitting them up only buys more notifications.
+      # The catch: one broken package holds the rest of the batch until it's sorted.
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+        patterns:
+          - "*"
 
   - package-ecosystem: github-actions
     directory: /
@@ -38,3 +45,7 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "*"

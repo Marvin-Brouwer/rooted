@@ -19,6 +19,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto-approve (all github-actions, npm patch/minor only)
+        id: approve
         if: |
           steps.metadata.outputs.package-ecosystem == 'github-actions' ||
           steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
@@ -27,6 +28,17 @@ jobs:
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.DEPENDABOT_APPROVE_TOKEN }}
+
+      # Anything not approved above waits for a human. Requesting a review makes the owner a
+      # participant, so this is the PR that notifies them, while the auto-merged ones stay quiet.
+      - name: Request review (needs a human)
+        if: steps.approve.outcome == 'skipped' && contains(fromJSON('["opened", "reopened"]'), github.event.action)
+        run: gh api --method POST "repos/$REPO/pulls/$PR_NUMBER/requested_reviewers" -f "reviewers[]=$REVIEWER"
+        env:
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REVIEWER: ${{ github.repository_owner }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Enable auto-merge
         run: gh pr merge --auto --squash "$PR_URL"
