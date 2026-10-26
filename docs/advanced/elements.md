@@ -38,6 +38,8 @@ Custom elements fire `connectedCallback` and `disconnectedCallback` whenever the
 
 `RootedElement` defers both callbacks with `queueMicrotask` and only fires them when the element's connection state has actually changed. You don't have to track this yourself.
 
+The first connect is the exception. An element that was never mounted can't be in the middle of a re-parent, so `onMount` runs right away, inside the `append` that connected it. That means a parent's `onMount` can read what a child put in as soon as `append` returns, and mount order is parent first, then each child as it's appended. Pre-rendering mounts right away every time, so a pre-render never waits on a microtask.
+
 ```ts
 class MyElement extends RootedElement {
   static tagName = 'my-element'
