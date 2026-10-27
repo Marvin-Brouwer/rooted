@@ -8,8 +8,18 @@ const margin = 32
 const codeSize = 15
 const lineHeight = 1.45
 const wordmarkWidth = 300
-/** Below this width the code would run into the wordmark, so it hides. */
-const hideCodeBelow = 760
+/** Below this width the code would run into the wordmark, so it hides and the wordmark takes the logo's proportions. */
+const narrowBelow = 760
+
+/**
+ * Where the wordmark sits on the 256 px logo tile, as fractions of the tile.
+ * Narrow banners use the same proportions, so on a phone the banner looks like the logo.
+ */
+const logoTile = {
+	right: 20 / 256,
+	bottom: 22 / 256,
+	width: 216 / 256,
+}
 
 /**
  * The README banner: full width, fixed height, code in the top-left and the wordmark in the bottom-right.
@@ -17,13 +27,26 @@ const hideCodeBelow = 760
  * It has no `viewBox`, so it doesn't scale. It stretches to whatever width the `<img>` gives it,
  * and the wordmark stays in the corner through a nested `<svg>` positioned at 100% / 100%.
  * That only happens with `<img width="100%">`; without a width the browser picks one.
+ *
+ * Below `narrowBelow` the code hides and a second copy of the wordmark takes over, sized in percentages like the logo tile.
+ * Viewers that ignore the `<img>` size (the GitHub mobile app shows it as a square) then still get even margins.
  */
 export function banner() {
 	const code = codeBlock({ x: margin, y: margin + codeSize, size: codeSize, lineHeight })
 	const mark = wordmark(wordmarkWidth)
+	const scalable = wordmark(1000)
 
-	const style = `${paletteCss(true)} @media (max-width: ${hideCodeBelow}px) { .code { display: none; } }`
+	const style = [
+		paletteCss(true),
+		'.narrow { display: none; }',
+		`@media (max-width: ${narrowBelow - 1}px) { .code, .wide { display: none; } .narrow { display: inline; } }`,
+	].join(' ')
 	const corner = `translate(${-margin - mark.width} ${Number((-margin - mark.height).toFixed(2))})`
+	const narrow = {
+		x: percentage(1 - logoTile.right - logoTile.width),
+		width: percentage(logoTile.width),
+		height: percentage(1 - logoTile.bottom),
+	}
 
 	return [
 		`<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="${height}" role="img" aria-label="rooted">`,
@@ -33,8 +56,13 @@ export function banner() {
 		`<defs>${code.definitions}</defs>`,
 		`<rect width="100%" height="100%" fill="${colours.green}"/>`,
 		code.markup,
-		`<svg x="100%" y="100%" overflow="visible"><g transform="${corner}">${mark.markup}</g></svg>`,
+		`<svg class="wide" x="100%" y="100%" overflow="visible"><g transform="${corner}">${mark.markup}</g></svg>`,
+		`<svg class="narrow" x="${narrow.x}" y="0" width="${narrow.width}" height="${narrow.height}" viewBox="0 0 ${scalable.width} ${Number(scalable.height.toFixed(2))}" preserveAspectRatio="xMaxYMax meet">${scalable.markup}</svg>`,
 		'</svg>',
 		'',
 	].join('\n')
+}
+
+function percentage(fraction: number) {
+	return `${Number((fraction * 100).toFixed(2))}%`
 }

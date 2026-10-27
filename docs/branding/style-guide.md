@@ -100,7 +100,7 @@ Banners are the tile, stretched: a green field with `rooted` in the bottom-right
 
 <img src="./banner.svg" width="100%" height="340" alt="rooted banner: a code example on the left, the rooted wordmark on the right"/>
 
-[`banner.svg`](./banner.svg) is 340 px high and takes the full width it's given. The code stays anchored to the top-left and the wordmark to the bottom-right, however wide the banner gets. Below 760 px wide there's no room for both, so the code hides and only the wordmark is left.
+[`banner.svg`](./banner.svg) is 340 px high and takes the full width it's given. The code stays anchored to the top-left and the wordmark to the bottom-right, however wide the banner gets. Below 760 px wide there's no room for both, so the code hides and the wordmark takes the proportions of the logo tile, with even margins on both sides. That's also what shows in viewers that ignore the `<img>` size: the GitHub mobile app shows the banner as a square that looks like the logo.
 
 In dark mode the wordmark turns night (`#0d1117`) and the code switches to the dark palette below, so the banner doesn't glare on a dark page. This follows the browser or operating system setting (`prefers-color-scheme`). On GitHub that matches the site theme for anyone using the default "sync with system", but not for someone who picked a fixed GitHub theme that differs from their system. Dark text on green has less contrast than light text on green, so in dark mode the code reads more as texture than as something to read.
 
