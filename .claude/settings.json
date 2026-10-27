@@ -1,0 +1,14 @@
+{
+	"$schema": "https://json.schemastore.org/claude-code-settings.json",
+	"extraKnownMarketplaces": {
+		"claude-kit": {
+			"source": {
+				"source": "github",
+				"repo": "johnnyvizz/claude-kit"
+			}
+		}
+	},
+	"enabledPlugins": {
+		"savvy-progress@claude-kit": true
+	}
+}

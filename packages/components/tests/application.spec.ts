@@ -18,7 +18,7 @@ const App = component({
 	},
 })
 
-// Component hosts mount in a microtask
+// Lets anything a mount queued run
 function settle() {
 	return new Promise(resolve => setTimeout(resolve))
 }
@@ -34,11 +34,6 @@ async function preRenderPage(shell = '<div id="app"></div>', options?: Parameter
 // The environment checks for happy-dom, so a window without it reads as a browser
 function runAsClient() {
 	vi.stubGlobal('window', { addEventListener() {} })
-}
-
-// Lets a host's connectedCallback run its mount straight away, so a throw reaches the test
-function mountSynchronously() {
-	vi.stubGlobal('queueMicrotask', (callback: () => void) => callback())
 }
 
 beforeEach(() => {
@@ -137,7 +132,6 @@ describe('a host without component data', () => {
 		// Arrange
 		document.body.innerHTML = await preRenderPage()
 		const leftover = document.querySelector<GenericComponent>(GenericComponent.tagName)
-		mountSynchronously()
 
 		// Act
 		const mount = () => leftover?.connectedCallback()
@@ -147,14 +141,11 @@ describe('a host without component data', () => {
 	})
 
 	test('still throws outside a pre-rendered root', () => {
-		// Arrange: connected, with the mount that connecting queues held back
-		const host = document.createElement(GenericComponent.tagName) as GenericComponent
-		vi.stubGlobal('queueMicrotask', () => {})
-		document.body.append(host)
-		mountSynchronously()
+		// Arrange
+		const host = document.createElement(GenericComponent.tagName)
 
 		// Act
-		const mount = () => host.connectedCallback()
+		const mount = () => document.body.append(host)
 
 		// Assert
 		expect(mount).toThrow('mounted without component data')

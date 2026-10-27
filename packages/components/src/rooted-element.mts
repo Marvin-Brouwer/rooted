@@ -1,3 +1,5 @@
+import { environment } from '@rooted/util'
+
 /**
  * Constructor shape that {@link RootedElement.register} accepts.
  * Any class that extends {@link RootedElement} satisfies this as long as it declares a `static tagName`.
@@ -15,9 +17,11 @@ const validTagName = /^[a-z][a-z0-9\\-]*$/
  *
  * `RootedElement` wraps the standard custom-element lifecycle to:
  *
- * - Skip spurious `connectedCallback` / `disconnectedCallback` calls caused
- *   by re-parenting. Both callbacks are deferred with `queueMicrotask` and
- *   only fire when the element's connection state actually changed.
+ * - Mount straight away the first time the element connects, so whoever appended it sees its content
+ *   as soon as `append` returns. A parent's `onMount` can read what its children put in.
+ * - Skip spurious `connectedCallback` / `disconnectedCallback` calls caused by re-parenting.
+ *   Every later connect, and every disconnect, is deferred with `queueMicrotask`
+ *   and only fires when the element's connection state actually changed.
  * - Validate that the tag name is hyphenated and lowercase before registration.
  *
  * @example
@@ -77,7 +81,12 @@ export abstract class RootedElement extends HTMLElement {
 	/**
 	 * Called once after the element is connected to the document. Build child nodes, attach listeners, start timers here.
 	 *
-	 * Deferred via `queueMicrotask` and only fires when the element is truly connected, not when it's being re-parented.
+	 * The first connect runs it right away, inside the `append` (or whatever call) that connected the element.
+	 * So mount order is parent first, then each child as the parent appends it.
+	 * Pre-rendering always mounts right away too.
+	 *
+	 * After that it's deferred via `queueMicrotask`, and only fires when the element is truly connected,
+	 * not when it's being re-parented.
 	 */
 	protected abstract onMount(): void
 
@@ -90,12 +99,25 @@ export abstract class RootedElement extends HTMLElement {
 		// Do nothing by default
 	}
 
+	#hasMounted = false
+
 	connectedCallback() {
+		// The first mount can't be a re-parent, and pre-rendering has no re-parents to wait for:
+		// mount now, so whoever appended this sees its content straight away.
+		if (!this.#hasMounted || environment.is('preRenderer')) {
+			this.#mount()
+			return
+		}
 		queueMicrotask(() => {
 			// Skip re-parenting
 			if (!this.isConnected) return
-			this.onMount()
+			this.#mount()
 		})
+	}
+
+	#mount() {
+		this.#hasMounted = true
+		this.onMount()
 	}
 
 	disconnectedCallback() {
