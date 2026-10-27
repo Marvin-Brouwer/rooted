@@ -34,9 +34,9 @@ The logo is a green square with `rooted` set in the bottom-right corner. At smal
 | 3 | [`logo-r-dot.svg`](./logo-r-dot.svg) | 16–24 px | the large `r` with a dot where the `d` was |
 
 <p>
-  <img src="./logo.svg" width="128" alt="rooted logo, tier 1"/>
-  <img src="./logo-rd.svg" width="128" alt="rooted logo, tier 2"/>
-  <img src="./logo-r-dot.svg" width="128" alt="rooted logo, tier 3"/>
+  <img src="./logo.svg" width="128" height="128" alt="rooted logo, tier 1"/>
+  <img src="./logo-rd.svg" width="128" height="128" alt="rooted logo, tier 2"/>
+  <img src="./logo-r-dot.svg" width="128" height="128" alt="rooted logo, tier 3"/>
 </p>
 
 All three tiers share the same tile, the same bottom-right anchor and the same colours. Pick the tier by the size it is **rendered** at, not by the size of the source file.
@@ -98,16 +98,16 @@ Banners are the tile, stretched: a green field with `rooted` in the bottom-right
 
 ### README banner
 
-<img src="./banner.svg" width="100%" alt="rooted banner: a code example on the left, the rooted wordmark on the right"/>
+<img src="./banner.svg" width="100%" height="340" alt="rooted banner: a code example on the left, the rooted wordmark on the right"/>
 
 [`banner.svg`](./banner.svg) is 340 px high and takes the full width it's given. The code stays anchored to the top-left and the wordmark to the bottom-right, however wide the banner gets. Below 760 px wide there's no room for both, so the code hides and only the wordmark is left.
 
 In dark mode the wordmark turns night (`#0d1117`) and the code switches to the dark palette below, so the banner doesn't glare on a dark page. This follows the browser or operating system setting (`prefers-color-scheme`). On GitHub that matches the site theme for anyone using the default "sync with system", but not for someone who picked a fixed GitHub theme that differs from their system. Dark text on green has less contrast than light text on green, so in dark mode the code reads more as texture than as something to read.
 
-It only stretches when the image is told to, so always embed it with `width="100%"`:
+It only stretches when the image is told to, so always embed it with `width="100%"`. Give it `height="340"` as well, so the page doesn't shift once the image loads:
 
 ```html
-<img src="./docs/branding/banner.svg" width="100%" alt="rooted"/>
+<img src="./docs/branding/banner.svg" width="100%" height="340" alt="rooted"/>
 ```
 
 | Element | Value |
@@ -119,7 +119,7 @@ It only stretches when the image is told to, so always embed it with `width="100
 
 ### Social preview
 
-<img src="./social-card.png" width="640" alt="rooted social preview"/>
+<img src="./social-card.png" width="640" height="320" alt="rooted social preview"/>
 
 [`social-card.svg`](./social-card.svg) is the vector version and [`social-card.png`](./social-card.png) is what you upload: GitHub only takes PNG, JPG or GIF for the social preview, under **Settings → General → Social preview**. GitHub doesn't read it from the repository, so after changing it, upload the PNG again.
 

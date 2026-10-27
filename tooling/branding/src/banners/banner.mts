@@ -2,6 +2,7 @@ import { codeBlock } from './code-block.mts'
 import { colours, paletteCss } from './palette.mts'
 import { wordmark } from './wordmark.mts'
 
+/** Also set on the banner's `<img>` tags in the README and the style guide, to prevent layout shift. Change those along with it. */
 const height = 340
 const margin = 32
 const codeSize = 15
