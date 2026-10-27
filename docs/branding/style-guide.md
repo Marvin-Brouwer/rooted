@@ -100,9 +100,9 @@ Banners are the tile, stretched: a green field with `rooted` in the bottom-right
 
 <img src="./banner.svg" width="100%" alt="rooted banner: a code example on the left, the rooted wordmark on the right"/>
 
-[`banner.svg`](./banner.svg) is 280 px high and takes the full width it's given. The code stays anchored to the left and the wordmark to the bottom-right, however wide the banner gets. Below 780 px wide there's no room for both, so the code hides and only the wordmark is left.
+[`banner.svg`](./banner.svg) is 440 px high and takes the full width it's given. The code stays anchored to the top-left and the wordmark to the bottom-right, however wide the banner gets. Below 760 px wide there's no room for both, so the code hides and only the wordmark is left.
 
-In dark mode the wordmark and the code turn night (`#0d1117`) instead of white and mist, so the banner doesn't glare on a dark page. This follows the browser or operating system setting (`prefers-color-scheme`). On GitHub that matches the site theme for anyone using the default "sync with system", but not for someone who picked a fixed GitHub theme that differs from their system. Night on green is 2.98 : 1, which is fine for the wordmark but low for the small code, so the code is there for flavour, not for reading closely.
+In dark mode the wordmark turns night (`#0d1117`) and the code switches to the dark palette below, so the banner doesn't glare on a dark page. This follows the browser or operating system setting (`prefers-color-scheme`). On GitHub that matches the site theme for anyone using the default "sync with system", but not for someone who picked a fixed GitHub theme that differs from their system. Dark text on green has less contrast than light text on green, so in dark mode the code reads more as texture than as something to read.
 
 It only stretches when the image is told to, so always embed it with `width="100%"`:
 
@@ -112,10 +112,10 @@ It only stretches when the image is told to, so always embed it with `width="100
 
 | Element | Value |
 |---------|-------|
-| Height | 280 px |
+| Height | 440 px |
 | Margin | 32 px |
 | Wordmark | 300 px wide, bottom-right |
-| Code | 13 px JetBrains Mono, line height 1.6, top-left |
+| Code | 15 px JetBrains Mono, line height 1.45, top-left |
 
 ### Social preview
 
@@ -126,20 +126,30 @@ It only stretches when the image is told to, so always embed it with `width="100
 | Element | Value |
 |---------|-------|
 | Size | 1280 × 640 px |
-| Margin | 64 px |
+| Margin | 56 px |
 | Wordmark | 560 px wide, bottom-right |
-| Code | 26 px JetBrains Mono, line height 1.6, top-left |
+| Code | 22 px JetBrains Mono, line height 1.45, top-left |
 
 ### The code example
 
-- It is **real, working** rooted code, preferably taken from the docs.
-- At most **8 lines** of about **50 characters**. Longer lines run into the wordmark on narrow banners.
-- Set it in JetBrains Mono, coloured mist (`#cfe3d5`), with no syntax highlighting.
-- It sits in the top-left; the wordmark always keeps the bottom-right.
+- It is **real** rooted code, written the way the codebase writes it: tabs, one property per line, options types declared on their own.
+- It reads as a plain component, not a joke or a feature demo. It's there to show what rooted code looks like, not to be read line by line.
+- It starts in the top-left and is allowed to run off the bottom edge. The lines that end up next to the wordmark should be short (closing brackets, nested properties), so they don't run into it.
+- It's set in JetBrains Mono with the syntax colours below.
 
-The code is live text, not outlines, so it's easy to change: in both SVGs it's the `<text class="code">` element, with one `<tspan>` per line. Escape `<`, `>` and `&` as `&lt;`, `&gt;` and `&amp;`. JetBrains Mono is embedded in the file (printable ASCII only), because an SVG shown as an image can't load fonts from anywhere else. Characters outside ASCII fall back to the system's monospace font.
+| Token | Class | Light | Dark |
+|-------|-------|-------|------|
+| Keywords (`import`, `type`, `export`, `const`) | `kw` | `#ffffff` | `#0d1117` |
+| Strings | `str` | `#f3d59a` | `#3d2600` |
+| Function calls (`component`, `element`, ...) | `fn` | `#dcf29b` | `#2c3a00` |
+| Types | `type` | `#a9d8ff` | `#0b2a4a` |
+| Property names | `prop` | `#cfe3d5` | `#12241a` |
+| Punctuation | `punc` | `#9fc4ab` | `#1c3d29` |
+| Everything else | none | `#cfe3d5` | `#0d1117` |
 
-After changing `social-card.svg`, export it to `social-card.png` at 1280 × 640 (open it in a browser and take a screenshot of the page, or export it from a vector editor).
+The code is live text, not outlines: in both SVGs it's the `<text class="code">` element, with one `<tspan>` per line and a `<tspan>` with one of the classes above per token. Escape `<`, `>` and `&` as `&lt;`, `&gt;` and `&amp;`. SVG text shows a tab as a single space, so indent with two spaces per tab. JetBrains Mono is embedded in the file (printable ASCII only), because an SVG shown as an image can't load fonts from anywhere else. Characters outside ASCII fall back to the system's monospace font.
+
+Colouring every token by hand is tedious. The files were generated by a script that isn't in this repository, so a bigger change to the code is easiest done by regenerating them rather than editing. After changing `social-card.svg`, export it to `social-card.png` at 1280 × 640 (open it in a browser and take a screenshot of the page, or export it from a vector editor).
 
 ---
 
