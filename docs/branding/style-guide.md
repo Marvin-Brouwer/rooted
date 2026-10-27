@@ -100,7 +100,7 @@ Banners are the tile, stretched: a green field with `rooted` in the bottom-right
 
 <img src="./banner.svg" width="100%" alt="rooted banner: a code example on the left, the rooted wordmark on the right"/>
 
-[`banner.svg`](./banner.svg) is 440 px high and takes the full width it's given. The code stays anchored to the top-left and the wordmark to the bottom-right, however wide the banner gets. Below 760 px wide there's no room for both, so the code hides and only the wordmark is left.
+[`banner.svg`](./banner.svg) is 340 px high and takes the full width it's given. The code stays anchored to the top-left and the wordmark to the bottom-right, however wide the banner gets. Below 760 px wide there's no room for both, so the code hides and only the wordmark is left.
 
 In dark mode the wordmark turns night (`#0d1117`) and the code switches to the dark palette below, so the banner doesn't glare on a dark page. This follows the browser or operating system setting (`prefers-color-scheme`). On GitHub that matches the site theme for anyone using the default "sync with system", but not for someone who picked a fixed GitHub theme that differs from their system. Dark text on green has less contrast than light text on green, so in dark mode the code reads more as texture than as something to read.
 
@@ -112,7 +112,7 @@ It only stretches when the image is told to, so always embed it with `width="100
 
 | Element | Value |
 |---------|-------|
-| Height | 440 px |
+| Height | 340 px |
 | Margin | 32 px |
 | Wordmark | 300 px wide, bottom-right |
 | Code | 15 px JetBrains Mono, line height 1.45, top-left |
