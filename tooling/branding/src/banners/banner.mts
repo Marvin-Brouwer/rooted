@@ -1,4 +1,5 @@
 import { codeBlock } from './code-block.mts'
+import { logoTile } from './logo-tile.mts'
 import { colours, paletteCss } from './palette.mts'
 import { wordmark } from './wordmark.mts'
 
@@ -12,16 +13,6 @@ const wordmarkWidth = 300
 const narrowBelow = 760
 
 /**
- * Where the wordmark sits on the 256 px logo tile, as fractions of the tile.
- * Narrow banners use the same proportions, so on a phone the banner looks like the logo.
- */
-const logoTile = {
-	right: 20 / 256,
-	bottom: 22 / 256,
-	width: 216 / 256,
-}
-
-/**
  * The README banner: full width, fixed height, code in the top-left and the wordmark in the bottom-right.
  *
  * It has no `viewBox`, so it doesn't scale. It stretches to whatever width the `<img>` gives it,
@@ -30,6 +21,7 @@ const logoTile = {
  *
  * Below `narrowBelow` the code hides and a second copy of the wordmark takes over, sized in percentages like the logo tile.
  * Viewers that ignore the `<img>` size (the GitHub mobile app shows it as a square) then still get even margins.
+ * The README swaps in `banner-narrow.svg` on narrow screens anyway, this covers viewers that ignore `<picture>`.
  */
 export function banner() {
 	const code = codeBlock({ x: margin, y: margin + codeSize, size: codeSize, lineHeight })
