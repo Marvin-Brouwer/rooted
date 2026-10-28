@@ -3,10 +3,10 @@
 A small synchronous shared-state container. Not reactive. Usable on its own, or with the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add @rooted/store
+pnpm add @rooted/store@beta
 ```
 
 ```ts

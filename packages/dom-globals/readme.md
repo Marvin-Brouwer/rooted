@@ -3,7 +3,7 @@
 Build-time plumbing for the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework. Not part of the public API.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 Puts a [happy-dom](https://github.com/capricorn86/happy-dom) window onto `globalThis` in plain Node, and takes it off again.
 `@rooted/router` uses it to evaluate route files while generating the route manifest, `@rooted/prerender` uses it to boot the built app for pre-rendering.

@@ -5,10 +5,10 @@ Base adapter for git-hosted static pages. Part of the [`@rooted/*`](https://gith
 Works for any git page host following the [git-pages.org](https://git-pages.org/) standard. Platform-specific adapters (GitHub Pages, GitLab Pages, Codeberg Pages) extend this one.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add -D @rooted-adapters/git-pages
+pnpm add -D @rooted-adapters/git-pages@beta
 ```
 
 ```ts

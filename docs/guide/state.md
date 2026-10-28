@@ -3,7 +3,7 @@
 `@rooted/store` is a small synchronous state container. It is not a reactive framework. There are no signals, no proxies, no automatic re-renders. You read the value when you need it, and you subscribe to events when you want to react to changes.
 
 ```sh
-pnpm add @rooted/store
+pnpm add @rooted/store@beta
 ```
 
 ## When to use it

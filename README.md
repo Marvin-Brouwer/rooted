@@ -49,14 +49,14 @@ Install the pieces you actually use.
 
 ```sh
 # Core: components and app bootstrap
-pnpm add @rooted/components
+pnpm add @rooted/components@beta
 
 # Client-side router (also pulls in the Vite plugin for route discovery)
-pnpm add @rooted/router
+pnpm add @rooted/router@beta
 
 # Shared state, web storage helpers, and DX/SEO tooling
-pnpm add @rooted/store @rooted/storage
-pnpm add -D @rooted/application
+pnpm add @rooted/store@beta @rooted/storage@beta
+pnpm add -D @rooted/application@beta
 ```
 
 

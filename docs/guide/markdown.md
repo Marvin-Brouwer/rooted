@@ -5,7 +5,7 @@
 It's a small package. If you need markdown parsed in the browser (content typed by a user, or fetched from an API at runtime), this isn't it: bring your own parser and hand the resulting HTML to the component.
 
 ```sh
-pnpm add @rooted/markdown
+pnpm add @rooted/markdown@beta
 ```
 
 ## The plugin

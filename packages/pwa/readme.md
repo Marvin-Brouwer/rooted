@@ -5,10 +5,10 @@ Service worker registration for the [`@rooted/*`](https://github.com/Marvin-Brou
 [`@rooted/application`](https://www.npmjs.com/package/@rooted/application) generates the registration for you, so you only install this package directly when you want the components or the functions behind them.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add @rooted/pwa
+pnpm add @rooted/pwa@beta
 ```
 
 ```ts

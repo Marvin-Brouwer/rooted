@@ -3,7 +3,7 @@
 Build-time pre-rendering for the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework. Not part of the public API.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 Boots the built app in [happy-dom](https://github.com/capricorn86/happy-dom) for each static route, in a worker thread of its own, and hands back the rendered document.
 `@rooted/adapter` uses it to fill the static HTML files it writes. The DOM globals come from `@rooted/dom-globals` and only ever exist inside the worker.

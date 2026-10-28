@@ -17,7 +17,7 @@ signal.addEventListener('abort', () => observer.disconnect())
 `@rooted/observers` is three thin wrappers around those constructors, in the shape the rest of the framework uses:
 
 ```sh
-pnpm add @rooted/observers
+pnpm add @rooted/observers@beta
 ```
 
 ```ts

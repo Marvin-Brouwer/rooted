@@ -7,10 +7,10 @@ It wires up the SEO plugins from [`@rooted/seo`](https://www.npmjs.com/package/@
 Route SEO is the exception. This package knows nothing about routing, so if you use the router you add `routeSeoPlugin()` from `@rooted/seo/router` to your own `plugins`.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add -D @rooted/application
+pnpm add -D @rooted/application@beta
 ```
 
 ```ts

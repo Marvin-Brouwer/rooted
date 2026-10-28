@@ -3,10 +3,10 @@
 Markdown content for the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework. A Vite plugin renders `.md` files to HTML at build time, and a component puts that HTML in the DOM. No markdown parser reaches the browser bundle.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add @rooted/markdown
+pnpm add @rooted/markdown@beta
 ```
 
 Register the plugin:

@@ -5,10 +5,10 @@ Deployment adapter for Netlify static hosting. Part of the [`@rooted/*`](https:/
 Writes a `_redirects` file to the output directory so Netlify routes unknown paths to the SPA shell.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add -D @rooted-adapters/netlify-hosting
+pnpm add -D @rooted-adapters/netlify-hosting@beta
 ```
 
 ```ts

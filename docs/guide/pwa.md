@@ -22,7 +22,7 @@ Taking an update in one tab moves every open tab of the app to the new version a
 `@rooted/pwa` has two components for this, and they work under both strategies.
 
 ```sh
-pnpm add @rooted/pwa
+pnpm add @rooted/pwa@beta
 ```
 
 ```ts

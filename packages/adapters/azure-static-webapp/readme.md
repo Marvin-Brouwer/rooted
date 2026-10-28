@@ -9,10 +9,10 @@ Azure can't match a `:param` route exactly, so you have to pick how it's wrong w
 The [adapters guide](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/adapters.md#azure-static-web-apps-pick-one) has the full trade-off.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add -D @rooted-adapters/azure-static-webapp
+pnpm add -D @rooted-adapters/azure-static-webapp@beta
 ```
 
 ```ts

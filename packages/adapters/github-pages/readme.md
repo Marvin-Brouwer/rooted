@@ -5,10 +5,10 @@ Deployment adapter for GitHub Pages. Part of the [`@rooted/*`](https://github.co
 Writes `.nojekyll` and `404.html` to the output directory so GitHub Pages serves the app correctly for all URLs.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add -D @rooted-adapters/github-pages
+pnpm add -D @rooted-adapters/github-pages@beta
 ```
 
 ```ts

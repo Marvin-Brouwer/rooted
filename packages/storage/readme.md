@@ -5,10 +5,10 @@ Type-safe wrappers around `localStorage`, `sessionStorage`, and cookies. SSR-saf
 Part of the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework, usable on its own.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add @rooted/storage
+pnpm add @rooted/storage@beta
 ```
 
 ```ts

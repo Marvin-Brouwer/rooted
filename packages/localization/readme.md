@@ -5,10 +5,10 @@ URL-based localization for the [`@rooted/*`](https://github.com/Marvin-Brouwer/r
 The locale segment is the only part of the path that changes per language, so `/en-GB/about/` and `/nl-NL/about/` share a slug. That's the right shape for most multilingual apps; if you're competing for organic search per market you probably want translated slugs too, which the guide covers under [translated URLs and international SEO](https://github.com/Marvin-Brouwer/rooted/blob/main/docs/guide/localization.md#translated-urls-and-international-seo).
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add @rooted/localization
+pnpm add @rooted/localization@beta
 ```
 
 ```ts

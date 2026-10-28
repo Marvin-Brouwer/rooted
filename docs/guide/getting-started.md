@@ -7,7 +7,7 @@ This guide assumes Vite. Rooted does not require Vite at runtime, but the route 
 ## 1. Install
 
 ```sh
-pnpm add @rooted/components
+pnpm add @rooted/components@beta
 pnpm add -D vite typescript
 ```
 

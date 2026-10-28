@@ -3,10 +3,10 @@
 `IntersectionObserver`, `MutationObserver` and `ResizeObserver` that disconnect themselves when an `AbortSignal` aborts. Usable on its own, or alongside the rest of the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add @rooted/observers
+pnpm add @rooted/observers@beta
 ```
 
 ```ts
