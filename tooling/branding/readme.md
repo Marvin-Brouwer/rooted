@@ -6,9 +6,9 @@ Generates the branding assets in `docs/branding/` that are built from code rathe
 
 ### `pnpm branding banners`
 
-Writes `banner.svg`, `banner-fixed.svg` and `banner-narrow.svg` (the README banner for wide, medium and narrow screens), `social-card.svg` and `social-card.png` (the GitHub social preview).
+Writes `banner.svg` (the README banner), `social-card.svg` and `social-card.png` (the GitHub social preview).
 
-To change the code shown in them, edit [`src/banners/code-example.mts`](./src/banners/code-example.mts) and run the command again. Sizes live in `src/banners/banner-layout.mts` and at the top of `src/banners/social-card.mts`, colours in `src/banners/palette.mts`.
+To change the code shown in them, edit [`src/banners/code-example.mts`](./src/banners/code-example.mts) and run the command again. Sizes live at the top of `src/banners/banner.mts` and `src/banners/social-card.mts`, colours in `src/banners/palette.mts`.
 
 GitHub doesn't read the social preview from the repository. After regenerating it, upload `social-card.png` again under Settings, General, Social preview.
 

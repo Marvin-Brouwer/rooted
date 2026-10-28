@@ -1,12 +1,23 @@
-import { bannerLayout } from './banner-layout.mts'
 import { codeBlock } from './code-block.mts'
 import { logoTile } from './logo-tile.mts'
 import { colours, paletteCss } from './palette.mts'
 import { wordmark } from './wordmark.mts'
 
-const { height, margin, codeSize, lineHeight, wordmarkWidth } = bannerLayout
-/** Below this width the code would run into the wordmark, so it hides and the wordmark takes the logo's proportions. */
-const narrowBelow = 760
+/** Also set on the banner's `<img>` tags in the README and the style guide, to prevent layout shift. Change those along with it. */
+const height = 340
+const margin = 32
+const codeSize = 15
+const lineHeight = 1.45
+const wordmarkWidth = 300
+/** The narrowest width at which the code and the wordmark fit side by side at full size. */
+const fullSizeFrom = 760
+/** Between `narrowBelow` and `fullSizeFrom` the code and the wordmark shrink in steps, so the desktop layout still fits. */
+const scaleSteps = [
+	{ below: fullSizeFrom, scale: 0.9 },
+	{ below: 690, scale: 0.8 },
+]
+/** Below this width even the smallest step doesn't fit, so the code hides and the wordmark takes the logo's proportions. */
+const narrowBelow = 610
 
 /**
  * The README banner: full width, fixed height, code in the top-left and the wordmark in the bottom-right.
@@ -15,9 +26,9 @@ const narrowBelow = 760
  * and the wordmark stays in the corner through a nested `<svg>` positioned at 100% / 100%.
  * That only happens with `<img width="100%">`; without a width the browser picks one.
  *
+ * Below `fullSizeFrom` the code and the wordmark scale down in steps (a landscape phone is about 640 px wide).
  * Below `narrowBelow` the code hides and a second copy of the wordmark takes over, sized in percentages like the logo tile.
- * Viewers that ignore the `<img>` size (the GitHub mobile app shows it as a square) then still get even margins.
- * The README swaps in `banner-narrow.svg` on narrow screens anyway, this covers viewers that ignore `<picture>`.
+ * The media queries inside the SVG see the size of the image, not of the page.
  */
 export function banner() {
 	const code = codeBlock({ x: margin, y: margin + codeSize, size: codeSize, lineHeight })
@@ -27,6 +38,7 @@ export function banner() {
 	const style = [
 		paletteCss(true),
 		'.narrow { display: none; }',
+		...scaleSteps.map(step => `@media (max-width: ${step.below - 1}px) { .code, .corner { transform: scale(${step.scale}); } }`),
 		`@media (max-width: ${narrowBelow - 1}px) { .code, .wide { display: none; } .narrow { display: inline; } }`,
 	].join(' ')
 	const corner = `translate(${-margin - mark.width} ${Number((-margin - mark.height).toFixed(2))})`
@@ -44,7 +56,7 @@ export function banner() {
 		`<defs>${code.definitions}</defs>`,
 		`<rect width="100%" height="100%" fill="${colours.green}"/>`,
 		code.markup,
-		`<svg class="wide" x="100%" y="100%" overflow="visible"><g transform="${corner}">${mark.markup}</g></svg>`,
+		`<svg class="wide" x="100%" y="100%" overflow="visible"><g class="corner"><g transform="${corner}">${mark.markup}</g></g></svg>`,
 		`<svg class="narrow" x="${narrow.x}" y="0" width="${narrow.width}" height="${narrow.height}" viewBox="0 0 ${scalable.width} ${Number(scalable.height.toFixed(2))}" preserveAspectRatio="xMaxYMax meet">${scalable.markup}</svg>`,
 		'</svg>',
 		'',
