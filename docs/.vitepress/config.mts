@@ -57,6 +57,17 @@ export default defineConfig({
 				],
 			},
 			{
+				text: 'Ideas',
+				collapsed: true,
+				items: [
+					{ text: 'Overview', link: '/ideas/readme' },
+					{ text: 'v2: Components', link: '/ideas/v2/components' },
+					{ text: 'v2: Server actions', link: '/ideas/v2/server-actions' },
+					{ text: 'Later: API routes', link: '/ideas/v3/api-routes' },
+					{ text: 'Later: Distributed pages', link: '/ideas/v3/distributed-pages' },
+				],
+			},
+			{
 				text: 'Maintainers',
 				items: [
 					{ text: 'Coding style', link: '/maintainers/coding-style' },
