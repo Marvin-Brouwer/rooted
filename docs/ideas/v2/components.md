@@ -1,6 +1,6 @@
-# Components in v2
+# Component sketches
 
-Ideas for the component and element API, based on what didn't work in v1. Nothing here is built yet, and the code below is a sketch: it shows the shape, not a finished API.
+The brain dump behind the [v2 plan](./plan.md): ideas for the component and element API, based on what didn't work in v1. The plan is where these got sorted, this page keeps the original sketches. Nothing here is built, and the code shows a shape, not a finished API.
 
 ## Proxies
 

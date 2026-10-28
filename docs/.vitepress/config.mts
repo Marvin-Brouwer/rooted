@@ -61,10 +61,12 @@ export default defineConfig({
 				collapsed: true,
 				items: [
 					{ text: 'Overview', link: '/ideas/readme' },
-					{ text: 'v2: Components', link: '/ideas/v2/components' },
+					{ text: 'v2: Plan', link: '/ideas/v2/plan' },
+					{ text: 'v2: Component sketches', link: '/ideas/v2/components' },
 					{ text: 'v2: Server actions', link: '/ideas/v2/server-actions' },
-					{ text: 'Later: API routes', link: '/ideas/v3/api-routes' },
-					{ text: 'Later: Distributed pages', link: '/ideas/v3/distributed-pages' },
+					{ text: 'Later', link: '/ideas/later/readme' },
+					{ text: 'Later: API routes', link: '/ideas/later/api-routes' },
+					{ text: 'Later: Distributed pages', link: '/ideas/later/distributed-pages' },
 				],
 			},
 			{
