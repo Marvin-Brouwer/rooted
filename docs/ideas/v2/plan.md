@@ -30,6 +30,8 @@ These are what rooted is, and v2 keeps them:
 
 ### 1. Component model
 
+The [component shape proposal](./component-shape.md) puts this together in one example, and lays out the options for props.
+
 - Replace `onMount` with `mount`, which returns what to render, plus a `mounted` event that only fires in the browser. That split is what makes server rendering possible.
 - One `render` function that diffs against the current DOM, instead of the `append`/`replace`/`swap` family. The low-level functions might stay available for edge cases.
 - Constructor options (required and optional) and settable properties as separate things. The sketches use `option()` and `property()`; the names and the mechanism are open.

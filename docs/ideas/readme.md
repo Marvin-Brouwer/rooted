@@ -7,6 +7,7 @@ When an idea gets picked up, the decision goes into an [ADR](https://github.com/
 ## v2
 
 - [Plan](./v2/plan.md). Why there's a v2, what stays, the workstreams, and a suggested order. Start here.
+- [Component shape](./v2/component-shape.md). A proposal: one example of a v2 component, and three options for props.
 - [Component sketches](./v2/components.md). The original brain dump behind the plan: proxies, `mount` and `render`, streaming, `option` and `property`.
 
 ## Later
