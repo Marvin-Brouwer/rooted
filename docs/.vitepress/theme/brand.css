@@ -71,7 +71,7 @@
 
 /*
  * Feature blocks: a green illustration panel across the top, the text on a soft background below.
- * Five blocks don't fit VitePress's four-column grid, so on wide screens they go two over three instead of four over one.
+ * Five blocks don't fit VitePress's four-column grid, so on wide screens they go three over two, all the same width, with the second row centred.
  */
 .VPHome .VPFeature {
 	border: 0;
@@ -97,12 +97,12 @@
 }
 
 @media (min-width: 960px) {
-	.VPHome .VPFeatures .item {
-		width: calc(100% / 3);
+	.VPHome .VPFeatures .items {
+		justify-content: center;
 	}
 
-	.VPHome .VPFeatures .item:nth-child(-n + 2) {
-		width: 50%;
+	.VPHome .VPFeatures .item {
+		width: calc(100% / 3);
 	}
 }
 

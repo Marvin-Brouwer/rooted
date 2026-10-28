@@ -1,8 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="320" height="128" viewBox="0 0 320 128" aria-hidden="true"><rect width="320" height="128" fill="#2f6b45"/>
-<path d="M56 64H96M96 28V100M96 28H136M96 64H136M96 100H136" fill="none" stroke="#cfe3d5" stroke-width="3" stroke-linecap="square"/>
-<rect x="32" y="52" width="24" height="24" fill="#ffffff"/>
-<rect x="136" y="20" width="16" height="16" fill="#ffffff"/>
-<rect x="137.5" y="57.5" width="13" height="13" fill="none" stroke="#ffffff" stroke-width="3"/>
-<rect x="136" y="92" width="16" height="16" fill="#cfe3d5"/>
-<g font-family="JetBrains Mono, ui-monospace, monospace" font-size="14" fill="#ffffff"><text x="166" y="33">/</text><text x="166" y="69">/recipes</text><text x="166" y="105">/recipes/:id</text></g>
+<rect x="40" y="18" width="240" height="32" fill="#ffffff"/>
+<rect x="50" y="29" width="10" height="10" fill="none" stroke="#9fc4ab" stroke-width="2"/>
+<text x="72" y="39" font-family="JetBrains Mono, ui-monospace, monospace" font-size="14" fill="#2f6b45">/recipes/<tspan font-weight="700">42</tspan></text>
+<path d="M160 54V70" stroke="#cfe3d5" stroke-width="3"/><path d="M152 68L160 78L168 68Z" fill="#cfe3d5"/>
+<rect x="40" y="82" width="240" height="32" fill="#cfe3d5"/>
+<text x="56" y="103" font-family="JetBrains Mono, ui-monospace, monospace" font-size="14" fill="#2f6b45">{ id: <tspan font-weight="700">'42'</tspan> }</text>
+<text x="264" y="103" text-anchor="end" font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" fill="#2f6b45">/recipes/:id</text>
 </svg>
