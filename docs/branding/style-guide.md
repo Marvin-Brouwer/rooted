@@ -7,6 +7,7 @@ How rooted looks wherever it shows up: READMEs, docs, social previews, favicons.
 ## Contents
 
 - [Name](#name)
+  - [Using the name](#using-the-name)
 - [Logo](#logo)
 - [Colour](#colour)
 - [Typography](#typography)
@@ -20,6 +21,20 @@ How rooted looks wherever it shows up: READMEs, docs, social previews, favicons.
 ## Name
 
 The name is always written **lowercase**: `rooted`, never `Rooted` or `ROOTED`. This applies in the logo, in headings and in running text. Package names follow the same rule: `@rooted/components`, `@rooted/router`.
+
+### Using the name
+
+You're free to use the name `rooted` to refer to this framework, and to name or describe open source packages that build on it. "A date picker for rooted" or a package called `rooted-date-picker` is fine. Just say what it is: built for rooted, works with rooted.
+
+What needs explicit permission first:
+
+- Selling the rooted brand, or selling something under it as if it were the framework itself.
+- Presenting a project, company or service as being rooted, being part of rooted, or being affiliated with or endorsed by it.
+- Publishing under the `@rooted` npm scope, which belongs to this project.
+
+Permission means a clear yes from the maintainer, in writing. If you're not sure whether something is fine, [open an issue](https://github.com/Marvin-Brouwer/rooted/issues) and ask.
+
+This is about the name. The logo, banners and other files in this folder have their own rules, see the [asset license](./LICENSE.md).
 
 ---
 
