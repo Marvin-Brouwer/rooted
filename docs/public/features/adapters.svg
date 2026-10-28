@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" aria-hidden="true"><path d="M6.5 26.5V41.5H41.5V26.5" fill="none" stroke="#2f6b45" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/><path d="M24 34V9" fill="none" stroke="#2f6b45" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/><path d="M15 16L24 6L33 16Z" fill="#2f6b45"/><rect x="13" y="36" width="22" height="3" fill="#cfe3d5"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="128" viewBox="0 0 320 128" aria-hidden="true"><rect width="320" height="128" fill="#2f6b45"/>
+<rect x="24" y="34" width="72" height="56" fill="#ffffff"/><rect x="24" y="34" width="72" height="10" fill="#cfe3d5"/>
+<g fill="#9fc4ab"><rect x="34" y="54" width="36" height="5"/><rect x="34" y="65" width="52" height="5"/><rect x="34" y="76" width="28" height="5"/></g>
+<path d="M96 64H118" stroke="#cfe3d5" stroke-width="3"/>
+<rect x="118" y="46" width="52" height="36" fill="#cfe3d5"/>
+<g fill="#cfe3d5"><rect x="170" y="53" width="26" height="6"/><rect x="170" y="69" width="26" height="6"/></g>
+<g fill="#ffffff"><rect x="202" y="30" width="94" height="18"/><rect x="202" y="52" width="94" height="18"/><rect x="202" y="74" width="94" height="18"/></g>
+<g fill="#2f6b45"><rect x="272" y="37" width="4" height="4"/><rect x="282" y="37" width="4" height="4"/><rect x="272" y="59" width="4" height="4"/><rect x="282" y="59" width="4" height="4"/><rect x="272" y="81" width="4" height="4"/><rect x="282" y="81" width="4" height="4"/></g>
+<g font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" fill="#cfe3d5" text-anchor="middle"><text x="60" y="110">app</text><text x="157" y="110">adapter</text><text x="249" y="110">hosting</text></g>
+</svg>
