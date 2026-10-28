@@ -67,10 +67,12 @@ Related: [#151](https://github.com/Marvin-Brouwer/rooted/issues/151) (request-ti
 
 ### 6. Tooling that waits for the new syntax
 
-Both of these are on hold until the v2 API settles, because they'd have to be rewritten otherwise. They also depend on the component library: once the v2 components are final, it becomes part of the framework in its own repo under the [rooted-components](https://github.com/rooted-components) organisation. Rooted moves to that organisation before the open beta, so that's done before v2 work starts. The linters and the MCP server should cover that library too, so they come after it.
+Both of these are on hold until the v2 API settles, because they'd have to be rewritten otherwise.
 
-- [#298](https://github.com/Marvin-Brouwer/rooted/issues/298): oxlint rules with autofix for rooted anti-patterns, like properties on one line, unused `mount` parameters, single-item `children` arrays, or a store listener in a component without the component's signal.
-- [#299](https://github.com/Marvin-Brouwer/rooted/issues/299): a small MCP server with tools to create, find and update components, because LLMs keep missing that rooted is a component framework.
+- [#298](https://github.com/Marvin-Brouwer/rooted/issues/298): a linter preset that ships with rooted, including custom oxlint rules with autofix for rooted anti-patterns, like properties on one line, unused `mount` parameters, single-item `children` arrays, or a store listener in a component without the component's signal. It doesn't depend on the component library.
+- [#299](https://github.com/Marvin-Brouwer/rooted/issues/299): a small MCP server, because LLMs keep missing that rooted is a component framework. The base server only knows how to create and modify components, possibly by calling the [plop scaffolding](../later/readme.md#a-project-cli). The component library either becomes part of it or gets its own MCP server. That's open.
+
+The component library itself: once the v2 components are final, it becomes part of the framework in its own repo under the [rooted-components](https://github.com/rooted-components) organisation. Rooted moves to that organisation before the open beta, so that's done before v2 work starts.
 
 ### 7. Small fixes that need a breaking change
 
@@ -83,6 +85,6 @@ Both of these are on hold until the v2 API settles, because they'd have to be re
 3. Server logic, once there's a server render to hook into.
 4. Router and SEO items. These are mostly independent and could land at any point.
 5. The component library in its own repo, once the v2 components are final.
-6. Linters and MCP last, against the final syntax and the component library.
+6. The linter preset and the MCP server last, against the final syntax. The MCP's library support waits for step 5.
 
 Each step gets an ADR in `docs/adr/` before the code lands.
