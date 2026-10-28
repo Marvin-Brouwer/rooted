@@ -10,5 +10,6 @@ For the "how to behave" side (PR etiquette, commit conventions, code of conduct)
 - [Package design](./package-design.md). Why rooted is split into the packages it has.
 - [Adding packages](./adding-packages.md). Steps to scaffold and publish a new `@rooted/*` package.
 - [Vite plugins](./vite-plugins.md). Shipping a build-time plugin alongside a package's browser code.
+- [Open beta plan](./open-beta-plan.md). Readiness gaps, stability promises, feedback channels and the exit criteria for 1.0.
 
 Architectural decisions are recorded in [adr/](../adr) using a fixed front-matter format. See the existing ADRs as templates.

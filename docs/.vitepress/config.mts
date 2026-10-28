@@ -24,6 +24,7 @@ export default defineConfig({
 				text: 'Guide',
 				items: [
 					{ text: 'Getting started', link: '/guide/getting-started' },
+					{ text: 'Beta program', link: '/guide/beta' },
 					{ text: 'Application model', link: '/guide/application-model' },
 					{ text: 'Components', link: '/guide/components' },
 					{ text: 'Routing', link: '/guide/routing' },
@@ -63,6 +64,7 @@ export default defineConfig({
 					{ text: 'Package design', link: '/maintainers/package-design' },
 					{ text: 'Adding packages', link: '/maintainers/adding-packages' },
 					{ text: 'Vite plugins', link: '/maintainers/vite-plugins' },
+					{ text: 'Open beta plan', link: '/maintainers/open-beta-plan' },
 				],
 			},
 		],

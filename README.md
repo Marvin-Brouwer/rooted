@@ -40,10 +40,13 @@ export const Greeting = component({
 |--------|----------|
 | Node   | ≥ 22.0.0 |
 | pnpm   | ≥ 10.0.0 |
-| Vite   | ≥ 6.0.0 (for `@rooted/router/manifest`) |
+| Vite   | ≥ 8.0.1 |
 
 
 ## Installation
+
+> [!IMPORTANT]
+> Rooted is in open beta. Install with `@beta` (a plain install gets an old alpha), pin exact versions, and read the [beta program](./docs/guide/beta.md) page for what that means and where feedback goes.
 
 Install the pieces you actually use.
 
