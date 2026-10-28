@@ -10,8 +10,10 @@ const lines = codeExample.trimEnd().split('\n').map((line) => highlight(line))
 
 <template>
 	<div class="hero-bar" role="img" aria-label="rooted">
-		<pre class="code" aria-hidden="true"><template v-for="(tokens, index) in lines" :key="index"><span v-for="(token, column) in tokens" :key="column" :style="{ color: palette[token.kind] }">{{ token.text }}</span>{{ '\n' }}</template></pre>
-		<img class="wordmark" :src="logo" alt="" width="256" height="256">
+		<div class="inner">
+			<pre class="code" aria-hidden="true"><template v-for="(tokens, index) in lines" :key="index"><span v-for="(token, column) in tokens" :key="column" :style="{ color: palette[token.kind] }">{{ token.text }}</span>{{ '\n' }}</template></pre>
+			<img class="wordmark" :src="logo" alt="" width="256" height="256">
+		</div>
 	</div>
 </template>
 
@@ -22,6 +24,11 @@ const lines = codeExample.trimEnd().split('\n').map((line) => highlight(line))
 	height: 250px;
 	overflow: hidden;
 	background: var(--rooted-green);
+}
+
+.inner {
+	position: relative;
+	height: 100%;
 }
 
 .code {
@@ -39,6 +46,30 @@ const lines = codeExample.trimEnd().split('\n').map((line) => highlight(line))
 	bottom: 0;
 	width: 240px;
 	height: 240px;
+}
+
+/*
+ * On wide screens the bar's contents line up with the nav and the page content (see brand.css),
+ * and only the green runs to the edges.
+ * The wordmark's tile has a margin of 20/256 of its width, so it's pulled out by that much to line up the letters.
+ */
+@media (min-width: 960px) {
+	.hero-bar {
+		padding: 0 var(--rooted-home-gutter);
+	}
+
+	.inner {
+		margin: 0 auto;
+		max-width: var(--rooted-home-width);
+	}
+
+	.code {
+		padding: 24px 0;
+	}
+
+	.wordmark {
+		right: calc(-240px * 20 / 256);
+	}
 }
 
 /* Under 610 px the banner drops the code and shrinks to the wordmark, so this does too. */

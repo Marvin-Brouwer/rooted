@@ -13,6 +13,10 @@
 	--vp-c-brand-soft: rgba(47, 107, 69, 0.14);
 
 	--vp-font-family-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Monaco, Consolas, monospace;
+
+	/* The home page column: VitePress's hero and features width, and their side padding on wide screens. */
+	--rooted-home-width: 1152px;
+	--rooted-home-gutter: 64px;
 }
 
 /* Body text on white is night. Dark mode keeps VitePress's own text colours. */
@@ -78,4 +82,15 @@
 
 .VPHome .VPFeature .box {
 	padding: 0 16px 0 0;
+}
+
+/* On wide screens the home nav uses the same column as the hero bar and the content below it. */
+@media (min-width: 960px) {
+	.VPNavBar.home .wrapper {
+		padding: 0 var(--rooted-home-gutter);
+	}
+
+	.VPNavBar.home .container {
+		max-width: var(--rooted-home-width);
+	}
 }
