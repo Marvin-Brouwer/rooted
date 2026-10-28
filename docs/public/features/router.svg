@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="320" height="128" viewBox="0 0 320 128" aria-hidden="true"><rect width="320" height="128" fill="#2f6b45"/>
-<text x="6" y="118" font-family="JetBrains Mono, ui-monospace, monospace" font-size="40" font-weight="700" fill="#3a7a52">_routes.mts</text>
-<g fill="#ffffff"><rect x="24" y="26" width="112" height="26"/><rect x="24" y="68" width="112" height="26"/></g>
-<g font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" fill="#2f6b45"><text x="34" y="43">/recipes/<tspan font-weight="700">:id</tspan></text><text x="34" y="85">/users/<tspan font-weight="700">:name</tspan></text></g>
-<g stroke="#cfe3d5" stroke-width="3"><path d="M142 39H158"/><path d="M142 81H158"/></g>
-<g fill="#cfe3d5"><path d="M156 32L168 39L156 46Z"/><path d="M156 74L168 81L156 88Z"/></g>
-<g fill="#cfe3d5"><rect x="174" y="26" width="130" height="26"/><rect x="174" y="68" width="130" height="26"/></g>
-<g font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" fill="#2f6b45"><text x="184" y="43">{ <tspan font-weight="700">id</tspan>: string }</text><text x="184" y="85">{ <tspan font-weight="700">name</tspan>: string }</text></g>
+<text x="22" y="38" font-family="JetBrains Mono, ui-monospace, monospace" font-size="34" font-weight="700" fill="#3a7a52">_routes.mts</text>
+<g fill="#ffffff"><rect x="24" y="50" width="112" height="24"/><rect x="24" y="86" width="112" height="24"/></g>
+<g font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" fill="#2f6b45"><text x="34" y="66">/recipes/<tspan font-weight="700">:id</tspan></text><text x="34" y="102">/users/<tspan font-weight="700">:name</tspan></text></g>
+<g stroke="#cfe3d5" stroke-width="3"><path d="M142 62H158"/><path d="M142 98H158"/></g>
+<g fill="#cfe3d5"><path d="M156 55L168 62L156 69Z"/><path d="M156 91L168 98L156 105Z"/></g>
+<g fill="#cfe3d5"><rect x="174" y="50" width="130" height="24"/><rect x="174" y="86" width="130" height="24"/></g>
+<g font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" fill="#2f6b45"><text x="184" y="66">{ <tspan font-weight="700">id</tspan>: string }</text><text x="184" y="102">{ <tspan font-weight="700">name</tspan>: string }</text></g>
 </svg>
