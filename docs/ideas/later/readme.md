@@ -22,12 +22,40 @@ These get more useful once v2 can render per request, but they don't have to wai
 
 ## Tooling
 
-From [#35](https://github.com/Marvin-Brouwer/rooted/issues/35), [#70](https://github.com/Marvin-Brouwer/rooted/issues/70) and [#71](https://github.com/Marvin-Brouwer/rooted/issues/71):
+These used to be issues [#35](https://github.com/Marvin-Brouwer/rooted/issues/35) (future plans), [#70](https://github.com/Marvin-Brouwer/rooted/issues/70) (knip) and [#71](https://github.com/Marvin-Brouwer/rooted/issues/71) (accessibility scans). Everything they said is here, so they could be closed.
 
-- **A project CLI.** `@rooted/cli` with templates for a new application, a new library, or a new feature slice (the issue suggests plop).
-- **Leak checks.** [memlab](https://github.com/facebook/memlab) scenarios (navigate, act, go back) that diff heap snapshots, and a dev-mode option that logs through `FinalizationRegistry` when a component is actually collected. Both test that the signal cleanup does what it says.
-- **Compression in adapters.** Adapters for hosts that serve pre-compressed files write `.br` and `.gz` next to the build.
-- **Validator and editor support.** Generate a `custom-elements.json` (the [Custom Elements Manifest](https://github.com/webcomponents/custom-elements-manifest)) for editor autocomplete and docs, and an `html-validate` plugin with element metadata, so validation understands rooted components. The build knows every component, so both can come from the same source. From the [hydration](../v2/hydration.md) discussion.
-- **knip in CI**, to keep unused files, exports and dependencies out.
-- **Accessibility scans** in the pipeline, or even in the linter.
-- **Bundle tooling.** Check whether `vite-plugin-inspect` or `rollup-plugin-visualizer` add anything over the current bundle report.
+### A project CLI
+
+Scaffolding scripts, probably with [plop](https://plopjs.com/), so a new project or feature starts from a template:
+
+- `pnpm dlx @rooted/cli new-application {name} {folder}`
+- `pnpm dlx @rooted/cli new-library {name} {folder}`
+- `pnpm project add feature {feature and folder name}`, for a new vertical slice in an existing app.
+
+### Leak checks
+
+Both of these test that the signal cleanup does what it says.
+
+- **[memlab](https://github.com/facebook/memlab)**, Meta's leak detector. You write a scenario (navigate to a page, do something, go back), it takes a heap snapshot at each step and diffs them, and it reports leaked objects with the chain that keeps them alive. Much faster than comparing snapshots by hand. Runs with `npx memlab run --scenario my-scenario.js`.
+- **`AbortController` plus `FinalizationRegistry`.** A `FinalizationRegistry` can log when an object is actually garbage collected, which shows that cleanup really let go of a component. This could be a dev-mode option, switched on through the manifest, and it's useful in tests too.
+
+### Compression in adapters
+
+[`vite-plugin-compression`](https://github.com/vbenjs/vite-plugin-compression) writes `.br` and `.gz` files next to the build. It should be part of every adapter whose host can serve pre-compressed files, not something each app adds.
+
+### Validator and editor support
+
+Generate a `custom-elements.json` (the [Custom Elements Manifest](https://github.com/webcomponents/custom-elements-manifest)) for editor autocomplete and docs, and an `html-validate` plugin with element metadata, so validation understands rooted components. The build knows every component, so both can come from the same source. From the [hydration](../v2/hydration.md) discussion.
+
+### knip in CI
+
+Add [knip](https://knip.dev/explanations/why-use-knip) to the pipelines, and maybe the local workflow, to catch unused files, exports and dependencies. The framework should stay as lean as possible.
+
+### Accessibility scans
+
+Find a tool that scans a site for accessibility issues regularly: in the pipeline, or even as part of the linter. axe and Lighthouse are the usual candidates, since they check the accessibility tree rather than the markup.
+
+### Build inspection
+
+- [`vite-plugin-inspect`](https://github.com/antfu-collective/vite-plugin-inspect), which shows the intermediate state of each Vite plugin. Check whether it adds anything for rooted's own plugins.
+- [`rollup-plugin-visualizer`](https://github.com/btd/rollup-plugin-visualizer), as a more feature-rich bundle analyzer. Partly covered since `@rooted/application` got its bundle report with Sonda ([#392](https://github.com/Marvin-Brouwer/rooted/pull/392)), so only worth a look if that report falls short.
