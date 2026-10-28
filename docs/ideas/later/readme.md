@@ -27,6 +27,7 @@ From [#35](https://github.com/Marvin-Brouwer/rooted/issues/35), [#70](https://gi
 - **A project CLI.** `@rooted/cli` with templates for a new application, a new library, or a new feature slice (the issue suggests plop).
 - **Leak checks.** [memlab](https://github.com/facebook/memlab) scenarios (navigate, act, go back) that diff heap snapshots, and a dev-mode option that logs through `FinalizationRegistry` when a component is actually collected. Both test that the signal cleanup does what it says.
 - **Compression in adapters.** Adapters for hosts that serve pre-compressed files write `.br` and `.gz` next to the build.
+- **Validator and editor support.** Generate a `custom-elements.json` (the [Custom Elements Manifest](https://github.com/webcomponents/custom-elements-manifest)) for editor autocomplete and docs, and an `html-validate` plugin with element metadata, so validation understands rooted components. The build knows every component, so both can come from the same source. From the [hydration](../v2/hydration.md) discussion.
 - **knip in CI**, to keep unused files, exports and dependencies out.
 - **Accessibility scans** in the pipeline, or even in the linter.
 - **Bundle tooling.** Check whether `vite-plugin-inspect` or `rollup-plugin-visualizer` add anything over the current bundle report.

@@ -8,7 +8,7 @@ This is a draft, not a spec. Nothing below is decided until it has an ADR, and t
 
 v1 works, and it's what the beta is about. But a few things can't be fixed without breaking the API:
 
-- **Updating a view is manual.** You `append`, `swap` and `replace` nodes yourself. Every component that shows changing data carries its own update code.
+- **Building a view is manual.** You `append`, `swap` and `replace` nodes yourself in `onMount`, which can't run on a server.
 - **Options are frozen at creation.** A parent can't change a child's options after `create()`, so state ends up in stores or module scope even when it only belongs to one component.
 - **The wrapper element gets in the way.** Every component sits in an `<r-->` host. `display: contents` hides it from layout, but not from the HTML parser, assistive tech or selectors. Tables are where it breaks outright, see [table records](../../learnings/table-records.md).
 - **Rendering is browser-only.** `@rooted/prerender` renders pages at build time in happy-dom, but the browser throws that markup away and mounts the app from scratch ([#407](https://github.com/Marvin-Brouwer/rooted/issues/407) shows how much that relies on). There's no per-request rendering, and nothing gets reused on the client.
@@ -30,10 +30,10 @@ These are what rooted is, and v2 keeps them:
 
 ### 1. Component model
 
-The [component shape proposal](./component-shape.md) puts this together in one example, and lays out the options for props.
+The [component model](./component-model.md) has the shape that came out of the hydration discussion. The [component shape proposal](./component-shape.md) puts it together in one example, and lays out the options for props.
 
-- Replace `onMount` with `mount`, which returns what to render, plus a `mounted` event that only fires in the browser. That split is what makes server rendering possible.
-- One `render` function that diffs against the current DOM, instead of the `append`/`replace`/`swap` family. The low-level functions might stay available for edge cases.
+- Replace `onMount` with `mount`, which runs on the server and again in the browser to hydrate, plus a `mounted` event that only fires in the browser. That split is what makes server rendering possible.
+- After load, changes are plain DOM operations on the references `mount` created. Whether there's also a `render()` that diffs is open, see [hydration](./hydration.md#open-questions).
 - Constructor options (required and optional) and settable properties as separate things. The sketches use `option()` and `property()`; the names and the mechanism are open.
 - Elements and components behind the same proxy, so `rooted(element)` and a component instance have the same API (`classes`, `on`, and so on).
 - Small helpers that clean up through the signal: `after(ms, fn)`, `every(ms, fn)`, `query(selector)`.
@@ -44,13 +44,13 @@ Open: whether `property()` updates re-render automatically or fire an event you 
 ### 2. The host element
 
 - Name hosts after the component (`{componentName}-{filepathId}`) instead of the generic `<r-->`, so they mean something in DevTools and in the accessibility tree.
-- Let a component render as the element itself, the `is="td"` pattern, so a row can be a `<tr>`. Customized built-ins don't work in Safari and won't, so this needs either a small polyfill or rooted's own way of attaching a component to a plain element.
+- Let a component render as the element itself, so a row can be a `<tr>`. The direction is native `is` with the `@ungap/custom-elements` polyfill for Safari, hidden behind rooted's own API. See the [component model](./component-model.md#extending-built-in-elements).
 
 ### 3. Rendering on the server
 
 - Server rendering of components, either per request (Fastify, Express, and the function adapters in [later](../later/readme.md)) or at build time like today.
 - Streaming HTML through a generator `mount`, so the top of a page goes out before slow parts resolve. Open: what a streaming component does under SSG, where there's no request to stream into, and when its parts wait on API calls.
-- Hydration: take over the server's markup in the browser instead of replacing it. **This section is unfinished.** The hydration design was discussed outside the repo and still needs to be written down here.
+- Hydration: take over the server's markup in the browser instead of replacing it. Standard ids are the only marker, a Vite transform marks what needs one, and the browser claims those elements by id. See [hydration](./hydration.md).
 
 Related: [#151](https://github.com/Marvin-Brouwer/rooted/issues/151) (request-time HTML for dynamic routes in the node adapters) and [#378](https://github.com/Marvin-Brouwer/rooted/issues/378) (pre-render with happy-dom's `Browser`).
 

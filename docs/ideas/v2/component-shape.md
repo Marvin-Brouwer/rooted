@@ -2,6 +2,9 @@
 
 One example of what a v2 component could look like, condensed from the [component sketches](./components.md). This is a proposal to react to, not a decision. Props in particular haven't been discussed yet, so that part is a set of options rather than an answer.
 
+> [!NOTE]
+> This was written before the [hydration](./hydration.md) notes were added. Where the two differ, the [component model](./component-model.md) is closer to what was discussed. The main difference: this example re-renders with `render()` after load, and whether that exists at all is an open question there.
+
 ## The example
 
 ```typescript
