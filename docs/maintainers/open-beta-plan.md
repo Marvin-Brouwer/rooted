@@ -31,6 +31,7 @@ The distribution side wasn't ready:
 | 11 | `SECURITY.md` says "latest published version", which is ambiguous with a stale `latest` tag | Say "the latest `beta` release" until 1.0 | Early in beta | Open |
 | 12 | The `LICENSE` note says `/.docs/branding` instead of `docs/branding`; GitHub detects the license as "Other" | Fix the path; consider keeping the branding exception in `docs/branding/LICENSE.md` only, so `LICENSE` is plain MIT | Before 1.0 | Open |
 | 13 | `1.0.0` is burnt for five packages | Decide the 1.0 numbering (see "The burnt 1.0.0" below) | Before 1.0 | Open |
+| 14 | The repository lives under a personal account | Move it to the [rooted-components](https://github.com/rooted-components) organisation (see "Moving to the organisation" below) | Before announcing | Open |
 
 ## Versioning and stability promises
 
@@ -91,6 +92,26 @@ Keep `bug`, `enhancement` and `documentation`, and add:
 ### Support expectations
 
 No response-time promise. Rooted is a hobby project, and the beta page says so. Q&A is the first stop for questions, users are asked to answer each other there, and good answers get marked as accepted. Bugs that need a redesign get a short ADR in `docs/adr/`.
+
+## Moving to the organisation
+
+The repository moves from `Marvin-Brouwer/rooted` to `rooted-components/rooted` before the beta is announced, so nobody bookmarks, stars or links to the old location. The npm scopes (`@rooted`, `@rooted-adapters`) don't change.
+
+The move and the first beta release have to happen in a fixed order. Merging #450 triggers the first beta release, and npm checks two things when it publishes with provenance: that the `repository.url` in each `package.json` matches the repository the workflow runs in, and that a trusted publisher is configured for that repository. Merge #450 before the move and the release goes out from the old location; update the URLs before the move and the release fails. So #450 waits for the move.
+
+GitHub redirects the repository web URL and git remotes after a transfer, but [not GitHub Pages](https://docs.github.com/en/repositories/creating-and-managing-repositories/transferring-a-repository). Issues, pull requests, discussions, releases, tags, stars, secrets and webhooks move with it. Creating a new repository called `Marvin-Brouwer/rooted` afterwards kills the redirect for good, so don't.
+
+### Steps
+
+1. **Prepare the organisation.** Create `rooted-components` if it doesn't exist yet. Install the GitHub apps the repo uses (Socket Security, the Claude app) on the organisation, and allow fine-grained personal access tokens in the organisation settings.
+2. **Transfer the repository.** Settings, Danger zone, Transfer, to `rooted-components`, keeping the name `rooted`. Then check what the docs don't promise: branch protection or rulesets, the `github-pages` and `production` environments, repository variables, and that Discussions came along.
+3. **Update the source.** Replace every `Marvin-Brouwer/rooted` URL in the repo: `repository`, `homepage` and `bugs` in all 33 published `package.json` files, the TSDoc links in source (they end up in the published typings), the docs config, the READMEs and the issue templates. The docs base stays `/rooted/`, the site moves to `https://rooted-components.github.io/rooted/`. Push this to #450 so it lands together with the switch to beta.
+4. **Move the npm trusted publishers.** For each of the 33 packages, delete the trusted publisher that points at `Marvin-Brouwer/rooted` and create one for `rooted-components/rooted` with workflow `release.yml`. Since the [trusted publishing flaw disclosed in October 2026](https://www.helpnetsecurity.com/2026/10/13/slugfest-npm-trusted-publishing-flaw/), a new configuration that hasn't been used for a publish expires after 48 hours. Do this step right before merging #450, not days ahead. Run `npm trust list` afterwards (needs npm 11) to check every binding points at the organisation.
+5. **Move the other OIDC trust.** The Azure static web app deploy logs in with a federated credential whose subject names the repository (`repo:Marvin-Brouwer/rooted:environment:production`). Add one for `rooted-components/rooted` in the Azure app registration, and remove the old one once a deploy has worked.
+6. **Replace the Dependabot token.** `DEPENDABOT_APPROVE_TOKEN` is a personal access token. If it's fine-grained and owned by your account, it can't see an organisation repository. Create a new one with the organisation as resource owner and update the secret.
+7. **Merge #450.** The release publishes `1.0.0-beta.1` from the organisation. Check one package's provenance on npmjs.com names `rooted-components/rooted`.
+8. **Look after the old URLs.** The old docs site at `marvin-brouwer.github.io/rooted/` stops working, and so do the service worker tombstones from #452 that live there. A user site repository, `Marvin-Brouwer/Marvin-Brouwer.github.io`, can still serve that path: put a redirect page at `rooted/index.html` and copy `sw.js` and `worker.js` to `rooted/`. A differently named repository doesn't affect the transfer redirect.
+9. **Update everything outside the repo.** The repository description and website field on GitHub, npm package pages (they read `homepage` from the next publish), local clones (`git remote set-url origin https://github.com/rooted-components/rooted.git`), and the Claude project settings so these sessions point at the new repository.
 
 ## Announcement
 
