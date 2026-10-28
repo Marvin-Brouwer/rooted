@@ -35,9 +35,9 @@ The logo is a green square with `rooted` set in the bottom-right corner. At smal
 
 <p>
   <img src="./logo.svg" width="128" height="128" alt="rooted logo, tier 1"/>
-  &nbsp;&nbsp;
+  &nbsp;
   <img src="./logo-rd.svg" width="96" height="96" alt="rooted logo, tier 2"/>
-  &nbsp;&nbsp;
+  &nbsp;
   <img src="./logo-r-dot.svg" width="64" height="64" alt="rooted logo, tier 3"/>
 </p>
 
