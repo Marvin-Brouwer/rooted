@@ -1,14 +1,10 @@
+import { bannerLayout } from './banner-layout.mts'
 import { codeBlock } from './code-block.mts'
 import { logoTile } from './logo-tile.mts'
 import { colours, paletteCss } from './palette.mts'
 import { wordmark } from './wordmark.mts'
 
-/** Also set on the banner's `<img>` tags in the README and the style guide, to prevent layout shift. Change those along with it. */
-const height = 340
-const margin = 32
-const codeSize = 15
-const lineHeight = 1.45
-const wordmarkWidth = 300
+const { height, margin, codeSize, lineHeight, wordmarkWidth } = bannerLayout
 /** Below this width the code would run into the wordmark, so it hides and the wordmark takes the logo's proportions. */
 const narrowBelow = 760
 

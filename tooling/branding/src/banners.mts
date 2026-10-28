@@ -2,6 +2,7 @@
  * Writes the README banner and the GitHub social preview to `docs/branding/`.
  *
  * - `banner.svg`: the full-width README banner, with a dark mode.
+ * - `banner-fixed.svg`: the same layout at a fixed size, for medium screens.
  * - `banner-narrow.svg`: the README banner for narrow screens, with a fixed shape.
  * - `social-card.svg`: the social preview.
  * - `social-card.png`: the same, rendered for uploading under Settings, General, Social preview.
@@ -15,6 +16,7 @@ import path from 'node:path'
 
 import sharp from 'sharp'
 
+import { bannerFixed } from './banners/banner-fixed.mts'
 import { bannerNarrow } from './banners/banner-narrow.mts'
 import { banner } from './banners/banner.mts'
 import { socialCard } from './banners/social-card.mts'
@@ -24,8 +26,9 @@ const outputDirectory = path.resolve(import.meta.dirname, '../../../docs/brandin
 const socialCardSvg = socialCard()
 
 await writeFile(path.join(outputDirectory, 'banner.svg'), banner())
+await writeFile(path.join(outputDirectory, 'banner-fixed.svg'), bannerFixed())
 await writeFile(path.join(outputDirectory, 'banner-narrow.svg'), bannerNarrow())
 await writeFile(path.join(outputDirectory, 'social-card.svg'), socialCardSvg)
 await sharp(Buffer.from(socialCardSvg)).png().toFile(path.join(outputDirectory, 'social-card.png'))
 
-console.log(`Wrote banner.svg, banner-narrow.svg, social-card.svg and social-card.png to ${path.relative(process.cwd(), outputDirectory)}`)
+console.log(`Wrote banner.svg, banner-fixed.svg, banner-narrow.svg, social-card.svg and social-card.png to ${path.relative(process.cwd(), outputDirectory)}`)
