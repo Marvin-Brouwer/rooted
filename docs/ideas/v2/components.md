@@ -70,6 +70,7 @@ That keeps the API consistent, and because a component can be re-wrapped, the re
   - `after(milliseconds, callback)`: `setTimeout`, cleaned up by the `abortSignal`.
   - `every(milliseconds, callback)`: `setInterval`, cleaned up by the `abortSignal`.
   - `query<keyof HTMLElementTagNameMap>(queryString)`: `document.querySelector` plus `rooted()`.
+- Components that render as the element itself, the `is="td"` pattern, so a table row can be a component. The wrapper element breaks tables today, see [table records](../../learnings/table-records.md).
 
 ## What stays
 

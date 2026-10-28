@@ -68,6 +68,13 @@ export default defineConfig({
 				],
 			},
 			{
+				text: 'Learnings',
+				collapsed: true,
+				items: [
+					{ text: 'Table records', link: '/learnings/table-records' },
+				],
+			},
+			{
 				text: 'Maintainers',
 				items: [
 					{ text: 'Coding style', link: '/maintainers/coding-style' },
