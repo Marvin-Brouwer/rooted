@@ -178,6 +178,8 @@ That rewrites `banner.svg`, `social-card.svg` and `social-card.png`. Don't edit 
 | Web app manifest icons | tier 1 | 192, 512 |
 | GitHub / npm avatar | tier 1 | as uploaded |
 
+The docs site's `favicon.ico` is generated from the logo files by [`@rooted/branding`](../../tooling/branding/readme.md). Run `pnpm branding favicons` to write `docs/public/favicon.ico` again after changing a logo.
+
 A single SVG favicon can't switch tiers by size, and browsers that support SVG favicons prefer it over the `.ico` in tabs. If you ship `favicon.svg`, make it tier 3. Otherwise, leave it out and let the `.ico` choose.
 
 ```html

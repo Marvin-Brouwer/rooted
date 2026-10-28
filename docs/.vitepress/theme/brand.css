@@ -69,19 +69,41 @@
 	padding-top: 40px;
 }
 
-/* Features as one row under a green rule instead of cards. */
-.VPHome .VPFeatures .container {
-	border-top: 2px solid var(--rooted-green);
-	padding-top: 16px;
-}
-
+/*
+ * Feature blocks: a green illustration panel across the top, the text on a soft background below.
+ * Five blocks don't fit VitePress's four-column grid, so on wide screens they go three over two, all the same width, with the second row centred.
+ */
 .VPHome .VPFeature {
-	background: transparent;
 	border: 0;
+	background: var(--vp-c-bg-soft);
 }
 
 .VPHome .VPFeature .box {
-	padding: 0 16px 0 0;
+	padding: 0 0 24px;
+}
+
+/* The illustration keeps its size and sits centred on a green band as wide as the block. */
+.VPHome .VPFeature .box > .VPImage {
+	width: 100%;
+	height: 128px;
+	object-fit: contain;
+	background: var(--rooted-green);
+}
+
+.VPHome .VPFeature .title,
+.VPHome .VPFeature .details {
+	padding-right: 24px;
+	padding-left: 24px;
+}
+
+@media (min-width: 960px) {
+	.VPHome .VPFeatures .items {
+		justify-content: center;
+	}
+
+	.VPHome .VPFeatures .item {
+		width: calc(100% / 3);
+	}
 }
 
 /* On wide screens the home nav uses the same column as the hero bar and the content below it. */
