@@ -46,7 +46,7 @@
 	},
 	"dependencies": {
 		"@rooted/dom-globals": "workspace:^",
-		"happy-dom": "^20.14.6"
+		"happy-dom": "^21.0.4"
 	},
 	"devDependencies": {
 		"@rooted/development": "workspace:*",

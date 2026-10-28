@@ -1,0 +1,118 @@
+/*
+ * The brand on top of the default VitePress theme, see docs/branding/style-guide.md.
+ * Code blocks keep VitePress's own syntax colours, the banner palette is only for the hero.
+ */
+
+:root {
+	--rooted-green: #2f6b45;
+	--rooted-night: #0d1117;
+
+	--vp-c-brand-1: var(--rooted-green);
+	--vp-c-brand-2: #3b8156;
+	--vp-c-brand-3: var(--rooted-green);
+	--vp-c-brand-soft: rgba(47, 107, 69, 0.14);
+
+	--vp-font-family-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Monaco, Consolas, monospace;
+
+	/* The home page column: VitePress's hero and features width, and their side padding on wide screens. */
+	--rooted-home-width: 1152px;
+	--rooted-home-gutter: 64px;
+}
+
+/* Body text on white is night. Dark mode keeps VitePress's own text colours. */
+:root:not(.dark) {
+	--vp-c-text-1: var(--rooted-night);
+}
+
+/*
+ * The style guide has no dark link colour, and green on night is 2.98:1, too low for text.
+ * This lighter green is a stand-in until it does.
+ */
+.dark {
+	--vp-c-brand-1: #7cc497;
+	--vp-c-brand-2: #95d1ab;
+	--vp-c-brand-3: var(--rooted-green);
+	--vp-c-brand-soft: rgba(124, 196, 151, 0.16);
+
+	--vp-c-bg: var(--rooted-night);
+	--vp-c-bg-alt: #0a0e12;
+	--vp-c-bg-elv: #121a17;
+	--vp-c-bg-soft: #121a17;
+}
+
+/*
+ * Square corners, like the tile.
+ * Most of these are scoped component styles in VitePress, which win on specificity, hence the !important.
+ */
+.VPButton,
+.VPFeature,
+.VPNavBarSearch .DocSearch-Button,
+.VPLocalSearchBox .shell,
+.VPLocalSearchBox .search-bar,
+.custom-block,
+.vp-doc div[class*='language-'],
+.vp-doc :not(pre) > code,
+.vp-doc table,
+.VPSwitch,
+.VPSwitch .check,
+.VPFlyout .menu,
+.VPMenu {
+	border-radius: 0 !important;
+}
+
+/*
+ * The hero bar sits under the nav, so the hero stays below it.
+ * By default the hero pulls itself up under the nav and pads itself back down.
+ */
+.VPHome .VPHero {
+	margin-top: 0;
+	padding-top: 40px;
+}
+
+/*
+ * Feature blocks: a green illustration panel across the top, the text on a soft background below.
+ * Five blocks don't fit VitePress's four-column grid, so on wide screens they go three over two, all the same width, with the second row centred.
+ */
+.VPHome .VPFeature {
+	border: 0;
+	background: var(--vp-c-bg-soft);
+}
+
+.VPHome .VPFeature .box {
+	padding: 0 0 24px;
+}
+
+/* The illustration keeps its size and sits centred on a green band as wide as the block. */
+.VPHome .VPFeature .box > .VPImage {
+	width: 100%;
+	height: 128px;
+	object-fit: contain;
+	background: var(--rooted-green);
+}
+
+.VPHome .VPFeature .title,
+.VPHome .VPFeature .details {
+	padding-right: 24px;
+	padding-left: 24px;
+}
+
+@media (min-width: 960px) {
+	.VPHome .VPFeatures .items {
+		justify-content: center;
+	}
+
+	.VPHome .VPFeatures .item {
+		width: calc(100% / 3);
+	}
+}
+
+/* On wide screens the home nav uses the same column as the hero bar and the content below it. */
+@media (min-width: 960px) {
+	.VPNavBar.home .wrapper {
+		padding: 0 var(--rooted-home-gutter);
+	}
+
+	.VPNavBar.home .container {
+		max-width: var(--rooted-home-width);
+	}
+}

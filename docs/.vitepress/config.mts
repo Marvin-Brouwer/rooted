@@ -7,6 +7,10 @@ export default defineConfig({
 	// Existing docs use relative links to source files and repo root that are valid on GitHub
 	// but not resolvable in the VitePress build.
 	ignoreDeadLinks: true,
+	// `head` paths don't get `base` added, so it's spelled out here.
+	head: [
+		['link', { rel: 'icon', href: '/rooted/favicon.ico', sizes: '16x16 32x32 48x48' }],
+	],
 
 	themeConfig: {
 		nav: [
