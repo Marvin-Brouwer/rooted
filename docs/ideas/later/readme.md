@@ -22,7 +22,7 @@ These get more useful once v2 can render per request, but they don't have to wai
 
 ## Tooling
 
-These used to be issues [#35](https://github.com/Marvin-Brouwer/rooted/issues/35) (future plans), [#70](https://github.com/Marvin-Brouwer/rooted/issues/70) (knip) and [#71](https://github.com/Marvin-Brouwer/rooted/issues/71) (accessibility scans). Everything they said is here, so they could be closed.
+These used to be issues [#35](https://github.com/Marvin-Brouwer/rooted/issues/35) (future plans), [#70](https://github.com/Marvin-Brouwer/rooted/issues/70) (knip) and [#71](https://github.com/Marvin-Brouwer/rooted/issues/71) (accessibility scans). Everything they said is written up here, and the issues stay open to track the work.
 
 ### A project CLI
 

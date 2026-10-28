@@ -67,7 +67,7 @@ Related: [#151](https://github.com/Marvin-Brouwer/rooted/issues/151) (request-ti
 
 ### 6. Tooling that waits for the new syntax
 
-Both of these are on hold until the v2 API settles, because they'd have to be rewritten otherwise.
+Both of these are on hold until the v2 API settles, because they'd have to be rewritten otherwise. They also depend on two other steps: rooted moves to a GitHub organisation soon, and once the v2 components are final, a component library becomes part of the framework in its own repo under that organisation. The linters and the MCP server should cover that library too, so they come after it.
 
 - [#298](https://github.com/Marvin-Brouwer/rooted/issues/298): oxlint rules with autofix for rooted anti-patterns, like properties on one line, unused `mount` parameters, single-item `children` arrays, or a store listener in a component without the component's signal.
 - [#299](https://github.com/Marvin-Brouwer/rooted/issues/299): a small MCP server with tools to create, find and update components, because LLMs keep missing that rooted is a component framework.
@@ -82,6 +82,7 @@ Both of these are on hold until the v2 API settles, because they'd have to be re
 2. Server rendering and hydration. They need the new `mount` and decide how `render` diffs.
 3. Server logic, once there's a server render to hook into.
 4. Router and SEO items. These are mostly independent and could land at any point.
-5. Linters and MCP last, against the final syntax.
+5. Move rooted to an organisation, and start the component library in its own repo once the v2 components are final.
+6. Linters and MCP last, against the final syntax and the component library.
 
 Each step gets an ADR in `docs/adr/` before the code lands.
