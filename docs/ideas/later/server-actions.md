@@ -1,6 +1,9 @@
 # Server actions
 
-If v2 gets a backend (see [components in v2](./components.md)), it could also run logic on the server on demand. Not built, just a first idea.
+Run logic on the server on demand, and call it from a component like a normal async function. Not built, just a first idea.
+
+> [!NOTE]
+> This was written before v1 had a server. The Fastify and Express adapters now have [server middleware](../../advanced/server-middleware.md), which covers a lot of what this was for: you can already put an endpoint next to the app and `fetch` it. What's left is the typed call, so the most likely shape for this is an extension of the middleware rather than something new. It's also close to [API routes](./api-routes.md), and the two should probably be designed together.
 
 ## Sketch
 
@@ -48,4 +51,5 @@ export const Example = component({
 ## Open questions
 
 - What carries the call: a plain HTTP endpoint, a websocket, something else?
-- Today, server code only exists through the Fastify and Express adapters' [server middleware](../../advanced/server-middleware.md). Actions would need one of those adapters too, so they can't work on a static host.
+- Actions need a server adapter, so they can't work on a static host. Does a build for a static adapter fail, or warn?
+- If this extends the middleware, does an action register a route there, and how does the client know its URL?

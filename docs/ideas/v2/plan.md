@@ -2,7 +2,7 @@
 
 What v2 is meant to change, collected from the [component sketches](./components.md), the [V2 milestone](https://github.com/Marvin-Brouwer/rooted/milestone/3), and what building apps on v1 taught us. Work happens on the `v2` branch, which publishes to the `alpha` dist-tag.
 
-This is a plan, not a spec. Nothing below is decided until it has an ADR, and the order at the end is a suggestion.
+This is a draft, not a spec. Nothing below is decided until it has an ADR, and the order at the end is a suggestion.
 
 ## Why a v2
 
@@ -47,15 +47,16 @@ Open: whether `property()` updates re-render automatically or fire an event you 
 ### 3. Rendering on the server
 
 - Server rendering of components, either per request (Fastify, Express, and the function adapters in [later](../later/readme.md)) or at build time like today.
-- Streaming HTML through a generator `mount`, so the top of a page goes out before slow parts resolve.
+- Streaming HTML through a generator `mount`, so the top of a page goes out before slow parts resolve. Open: what a streaming component does under SSG, where there's no request to stream into, and when its parts wait on API calls.
 - Hydration: take over the server's markup in the browser instead of replacing it. **This section is unfinished.** The hydration design was discussed outside the repo and still needs to be written down here.
 
 Related: [#151](https://github.com/Marvin-Brouwer/rooted/issues/151) (request-time HTML for dynamic routes in the node adapters) and [#378](https://github.com/Marvin-Brouwer/rooted/issues/378) (pre-render with happy-dom's `Browser`).
 
 ### 4. Server logic
 
-- [Server actions](./server-actions.md): functions that run on the server and get called like normal async functions.
 - Routes that return a response next to a component, like `response('redirect', './login')` or `response('not-allowed', Component())`. This only works with a server adapter, so static hosts need a fallback, or the feature is server-only and says so.
+
+[Server actions](../later/server-actions.md) are close to this, but they overlap with API routes and the existing server middleware, so they're parked under later.
 
 ### 5. Router and SEO
 

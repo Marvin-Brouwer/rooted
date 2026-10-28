@@ -4,6 +4,7 @@ Ideas that aren't part of the [v2 plan](../v2/plan.md). Some need v2's server re
 
 ## Bigger features
 
+- [Server actions](./server-actions.md). Functions that run on the server and get called like normal async functions. They overlap with API routes, so the two probably get designed together.
 - [API routes](./api-routes.md). Use the router's tagged-template pattern for API endpoints. Several options are sketched, and it's not settled that a rooted app should serve an API at all.
 - [Distributed pages](./distributed-pages.md). Split one site into several front-end apps per feature, behind a generated proxy.
 

@@ -211,3 +211,5 @@ Not sure about the `option` and `property` helpers yet. Whatever they end up as,
 
 - Constructor options, both required and optional.
 - Properties you can set after construction.
+
+How should a streaming component behave when it's rendered on the server (SSR) or at build time (SSG), and when the parts it yields wait on API calls? Under SSG there's no response to stream into, so it probably renders to the end, but then a slow call holds up the build. Under SSR it's not clear yet whether an API call that fails halfway closes the stream, renders a fallback, or leaves it to the browser.

@@ -7,6 +7,8 @@ export default defineConfig({
 	// Existing docs use relative links to source files and repo root that are valid on GitHub
 	// but not resolvable in the VitePress build.
 	ignoreDeadLinks: true,
+	// Internal notes, read on GitHub rather than on the site.
+	srcExclude: ['ideas/**', 'learnings/**'],
 	// `head` paths don't get `base` added, so it's spelled out here.
 	head: [
 		['link', { rel: 'icon', href: '/rooted/favicon.ico', sizes: '16x16 32x32 48x48' }],
@@ -54,26 +56,6 @@ export default defineConfig({
 					{ text: 'Overview', link: '/contributing/overview' },
 					{ text: 'Commits', link: '/contributing/commits' },
 					{ text: 'Pull requests', link: '/contributing/pull-requests' },
-				],
-			},
-			{
-				text: 'Ideas',
-				collapsed: true,
-				items: [
-					{ text: 'Overview', link: '/ideas/readme' },
-					{ text: 'v2: Plan', link: '/ideas/v2/plan' },
-					{ text: 'v2: Component sketches', link: '/ideas/v2/components' },
-					{ text: 'v2: Server actions', link: '/ideas/v2/server-actions' },
-					{ text: 'Later', link: '/ideas/later/readme' },
-					{ text: 'Later: API routes', link: '/ideas/later/api-routes' },
-					{ text: 'Later: Distributed pages', link: '/ideas/later/distributed-pages' },
-				],
-			},
-			{
-				text: 'Learnings',
-				collapsed: true,
-				items: [
-					{ text: 'Table records', link: '/learnings/table-records' },
 				],
 			},
 			{
