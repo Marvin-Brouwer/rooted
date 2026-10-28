@@ -5,39 +5,49 @@ One example of what a v2 component could look like, condensed from the [componen
 ## The example
 
 ```typescript
-import { component, option, property } from '@rooted/components'
+import { choice, component, cssClass, option, property } from '@rooted/components'
 
 import styles from './score-row.css'
 
 export const ScoreRow = component({
 	name: 'score-row',
 	styles,
-
 	// Set once, when the component is created
 	label: option<string>(),
 	// Can change after creation, see "Props" below
 	score: property<number | undefined>(undefined),
-
 	mount({ render, element, on, after, label, score }) {
-
 		// Only in the browser, never during SSR or SSG
 		on('component', 'mounted', () => {
-			after(2000, () => render(scoreView(score.value, false)))
+			after(2000, () => render(
+				scoreView(score.value, false)
+			))
 		})
-
 		on(score, 'updated', ({ value }) => {
-			render(scoreView(value, true))
+			render(
+				scoreView(value, true)
+			)
 		})
 
 		// Runs everywhere, and is what the server renders
-		return render(scoreView(score.value, false))
+		return render(
+			scoreView(score.value, false)
+		)
 
 		function scoreView(value: number | undefined, changed: boolean) {
 			return [
-				element('th', { children: label }),
+				element('th', {
+					children: label,
+				}),
 				element('td', {
-					classes: [styles.score, changed && styles.changed],
-					children: value === undefined ? '-' : String(value),
+					classes: [
+						styles.score,
+						cssClass(changed, styles.changed),
+					],
+					children: choice(value === undefined,
+						'-',
+						String(value)
+					),
 				}),
 			]
 		}
@@ -48,7 +58,10 @@ export const ScoreRow = component({
 Using it:
 
 ```typescript
-const row = ScoreRow({ label: 'Full house', score: undefined })
+const row = ScoreRow({
+	label: 'Full house',
+	score: undefined,
+})
 
 // later, from the parent
 row.score = 25
@@ -79,7 +92,14 @@ What the example uses. `option<T>()` and `property<T>(initial)` sit next to `nam
 ### Option B: a typed generic
 
 ```typescript
-export const ScoreRow = component<{ label: string }, { score: number | undefined }>({
+type ScoreRowOptions = {
+	label: string
+}
+type ScoreRowProperties = {
+	score: number | undefined
+}
+
+export const ScoreRow = component<ScoreRowOptions, ScoreRowProperties>({
 	name: 'score-row',
 	mount({ options, properties }) {
 		// ...
