@@ -12,6 +12,10 @@ To change the code shown in them, edit [`src/banners/code-example.mts`](./src/ba
 
 GitHub doesn't read the social preview from the repository. After regenerating it, upload `social-card.png` again under Settings, General, Social preview.
 
+### `pnpm branding favicons`
+
+Writes `docs/public/favicon.ico` for the docs site: tier 3 of the logo at 16 px and tier 2 at 32 and 48 px, rendered from the SVGs in `docs/branding/`. Run it again after changing one of the logo files.
+
 ## How it works
 
 The wordmark (Inter Display Black, from `inter-ui`) and the code (JetBrains Mono, from `@fontsource/jetbrains-mono`) are turned into outlines with `fontkit`, so the SVGs look the same wherever they're shown and don't need any font installed. Each character of the code is defined once and placed with `<use>`. `sharp` renders the PNG from the same SVG.
