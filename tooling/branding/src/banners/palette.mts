@@ -9,7 +9,8 @@ export const colours = {
 
 type Palette = Record<TokenKind, string>
 
-const light: Palette = {
+/** The code colours on green, also used by the docs site hero. */
+export const light: Palette = {
 	keyword: '#ffffff',
 	string: '#f3d59a',
 	function: '#dcf29b',
