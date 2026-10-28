@@ -84,6 +84,15 @@
 	padding: 0 16px 0 0;
 }
 
+/* The feature illustrations sit on the page, not in VitePress's rounded icon tile. */
+.VPHome .VPFeature .icon {
+	width: auto;
+	height: auto;
+	margin-bottom: 16px;
+	border-radius: 0;
+	background: transparent;
+}
+
 /* On wide screens the home nav uses the same column as the hero bar and the content below it. */
 @media (min-width: 960px) {
 	.VPNavBar.home .wrapper {
