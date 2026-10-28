@@ -1,8 +1,8 @@
-# rooted
+# <img src="./docs/branding/banner.svg" width="100%" height="340" alt="rooted"/>
 
 > A TypeScript framework for web apps. Rooted in custom elements, typed end-to-end, batteries included.
 
-Rooted is a framework for building web applications on top of native [custom elements](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements). \
+`rooted` is a framework for building web applications on top of native [custom elements](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements). \
 It gives you a typed component model, a typed router with per-route SEO, and a vertical-slice application layout. There is no virtual DOM, no signals, and no compiler step beyond standard TypeScript. Code reads top-to-bottom and does what it says.
 
 ```ts

@@ -19,11 +19,13 @@
 		"clean": "pnpm -r run clean",
 		"release": "multi-semantic-release --ignore-private-packages",
 		"bundle-sizes": "rooted-pipeline bundle-sizes",
+		"branding": "rooted-branding",
 		"full-update": "pnpm update -r"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^21.2.4",
 		"@commitlint/config-conventional": "^21.2.4",
+		"@rooted/branding": "workspace:*",
 		"@rooted/development": "workspace:*",
 		"@rooted/pipeline": "workspace:*",
 		"@types/unist": "^3.0.3",

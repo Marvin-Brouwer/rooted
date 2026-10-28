@@ -1,0 +1,4 @@
+{
+	"extends": "../../.repo/config/ts/tool.json",
+	"include": ["src/**/*.mts"]
+}
