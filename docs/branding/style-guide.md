@@ -35,8 +35,10 @@ The logo is a green square with `rooted` set in the bottom-right corner. At smal
 
 <p>
   <img src="./logo.svg" width="128" height="128" alt="rooted logo, tier 1"/>
-  <img src="./logo-rd.svg" width="96" height="128" alt="rooted logo, tier 2"/>
-  <img src="./logo-r-dot.svg" width="64" height="128" alt="rooted logo, tier 3"/>
+  &nbsp;&nbsp;
+  <img src="./logo-rd.svg" width="96" height="96" alt="rooted logo, tier 2"/>
+  &nbsp;&nbsp;
+  <img src="./logo-r-dot.svg" width="64" height="64" alt="rooted logo, tier 3"/>
 </p>
 
 All three tiers share the same tile, the same bottom-right anchor and the same colours. Pick the tier by the size it is **rendered** at, not by the size of the source file.
