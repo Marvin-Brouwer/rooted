@@ -2,7 +2,6 @@
 layout: home
 
 hero:
-  name: rooted
   text: Web components framework
   tagline: Typed end-to-end. No virtual DOM, no signals, no custom compiler. Just TypeScript and custom elements.
   actions:
