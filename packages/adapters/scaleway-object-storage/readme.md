@@ -5,10 +5,10 @@ Deployment adapter for Scaleway Object Storage static website hosting. Part of t
 Scaleway expects the fallback file to be named `error.html` rather than `404.html`. This adapter pre-configures that automatically.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add -D @rooted-adapters/scaleway-object-storage
+pnpm add -D @rooted-adapters/scaleway-object-storage@beta
 ```
 
 ```ts

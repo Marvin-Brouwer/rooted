@@ -5,10 +5,10 @@ Deployment adapter for GitLab Pages (static mode). Part of the [`@rooted/*`](htt
 Writes a `_redirects` file so GitLab Pages serves the SPA shell for unknown paths. For a GitLab deployment running a Node.js server, use `@rooted-adapters/fastify` or `@rooted-adapters/express` instead.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add -D @rooted-adapters/gitlab-pages
+pnpm add -D @rooted-adapters/gitlab-pages@beta
 ```
 
 ```ts

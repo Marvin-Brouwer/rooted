@@ -7,6 +7,7 @@ If you have not opened the project yet, the [main README](../../README.md) is th
 ## Contents
 
 - [Getting started](./getting-started.md). Install, first component, app bootstrap.
+- [Beta program](./beta.md). What the beta means, how to install it, and where feedback goes.
 - [Application model](./application-model.md). The vertical-slice layout used by rooted apps.
 - [Components](./components.md). The `component()` factory, the mount context, and the lifecycle.
 - [Routing](./routing.md). Typed routes, gates, navigation, and route discovery.

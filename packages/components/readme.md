@@ -3,10 +3,10 @@
 The component model for the [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted) framework.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add @rooted/components
+pnpm add @rooted/components@beta
 ```
 
 ```ts

@@ -3,7 +3,7 @@
 `@rooted/storage` wraps the three browser storage APIs (`localStorage`, `sessionStorage`, and cookies) in something type-safe. It does not encrypt or sync. It is just a small layer that handles serialisation and gives you typed reads.
 
 ```sh
-pnpm add @rooted/storage
+pnpm add @rooted/storage@beta
 ```
 
 Import from `@rooted/storage/web`:

@@ -5,10 +5,10 @@ Build-time SEO for [`@rooted/*`](https://github.com/Marvin-Brouwer/rooted#rooted
 Nothing in this entry point knows about routing, so it works in an app that doesn't use `@rooted/router`. Per-route metadata, sitemap entries built from the route manifest, and `llms.txt` live in `@rooted/seo/router`, which needs the router installed.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add @rooted/seo
+pnpm add @rooted/seo@beta
 ```
 
 Most apps get this wired up by `rootedManifest()` from `@rooted/application` and never import it directly. Import it when you're writing a plugin that wants to add to the page head or the sitemap.

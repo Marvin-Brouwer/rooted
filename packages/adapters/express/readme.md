@@ -7,10 +7,10 @@ Writes `routes.json` and a ready-to-run `server.mjs` to the output directory. St
 Requires `express >= 5.0.0`.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add -D @rooted-adapters/express
+pnpm add -D @rooted-adapters/express@beta
 ```
 
 ```ts

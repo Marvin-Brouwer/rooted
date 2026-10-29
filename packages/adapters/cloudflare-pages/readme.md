@@ -5,10 +5,10 @@ Deployment adapter for Cloudflare Pages static hosting. Part of the [`@rooted/*`
 Writes a `_redirects` file so Cloudflare Pages serves the SPA shell for unknown paths. This adapter is for static hosting only -- for Cloudflare Workers or Functions, a separate setup is needed.
 
 > [!IMPORTANT]
-> This package is still in alpha.
+> This package is in beta. Breaking changes can still happen between beta releases, so pin the exact version and read the release notes before you update.
 
 ```sh
-pnpm add -D @rooted-adapters/cloudflare-pages
+pnpm add -D @rooted-adapters/cloudflare-pages@beta
 ```
 
 ```ts

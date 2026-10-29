@@ -7,9 +7,11 @@ This guide assumes Vite. Rooted does not require Vite at runtime, but the route 
 ## 1. Install
 
 ```sh
-pnpm add @rooted/components
+pnpm add @rooted/components@beta
 pnpm add -D vite typescript
 ```
+
+Rooted is in beta, so install from the `@beta` tag and pin exact versions. The [beta program](./beta.md) page explains why.
 
 Add the rest as you need them: `@rooted/router` for routing, `@rooted/store` for shared state, `@rooted/storage` for `localStorage` and friends.
 

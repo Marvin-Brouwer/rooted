@@ -9,7 +9,7 @@
 The locale segment is the only part of the path that changes per language, so `/en-GB/about/` and `/nl-NL/about/` share a slug. [Translated URLs and international SEO](#translated-urls-and-international-seo) covers when that's the shape you want and when it isn't.
 
 ```sh
-pnpm add @rooted/localization
+pnpm add @rooted/localization@beta
 ```
 
 ## Configuring
